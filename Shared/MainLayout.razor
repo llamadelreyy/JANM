@@ -1,0 +1,130 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@using PBT.Pages
+@using Blazored.Toast.Configuration
+
+<HeadContent>
+    @foreach (var item in _activeTheme.StylesheetLinkUrl)
+    {
+        <link href="@item" rel="stylesheet" />
+    }
+</HeadContent>
+
+<BlazoredToasts Position="ToastPosition.BottomCenter"
+                Timeout="2"
+                IconType="IconType.Material"
+                ErrorIcon="error_outline"
+                InfoIcon="check_circle"
+                SuccessIcon="done_outline"
+                WarningIcon="warning"
+                ShowProgressBar="@true"
+                ShowCloseButton="@true"
+                MaxToastCount="3">
+    <CloseButtonContent>
+        <div>
+            <span class="myCloseButtonStyleClass">&times;</span>
+        </div>
+    </CloseButtonContent>
+</BlazoredToasts>
+
+<DxLayoutBreakpoint MaxWidth="1200"
+                    @bind-IsActive="@IsMobileLayout" />
+
+
+<div class="page">
+    <DxGridLayout CssClass="page-layout">
+        <Rows>
+            @if(IsMobileLayout) {
+                <DxGridLayoutRow Areas="header" Height="auto"></DxGridLayoutRow>
+                <DxGridLayoutRow Areas="sidebar" Height="auto"></DxGridLayoutRow>
+                <DxGridLayoutRow Areas="content" />
+            }
+            else {
+                <DxGridLayoutRow Areas="header header" Height="auto" />
+                <DxGridLayoutRow Areas="@(IsSidebarExpanded ? "sidebar content" : "content content")" />
+            }
+        </Rows>
+        <Columns>
+            @if(!IsMobileLayout) {
+                <DxGridLayoutColumn Width="auto" />
+                <DxGridLayoutColumn />
+            }
+        </Columns>
+        <Items>
+            <DxGridLayoutItem Area="header">
+                <Template>
+                    <Header @bind-ToggleOn="@IsSidebarExpanded" />
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="0" Column="1">
+                <Template>
+                    <ThemeSwitcherToggleButton @bind-Active=@_themeSwitcherShown />
+                    <div id="settingsbar" class="@(_themeSwitcherShown ? "" : "hidden-settings-bar")">
+                        <ThemeSwitcherSideView @bind-ActiveTheme="@_activeTheme" @bind-Visible="@_themeSwitcherShown" />
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Area="sidebar">
+                <Template>
+                    <NavMenu StateCssClass="@NavMenuCssClass" />
+                </Template>
+            </DxGridLayoutItem>
+
+            <DxGridLayoutItem Area="content" @key=@_activeTheme>
+                <Template>
+                    @Body
+                </Template>
+            </DxGridLayoutItem>
+        </Items>
+    </DxGridLayout>
+</div>
+
+@code{
+
+    bool _themeSwitcherShown = false;
+    ThemeItem _activeTheme = ThemeItem.Default;
+
+    bool isMobileMode;
+
+    string? NavMenuCssClass { get; set; }
+    bool _isMobileLayout;
+    bool IsMobileLayout {
+        get => _isMobileLayout;
+        set {
+            _isMobileLayout = value;
+            IsSidebarExpanded = !_isMobileLayout;
+        }
+    }
+
+    bool _isSidebarExpanded = true;
+    bool IsSidebarExpanded {
+        get => _isSidebarExpanded;
+        set {
+            if(_isSidebarExpanded != value) {
+                NavMenuCssClass = value ? "expand" : "collapse";
+                _isSidebarExpanded = value;
+            }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    async void OnLocationChanged(object? sender, LocationChangedEventArgs args) {
+        if(IsMobileLayout) {
+            IsSidebarExpanded = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
+
+
+

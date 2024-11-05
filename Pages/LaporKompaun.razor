@@ -1,0 +1,808 @@
+﻿@page "/kompaun_lesen"
+@attribute [AllowAnonymous]
+
+@using System.Globalization
+@using PBT.Data
+@inject CompoundService _CompoundService
+@inject NavigationManager NavigationManager
+
+<div class="d-lg-flex border-bottom mb-2">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="/images/icons/information.png" />
+        <div class="textTitle">Pelaporan - Laporan Kompaun</div>
+    </div>
+</div>
+
+<style>
+    .dxbl-grid {
+        height: 79vh;
+        max-height: 79vh;
+    }
+</style>
+
+<div class="item-container-x">
+    <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+        <DxTab Text="Kompaun Lesen (17)"></DxTab>
+        <DxTab Text="Kompaun Pelbagai (10)"></DxTab>
+    </DxTabs>
+
+    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+
+    <DxGrid @ref="Grid"
+        Data="LesenData"
+        KeyFieldName="IdLesen"
+        ShowGroupPanel="true"
+        ShowFilterRow="true"
+        CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+        EditorRenderMode="GridEditorRenderMode.Integrated"
+        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        PageSize="25"
+        @bind-PageIndex="@GridPageIndex"
+        PagerPosition="GridPagerPosition.Bottom"
+        PagerNavigationMode="PagerNavigationMode.InputBox"
+        EditModelSaving="Grid_EditModelSaving"
+        EditFormButtonsVisible="false"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+        PageSizeSelectorAllRowsItemVisible="true"
+        PagerAutoHideNavButtons="false"
+        ColumnResizeMode="@ColumnResizeMode"
+        CustomizeElement="Grid_CustomizeElement"
+        HighlightRowOnHover="true"
+        CssClass="mv-1000">
+
+        <Columns>
+            <DxGridCommandColumn Width="120px">
+                <HeaderTemplate>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((LesenInfo)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                
+                    <a @onclick="@(() => OnHistoryRow(context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);" title="Sejarah kompaun"><img src="images/icons-small/folder-search-result.png" /></a>
+                    <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan"><img src="images/icons-small/printer--pencil.png" /></a>
+                </CellDisplayTemplate>
+            </DxGridCommandColumn>
+            <DxGridDataColumn Caption="Bil." MinWidth="70" Width="7%" FieldName="Bil" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn Caption="No Rujukan" MinWidth="130" Width="13%" FieldName="NoRujukan" />
+            <DxGridDataColumn Caption="Tarikh & Masa" MinWidth="120" Width="12%" FieldName="TarikhMasa" TextAlignment="GridTextAlignment.Center" />
+        
+            <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="NoLesen">
+                    <CellDisplayTemplate>
+                    <div>
+                        @CombineText(((LesenInfo)context.DataItem).NoLesen,((LesenInfo)context.DataItem).NamaPerniagaan)
+                    </div>
+                    </CellDisplayTemplate>
+            </DxGridDataColumn>
+      @*       <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="200" Width="20%" FieldName="NamaPerniagaan" /> *@
+            <DxGridDataColumn Caption="Nama Pemilik" MinWidth="200" Width="20%" FieldName="NamaPemilik" />
+            <DxGridDataColumn Caption="Nama Pegawai" MinWidth="200" Width="20%" FieldName="NamaPegawaiPengeluar" />
+            <DxGridDataColumn Caption="Amaun (RM)" MinWidth="120" Width="12%" FieldName="AmaunKompaun" DisplayFormat="#,###.00" AllowGroup="false" TextAlignment="GridTextAlignment.Right" />
+            <DxGridDataColumn Caption="Status Bayaran" MinWidth="150" Width="15%" FieldName="StatusBayaran" TextAlignment="GridTextAlignment.Center">
+                    <CellDisplayTemplate>
+                    <div>@GetStatusBayaranIconHtml(((LesenInfo)context.DataItem).StatusBayaran)</div>
+                    </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="150" Width="15%" FieldName="NoDaftarSyarikat" />
+
+            <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="250" Width="20%" FieldName="AlamatPerniagaan" />
+            <DxGridDataColumn Caption="Akta Kesalahan" MinWidth="250" Width="25%" FieldName="AktaKesalahan" />
+            <DxGridDataColumn Caption="Kod Kesalahan" MinWidth="250" Width="25%" FieldName="KodKesalahan" />
+            <DxGridDataColumn Caption="Arahan" MinWidth="180" Width="18%" FieldName="Arahan" />
+
+            <DxGridDataColumn Caption="Lokasi Kesalahan" MinWidth="120" Width="12%" FieldName="LokasiKesalahan" />
+            <DxGridDataColumn Caption="Nama Saksi" MinWidth="200" Width="20%" FieldName="NamaSaksi" />
+            <DxGridDataColumn Caption="Cara Serahan" MinWidth="150" Width="15%" FieldName="CaraSerahan" />
+            <DxGridDataColumn Caption="Amaun Dibayar" MinWidth="120" Width="12%" FieldName="AmaunDibayar" />
+            <DxGridDataColumn Caption="No Resit Bayaran" MinWidth="120" Width="12%" FieldName="NoResitBayaran" />
+
+
+            @*Sampel sorting in different way - press shift & click on the field if no code  *@
+            <DxGridDataColumn FieldName="DateCreated"
+                            DisplayFormat="dd/MM/yyyy"
+                            Caption="Tarikh Data"
+                            MinWidth="120"
+                            Width="12%"
+                            TextAlignment="GridTextAlignment.Center"
+                            SortOrder="GridColumnSortOrder.Ascending"
+                            SortIndex="0" />
+        </Columns>
+
+        <EditFormTemplate Context="EditFormContext">
+            @{
+                var dtData = (LesenInfo)EditFormContext.EditModel;
+            }
+            <DxFormLayout CssClass="w-100">
+                <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
+                    <table>
+                        <tr>
+                            <td nowrap colspan="7">
+                                #@dtData.NoRujukan &nbsp; @GetStatusBayaranIconHtml(dtData.StatusBayaran) <br />
+                                @dtData.TarikhMasa
+                            </td>
+                        </tr>
+                        <tr style="height:5px;"><td colspan="7"></td></tr>
+                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+                        <tr>
+                            <td nowrap>No Lesen</td>
+                            <td nowrap>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxTextBox @bind-Text="@dtData.NoLesen"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="No Lesen..."
+                                           Maxlength="60"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" style="width:170px;" />
+                            </td>
+                            <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                            <td nowrap>No Daftar Syarikat</td>
+                            <td nowrap>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxTextBox @bind-Text="@dtData.NoLesen"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="No Daftar Syarikat..."
+                                           Maxlength="60"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" style="width:170px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Nama Pemilik</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.NamaPemilik"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Nama Pemilik..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" style="width:370px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Nama Perniagaan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="5">
+                                <DxTextBox @bind-Text="@dtData.NamaPerniagaan"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Nama Perniagaan..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" style="width:370px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap valign="top">Alamat Perniagaan</td>
+                            <td valign="top">&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxMemo @bind-Text="@dtData.AlamatPerniagaan"
+                                        CssClass="cw-480"
+                                        Rows="3"/>
+                            </td>
+                        </tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+                        <tr>
+                            <td nowrap valign="top">Akta Kesalahan</td>
+                            <td valign="top">&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxMemo @bind-Text="@dtData.AktaKesalahan"
+                                        CssClass="cw-480"
+                                        Rows="3" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap valign="top">Kod Kesalahan</td>
+                            <td valign="top">&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxMemo @bind-Text="@dtData.KodKesalahan"
+                                        CssClass="cw-480"
+                                        Rows="3" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Arahan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.Arahan"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Arahan..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" style="width:370px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Lokasi Kesalahan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxTextBox @bind-Text="@dtData.LokasiKesalahan"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Nama Pegawai Pengeluar..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" />
+                            </td>
+                            <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                            <td nowrap>Nama Pegawai</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxTextBox @bind-Text="@dtData.NamaPegawaiPengeluar"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Nama Pegawai Pengeluar..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Nama Saksi</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxTextBox @bind-Text="@dtData.NamaSaksi"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Nama Saksi..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" />
+                            </td>
+                            <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                            <td nowrap>Cara Serahan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxTextBox @bind-Text="@dtData.CaraSerahan"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Cara Searahan..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" />
+                            </td>
+                        </tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+                        <tr>
+                            <td nowrap>Bukti</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="5">
+                                <img src="/images/Bukti/shoe1.jpg" style="width:20%" />
+                                <img src="/images/Bukti/shoe2.jpg" style="width:20%" />
+                                <img src="/images/Bukti/shoe3.jpg" style="width:20%" />
+                                <img src="/images/Bukti/shoe4.jpg" style="width:20%" />
+                            </td>
+                        </tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+                        <tr>
+                            <td nowrap>Amaun Kompaun (RM)</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxSpinEdit @bind-Value="@dtData.AmaunKompaun"
+                                            DisplayFormat="C"
+                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                            Maxlength="10"
+                                            CssClass="cw-320"/>
+                            </td>
+                            <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                            <td nowrap>Amaun Dibayar (RM)</td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%">
+                                <DxSpinEdit @bind-Value="@dtData.AmaunDibayar"
+                                            DisplayFormat="C"
+                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                            Maxlength="10"
+                                            CssClass="cw-320" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Status Bayaran</td>
+                            <td nowrap>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxTextBox @bind-Text="@dtData.StatusBayaran"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="No Lesen..."
+                                           Maxlength="60"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320"/>
+                            </td>
+                            <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                            <td nowrap>No Resit Bayaran</td>
+                            <td nowrap>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxTextBox @bind-Text="@dtData.NoResitBayaran"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="No Daftar Syarikat..."
+                                           Maxlength="60"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" />
+                            </td>
+                        </tr>
+                    </table>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12">
+                    <DxButton SubmitFormOnClick="true" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditFormTemplate>
+        <CustomValidators>
+            <MyCustomValidator DataItemValidating="ValidateGridData" />
+        </CustomValidators>
+
+        @*This is to count the summary*@
+        <TotalSummary>
+            <DxGridSummaryItem FooterColumnName="Bil"
+                            Name="Custom"
+                            SummaryType=GridSummaryItemType.Count />
+        </TotalSummary>
+
+    </DxGrid>
+
+    <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
+    <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
+    <DxButton Text="Export XLS" Click="ExportXls_Click" />
+    <DxButton Text="Export CSV" Click="ExportCsv_Click" />
+    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+
+</div>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+        <br />Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
+
+
+@code {
+
+    IEnumerable<LesenInfo> LesenData;
+    // // // static IList<LesenInfo> dataSource;
+
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
+    bool ConfirmationShown { get; set; } = false;
+    int ActiveTabIndex;
+    string strSelected { get; set; }
+    LesenInfo dtData { get; set; }
+
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    // // // static Task<IQueryable<LesenInfo>> CreateDataSource()
+    // // // {
+    // // //     dataSource = new List<LesenInfo> {
+    // // //         new LesenInfo {
+    // // //             IdLesen = 1,
+    // // //             Bil = 1,
+    // // //             NoRujukan = "K0808M341",
+    // // //             TarikhMasa = "08/08/2024 12:30:30PM",
+    // // //             NoLesen = "T1000234575-03",
+    // // //             NamaPemilik = "CHEMPAKA KASIM SDN BHD",
+    // // //             NoDaftarSyarikat = "IP01298238",
+    // // //             NamaPerniagaan = "CHEMPAKA KASIM SDN BHD",
+    // // //             AlamatPerniagaan = "2-G, Jalan Seri Sarawak 20A, Taman Seri Andalas, Klang, Selangor",
+    // // //             AktaKesalahan = "U22 UNDANG-UNDANG KECIL PELESENAN TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             KodKesalahan = "SEKSYEN 3 (1) - TIADA SEORANG PUN BOLEH MENJALANKAN APA-APA AKTIVITI TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             Arahan = "HADIR UNTUK PEMBAHARUAN LESEN",
+    // // //             LokasiKesalahan = "HADAPAN PREMIS",
+    // // //             NamaPegawaiPengeluar = "AZIZUL HASNI AWANG",
+    // // //             NamaSaksi = "KHAIRUL NAZMI MOHAMED",
+    // // //             CaraSerahan = "SERAHAN TANGAN",
+    // // //             BuktiPath1 = "\\images\\bukti\\herbstore.jpg",
+    // // //             BuktiPath2 = "\\images\\bukti\\herbstore2.jpg",
+    // // //             BuktiPath3 = "",
+    // // //             BuktiPath4 = "",
+
+    // // //             AmaunKompaun = 500,
+    // // //             StatusBayaran = "BELUM BAYAR",
+    // // //             AmaunDibayar = 0,
+    // // //             NoResitBayaran  = "-",
+    // // //             DateCreated = DateTime.Parse("2023/01/06")
+    // // //         },
+    // // //         new LesenInfo {
+    // // //             IdLesen = 2,
+    // // //             Bil = 2,
+    // // //             NoRujukan = "K0808M876",
+    // // //             TarikhMasa = "08/08/2024 12:45:30PM",
+    // // //             NoLesen = "T1000786546-07",
+    // // //             NamaPemilik = "GREEN SHOE SDN BHD",
+    // // //             NoDaftarSyarikat = "BH63457890",
+    // // //             NamaPerniagaan = "GREEN SHOE SDN BHD",
+    // // //             AlamatPerniagaan = "1, Jalan 14/20, 46100 Petaling Jaya, Selangor",
+    // // //             AktaKesalahan = "U22 UNDANG-UNDANG KECIL PELESENAN TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             KodKesalahan = "SEKSYEN 3 (1) - TIADA SEORANG PUN BOLEH MENJALANKAN APA-APA AKTIVITI TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             Arahan = "HADIR UNTUK PEMBAHARUAN LESEN",
+    // // //             LokasiKesalahan = "HADAPAN PREMIS",
+    // // //             NamaPegawaiPengeluar = "RUDZUAN SULAIMAN",
+    // // //             NamaSaksi = "ENG AH MENG",
+    // // //             CaraSerahan = "SERAHAN TANGAN",
+    // // //             BuktiPath1 = "\\images\\bukti\\herbstore.jpg",
+    // // //             BuktiPath2 = "\\images\\bukti\\herbstore2.jpg",
+    // // //             BuktiPath3 = "",
+    // // //             BuktiPath4 = "",
+
+    // // //             AmaunKompaun = 500,
+    // // //             StatusBayaran = "BELUM BAYAR",
+    // // //             AmaunDibayar = 0,
+    // // //             NoResitBayaran  = "-",
+    // // //             DateCreated = DateTime.Parse("2023/03/11")
+    // // //         },
+    // // //         new LesenInfo {
+    // // //             IdLesen = 3,
+    // // //             Bil = 3,
+    // // //             NoRujukan = "K0808M001",
+    // // //             TarikhMasa = "08/08/2024 12:45:30PM",
+    // // //             NoLesen = "L001595404",
+    // // //             NamaPemilik = "Kawan Ku Fashion",
+    // // //             NoDaftarSyarikat = "BH63457890",
+    // // //             NamaPerniagaan = "Kawan Ku Fashion",
+    // // //             AlamatPerniagaan = "1, Jalan 14/20, 46100 Petaling Jaya, Selangor",
+    // // //             AktaKesalahan = "U22 UNDANG-UNDANG KECIL PELESENAN TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             KodKesalahan = "SEKSYEN 3 (1) - TIADA SEORANG PUN BOLEH MENJALANKAN APA-APA AKTIVITI TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             Arahan = "HADIR UNTUK PEMBAHARUAN LESEN",
+    // // //             LokasiKesalahan = "HADAPAN PREMIS",
+    // // //             NamaPegawaiPengeluar = "RUDZUAN SULAIMAN",
+    // // //             NamaSaksi = "ENG AH MENG",
+    // // //             CaraSerahan = "SERAHAN TANGAN",
+    // // //             BuktiPath1 = "\\images\\bukti\\herbstore.jpg",
+    // // //             BuktiPath2 = "\\images\\bukti\\herbstore2.jpg",
+    // // //             BuktiPath3 = "",
+    // // //             BuktiPath4 = "",
+
+    // // //             AmaunKompaun = 500,
+    // // //             StatusBayaran = "BELUM BAYAR",
+    // // //             AmaunDibayar = 0,
+    // // //             NoResitBayaran  = "-",
+    // // //             DateCreated = DateTime.Parse("2023/03/11")
+    // // //         },
+    // // //         new LesenInfo {
+    // // //             IdLesen = 4,
+    // // //             Bil = 4,
+    // // //             NoRujukan = "K0808M102",
+    // // //             TarikhMasa = "08/08/2024 12:45:30PM",
+    // // //             NoLesen = "L001595202",
+    // // //             NamaPemilik = "Affeine Textile & Fashion",
+    // // //             NoDaftarSyarikat = "BH5678934",
+    // // //             NamaPerniagaan = "Affeine Textile & Fashion",
+    // // //             AlamatPerniagaan = "1, Jalan 14/20, 46100 Petaling Jaya, Selangor",
+    // // //             AktaKesalahan = "U22 UNDANG-UNDANG KECIL PELESENAN TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             KodKesalahan = "SEKSYEN 3 (1) - TIADA SEORANG PUN BOLEH MENJALANKAN APA-APA AKTIVITI TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             Arahan = "HADIR UNTUK PEMBAHARUAN LESEN",
+    // // //             LokasiKesalahan = "HADAPAN PREMIS",
+    // // //             NamaPegawaiPengeluar = "RUDZUAN SULAIMAN",
+    // // //             NamaSaksi = "ENG AH MENG",
+    // // //             CaraSerahan = "SERAHAN TANGAN",
+    // // //             BuktiPath1 = "\\images\\bukti\\herbstore.jpg",
+    // // //             BuktiPath2 = "\\images\\bukti\\herbstore2.jpg",
+    // // //             BuktiPath3 = "",
+    // // //             BuktiPath4 = "",
+
+    // // //             AmaunKompaun = 450,
+    // // //             StatusBayaran = "BELUM BAYAR",
+    // // //             AmaunDibayar = 0,
+    // // //             NoResitBayaran  = "-",
+    // // //             DateCreated = DateTime.Parse("2023/03/11")
+    // // //         },
+    // // //         new LesenInfo {
+    // // //             IdLesen = 5,
+    // // //             Bil = 5,
+    // // //             NoRujukan = "K0809M122",
+    // // //             TarikhMasa = "09/08/2024 02:38:10PM",
+    // // //             NoLesen = "L001603800",
+    // // //             NamaPemilik = "Fakhira Hanis Resources",
+    // // //             NoDaftarSyarikat = "BH3457890",
+    // // //             NamaPerniagaan = "Fakhira Hanis Resources",
+    // // //             AlamatPerniagaan = "1, Jalan 14/20, 46100 Petaling Jaya, Selangor",
+    // // //             AktaKesalahan = "U22 UNDANG-UNDANG KECIL PELESENAN TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             KodKesalahan = "SEKSYEN 3 (1) - TIADA SEORANG PUN BOLEH MENJALANKAN APA-APA AKTIVITI TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             Arahan = "HADIR UNTUK PEMBAHARUAN LESEN",
+    // // //             LokasiKesalahan = "HADAPAN PREMIS",
+    // // //             NamaPegawaiPengeluar = "RUDZUAN SULAIMAN",
+    // // //             NamaSaksi = "ENG AH MENG",
+    // // //             CaraSerahan = "SERAHAN TANGAN",
+    // // //             BuktiPath1 = "\\images\\bukti\\herbstore.jpg",
+    // // //             BuktiPath2 = "\\images\\bukti\\herbstore2.jpg",
+    // // //             BuktiPath3 = "",
+    // // //             BuktiPath4 = "",
+
+    // // //             AmaunKompaun = 300,
+    // // //             StatusBayaran = "BELUM BAYAR",
+    // // //             AmaunDibayar = 0,
+    // // //             NoResitBayaran  = "-",
+    // // //             DateCreated = DateTime.Parse("2023/03/11")
+    // // //         },
+    // // //         new LesenInfo {
+    // // //             IdLesen = 6,
+    // // //             Bil = 6,
+    // // //             NoRujukan = "K0809M172",
+    // // //             TarikhMasa = "09/08/2024 09:28:40AM",
+    // // //             NoLesen = "L005147010",
+    // // //             NamaPemilik = "Aqua Fish Aquatic",
+    // // //             NoDaftarSyarikat = "BH45670234",
+    // // //             NamaPerniagaan = "Aqua Fish Aquatic",
+    // // //             AlamatPerniagaan = "1, Jalan 14/20, 46100 Petaling Jaya, Selangor",
+    // // //             AktaKesalahan = "U22 UNDANG-UNDANG KECIL PELESENAN TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             KodKesalahan = "SEKSYEN 3 (1) - TIADA SEORANG PUN BOLEH MENJALANKAN APA-APA AKTIVITI TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             Arahan = "HADIR UNTUK PEMBAHARUAN LESEN",
+    // // //             LokasiKesalahan = "HADAPAN PREMIS",
+    // // //             NamaPegawaiPengeluar = "RUDZUAN SULAIMAN",
+    // // //             NamaSaksi = "ENG AH MENG",
+    // // //             CaraSerahan = "SERAHAN TANGAN",
+    // // //             BuktiPath1 = "\\images\\bukti\\herbstore.jpg",
+    // // //             BuktiPath2 = "\\images\\bukti\\herbstore2.jpg",
+    // // //             BuktiPath3 = "",
+    // // //             BuktiPath4 = "",
+
+    // // //             AmaunKompaun = 1000,
+    // // //             StatusBayaran = "TELAH DIBAYAR",
+    // // //             AmaunDibayar = 0,
+    // // //             NoResitBayaran  = "-",
+    // // //             DateCreated = DateTime.Parse("2023/03/11")
+    // // //         },
+    // // //         new LesenInfo {
+    // // //             IdLesen = 7,
+    // // //             Bil = 7,
+    // // //             NoRujukan = "K0809M152",
+    // // //             TarikhMasa = "09/08/2024 03:15:12PM",
+    // // //             NoLesen = "L000821601",
+    // // //             NamaPemilik = "TGI Fitness",
+    // // //             NoDaftarSyarikat = "BH17834087",
+    // // //             NamaPerniagaan = "TGI Fitness",
+    // // //             AlamatPerniagaan = "1, Jalan 14/20, 46100 Petaling Jaya, Selangor",
+    // // //             AktaKesalahan = "U22 UNDANG-UNDANG KECIL PELESENAN TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             KodKesalahan = "SEKSYEN 3 (1) - TIADA SEORANG PUN BOLEH MENJALANKAN APA-APA AKTIVITI TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             Arahan = "HADIR UNTUK PEMBAHARUAN LESEN",
+    // // //             LokasiKesalahan = "HADAPAN PREMIS",
+    // // //             NamaPegawaiPengeluar = "RUDZUAN SULAIMAN",
+    // // //             NamaSaksi = "ENG AH MENG",
+    // // //             CaraSerahan = "SERAHAN TANGAN",
+    // // //             BuktiPath1 = "\\images\\bukti\\herbstore.jpg",
+    // // //             BuktiPath2 = "\\images\\bukti\\herbstore2.jpg",
+    // // //             BuktiPath3 = "",
+    // // //             BuktiPath4 = "",
+
+    // // //             AmaunKompaun = 1000,
+    // // //             StatusBayaran = "BELUM BAYAR",
+    // // //             AmaunDibayar = 0,
+    // // //             NoResitBayaran  = "-",
+    // // //             DateCreated = DateTime.Parse("2023/03/11")
+    // // //         },
+    // // //         new LesenInfo {
+    // // //             IdLesen = 8,
+    // // //             Bil = 8,
+    // // //             NoRujukan = "K0809M176",
+    // // //             TarikhMasa = "09/08/2024 12:30:30PM",
+    // // //             NoLesen = "L00685630",
+    // // //             NamaPemilik = "Era Global Trade Sdn Bhd",
+    // // //             NoDaftarSyarikat = "BH6435678",
+    // // //             NamaPerniagaan = "Era Global Trade Sdn Bhd",
+    // // //             AlamatPerniagaan = "1, Jalan 14/20, 46100 Petaling Jaya, Selangor",
+    // // //             AktaKesalahan = "U22 UNDANG-UNDANG KECIL PELESENAN TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             KodKesalahan = "SEKSYEN 3 (1) - TIADA SEORANG PUN BOLEH MENJALANKAN APA-APA AKTIVITI TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             Arahan = "HADIR UNTUK PEMBAHARUAN LESEN",
+    // // //             LokasiKesalahan = "HADAPAN PREMIS",
+    // // //             NamaPegawaiPengeluar = "RUDZUAN SULAIMAN",
+    // // //             NamaSaksi = "ENG AH MENG",
+    // // //             CaraSerahan = "SERAHAN TANGAN",
+    // // //             BuktiPath1 = "\\images\\bukti\\herbstore.jpg",
+    // // //             BuktiPath2 = "\\images\\bukti\\herbstore2.jpg",
+    // // //             BuktiPath3 = "",
+    // // //             BuktiPath4 = "",
+
+    // // //             AmaunKompaun = 500,
+    // // //             StatusBayaran = "BELUM BAYAR",
+    // // //             AmaunDibayar = 0,
+    // // //             NoResitBayaran  = "-",
+    // // //             DateCreated = DateTime.Parse("2023/03/11")
+    // // //         },
+    // // //         new LesenInfo {
+    // // //             IdLesen = 9,
+    // // //             Bil = 9,
+    // // //             NoRujukan = "K0810M112",
+    // // //             TarikhMasa = "10/08/2024 01:29:03PM",
+    // // //             NoLesen = "L001504508",
+    // // //             NamaPemilik = "Miewa Enterprise",
+    // // //             NoDaftarSyarikat = "BH5436732",
+    // // //             NamaPerniagaan = "Miewa Enterprise",
+    // // //             AlamatPerniagaan = "1, Jalan 14/20, 46100 Petaling Jaya, Selangor",
+    // // //             AktaKesalahan = "U22 UNDANG-UNDANG KECIL PELESENAN TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             KodKesalahan = "SEKSYEN 3 (1) - TIADA SEORANG PUN BOLEH MENJALANKAN APA-APA AKTIVITI TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             Arahan = "HADIR UNTUK PEMBAHARUAN LESEN",
+    // // //             LokasiKesalahan = "HADAPAN PREMIS",
+    // // //             NamaPegawaiPengeluar = "RUDZUAN SULAIMAN",
+    // // //             NamaSaksi = "ENG AH MENG",
+    // // //             CaraSerahan = "SERAHAN TANGAN",
+    // // //             BuktiPath1 = "\\images\\bukti\\herbstore.jpg",
+    // // //             BuktiPath2 = "\\images\\bukti\\herbstore2.jpg",
+    // // //             BuktiPath3 = "",
+    // // //             BuktiPath4 = "",
+
+    // // //             AmaunKompaun = 200,
+    // // //             StatusBayaran = "BELUM BAYAR",
+    // // //             AmaunDibayar = 0,
+    // // //             NoResitBayaran  = "-",
+    // // //             DateCreated = DateTime.Parse("2023/03/11")
+    // // //         },
+    // // //         new LesenInfo {
+    // // //             IdLesen = 10,
+    // // //             Bil = 10,
+    // // //             NoRujukan = "K0810M122",
+    // // //             TarikhMasa = "10/08/2024 11:21:24AM",
+    // // //             NoLesen = "L001598502",
+    // // //             NamaPemilik = "Butik Syed Elysime Daniel",
+    // // //             NoDaftarSyarikat = "BH16437893",
+    // // //             NamaPerniagaan = "Butik Syed Elysime Daniel",
+    // // //             AlamatPerniagaan = "1, Jalan 14/20, 46100 Petaling Jaya, Selangor",
+    // // //             AktaKesalahan = "U22 UNDANG-UNDANG KECIL PELESENAN TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             KodKesalahan = "SEKSYEN 3 (1) - TIADA SEORANG PUN BOLEH MENJALANKAN APA-APA AKTIVITI TRED, PERNIAGAAN DAN PERINDUSTRIAN",
+    // // //             Arahan = "HADIR UNTUK PEMBAHARUAN LESEN",
+    // // //             LokasiKesalahan = "HADAPAN PREMIS",
+    // // //             NamaPegawaiPengeluar = "RUDZUAN SULAIMAN",
+    // // //             NamaSaksi = "ENG AH MENG",
+    // // //             CaraSerahan = "SERAHAN TANGAN",
+    // // //             BuktiPath1 = "\\images\\bukti\\herbstore.jpg",
+    // // //             BuktiPath2 = "\\images\\bukti\\herbstore2.jpg",
+    // // //             BuktiPath3 = "",
+    // // //             BuktiPath4 = "",
+
+    // // //             AmaunKompaun = 300,
+    // // //             StatusBayaran = "BELUM BAYAR",
+    // // //             AmaunDibayar = 0,
+    // // //             NoResitBayaran  = "-",
+    // // //             DateCreated = DateTime.Parse("2023/03/11")
+    // // //         }
+    // // //      };
+
+    // // //     return Task.FromResult(dataSource.AsQueryable());
+    // // // }
+
+    protected override async Task OnInitializedAsync()
+    {
+        LesenData = await _CompoundService.GetLesenAsync();
+        DataLoadedTcs.TrySetResult(true);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+            await Grid.CancelEditAsync(); //.StartEditRowAsync(0);
+        }
+    }
+
+    void OnActiveTabIndexChanged(int index)
+    {
+        ActiveTabIndex = index;
+    }
+
+    protected async Task OnSelectedRow(object itemData)
+    {
+        var item = (LesenInfo)itemData;
+        NavigationManager.NavigateTo("/reportkompaunlesen?nolesen=" + item.NoLesen, false);
+    }
+
+    protected async Task OnHistoryRow(object itemData)
+    {
+        var item = (LesenInfo)itemData;
+        NavigationManager.NavigateTo("/viewreportperuntukan?norujukan=" + item.NoLesen, false);
+    }
+    
+
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+
+    }
+
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+
+    }
+
+    async Task UpdateDataAsync()
+    {
+
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+    async Task Delete(LesenInfo item)
+    {
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        ConfirmationShown = false;
+    }
+
+    void OnNoButtonClick()
+    {
+        ConfirmationShown = false;
+    }
+
+    void Grid_CustomizeFilterRowEditor(GridCustomizeFilterRowEditorEventArgs e)
+    {
+        if (e.FieldName == "CreatedDate" || e.FieldName == "ModifiedDate" || e.FieldName == "FixedDate")
+            ((ITextEditSettings)e.EditSettings).ClearButtonDisplayMode = DataEditorClearButtonDisplayMode.Never;
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    public MarkupString GetStatusBayaranIconHtml(string status)
+    {
+        string priorytyClass = "danger";
+        string title = " BELUM BAYAR ";
+        if (status == "TELAH DIBAYAR")
+        {
+            priorytyClass = "info";
+            title = " TELAH DIBAYAR ";
+        }
+
+        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+        title);
+        return new MarkupString(html);
+    }
+
+    public MarkupString CombineText(string strNoLesen, string strNama)
+    {
+        string html = string.Format("{0} <br/> {1}", strNoLesen, strNama.ToUpper());
+        return new MarkupString(html);
+    }
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        // if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "StatusBayaran").ToString().ToUpper() == "BELUM BAYAR")
+        // {
+        //     e.Style = "color: #fff; background-color:#e46767";
+        // }
+        // else if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "StatusBayaran").ToString().ToUpper() == "TELAH DIBAYAR")
+        // {
+        //     e.Style = "color: #000; background-color:#89dd85";
+        // }
+    }
+
+    async Task ExportXlsx_Click()
+    {
+        await Grid.ExportToXlsxAsync("ExportResult");
+    }
+
+    async Task ExportXls_Click()
+    {
+        await Grid.ExportToXlsAsync("ExportResult");
+    }
+
+    async Task ExportCsv_Click()
+    {
+        await Grid.ExportToCsvAsync("ExportResult");
+    }
+
+}

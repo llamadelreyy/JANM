@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Dashboard>
+  <Title Text="02 - Transportation " />
+  <DataSources>
+    <ExcelDataSource Name="Excel Data Source - Sheet1" ComponentName="excelDataSource1" ConnectionName="Excel Data Source Connection Name Sheet1">
+      <Options Type="DevExpress.DataAccess.Excel.ExcelSourceOptions" SkipEmptyRows="true" UseFirstRowAsHeader="true" SkipHiddenColumns="true" SkipHiddenRows="true">
+        <ImportSettings Type="DevExpress.DataAccess.Excel.ExcelWorksheetSettings" WorksheetName="Sheet1" />
+      </Options>
+      <Schema />
+      <ResultSchema />
+    </ExcelDataSource>
+  </DataSources>
+  <Items>
+    <Chart ComponentName="chartDashboardItem1" Name="Chart 1" DataSource="excelDataSource1">
+      <InteractivityOptions IgnoreMasterFilters="true" />
+      <DataItems>
+        <Measure DataMember="Revenue 2020" DefaultId="DataItem0" />
+        <Measure DataMember="Revenue 2022" DefaultId="DataItem1" />
+        <Dimension DataMember="Sector" DefaultId="DataItem2" />
+        <Measure DataMember="Revenue 2021" DefaultId="DataItem3" />
+      </DataItems>
+      <Arguments>
+        <Argument DefaultId="DataItem2" />
+      </Arguments>
+      <Panes>
+        <Pane Name="Pane 1">
+          <Series>
+            <Simple>
+              <Value DefaultId="DataItem0" />
+            </Simple>
+            <Simple>
+              <Value DefaultId="DataItem3" />
+            </Simple>
+            <Simple SeriesType="Line">
+              <Value DefaultId="DataItem1" />
+            </Simple>
+          </Series>
+        </Pane>
+      </Panes>
+    </Chart>
+    <Grid ComponentName="gridDashboardItem1" Name="Grid 1" DataSource="excelDataSource1">
+      <DataItems>
+        <Dimension DataMember="Sector" DefaultId="DataItem0" />
+        <Dimension DataMember="Nature of Business" DefaultId="DataItem2" />
+      </DataItems>
+      <GridColumns>
+        <GridDimensionColumn Weight="47.404063205417607">
+          <Dimension DefaultId="DataItem0" />
+        </GridDimensionColumn>
+        <GridDimensionColumn Weight="102.59593679458239">
+          <Dimension DefaultId="DataItem2" />
+        </GridDimensionColumn>
+      </GridColumns>
+      <GridOptions ColumnWidthMode="Manual" />
+      <ColumnFilterOptions />
+    </Grid>
+    <ComboBox ComponentName="comboBoxDashboardItem1" Name="Combo Box 1" DataSource="excelDataSource1" IsMasterFilterCrossDataSource="true" EnableSearch="true">
+      <DataItems>
+        <Dimension DataMember="Sector" DefaultId="DataItem0" />
+      </DataItems>
+      <FilterDimensions>
+        <Dimension DefaultId="DataItem0" />
+      </FilterDimensions>
+    </ComboBox>
+    <Pie ComponentName="pieDashboardItem1" Name="Pies 1" DataSource="excelDataSource1" IsMasterFilterCrossDataSource="true">
+      <InteractivityOptions MasterFilterMode="Single" TargetDimensions="Points" />
+      <DataItems>
+        <Measure DataMember="Sector" SummaryType="Count" DefaultId="DataItem0" />
+        <Dimension DataMember="Sector" DefaultId="DataItem1" />
+      </DataItems>
+      <Arguments>
+        <Argument DefaultId="DataItem1" />
+      </Arguments>
+      <Values>
+        <Value DefaultId="DataItem0" />
+      </Values>
+    </Pie>
+    <ComboBox ComponentName="comboBoxDashboardItem2" Name="Combo Box 2" DataSource="excelDataSource1">
+      <DataItems>
+        <Dimension DataMember="Division" DefaultId="DataItem0" />
+      </DataItems>
+      <FilterDimensions>
+        <Dimension DefaultId="DataItem0" />
+      </FilterDimensions>
+    </ComboBox>
+  </Items>
+  <LayoutTree>
+    <LayoutGroup>
+      <LayoutGroup Orientation="Vertical">
+        <LayoutGroup Weight="0.27664974619289345">
+          <LayoutItem DashboardItem="comboBoxDashboardItem1" Weight="0.27664974619289345" />
+          <LayoutItem DashboardItem="comboBoxDashboardItem2" Weight="0.27664974619289345" />
+        </LayoutGroup>
+        <LayoutGroup Weight="1.7233502538071066">
+          <LayoutItem DashboardItem="chartDashboardItem1" Weight="1.7233502538071066" />
+          <LayoutItem DashboardItem="gridDashboardItem1" />
+        </LayoutGroup>
+      </LayoutGroup>
+      <LayoutItem DashboardItem="pieDashboardItem1" />
+    </LayoutGroup>
+  </LayoutTree>
+</Dashboard>

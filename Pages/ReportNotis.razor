@@ -1,0 +1,45 @@
+﻿@page "/reportnotis"
+@attribute [AllowAnonymous]
+
+@using DevExpress.Blazor.Reporting
+@using DevExpress.XtraReports.UI;
+@using DevExpress.XtraReports.Parameters;
+@using Parameter = DevExpress.XtraReports.Parameters.Parameter;
+@using PBT.Data
+@inject NoticeService _NoticeService
+
+@*<h3>Viewer</h3>*@
+<link rel="stylesheet" href="_content/DevExpress.Blazor.Reporting.Viewer/css/dx-blazor-reporting-components.bs5.css">
+
+<DxReportViewer @ref="reportViewer" Report="@Report">
+</DxReportViewer>
+
+@code {
+    DxReportViewer? reportViewer { get; set; }
+    XtraReport? Report { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? nolesen { get; set; }
+
+    bool IsAdminRole { get; set; } = true;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (!(IsAdminRole))
+                reportViewer.ExportModel.AvailableFormats
+                  .RemoveAll(item => item.Name != "Pdf");
+        }
+
+        base.OnAfterRender(firstRender);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        IEnumerable<NoticeProp> NoticeData = await _NoticeService.GetNoticeAsync();
+        Report = new Reports.ViewNotis();
+        Report.DataSource = NoticeData.Where(x => x.NoLesen == nolesen);
+    }
+}

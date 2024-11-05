@@ -1,0 +1,343 @@
+﻿@page "/zon_majlis"
+@attribute [AllowAnonymous]
+
+@implements IDisposable
+@using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
+@using PBT.Data
+@inject NoticeService _NoticeService
+
+@* @inject IJSRuntime JSRuntime *@
+
+@* <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@AfterMapInit"></GoogleMap> *@
+<div class="topMapControl">
+    <button id="buttonTapis" @onclick="OpenFilter" class="buttonControlMap">Tapisan</button>
+    <button @onclick="AddLegend" class="buttonControlMap">Legend</button>
+    <input type="text" @ref="this.searchBox" id="searchBox" class="searchMap" placeholder="Masukkan nama tempat untuk dicari..." />
+    @* <button @onclick="Search" class="buttonControlMap">Cari Tempat</button> *@
+
+</div>
+
+<div id="mySidenav" class="sidenav">
+
+
+    <table class="tableTapis" id="tableTapis">
+        <tr>
+            <th colspan=3>Tapisan <a href="javascript:void(0)" class="closebtn" @onclick="CloseFilter">&times;</a></th>
+        </tr>
+        <tr class="titleTapis">
+            <td colspan="3" class="headTapis">Lesen</td>
+        </tr>
+
+        <CheckBoxList Data="@FilterList"
+                    TextField="@((item)=>item.ColorDesc)"
+                    ValueField="@((item)=>item.TypeId)"
+                    SelectedValues="@SelectedIds" />
+
+        <tr class="titleTapis">
+            <td colspan="3" class="headTapis">Nota Pemeriksaan</td>
+        </tr>
+
+        <CheckBoxList Data="@NotaList"
+                      TextField="@((item)=>item.ColorDesc)"
+                      ValueField="@((item)=>item.TypeId)"
+                      SelectedValues="@SelectedIds" />
+
+        <tr style="height:35px;">
+            <td colspan="3">
+                <b>@OutPutValue</b>
+            </td>
+        </tr>
+        <tr class="buttonTapis">
+            <td colspan="3">
+                <button class="btnTapis" @onclick="CloseFilter">Batal</button>
+                <button class="btnTapis" @onclick="ShowSelectedValues">Simpan</button>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+<div id="map1" class="map-container">
+    <GoogleMap @ref="@map1" Id="map1" Options="@_mapOptions" OnAfterInit="async () => await OnAfterMapInit()" CssClass="mapPBTPro"></GoogleMap>
+</div>
+
+<div id="legend" @ref="@LegendReference" style="display: none">
+    <table class="tableMap" id="tableLegend">
+        <tr>
+            <th colspan="3">Legend</th>
+        </tr>
+        <tr>
+            @* <td>@GetIcon("Red")</td> *@
+            <td>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Red"/></svg>
+            </td>
+            <td>Bil. Lesen Tamat Tempoh</td>
+            <td class="text-right">520</td>
+        </tr>
+        <tr>
+            @* <td>@GetIcon("Red")</td> *@
+            <td>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Green" /></svg>
+            </td>
+            <td>Bil. Lesen Aktif</td>
+            <td class="text-right">15,352</td>
+        </tr>
+        <tr>
+            <td>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Blue" /></svg>
+            </td>
+            <td>Bil. Tidak Berlesen</td>
+            <td class="text-right">0</td>
+        </tr>
+        <tr>
+            <td>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Orange" /></svg>
+            </td>
+            <td>Bil. Lesen Batal</td>
+            <td class="text-right">0</td>
+        </tr>
+        <tr>
+            <td>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Yellow" /></svg>
+            </td>
+            <td>Bil. Lesen Gantung</td>
+            <td class="text-right">0</td>
+        </tr>
+        <tr>
+            <td>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="#ccc" /></svg>
+            </td>
+            <td>Bil. Lot Kosong</td>
+            <td class="text-right">0</td>
+        </tr>
+        <tr>
+            <td class="noMarker" colspan="2">Bil. Notis</td>
+            <td class="text-right">1,432</td>
+        </tr>
+        <tr>
+            <td colspan="2" class="noMarker">Jumlah Notis</td>
+            <td class="text-right">RM 21,432</td>
+        </tr>
+        <tr>
+            <td colspan="2" class="noMarker">Bil. Kompaun</td>
+            <td class="text-right">1,432</td>
+        </tr>
+        <tr>
+            <td colspan="2" class="noMarker">Jumlah Kompaun (RM)</td>
+            <td class="text-right">RM 21,432</td>
+        </tr>
+    </table>
+</div>
+
+
+<div id="panel-right" class="cd-panel cd-panel--from-right js-cd-panel-main">
+    <header class="cd-panel__header">
+        <h1>Paparan Maklumat Premis</h1>
+        <a style="text-underline-position:below; cursor:pointer" onclick=@(() => OpenSideBar(_labelText)) class="cd-panel__close js-cd-close">Close</a>
+    </header>
+    <div class="cd-panel__container">
+        <div class="cd-panel__content">
+            @* <p>_labelText = @_labelText</p> *@
+            @{
+                int? valueType = 0;
+                // // string colorLot = "";
+                if (_labelText != "")
+                {
+                    valueType = 1;
+                    // var dtPremis = NoticeData.Where(x => x.NoLesen == _labelText);
+                    var dtPremis = NoticeData.Where(c => c.NoLesen == _labelText); //.FirstOrDefault()?.Type;
+                    Items = dtPremis.Select((item, index) => (item, index));
+                    // // colorLot = GetColorLot((int)valueType);
+                }
+            }
+
+            @if (valueType == 1)
+            {
+                //ContentTemplate Context dont give name that has this "-"". ex:Level1-Lot1
+                <DxAccordion ShowFilterPanel="true" 
+                             ExpandMode=AccordionExpandMode.MultipleOrNone
+                             ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                             RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
+                             AnimationType="LayoutAnimationType.Slide">
+                    <Items>
+
+                        @foreach(var (premis, i) in Items) {
+                            <DxAccordionItem Expanded=@(i == 0)>
+                                <HeaderTextTemplate>
+                                    <div>
+                                        <div class="text-center flex-grow-1 dxbl-accordion-item-text">
+                                            @($"{premis.NamaPerniagaan}")
+
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
+                                                <circle cx="15" cy="15" r="5" fill="@GetColorLot(premis.Type)" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </HeaderTextTemplate>
+                                <ContentTemplate>
+                                        <PremisCard PremisInfo="@premis" />
+                                </ContentTemplate>
+                            </DxAccordionItem>
+                        }
+
+@*                         <DxAccordionItem>
+                            <HeaderTextTemplate>
+                                <div>
+                                    <div class="text-center flex-grow-1 dxbl-accordion-item-text">
+                                        Maklumt Premis
+
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
+                                            <circle cx="15" cy="15" r="5" fill=@colorLot />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </HeaderTextTemplate>
+                            <ContentTemplate Context="Premis1001">
+                                <div class="py-3 px-3">
+                                </div>
+                            </ContentTemplate>
+                        </DxAccordionItem> *@
+
+                    </Items>
+                </DxAccordion>
+            }
+            else if (valueType == 2) 
+            {
+
+                <DxAccordion ExpandMode=AccordionExpandMode.SingleOrNone
+                             ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                             RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.End
+                             AnimationType="LayoutAnimationType.Slide">
+                    <Items>
+
+                        <DxAccordionItem Text="Aras G">
+                            <ContentTemplate Context="ArasG">
+                                <div class="py-3 px-3">
+
+                                    <DxAccordion ExpandMode=AccordionExpandMode.MultipleOrNone
+                                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
+                                                 AnimationType="LayoutAnimationType.Slide">
+                                        <Items>
+
+                                            <DxAccordionItem>
+                                                <HeaderTextTemplate>
+                                                    <div>
+                                                        <div class="text-center flex-grow-1 dxbl-accordion-item-text">
+                                                            Maklumt Premis
+
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
+                                                                <circle cx="15" cy="15" r="5" fill=Red />
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                </HeaderTextTemplate>
+
+                                                <ContentTemplate Context="Premis1001">
+                                                    <div class="py-3 px-3">
+                                                    </div>
+                                                </ContentTemplate>
+                                            </DxAccordionItem>
+                                            <DxAccordionItem Text="Maklumat Lesen">
+                                                <ContentTemplate Context="Lesen1001">
+                                                    <div class="py-3 px-3">
+                                                    </div>
+                                                </ContentTemplate>
+                                            </DxAccordionItem>
+                                        </Items>
+                                    </DxAccordion>
+
+
+
+                                </div>
+                            </ContentTemplate>
+                        </DxAccordionItem>
+                        <DxAccordionItem Text="Aras 1">
+                            <ContentTemplate Context="Aras1">
+                                <div class="py-3 px-3">
+
+                                    <DxAccordion ExpandMode=AccordionExpandMode.MultipleOrNone
+                                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
+                                                 AnimationType="LayoutAnimationType.Slide">
+                                        <Items>
+
+                                            <DxAccordionItem>
+                                                <HeaderTextTemplate>
+                                                    <div>
+                                                        <div class="text-center flex-grow-1 dxbl-accordion-item-text">
+                                                            Maklumt Premis
+
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
+                                                                <circle cx="15" cy="15" r="5" fill=Red />
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                </HeaderTextTemplate>
+                                                <ContentTemplate Context="Premis1001">
+                                                    <div class="py-3 px-3">
+
+                                                    </div>
+                                                </ContentTemplate>
+                                            </DxAccordionItem>
+                                            <DxAccordionItem Text="Maklumat Lesen">
+                                                <ContentTemplate Context="Lesen1001">
+                                                    <div class="py-3 px-3">
+                                                    </div>
+                                                </ContentTemplate>
+                                            </DxAccordionItem>
+                                        </Items>
+                                    </DxAccordion>
+                                </div>
+                            </ContentTemplate>
+                        </DxAccordionItem>
+                    </Items>
+                </DxAccordion>
+
+            }
+           
+
+        </div>
+    </div>
+</div> 
+
+@* <div id="panel-right" class="cd-panel cd-panel--from-right js-cd-panel-main">
+    <header class="cd-panel__header">
+        <h1>Title Goes Here</h1>
+        <a style="text-underline-position:below; cursor:pointer" onclick=@(() => OpenSideBar(_labelText)) class="cd-panel__close js-cd-close">Close</a>
+    </header>
+    <div class="cd-panel__container">
+        <div class="cd-panel__content">
+
+
+            <p>_labelText = @_labelText</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quam magnam accusamus obcaecati nisi eveniet quo veniam quibusdam veritatis autem accusantium doloribus nam mollitia maxime explicabo nemo quae aspernatur impedit cupiditate dicta molestias consectetur, sint reprehenderit maiores. Tempora, exercitationem, voluptate. Sapiente modi officiis nulla sed ullam, amet placeat, illum necessitatibus, eveniet dolorum et maiores earum tempora, quas iste perspiciatis quibusdam vero accusamus veritatis. Recusandae sunt, repellat incidunt impedit tempore iusto, nostrum eaque necessitatibus sint eos omnis! Beatae, itaque, in. Vel reiciendis consequatur saepe soluta itaque aliquam praesentium, neque tempora. Voluptatibus sit, totam rerum quo ex nemo pariatur tempora voluptatem est repudiandae iusto, architecto perferendis sequi, asperiores dolores doloremque odit. Libero, ipsum fuga repellat quae numquam cumque nobis ipsa voluptates pariatur, a rerum aspernatur aliquid maxime magnam vero dolorum omnis neque fugit laboriosam eveniet veniam explicabo, similique reprehenderit at. Iusto totam vitae blanditiis. Culpa, earum modi rerum velit voluptatum voluptatibus debitis, architecto aperiam vero tempora ratione sint ullam voluptas non! Odit sequi ipsa, voluptatem ratione illo ullam quaerat qui, vel dolorum eligendi similique inventore quisquam perferendis reprehenderit quos officia! Maxime aliquam, soluta reiciendis beatae quisquam. Alias porro facilis obcaecati et id, corporis accusamus? Ab porro fuga consequatur quisquam illo quae quas tenetur.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque similique, at excepturi adipisci repellat ut veritatis officia, saepe nemo soluta modi ducimus velit quam minus quis reiciendis culpa ullam quibusdam eveniet. Dolorum alias ducimus, ad, vitae delectus eligendi, possimus magni ipsam repudiandae iusto placeat repellat omnis veritatis adipisci aliquam hic ullam facere voluptatibus ratione laudantium perferendis quos ut. Beatae expedita, itaque assumenda libero voluptatem adipisci maiores voluptas accusantium, blanditiis saepe culpa laborum iusto maxime quae aperiam fugiat odit consequatur soluta hic. Sed quasi beatae quia repellendus, adipisci facilis ipsa vel, aperiam, consequatur eaque mollitia quaerat. Iusto fugit inventore eveniet velit.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque similique, at excepturi adipisci repellat ut veritatis officia, saepe nemo soluta modi ducimus velit quam minus quis reiciendis culpa ullam quibusdam eveniet. Dolorum alias ducimus, ad, vitae delectus eligendi, possimus magni ipsam repudiandae iusto placeat repellat omnis veritatis adipisci aliquam hic ullam facere voluptatibus ratione laudantium perferendis quos ut. Beatae expedita, itaque assumenda libero voluptatem adipisci maiores voluptas accusantium, blanditiis saepe culpa laborum iusto maxime quae aperiam fugiat odit consequatur soluta hic. Sed quasi beatae quia repellendus, adipisci facilis ipsa vel, aperiam, consequatur eaque mollitia quaerat. Iusto fugit inventore eveniet velit.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quam magnam accusamus obcaecati nisi eveniet quo veniam quibusdam veritatis autem accusantium doloribus nam mollitia maxime explicabo nemo quae aspernatur impedit cupiditate dicta molestias consectetur, sint reprehenderit maiores. Tempora, exercitationem, voluptate. Sapiente modi officiis nulla sed ullam, amet placeat, illum necessitatibus, eveniet dolorum et maiores earum tempora, quas iste perspiciatis quibusdam vero accusamus veritatis. Recusandae sunt, repellat incidunt impedit tempore iusto, nostrum eaque necessitatibus sint eos omnis! Beatae, itaque, in. Vel reiciendis consequatur saepe soluta itaque aliquam praesentium, neque tempora. Voluptatibus sit, totam rerum quo ex nemo pariatur tempora voluptatem est repudiandae iusto, architecto perferendis sequi, asperiores dolores doloremque odit. Libero, ipsum fuga repellat quae numquam cumque nobis ipsa voluptates pariatur, a rerum aspernatur aliquid maxime magnam vero dolorum omnis neque fugit laboriosam eveniet veniam explicabo, similique reprehenderit at. Iusto totam vitae blanditiis. Culpa, earum modi rerum velit voluptatum voluptatibus debitis, architecto aperiam vero tempora ratione sint ullam voluptas non! Odit sequi ipsa, voluptatem ratione illo ullam quaerat qui, vel dolorum eligendi similique inventore quisquam perferendis reprehenderit quos officia! Maxime aliquam, soluta reiciendis beatae quisquam. Alias porro facilis obcaecati et id, corporis accusamus? Ab porro fuga consequatur quisquam illo quae quas tenetur.</p>
+        </div>
+    </div>
+</div> *@
+
+
+
+<link rel="stylesheet" href="./css/style-sideNav.css">
+<link rel="stylesheet" href="./css/firepanel/style.css">
+
+@* <style>
+
+    .map-marker-label {
+        position: absolute;
+        color: black;
+        background-color: white;
+        font-family: Roboto, Arial, sans-serif;
+        text-align: center;
+        padding: 1px 3px 1px 3px;
+        margin-left: -5px;
+        margin-top: 4px;
+        border: 1px solid #999;
+        box-sizing: border-box;
+        white-space: nowrap;
+    }
+</style> *@

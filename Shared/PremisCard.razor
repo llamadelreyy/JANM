@@ -1,0 +1,112 @@
+﻿@using PBT.Data
+
+<div class="e-cukai-title mb-4"><span class="px-3"><img src="/images/icons/paper-bag-label.png" alt="" /><span class="px-1">Info Taksiran</span></span></div>
+<div class="e-card">
+    <div class="e-main d-flex align-items-center">
+        <div class="flex-shrink-0">
+            <img class="e-photo" src=@PremisInfo.BuktiPath1 alt="" @attributes=@ImageAttributes />
+        </div>
+        <div class="e-info flex-grow-1 ms-3">
+            <div class="e-name">Nama Pemilik : @($"{PremisInfo.NamaPemilik}")</div>
+            <div class="e-name">No. Akaun : @($"{PremisInfo.NoLesen}")</div>
+            <div class="e-address">Alamat Premis : @($"{PremisInfo.AlamatPerniagaan}")</div>
+
+            <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
+            <div class="e-divider my-3"></div>
+            <div class="e-email">
+                <button class="btn-panel" type="button">Maklumat Cukai</button>
+                <button class="btn-panel">
+                    Nota Pemeriksaan
+                    <span class="badge-button-green">0</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="e-lesen-title"><span class="px-3"><img src="/images/icons/document-text-image.png" alt="" /><span class="px-1">Info Lesen</span></span></div>
+<div class="e-card">
+    <div class="e-main d-flex align-items-center">
+    <div class="e-info flex-grow-1 ms-3 py-3">
+        <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
+        <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
+        <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
+
+        <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
+        <div class="e-divider my-3"></div>
+        <div class="e-email">
+            <a class="receipt-panel">
+                <img src="/images/icons/script-text.png" alt="" />
+                Notis
+                <span class="badge-button-green">0</span>
+            </a>
+            <a class="receipt-panel">
+                <img src="/images/icons/script.png" alt="" />
+                Notis Tamat Tempoh
+                <span class="badge-button-green">0</span>
+            </a>
+
+            <a class="receipt-panel">
+                <img src="/images/icons/receipt-text.png" alt="" />
+                Kompaun
+                <span class="badge-button-red">2</span>
+            </a>
+        </div>
+        <div class="e-divider my-3"></div>
+        <div class="e-email">
+            <button class="btn-panel" type="button">Maklumat Lesen</button>
+            <button class="btn-panel">
+                Nota Pemeriksaan
+                <span class="badge-button-green">0</span>
+            </button>
+        </div>
+    </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public NoticeProp PremisInfo { get; set; }
+    [Parameter] public IEnumerable<KeyValuePair<string, object>> ImageAttributes { get; set; }
+
+
+    public string GetPhotoUrl()
+    {
+        return "";
+    }
+
+    public MarkupString GetStatusIconHtml(string status)
+    {
+        string priorytyClass = "danger";
+        string title = " TUTUP ";
+        if (status == "BARU")
+        {
+            priorytyClass = "info";
+            title = " AKTIF ";
+        }
+
+        string html = string.Format("<span class='e-badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
+        return new MarkupString(html);
+    }
+
+    string GetColorLot(int typeLot)
+    {
+        switch (typeLot)
+        {
+            case 1:
+                return "Green";
+            case 2:
+                return "Red";
+            case 3:
+                return "Blue";
+            case 4:
+                return "Orange";
+            case 5:
+                return "Yellow";
+            case 6:
+                return "#ccc";
+            case 7:
+                return "Purple";
+            default:
+                return "#ccc";
+        }
+    }
+}

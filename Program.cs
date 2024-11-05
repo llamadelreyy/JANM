@@ -1,0 +1,156 @@
+using PBT.Data;
+using PBT.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
+using DevExpress.DashboardCommon;
+using DevExpress.DashboardAspNetCore;
+using DevExpress.DashboardWeb;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.HttpOverrides;
+using DashboardMainDemo;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.Globalization;
+using DevExpress.AspNetCore;
+using Blazored.Toast;
+using DevExpress.AspNetCore.Reporting;
+using DevExpress.XtraReports.Web.Extensions;
+using System.Runtime.InteropServices;
+using GoogleMapsComponents;
+using DevExpress.XtraCharts;
+using Microsoft.Extensions.DependencyInjection;
+
+
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add this to configure Kestrel with the settings from appsettings.json
+builder.WebHost.ConfigureKestrel(options => { options.Configure(builder.Configuration.GetSection("Kestrel")); });
+
+//Dashboard
+IFileProvider fileProvider = builder.Environment.ContentRootFileProvider;
+IConfiguration configuration = builder.Configuration;
+
+// Add services to the container.
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
+builder.Services.AddBlazoredToast();
+builder.Services.AddBlazorBootstrap();
+
+var myFirstClass = builder.Configuration.GetSection("GoogleMap:ApiKey").Value;
+builder.Services.AddBlazorGoogleMaps(new GoogleMapsComponents.Maps.MapApiLoadOptions(myFirstClass)
+{
+    Version = "3.58",
+    Libraries = "places,visualization,marker"
+});
+
+builder.Services.AddDevExpressBlazor();
+builder.Services.Configure<DevExpress.Blazor.Configuration.GlobalOptions>(options => {
+    options.BootstrapVersion = DevExpress.Blazor.BootstrapVersion.v5;
+});
+builder.Services.AddDevExpressServerSideBlazorReportViewer();
+builder.Services.AddControllers();
+
+builder.Services
+    .AddResponseCompression()
+    .AddDistributedMemoryCache()
+    .AddSession()
+    .AddDevExpressControls()
+    .AddControllersWithViews();
+
+builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+//builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddTransient<CompoundService>();
+builder.Services.AddTransient<NoticeService>();
+builder.Services.AddSingleton<FileUrlStorageService>();
+builder.Services.AddHostedService<EmailNotificationService>();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var sqlConnectionConfiguration = new SqlConnectionConfiguration(connectionString);
+builder.Services.AddSingleton(sqlConnectionConfiguration);
+
+var dataDirectory = fileProvider.GetFileInfo("App_Data").PhysicalPath; //Path.Combine(hostingEnvironment.ContentRootPath, "App_Data");
+AppDomain.CurrentDomain.SetData("DataDirectory", dataDirectory);
+
+var cultureInfo = new CultureInfo("ms-MY");
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
+
+//Dashboard
+builder.Services.AddScoped<DashboardConfigurator>((IServiceProvider serviceProvider) =>
+{
+    DashboardConfigurator configurator = new DashboardConfigurator();
+    configurator.SetDashboardStorage(serviceProvider.GetService<SessionDashboardStorage>());
+
+    DashboardFileStorage dashboardFileStorage = new DashboardFileStorage(fileProvider.GetFileInfo("~/App_Data/Dashboards").PhysicalPath);
+    configurator.SetDashboardStorage(dashboardFileStorage);
+
+    //configurator.SetDashboardStorage(new DashboardFileStorage(fileProvider.GetFileInfo("App_Data/Dashboards").PhysicalPath));
+    //////DataSourceInMemoryStorage dataSourceStorage = new DataSourceInMemoryStorage();
+    //////configurator.SetDataSourceStorage(dataSourceStorage);
+    configurator.SetConnectionStringsProvider(new MyDataSourceWizardConnectionStringsProvider(configuration));
+    return configurator;
+});
+
+//////builder.Services.AddScoped<DashboardConfigurator>((IServiceProvider serviceProvider) => {
+//////    return DashboardUtils.CreateDashboardConfigurator(configuration, fileProvider);
+//////});
+
+builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddTransient<SessionDashboardStorage>();
+
+
+builder.WebHost.UseStaticWebAssets();
+
+//////builder.Services.AddScoped<AllocationUserService>();
+//////builder.Services.AddScoped<AllocationAuthenticationStateProvider>();
+//////builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AllocationAuthenticationStateProvider>());
+//***
+builder.Services.AddScoped<ReportStorageWebExtension, CustomReportStorageWebExtension>();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+//app.UseAuthentication();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+app.UseResponseCompression();
+app.UseSession();
+app.UseDevExpressControls();
+
+app.MapDashboardRoute("dashboardControl", "DefaultDashboard");
+//app.MapBlazorHub();
+//app.MapFallbackToPage("/_Host");
+
+//app.UseEndpoints(endpoints =>
+//{
+//    endpoints.MapControllers();
+//});
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapBlazorHub();
+    endpoints.MapControllers(); // This line maps the controller routes
+    endpoints.MapFallbackToPage("/_Host");
+});
+
+
+if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+{
+    DevExpress.Drawing.Internal.DXDrawingEngine.ForceSkia();
+}
+app.Run();

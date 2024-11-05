@@ -1,0 +1,90 @@
+﻿@using PBT.Data
+
+
+<div class="sidebar @StateCssClass">
+    <!-- Sidebar Header-->
+    <div class="sidebar-header d-flex align-items-center pt-3 px-3 pb-3" style="border-bottom:solid 1px #ccc;">
+        @*<img class="avatar shadow-0 img-fluid rounded-circle" src="https://d19m59y37dris4.cloudfront.net/admin/2-2-0/img/avatar-1.ce912d90.jpg" alt="...">*@
+        <a href="" class="avatar-text online"><span class="avatar-text-initial">R</span></a>
+        <div class="ms-3 title">
+            <span class="loginuser mb-2">Rudzuan </span>[ <a href="#" alt="ubah profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="#" alt="ubah profail"><i class="ri-lock-password-line ri-1x"></i></a> ]
+            <p class="text-sm text-gray-500 fw-light mb-0 lh-1">
+                <span class="loginusername">Administrator</span> [ <a alt="logout" href="#"><i class="ri-logout-box-r-line ri-1x"></i></a> ]
+            </p>
+        </div>
+    </div>
+    <DxTreeView AllowSelectNodes="true" CssClass="app-sidebar" style="padding-top:5px;">
+        <Nodes>
+            <DxTreeViewNode NavigateUrl="./" Text="Utama" IconUrl="\lib\remixicon\png\home-3-fill.png" CssClass="singleNodesClass"></DxTreeViewNode>
+            <DxTreeViewNode NavigateUrl="login" Text="Notifikasi" IconUrl="\images\icons-small\bell.png" CssClass="singleNodesClass" BadgeText="0"></DxTreeViewNode>
+            <DxTreeViewNode NavigateUrl="./" Text="Carian Umum" IconUrl="\images\icons-small\magnifier-left.png" CssClass="singleNodesClass"></DxTreeViewNode>
+
+            <DxTreeViewNode Text="Tetapan" IconUrl="" CssClass="@rootNodeCssClass">
+                <Nodes>
+                    <DxTreeViewNode NavigateUrl="./" Text="Pengguna Sistem" IconUrl="\images\icons-small\xfn.png" />
+                    <DxTreeViewNode NavigateUrl="./" Text="Peranan Sistem" IconUrl="\images\icons-small\toolbox.png" />
+                    <DxTreeViewNode NavigateUrl="./" Text="Pengguna & Peranan" IconUrl="\images\icons-small\xfn-friend.png" />
+                    <DxTreeViewNode NavigateUrl="./" Text="Akses Peranan" IconUrl="\images\icons-small\blue-document-tree.png" />
+                    <DxTreeViewNode NavigateUrl="./" Text="Setup Notis" IconUrl="\images\icons-small\document-hf.png" />
+                    <DxTreeViewNode NavigateUrl="./" Text="Setup Kompaun" IconUrl="\images\icons-small\document-hf.png" />
+                    <DxTreeViewNode NavigateUrl="./" Text="Setup Nota Pemeriksaan" IconUrl="\images\icons-small\document-hf.png" />
+                </Nodes>
+            </DxTreeViewNode>
+
+            <DxTreeViewNode Text="Papan Pemuka" IconUrl="" CssClass="@rootNodeCssClass">
+                <Nodes>
+                    <DxTreeViewNode NavigateUrl="zon_eksekutif" Text="Ringkasan Eksekutif" IconUrl="\images\icons-small\table-heatmap.png" />
+                    <DxTreeViewNode NavigateUrl="zon_majlis" Text="Ringkasan Zon Majlis" IconUrl="\images\icons-small\table-insert.png" />
+                    <DxTreeViewNode NavigateUrl="cattleEx" Text="Graf Statistik" IconUrl="\images\icons-small\chart-up-color.png" />
+                </Nodes>
+            </DxTreeViewNode>
+
+            <DxTreeViewNode Text="Taburan Data" IconUrl="" CssClass="@rootNodeCssClass">
+                <Nodes>
+                    <DxTreeViewNode NavigateUrl="lesen_map" Text="Lesen" IconUrl="\images\icons-small\tables-stacks.png" />
+                    <DxTreeViewNode NavigateUrl="cukai_map" Text="Taksiran" IconUrl="\images\icons-small\table-money.png" />
+                    <DxTreeViewNode NavigateUrl="dashboard" Text="Penguatkuasaan" IconUrl="\images\icons-small\table--pencil.png" />
+                </Nodes>
+            </DxTreeViewNode>
+
+            <DxTreeViewNode NavigateUrl="./" Text="Perincian Data" IconUrl="\images\icons-small\blue-document-template.png" CssClass="singleNodesClass"></DxTreeViewNode>
+
+            <DxTreeViewNode NavigateUrl="./" Text="Nota Pemeriksaan" IconUrl="\images\icons-small\blog--pencil.png" CssClass="singleNodesClass"></DxTreeViewNode>
+
+            <DxTreeViewNode Text="Pelaporan" IconUrl="" CssClass="@rootNodeCssClass" BadgeText="12">
+                <Nodes>
+                    <DxTreeViewNode NavigateUrl="kompaun_lesen" Text="Laporan Kompaun" IconUrl="\images\icons-small\document-template.png" />
+                    <DxTreeViewNode NavigateUrl="lapor_notis" Text="Laporan Notis" IconUrl="\images\icons-small\document-template.png" />
+                    <DxTreeViewNode NavigateUrl="rptweatherforecast" Text="Laporan Harian" IconUrl="\images\icons-small\document-template.png" />
+                </Nodes>
+            </DxTreeViewNode>
+
+            <DxTreeViewNode Text="Aduan" IconUrl="" CssClass="@rootNodeCssClass" BadgeText="8">
+                <Nodes>
+                    <DxTreeViewNode NavigateUrl="rptweatherforecast" Text="Sample Report" IconUrl="\images\icons-small\document-template.png" />
+                </Nodes>
+            </DxTreeViewNode>
+
+            <DxTreeViewNode Text="Bantuan &amp; Sokongan" IconUrl="" CssClass="@rootNodeCssClass">
+                <Nodes>
+                    <DxTreeViewNode NavigateUrl="dashboardmode" Text="Report Center" IconUrl="\images\icons-small\system-monitor.png" />
+                    <DxTreeViewNode NavigateUrl="systemuser" Text="Report a Problem" IconUrl="\lib\remixicon\png\chat-quote-line.png" />
+                    <DxTreeViewNode NavigateUrl="systemuser" Text="FAQ" IconUrl="\lib\remixicon\png\question-answer-line.png" />
+                </Nodes>
+            </DxTreeViewNode>
+
+            <DxTreeViewNode NavigateUrl="login" Text="Log Audit" IconUrl="\images\icons-small\wrench-screwdriver.png" CssClass="singleNodesClass"></DxTreeViewNode>
+            <DxTreeViewNode NavigateUrl="login" Text="Maklum Balas" IconUrl="\lib\remixicon\png\feedback-fill.png" CssClass="singleNodesClass"></DxTreeViewNode>
+            <DxTreeViewNode NavigateUrl="login" Text="Hubungi Kami" IconUrl="\lib\remixicon\png\customer-service-2-line.png" CssClass="singleNodesClass"></DxTreeViewNode>
+            <DxTreeViewNode NavigateUrl="login" Text="Log Keluar" IconUrl="\lib\remixicon\png\logout-box-r-line.png" CssClass="singleNodesClass"></DxTreeViewNode>
+
+        </Nodes>
+    </DxTreeView>
+</div>
+
+
+@code {
+    const string rootNodeCssClass = "root-item";
+    [Parameter] public string? StateCssClass { get; set; }
+
+}

@@ -1,0 +1,276 @@
+﻿@page "/jumlesenaktif"
+@attribute [AllowAnonymous]
+
+@using System.Drawing
+
+<div class="d-lg-flex border-bottom">
+    <div class="textTitle p-2"><a onclick="history.back();" class="nav-title">Ringkasan Eksekutif</a><span class="nav-subPage">/Perincian Jumlah Lesen Aktif</span></div>
+</div>
+
+<div class="item-container-y">
+    <div class="w-100 row borderGraph">
+        <span class="chart-title">Jumlah Lesen Mengikut Status Terkini</span>
+        <div class="col-9" style="justify-items:center;">
+
+            <DxPieChart Data="@GetData()"
+                        Width="400"
+                        InnerDiameter="0"
+                        StartAngle="0"
+                        SegmentDirection="PieChartSegmentDirection.Clockwise"
+                        Palette="@Colors">
+                <DxChartLegend Visible="false" />
+                <DxPieChartSeries ArgumentField="@((DataPoint s) => s.Argument)"
+                                    ValueField="@((DataPoint s) => s.Value)">
+
+                    <DxChartSeriesLabel Visible="true"
+                                    Position="RelativePosition.Outside">
+                            <DxChartSeriesLabelConnector Visible="true" />
+                    </DxChartSeriesLabel>
+                </DxPieChartSeries>
+                <DxChartTooltip Enabled="true"
+                                Position="RelativePosition.Outside">
+                    <div style="margin: 0.75rem">
+                        <div class="chart-tooltip">@context.Point.Argument</div>
+                        <div class="dashboard-center-text chart-tooltip">@($"{context.Point.Value:#,0.}")</div>
+                    </div>
+                </DxChartTooltip>
+            </DxPieChart>
+        </div>
+        <div class="col" style="border-left:1px solid #ccc;">
+            <div class="card border-0 w-100 mt-lg-3">
+                <div class="card-body p-1">
+                    <div class="palette-container">
+                        @* @for (int i = 0; i < Colors.Length; i++) *@
+                        @foreach (var data in GetData())
+                        {
+                            var color = Colors[data.Index];
+                            <div class="p-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><rect width="15" height="15" x="5" y="7" rx="1" ry="1" fill="@color" /></svg>
+                                <span class="chart-legend">@data.Argument</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="w-100 row borderGraph">
+        <span class="chart-title">Jumlah Lesen Aktif Mengikut Kawasan Dari Tahun 2021 - 2023</span>
+        <div class="col-9 mt-3" style="justify-items:center;">
+
+            <DxChart Data="@GetArea()" CssClass="mw-1100">
+
+    @*             <DxChartTooltip Enabled="true" Position="RelativePosition.Outside" /> *@
+
+                <DxChartBarSeries Name="2021"
+                                  T="DataArea"
+                                  TArgument="string"
+                                  TValue="int"
+                                  Filter="@((DataArea s) => s.Year == 2021)"
+                                  Color="Color.Red"
+                                  SummaryMethod="Enumerable.Sum"
+                                  ArgumentField="@(s => s.City)"
+                                  ValueField="@(s => s.Total)" />
+                <DxChartBarSeries Name="2022"
+                                  T="DataArea"
+                                  TArgument="string"
+                                  TValue="int"
+                                  Filter="@((DataArea s) => s.Year == 2022)"
+                                  Color="Color.Orange"
+                                  SummaryMethod="Enumerable.Sum"
+                                  ArgumentField="@(s => s.City)"                                  
+                                  ValueField="@(s => s.Total)" />
+                <DxChartBarSeries Name="2023"
+                                  T="DataArea"
+                                  TArgument="string"
+                                  TValue="int"
+                                  Filter="@((DataArea s) => s.Year == 2023)"
+                                  Color="Color.Green"
+                                  SummaryMethod="Enumerable.Sum"
+                                  ArgumentField="@(s => s.City)"
+                                  ValueField="@(s => s.Total)" />
+                <DxChartLegend Visible="false" />
+
+                <DxChartTooltip Enabled="true"
+                                Position="RelativePosition.Outside">
+                    <div style="margin: 0.75rem">
+                        <div class="fw-bold chart-tooltip">@context.Point.Argument</div>
+                        <div class="chart-tooltip">Tahun: @context.Point.SeriesName</div>
+                        <div class="chart-tooltip">Jumlah: @($"{context.Point.Value:N0}")</div>
+                    </div>
+                </DxChartTooltip>
+            </DxChart>
+        </div>
+        <div class="col" style="border-left:1px solid #ccc;">
+            <div class="card border-0 w-100 mt-lg-3">
+                <div class="card-body p-1">
+                    <div class="palette-container">
+                        <div class="p-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><rect width="15" height="15" x="5" y="7" rx="1" ry="1" fill="Red" /></svg>
+                            <span class="chart-legend">2021</span>
+                        </div>
+
+                        <div class="p-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><rect width="15" height="15" x="5" y="7" rx="1" ry="1" fill="Orange" /></svg>
+                            <span class="chart-legend">2022</span>
+                        </div>
+
+                        <div class="p-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><rect width="15" height="15" x="5" y="7" rx="1" ry="1" fill="Green" /></svg>
+                            <span class="chart-legend">2023</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="item-container-y">
+        <div class="w-100 row borderGraph">
+            <span class="chart-title">Jumlah Lesen Aktif Mengikut Jenis Lesen</span>
+            <div class="col-9" style="justify-items:center;">
+
+                <DxPieChart Data="@GetLesenType()"
+                            Width="400"
+                            InnerDiameter="0"
+                            StartAngle="80"
+                            SegmentDirection="PieChartSegmentDirection.Clockwise"
+                            Palette="@Colors">
+                    <DxChartLegend Visible="false" />
+                    <DxPieChartSeries ArgumentField="@((DataType s) => s.Type)"
+                                      ValueField="@((DataType s) => s.Total)">
+
+                        <DxChartSeriesLabel Visible="true"
+                                            Position="RelativePosition.Outside">
+                            <DxChartSeriesLabelConnector Visible="true" />
+                        </DxChartSeriesLabel>
+                    </DxPieChartSeries>
+                    <DxChartTooltip Enabled="true"
+                                    Position="RelativePosition.Outside">
+                        <div style="margin: 0.75rem">
+                            <div class="chart-tooltip">@context.Point.Argument</div>
+                            <div class="dashboard-center-text chart-tooltip">@($"{context.Point.Value:#,0.}")</div>
+                        </div>
+                    </DxChartTooltip>
+                </DxPieChart>
+            </div>
+            <div class="col" style="border-left:1px solid #ccc;">
+                <div class="card border-0 w-100 mt-lg-3">
+                    <div class="card-body p-1">
+                        <div class="palette-container">
+                            @* @for (int i = 0; i < Colors.Length; i++) *@
+                            @foreach (var data in GetLesenType())
+                            {
+                                var color = Colors[data.No];
+                                <div class="p-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><rect width="15" height="15" x="5" y="7" rx="1" ry="1" fill="@color" /></svg>
+                                    <span class="chart-legend">@data.Type</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    string[] Colors = new string[] { "green", "red", "orange", "chartreuse", "blue", "grey", "purple", "chocolate", "saddlebrown", "burlywood" };
+    // ChartPaletteExtensionMode CurrentPaletteMode = ChartPaletteExtensionMode.Alternate;
+
+    // double[] Values = new double[] { 90.27, 65.32, 84.59, 81.86, 9 };
+    // string LabelFormat = "##.#'%' ";
+    // string[] LegendItemCaptions = new string[] { "Lesen Aktif", "Lesen Tamat Tempoh", "Lesen Batal", "Gantung", "Lot Kosong" };
+
+
+    List<DataPoint> GetData()
+    {
+        List<DataPoint> result = new List<DataPoint>();
+        result.Add(new DataPoint("Lesen Aktif", 70, 0));
+        result.Add(new DataPoint("Lesen Tamat Tempoh", 23, 1));
+        result.Add(new DataPoint("Lesen Batal", 7, 2));
+        result.Add(new DataPoint("Lesen Gantung", 0, 3));
+        result.Add(new DataPoint("Lot Kosong", 3, 4));
+
+        return result;
+    }
+
+    public class DataPoint
+    {
+        public string Argument { get; set; }
+        public int Value { get; set; }
+        public int Index { get; set; }
+        public DataPoint(string argument, int value, int pos)
+        {
+            Argument = argument;
+            Value = value;
+            Index = pos;
+        }
+    }
+
+    List<DataArea> GetArea()
+    {
+        List<DataArea> result = new List<DataArea>();
+        result.Add(new DataArea("Sabak Bernam", 70, 2021));
+        result.Add(new DataArea("Sabak Bernam", 23, 2022));
+        result.Add(new DataArea("Sabak Bernam", 89, 2023));
+
+        result.Add(new DataArea("Sungai Besar", 33, 2021));
+        result.Add(new DataArea("Sungai Besar", 45, 2022));
+        result.Add(new DataArea("Sungai Besar", 67, 2023));
+
+        result.Add(new DataArea("Hulu Selangor", 13, 2021));
+        result.Add(new DataArea("Hulu Selangor", 38, 2022));
+        result.Add(new DataArea("Hulu Selangor", 95, 2023));
+
+
+        return result;
+    }
+
+    public class DataArea
+    {
+        public string City { get; set; }
+        public int Total { get; set; }
+        public int Year { get; set; }
+        public DataArea(string argument, int value, int year)
+        {
+            City = argument;
+            Total = value;
+            Year = year;
+        }
+    }
+
+    List<DataType> GetLesenType()
+    {
+        List<DataType> result = new List<DataType>();
+        result.Add(new DataType(0, "Lesen Premis", 2154));
+        result.Add(new DataType(1, "Lesen Kantin Sekolah", 113));
+        result.Add(new DataType(2, "Lesen Komposit Premis & Papan Tanda", 300));
+        result.Add(new DataType(3, "Lesen Hotel Dan Asrama", 30));
+        result.Add(new DataType(4, "Lesen Haiwan Peliharaan", 1123));
+        result.Add(new DataType(5, "Lesen Kantin Kilang", 56));
+        result.Add(new DataType(6, "Lesen Papan Tanda", 389));
+        result.Add(new DataType(7, "Lain-Lain Perniagaan", 130));
+
+        return result;
+    }
+
+    public class DataType
+    {
+        public int No { get; set; }
+        public string Type { get; set; }
+        public int Total { get; set; }
+        public DataType(int index, string argument, int value)
+        {
+            No = index;
+            Type = argument;
+            Total = value;
+        }
+    }
+
+}
