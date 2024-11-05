@@ -1,33 +1,37 @@
-using Microsoft.EntityFrameworkCore;
-using PBTPro.Api.Services;
-using PBTPro.Shared.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PBTPro.Api.Constants;
+using PBTPro.Api.Services;
 using PBTPro.DAL;
+using PBTPro.Shared.Models.CommonService;
 using Prometheus;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
-using PBTPro.Api.Controllers.Base;
-using PBTPro.Api.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-IConfiguration configuration = builder.Configuration;
 
 // Add services to the container.
-
-// Register the configuration for IConfiguration
-builder.Services.AddSingleton<IConfiguration>(configuration);
-
-// Register the controller
-builder.Services.AddScoped<LotController>();
-
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
+//builder.Services.AddSignalR();
+
+builder.Services.AddSignalR(hubOptions =>
+{
+    hubOptions.EnableDetailedErrors = true;
+    hubOptions.KeepAliveInterval = TimeSpan.FromMinutes(1);
+})
+.AddJsonProtocol(options => {
+    options.PayloadSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
+    //options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
+});
 
 #region DB
 builder.Services.AddDbContext<PBTProDbContext>(options =>
@@ -44,7 +48,7 @@ builder.Services.AddSwaggerGen(swagger =>
         Title = "PBTPro Web API",
         Description = "PBTPro Web API, build: " + Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
     });
-    //swagger.DocumentFilter<SwaggerAPIPathPrefixInserter>("/web-api");
+    swagger.DocumentFilter<SwaggerAPIPathPrefixInserter>();
     swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
         Name = "Authorization",
@@ -69,6 +73,7 @@ builder.Services.AddSwaggerGen(swagger =>
         }
     });
 });
+
 builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
@@ -103,7 +108,9 @@ builder.Services.AddCors(options =>
             "http://localhost",
             "https://localhost",
             "http://pbtpro.com.my",
-            "https://pbtpro.com.my")
+            "https://pbtpro.com.my",
+            "http://192.168.10.23",
+            "https://192.168.10.23")
         .SetIsOriginAllowed(_ => true)
         .AllowCredentials().AllowAnyHeader().AllowAnyMethod();
         //.SetIsOriginAllowedToAllowWildcardSubdomains();
@@ -134,41 +141,102 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"])),
         ClockSkew = TimeSpan.Zero
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = context =>
+        {
+            if (context.Response.HasStarted)
+            {
+                return Task.CompletedTask; // Exit if the response has already started
+            }
+
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+
+            var response = new ReturnViewModel
+            {
+                DateTime = DateTime.Now,
+                ReturnCode = (int)HttpStatus.NoRequestAuthority,
+                Status = "Unauthorized",
+                Data = null,
+                ReturnMessage = "Anda tidak dibenarkan untuk melihat kandungan ini!",
+                ReturnParameter = null
+            };
+
+            var result = JsonSerializer.Serialize(response);
+            return context.Response.WriteAsync(result).ContinueWith(t =>
+            {
+                // Mark the response as handled
+                context.HandleResponse();
+            });
+
+        },
+        OnMessageReceived = context =>
+        {
+            // Check if the request is for the SignalR hub
+            var path = context.HttpContext.Request.Path;
+            if (path.StartsWithSegments("/pushDataHub"))
+            {
+                // Skip token validation for SignalR hub
+                context.NoResult();
+                return Task.CompletedTask;
+            }
+            return Task.CompletedTask;
+        }
+        /*,
+        OnMessageReceived = context =>
+        {
+            var path = context.HttpContext.Request.Path;
+            if (path.StartsWithSegments("/pushDataHub"))
+            {
+                string? accessToken = context.Request.Query["access_token"];
+                if (string.IsNullOrWhiteSpace(accessToken))
+                {
+                    var authorizationHeader = context.Request.Headers["Authorization"].ToString();
+                    if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
+                    {
+                        accessToken = authorizationHeader.Substring("Bearer ".Length).Trim();
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(accessToken))
+                {
+                    context.Token = accessToken;
+                }
+            }
+
+            return Task.CompletedTask;
+        }*/
+    };
 });
 
 builder.Services.AddScoped<JWTTokenService>();
 builder.Services.AddAuthorization();
 #endregion
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
+//sseClientId remover for signalr server event protocol supports
+app.UseMiddleware<MiddlewareRemoveSseClientId>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
-{}
+{
+}
 
-app.UseHttpsRedirection();
-
+//app.UseHttpsRedirection();
 app.UseRouting();
-
 app.UseCors(MyAllowSpecificOrigins);
-
+//app.MapHub<PushDataHub>("/pushDataHub");
 app.UseAuthentication();
-
 app.UseAuthorization();
-
 app.UseHttpMetrics();
 
-
-//app.MapControllers();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
+    endpoints.MapHub<PushDataHub>("/pushDataHub");
     endpoints.MapControllerRoute("default", "Web api");
 });
 

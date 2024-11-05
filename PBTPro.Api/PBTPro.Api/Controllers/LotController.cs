@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.Shared.Models.CommonService;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -16,18 +16,16 @@ namespace PBTPro.Api.Controllers
     public class LotController : IBaseController
     {
         private readonly ILogger<LotController> _logger;
-        private readonly string _module = "LOT";
+        private readonly string _feature = "LOT";
         private readonly string _defCRS = "3375";
-        private readonly IConfiguration _configuration;
-        public LotController(PBTProDbContext dbContext, ILogger<LotController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
+
+        public LotController(PBTProDbContext dbContext, ILogger<LotController> logger) : base(dbContext)
         {
             _logger = logger;
-            _configuration = configuration;
         }
 
         [HttpGet]
         [Route("GetList")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetList(string? crs = null)
         {
             try
@@ -44,14 +42,40 @@ namespace PBTPro.Api.Controllers
                     .FromSqlRaw(query)
                     .ToList();
                 //mstLots = await _dbContext.MstLots.AsNoTracking().ToListAsync();
-                return Ok(mstLots, SystemMesg(_module, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
+                return Ok(mstLots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
             }
             catch (Exception ex)
             {
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
-
         }
+
+        [HttpGet]
+        [Route("GetListByBound")]
+        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, string? crs = null)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(crs))
+                {
+                    crs = _defCRS;
+                }
+                string query = BuildDynamicSelect<MstLot>(transformGeom: true, crs: crs);
+                query = $"{query} WHERE ST_Within(geom, ST_Transform(ST_MakeEnvelope({minLng}, {minLat}, {maxLng}, {maxLat}, {crs}),{_defCRS}))";
+                var mstLots = _dbContext.MstLots
+                    .FromSqlRaw(query)
+                    .ToList();
+                //mstLots = await _dbContext.MstLots.AsNoTracking().ToListAsync();
+                return Ok(mstLots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+
+
 
         #region private logic
         private string BuildDynamicSelect<TEntity>(bool transformGeom = false, string? crs = null)

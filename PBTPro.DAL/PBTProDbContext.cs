@@ -19,7 +19,17 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<AppSystemMessage> AppSystemMessages { get; set; }
 
+    public virtual DbSet<MstDaerah> MstDaerahs { get; set; }
+
     public virtual DbSet<MstLot> MstLots { get; set; }
+
+    public virtual DbSet<MstMukim> MstMukims { get; set; }
+
+    public virtual DbSet<ParFormField> ParFormFields { get; set; }
+
+    public virtual DbSet<TrnPatrol> TrnPatrols { get; set; }
+
+    public virtual DbSet<TrnPatrolDet> TrnPatrolDets { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +44,9 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.RecId)
                 .HasDefaultValueSql("nextval('app_email_queue_recid_seq'::regclass)")
                 .HasColumnName("rec_id");
+            entity.Property(e => e.CntRetry)
+                .HasDefaultValue(0)
+                .HasColumnName("cnt_retry");
             entity.Property(e => e.Content).HasColumnName("content");
             entity.Property(e => e.CreatedBy)
                 .HasMaxLength(50)
@@ -123,6 +136,9 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_dtm");
+            entity.Property(e => e.Feature)
+                .HasMaxLength(50)
+                .HasColumnName("feature");
             entity.Property(e => e.Isactive)
                 .HasDefaultValue(true)
                 .HasColumnName("isactive");
@@ -135,12 +151,56 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("modified_dtm");
-            entity.Property(e => e.Module)
-                .HasMaxLength(50)
-                .HasColumnName("module");
             entity.Property(e => e.Type)
                 .HasMaxLength(1)
                 .HasColumnName("type");
+        });
+
+        modelBuilder.Entity<MstDaerah>(entity =>
+        {
+            entity.HasKey(e => e.Gid).HasName("mst_daerah_pkey");
+
+            entity.ToTable("mst_daerah");
+
+            entity.HasIndex(e => e.Geom, "mst_daerah_geom_idx").HasMethod("gist");
+
+            entity.Property(e => e.Gid).HasColumnName("gid");
+            entity.Property(e => e.Acc)
+                .HasMaxLength(50)
+                .HasColumnName("acc");
+            entity.Property(e => e.Ark)
+                .HasMaxLength(50)
+                .HasColumnName("ark");
+            entity.Property(e => e.Bds)
+                .HasMaxLength(50)
+                .HasColumnName("bds");
+            entity.Property(e => e.Fcd)
+                .HasMaxLength(7)
+                .HasColumnName("fcd");
+            entity.Property(e => e.Fnm)
+                .HasMaxLength(100)
+                .HasColumnName("fnm");
+            entity.Property(e => e.Geom)
+                .HasColumnType("geometry(MultiPolygon,3375)")
+                .HasColumnName("geom");
+            entity.Property(e => e.Keluasan)
+                .HasMaxLength(50)
+                .HasColumnName("keluasan");
+            entity.Property(e => e.Kemaskini)
+                .HasMaxLength(50)
+                .HasColumnName("kemaskini");
+            entity.Property(e => e.KodDaerah)
+                .HasMaxLength(50)
+                .HasColumnName("kod_daerah");
+            entity.Property(e => e.KodNegeri)
+                .HasMaxLength(50)
+                .HasColumnName("kod_negeri");
+            entity.Property(e => e.Nam)
+                .HasMaxLength(50)
+                .HasColumnName("nam");
+            entity.Property(e => e.Objectid).HasColumnName("objectid");
+            entity.Property(e => e.ShapeArea).HasColumnName("shape_area");
+            entity.Property(e => e.ShapeLeng).HasColumnName("shape_leng");
         });
 
         modelBuilder.Entity<MstLot>(entity =>
@@ -210,6 +270,215 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Upi)
                 .HasMaxLength(16)
                 .HasColumnName("upi");
+        });
+
+        modelBuilder.Entity<MstMukim>(entity =>
+        {
+            entity.HasKey(e => e.Gid).HasName("mst_mukim_pkey");
+
+            entity.ToTable("mst_mukim");
+
+            entity.HasIndex(e => e.Geom, "mst_mukim_geom_idx").HasMethod("gist");
+
+            entity.Property(e => e.Gid).HasColumnName("gid");
+            entity.Property(e => e.Acc)
+                .HasMaxLength(50)
+                .HasColumnName("acc");
+            entity.Property(e => e.Ark)
+                .HasMaxLength(50)
+                .HasColumnName("ark");
+            entity.Property(e => e.Bds)
+                .HasMaxLength(50)
+                .HasColumnName("bds");
+            entity.Property(e => e.Dasdas)
+                .HasMaxLength(50)
+                .HasColumnName("dasdas");
+            entity.Property(e => e.Fcd)
+                .HasMaxLength(10)
+                .HasColumnName("fcd");
+            entity.Property(e => e.Fnm)
+                .HasMaxLength(50)
+                .HasColumnName("fnm");
+            entity.Property(e => e.Geom)
+                .HasColumnType("geometry(MultiPolygon,3375)")
+                .HasColumnName("geom");
+            entity.Property(e => e.Globalid)
+                .HasMaxLength(38)
+                .HasColumnName("globalid");
+            entity.Property(e => e.Keluasan)
+                .HasMaxLength(50)
+                .HasColumnName("keluasan");
+            entity.Property(e => e.KodDaerah)
+                .HasMaxLength(50)
+                .HasColumnName("kod_daerah");
+            entity.Property(e => e.KodMukim)
+                .HasMaxLength(50)
+                .HasColumnName("kod_mukim");
+            entity.Property(e => e.KodNegeri)
+                .HasMaxLength(50)
+                .HasColumnName("kod_negeri");
+            entity.Property(e => e.Nam)
+                .HasMaxLength(50)
+                .HasColumnName("nam");
+            entity.Property(e => e.Objectid).HasColumnName("objectid");
+            entity.Property(e => e.ShapeArea).HasColumnName("shape_area");
+            entity.Property(e => e.ShapeLeng).HasColumnName("shape_leng");
+        });
+
+        modelBuilder.Entity<ParFormField>(entity =>
+        {
+            entity.HasKey(e => e.RecId).HasName("par_form_field_pkey");
+
+            entity.ToTable("par_form_field");
+
+            entity.Property(e => e.RecId).HasColumnName("rec_id");
+            entity.Property(e => e.ApiSeeded)
+                .HasDefaultValue(false)
+                .HasColumnName("api_seeded");
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50)
+                .HasColumnName("created_by");
+            entity.Property(e => e.CreatedDtm)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_dtm");
+            entity.Property(e => e.FormType)
+                .HasMaxLength(50)
+                .HasColumnName("form_type");
+            entity.Property(e => e.Isactive)
+                .HasDefaultValue(true)
+                .HasColumnName("isactive");
+            entity.Property(e => e.Label)
+                .HasMaxLength(50)
+                .HasColumnName("label");
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasColumnName("modified_by");
+            entity.Property(e => e.ModifiedDtm)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("modified_dtm");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.Option).HasColumnName("option");
+            entity.Property(e => e.Orders)
+                .HasDefaultValue(0)
+                .HasColumnName("orders");
+            entity.Property(e => e.Required)
+                .HasDefaultValue(false)
+                .HasColumnName("required");
+            entity.Property(e => e.SourceUrl)
+                .HasMaxLength(255)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasColumnName("source_url");
+            entity.Property(e => e.Type)
+                .HasMaxLength(10)
+                .HasColumnName("type");
+        });
+
+        modelBuilder.Entity<TrnPatrol>(entity =>
+        {
+            entity.HasKey(e => e.RecId).HasName("trn_patrol_pkey");
+
+            entity.ToTable("trn_patrol");
+
+            entity.Property(e => e.RecId).HasColumnName("rec_id");
+            entity.Property(e => e.CntCompound)
+                .HasDefaultValue(0)
+                .HasColumnName("cnt_compound");
+            entity.Property(e => e.CntNotes)
+                .HasDefaultValue(0)
+                .HasColumnName("cnt_notes");
+            entity.Property(e => e.CntNotice)
+                .HasDefaultValue(0)
+                .HasColumnName("cnt_notice");
+            entity.Property(e => e.CntSeizure)
+                .HasDefaultValue(0)
+                .HasColumnName("cnt_seizure");
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50)
+                .HasColumnName("created_by");
+            entity.Property(e => e.CreatedDtm)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_dtm");
+            entity.Property(e => e.Isactive)
+                .HasDefaultValue(true)
+                .HasColumnName("isactive");
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasColumnName("modified_by");
+            entity.Property(e => e.ModifiedDtm)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("modified_dtm");
+            entity.Property(e => e.StartDtm)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("start_dtm");
+            entity.Property(e => e.StartLocation)
+                .HasColumnType("geometry(Point,3375)")
+                .HasColumnName("start_location");
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .HasDefaultValueSql("'New'::character varying")
+                .HasColumnName("status");
+            entity.Property(e => e.StopDtm)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("stop_dtm");
+            entity.Property(e => e.StopLocation)
+                .HasColumnType("geometry(Point,3375)")
+                .HasColumnName("stop_location");
+        });
+
+        modelBuilder.Entity<TrnPatrolDet>(entity =>
+        {
+            entity.HasKey(e => e.RecId).HasName("trn_patrol_det_pkey");
+
+            entity.ToTable("trn_patrol_det");
+
+            entity.Property(e => e.RecId).HasColumnName("rec_id");
+            entity.Property(e => e.CntCompound)
+                .HasDefaultValue(0)
+                .HasColumnName("cnt_compound");
+            entity.Property(e => e.CntNotes)
+                .HasDefaultValue(0)
+                .HasColumnName("cnt_notes");
+            entity.Property(e => e.CntNotice)
+                .HasDefaultValue(0)
+                .HasColumnName("cnt_notice");
+            entity.Property(e => e.CntSeizure)
+                .HasDefaultValue(0)
+                .HasColumnName("cnt_seizure");
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50)
+                .HasColumnName("created_by");
+            entity.Property(e => e.CreatedDtm)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_dtm");
+            entity.Property(e => e.Isactive)
+                .HasDefaultValue(true)
+                .HasColumnName("isactive");
+            entity.Property(e => e.Isleader)
+                .HasDefaultValue(false)
+                .HasColumnName("isleader");
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasColumnName("modified_by");
+            entity.Property(e => e.ModifiedDtm)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("modified_dtm");
+            entity.Property(e => e.PatrolId)
+                .HasDefaultValueSql("nextval('trn_patrol_det_parol_id_seq'::regclass)")
+                .HasColumnName("patrol_id");
+            entity.Property(e => e.Username)
+                .HasMaxLength(50)
+                .HasColumnName("username");
         });
 
         OnModelCreatingPartial(modelBuilder);

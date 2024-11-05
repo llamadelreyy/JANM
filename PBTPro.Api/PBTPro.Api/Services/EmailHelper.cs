@@ -102,6 +102,8 @@ namespace PBTPro.Api.Services
 
         public async Task<AppEmailQueue> ForceProcessQueue(AppEmailQueue queue)
         {
+            queue.CntRetry = queue.CntRetry + 1;
+
             AppEmailQueue result = new AppEmailQueue();
             try
             {

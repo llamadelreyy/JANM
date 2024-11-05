@@ -17,15 +17,17 @@ namespace PBTPro.Api.Controllers
     [ApiController]
     public class AuthenticateController : IBaseController
     {
+        private readonly ILogger<AuthenticateController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly JWTTokenService _tokenService;
         private readonly IEmailSender _emailSender;
-        private readonly string _module = "AUTH";
+        private readonly string _feature = "AUTH";
 
-        public AuthenticateController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, PBTProDbContext dbContext, JWTTokenService tokenService, IEmailSender emailSender, IHttpContextAccessor httpContextAccessor) : base(dbContext)
+        public AuthenticateController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, PBTProDbContext dbContext, ILogger<AuthenticateController> logger, JWTTokenService tokenService, IEmailSender emailSender) : base(dbContext)
         {
+            _logger = logger;
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
@@ -41,29 +43,29 @@ namespace PBTPro.Api.Controllers
             #region validation
             if (string.IsNullOrWhiteSpace(model.Name))
             {
-                return Error("", SystemMesg(_module, "NAME_ISREQUIRED", MessageTypeEnum.Error, string.Format("Nama adalah wajib")));
+                return Error("", SystemMesg(_feature, "NAME_ISREQUIRED", MessageTypeEnum.Error, string.Format("Nama adalah wajib")));
             }
 
             if (string.IsNullOrWhiteSpace(model.Username))
             {
-                return Error("", SystemMesg(_module, "USERNAME_ISREQUIRED", MessageTypeEnum.Error, string.Format("Nama Pengguna adalah wajib")));
+                return Error("", SystemMesg(_feature, "USERNAME_ISREQUIRED", MessageTypeEnum.Error, string.Format("Nama Pengguna adalah wajib")));
             }
 
             if (string.IsNullOrWhiteSpace(model.Email))
             {
-                return Error("", SystemMesg(_module, "EMAIL_ISREQUIRED", MessageTypeEnum.Error, string.Format("E-mel adalah wajib")));
+                return Error("", SystemMesg(_feature, "EMAIL_ISREQUIRED", MessageTypeEnum.Error, string.Format("E-mel adalah wajib")));
             }
 
             var userExists = await _userManager.FindByNameAsync(model.Username);
             if (userExists != null)
             {
-                return Error("", SystemMesg(_module, "USER_ISEXISTS", MessageTypeEnum.Error, string.Format("Nama pengguna telah digunakan")));
+                return Error("", SystemMesg(_feature, "USER_ISEXISTS", MessageTypeEnum.Error, string.Format("Nama pengguna telah digunakan")));
             }
 
             var emailExists = await _userManager.FindByEmailAsync(model.Email);
             if (emailExists != null)
             {
-                return Error("", SystemMesg(_module, "EMAIL_ISEXISTS", MessageTypeEnum.Error, string.Format("E-mel telah digunakan")));
+                return Error("", SystemMesg(_feature, "EMAIL_ISEXISTS", MessageTypeEnum.Error, string.Format("E-mel telah digunakan")));
             }
             #endregion
             try
@@ -87,7 +89,7 @@ namespace PBTPro.Api.Controllers
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (!result.Succeeded)
                 {
-                    return Error("", SystemMesg(_module, "REGISTER", MessageTypeEnum.Error, string.Format("Gagal mencipta pengguna, sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+                    return Error("", SystemMesg(_feature, "REGISTER", MessageTypeEnum.Error, string.Format("Gagal mencipta pengguna, sila hubungi pentadbir sistem atau cuba semula kemudian.")));
                 }
 
                 if (!string.IsNullOrWhiteSpace(user?.Email))
@@ -95,7 +97,7 @@ namespace PBTPro.Api.Controllers
                     await SendEmailSelfRegisterMember(user.Email, user.UserName, model.Password, model.Name);
                 }
 
-                return Error("", SystemMesg(_module, "REGISTER", MessageTypeEnum.Success, string.Format("Pengguna berjaya dicipta.")));
+                return Error("", SystemMesg(_feature, "REGISTER", MessageTypeEnum.Success, string.Format("Pengguna berjaya dicipta.")));
 
             }
             catch (Exception ex)
@@ -114,7 +116,7 @@ namespace PBTPro.Api.Controllers
                 var user = await _userManager.FindByNameAsync(model.Username);
                 if (user == null)
                 {
-                    return Error("", SystemMesg(_module, "USER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pengguna Tidak Sah")));
+                    return Error("", SystemMesg(_feature, "USER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pengguna Tidak Sah")));
                 }
 
                 var LoginResult = await _signInManager.PasswordSignInAsync(user, model.Password, false, true);
@@ -132,18 +134,18 @@ namespace PBTPro.Api.Controllers
                         authClaims.Add(new Claim(ClaimTypes.Role, role));
                     }
 
-                    var token = _tokenService.GenerateJwtToken(authClaims);
-                    return Ok(new { token });
+                    var token = _tokenService.GenerateJwtToken(authClaims, model.RememberMe);
+                    return Ok(new { token = token, roles = roles.ToList() });;
                 }
                 else if (LoginResult.IsLockedOut)
                 {
-                    return Error("", SystemMesg(_module, "MAXED_ATTEMPT", MessageTypeEnum.Error, string.Format("Percubaan log masuk maksimum dicapai. Hubungi pentadbir sistem untuk menyahsekat")));
+                    return Error("", SystemMesg(_feature, "MAXED_ATTEMPT", MessageTypeEnum.Error, string.Format("Percubaan log masuk maksimum dicapai. Hubungi pentadbir sistem untuk menyahsekat")));
                 }
                 else
                 {
                     var attempLeft = (5 - user.AccessFailedCount);
                     List<string> param = new List<string> { attempLeft.ToString() };
-                    return Error("", SystemMesg(_module, "INCORRECT_LOGIN", MessageTypeEnum.Error, string.Format("Nama pengguna atau kata laluan yang salah.[0] cubaan tinggal"), param));
+                    return Error("", SystemMesg(_feature, "INCORRECT_LOGIN", MessageTypeEnum.Error, string.Format("Nama pengguna atau kata laluan yang salah.[0] cubaan tinggal"), param));
                 }
             }
             catch(Exception ex)

@@ -3,15 +3,22 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 public class SwaggerAPIPathPrefixInserter : IDocumentFilter
 {
-    private readonly string _pathPrefix;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public SwaggerAPIPathPrefixInserter(string prefix)
+    public SwaggerAPIPathPrefixInserter(IHttpContextAccessor httpContextAccessor)
     {
-        _pathPrefix = prefix;
+        _httpContextAccessor = httpContextAccessor;
     }
+
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
-        // Get the existing paths
+        var request = _httpContextAccessor.HttpContext?.Request;
+        string _pathPrefix = request?.Headers["X-Forwarded-Prefix"].FirstOrDefault() ?? string.Empty;
+        if (string.IsNullOrEmpty(_pathPrefix))
+        {
+            return;
+        }
+
         var paths = swaggerDoc.Paths.ToList();
 
         // Iterate over each existing path

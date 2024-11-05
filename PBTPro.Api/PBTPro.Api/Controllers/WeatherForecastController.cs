@@ -1,10 +1,14 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PBTPro.Api.Controllers.Base;
+using PBTPro.DAL;
 
 namespace PBTPro.Api.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class WeatherForecastController : IBaseController
     {
         private static readonly string[] Summaries = new[]
         {
@@ -13,21 +17,24 @@ namespace PBTPro.Api.Controllers
 
         private readonly ILogger<WeatherForecastController> _logger;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(PBTProDbContext dbContext, ILogger<WeatherForecastController> logger) : base(dbContext)
         {
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
+        [HttpGet]
+        [Route("GetAllActionSetting")]
+        public async Task<IActionResult> GetAllActionSetting()
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            List<WeatherForecast> data = Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
                 TemperatureC = Random.Shared.Next(-20, 55),
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })
-            .ToArray();
+            .ToList();
+
+            return Ok(data, "Result Found");
         }
     }
 }

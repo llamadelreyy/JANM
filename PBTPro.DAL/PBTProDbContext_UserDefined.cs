@@ -17,6 +17,10 @@ namespace PBTPro.DAL
             _currentUser = RunUser;
         }
 
+        public PBTProDbContext(DbContextOptions options) : base(options)
+        {
+        }
+
         public PBTProDbContext(DbContextOptions<PBTProDbContext> options, UserResolverService userService)
             : base(options)
         {

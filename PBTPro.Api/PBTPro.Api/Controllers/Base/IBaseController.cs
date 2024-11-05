@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using PBTPro.Api.Constants;
 using PBTPro.DAL;
@@ -12,31 +11,16 @@ using System.Net.Http.Headers;
 
 namespace PBTPro.Api.Controllers.Base
 {
-    [Authorize(AuthenticationSchemes = "Bearer")]
+    [Authorize]
     public class IBaseController : ControllerBase
     {
-        protected readonly IWebHostEnvironment _environment;
-        protected readonly IConfiguration _configuration;
-        protected readonly IHttpContextAccessor _httpContextAccessor;
-        protected readonly string? _baseUploadDir;
-        protected readonly string? _apiBaseUrl;
-        protected readonly string? _MKPublicUrl;
         protected readonly PBTProDbContext _dbContext;
-
-        public IBaseController(IWebHostEnvironment environment, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, string? baseUploadDir, string? apiBaseUrl, string? mKPublicUrl)
-        {
-            _environment = environment;
-            _configuration = configuration;
-            _httpContextAccessor = httpContextAccessor;
-            _baseUploadDir = baseUploadDir;
-            _apiBaseUrl = apiBaseUrl;
-            _MKPublicUrl = mKPublicUrl;
-        }
+        protected readonly string? _apiBaseUrl;
 
         public IBaseController(PBTProDbContext dbContext)
         {
+            _dbContext = dbContext;
         }
-
         /// <summary>
         /// OK data - 200
         /// </summary>
@@ -46,14 +30,14 @@ namespace PBTPro.Api.Controllers.Base
         /// <param name="returnMessage">Message to caller</param>
         /// <param name="returnParameter">Parameter for returnMessage</param>
         /// <returns>The created Microsoft.AspNetCore.Mvc.OkObjectResult for the response.</returns>
-        protected OkObjectResult Ok<T>(T data,  string returnMessage = "", List<string>? returnParameter = null)
+        protected OkObjectResult Ok<T>(T data, string returnMessage = "", List<string>? returnParameter = null)
         {
             return base.Ok(new ReturnViewModel
             {
                 DateTime = DateTime.Now,
                 ReturnCode = (int)HttpStatus.Success,
                 Status = "OK",
-                Data = data,               
+                Data = data,
                 ReturnMessage = returnMessage,
                 ReturnParameter = returnParameter
             });
@@ -165,13 +149,13 @@ namespace PBTPro.Api.Controllers.Base
             return result;
         }
 
-        protected string SystemMesg(string module, string code, MessageTypeEnum type, string msg, List<string>? param = null)
+        protected string SystemMesg(string features, string code, MessageTypeEnum type, string msg, List<string>? param = null)
         {
             var name = ".";
             code = "." + code.ToUpper().Replace(" ", "_");
 
             AppSystemMessageModel model = new AppSystemMessageModel();
-            model.Module = module.ToUpper();
+            model.Feature = features.ToUpper();
             switch (type) //S-Success, W-Warning, E-Error
             {
                 case MessageTypeEnum.Success:
@@ -190,7 +174,7 @@ namespace PBTPro.Api.Controllers.Base
                     model.Type = "S";
                     break;
             }
-            model.Code = model.Module + name + model.Type + code;
+            model.Code = model.Feature + name + model.Type + code;
             model.Message = msg;
 
             var retMsg = GetSysMesg(model.Code, model);
@@ -211,6 +195,7 @@ namespace PBTPro.Api.Controllers.Base
 
             return msg;
         }
+
         private AppSystemMessage? GetSysMesg(string code, AppSystemMessageModel? model)
         {
             AppSystemMessage? appSystemMessage = null;
@@ -221,7 +206,7 @@ namespace PBTPro.Api.Controllers.Base
                 {
                     appSystemMessage = new AppSystemMessage
                     {
-                        Module = model.Module,
+                        Feature = model.Feature,
                         Code = model.Code,
                         Type = model.Type,
                         Message = model.Message,
@@ -285,35 +270,42 @@ namespace PBTPro.Api.Controllers.Base
 
                 using (HttpClient client = new HttpClient(handler))
                 {
-                    HttpResponseMessage response = await client.SendAsync(request);
+                    try
+                    {
+                        HttpResponseMessage response = await client.SendAsync(request);
 
-                    #region Response Massage
-                    string? jsonString = await response.Content.ReadAsStringAsync();
-                    string? returnMessage = null;
-                    string? dataString = null;
-                    if (!string.IsNullOrWhiteSpace(jsonString))
-                    {
-                        JObject jsonRS = JObject.Parse(jsonString);
-                        returnMessage = jsonRS.SelectToken("returnMessage")?.ToString();
-                        dataString = jsonRS.SelectToken("data")?.ToString();
-                        result.DateTime = jsonRS.SelectToken("dateTime").ToObject<DateTime>();
-                        result.ReturnCode = jsonRS.SelectToken("returnCode").ToObject<int>();
-                        result.Status = jsonRS.SelectToken("status")?.ToString();
-                        result.Data = dataString;
-                        result.ReturnMessage = returnMessage;
-                        result.ReturnParameter = jsonRS.SelectToken("returnParameter")?.ToObject<List<string>>();
-                    }
-                    else
-                    {
-                        result.ReturnMessage = response.ReasonPhrase?.ToString();
-                        result.ReturnCode = (int)response.StatusCode;
-                    }
+                        #region Response Massage
+                        string? jsonString = await response.Content.ReadAsStringAsync();
+                        string? returnMessage = null;
+                        string? dataString = null;
+                        if (!string.IsNullOrWhiteSpace(jsonString))
+                        {
+                            JObject jsonRS = JObject.Parse(jsonString);
+                            returnMessage = jsonRS.SelectToken("returnMessage")?.ToString();
+                            dataString = jsonRS.SelectToken("data")?.ToString();
+                            result.DateTime = jsonRS.SelectToken("dateTime").ToObject<DateTime>();
+                            result.ReturnCode = jsonRS.SelectToken("returnCode").ToObject<int>();
+                            result.Status = jsonRS.SelectToken("status")?.ToString();
+                            result.Data = dataString;
+                            result.ReturnMessage = returnMessage;
+                            result.ReturnParameter = jsonRS.SelectToken("returnParameter")?.ToObject<List<string>>();
+                        }
+                        else
+                        {
+                            result.ReturnMessage = response.ReasonPhrase?.ToString();
+                            result.ReturnCode = (int)response.StatusCode;
+                        }
 
-                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                        {
+                            result.ReturnMessage = response.Headers.Contains("return-message")
+                            ? response.Headers.GetValues("return-message")?.FirstOrDefault()
+                            : returnMessage;
+                        }
+                    }
+                    catch (Exception ex)
                     {
-                        result.ReturnMessage = response.Headers.Contains("return-message")
-                        ? response.Headers.GetValues("return-message")?.FirstOrDefault()
-                        : returnMessage;
+                        throw;
                     }
                     #endregion
                 }

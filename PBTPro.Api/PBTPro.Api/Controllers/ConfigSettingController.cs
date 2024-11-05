@@ -1,27 +1,35 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using PBTPro.Shared.Models;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using PBTPro.Api.Controllers.Base;
+using PBTPro.DAL;
+using PBTPro.Shared.Models.TetapanTindakan;
+using System;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PBTPro.Api.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("[controller]")]
-    public class ConfigSettingController : ControllerBase
+    public class ConfigSettingController : IBaseController
     {
         private readonly ILogger<ConfigSettingController> _logger;
 
-        public ConfigSettingController(ILogger<ConfigSettingController> logger)
+        public ConfigSettingController(PBTProDbContext dbContext, ILogger<ConfigSettingController> logger) : base(dbContext)
         {
             _logger = logger;
         }
-        [HttpGet(Name = "GetAllActionSetting")]
-        public IEnumerable<Shared.Models.Action> GetAllActionSetting()
+
+        [HttpGet]
+        [Route("GetAllActionSetting")]
+        public async Task<IActionResult> GetAllActionSetting()
         {
-            var actionSettings = new List<Shared.Models.Action>();
+            var actionSettings = new List<ActionSetting>();
 
-            actionSettings.Add(new Shared.Models.Action { Actionid = 1, Actionname = "Kompaun", Actiondescription = "Jenis Tindakan", Actionenabled = true });
-            actionSettings.Add(new Shared.Models.Action { Actionid = 2, Actionname = "Notis", Actiondescription = "Jenis Tindakan", Actionenabled = true });
+            actionSettings.Add(new ActionSetting { ActionId = 1, ActionName="Kompaun", ActionDescription="Jenis Tindakan", ActionEnabled=true});
+            actionSettings.Add(new ActionSetting { ActionId = 2, ActionName = "Notis", ActionDescription = "Jenis Tindakan", ActionEnabled = true });
 
-            return actionSettings;
+            return Ok(actionSettings, "Result Found");
         }
     }
 }
