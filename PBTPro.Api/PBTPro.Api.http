@@ -1,6 +1,0 @@
-@PBTPro.Api_HostAddress = http://localhost:5150
-
-GET {{PBTPro.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
