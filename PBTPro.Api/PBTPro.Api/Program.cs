@@ -31,7 +31,7 @@ builder.Services.AddControllers();
 
 #region DB
 builder.Services.AddDbContext<PBTProDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
+        options.UseNpgsql(builder.Configuration.GetConnectionString("ConnectionStrings"), x => x.UseNetTopologySuite()));
 #endregion
 
 #region Interface
