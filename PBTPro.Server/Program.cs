@@ -18,13 +18,15 @@ using System.Runtime.InteropServices;
 using GoogleMapsComponents;
 using DevExpress.XtraCharts;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add this to configure Kestrel with the settings from appsettings.json
-builder.WebHost.ConfigureKestrel(options => { options.Configure(builder.Configuration.GetSection("Kestrel")); });
+// commented due to conflict on deploment
+//builder.WebHost.ConfigureKestrel(options => { options.Configure(builder.Configuration.GetSection("Kestrel")); });
 
 //Dashboard
 IFileProvider fileProvider = builder.Environment.ContentRootFileProvider;
@@ -82,7 +84,10 @@ builder.Services.AddScoped<DashboardConfigurator>((IServiceProvider serviceProvi
     DashboardConfigurator configurator = new DashboardConfigurator();
     configurator.SetDashboardStorage(serviceProvider.GetService<SessionDashboardStorage>());
 
-    DashboardFileStorage dashboardFileStorage = new DashboardFileStorage(fileProvider.GetFileInfo("~/App_Data/Dashboards").PhysicalPath);
+    //DashboardFileStorage dashboardFileStorage = new DashboardFileStorage(fileProvider.GetFileInfo("~/App_Data/Dashboards").PhysicalPath);
+    // Fix: Use absolute path for Dashboards folder
+    var dashboardPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "Dashboards");
+    DashboardFileStorage dashboardFileStorage = new DashboardFileStorage(dashboardPath);
     configurator.SetDashboardStorage(dashboardFileStorage);
 
     //configurator.SetDashboardStorage(new DashboardFileStorage(fileProvider.GetFileInfo("App_Data/Dashboards").PhysicalPath));
@@ -99,8 +104,8 @@ builder.Services.AddScoped<DashboardConfigurator>((IServiceProvider serviceProvi
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<SessionDashboardStorage>();
 
-
-builder.WebHost.UseStaticWebAssets();
+// commented due to conflict on deploment
+//builder.WebHost.UseStaticWebAssets();
 
 //////builder.Services.AddScoped<AllocationUserService>();
 //////builder.Services.AddScoped<AllocationAuthenticationStateProvider>();
@@ -124,7 +129,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 });
 
 //app.UseAuthentication();
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
