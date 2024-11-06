@@ -44,7 +44,7 @@ namespace PBTPro.Api.Controllers
              {
                 using (NpgsqlConnection? myConn = new NpgsqlConnection($"{_dbConn}"))
                 {
-                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("listFAQ()", myConn))
+                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("listFAQs", myConn))
                     {
                         myCmd.CommandType = CommandType.StoredProcedure;
                         myConn.Open();
