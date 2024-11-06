@@ -109,8 +109,10 @@ builder.Services.AddCors(options =>
             "https://localhost",
             "http://pbtpro.com.my",
             "https://pbtpro.com.my",
-            "http://192.168.10.23",
-            "https://192.168.10.23")
+            "http://192.168.5.19",
+            "https://192.168.5.19",
+            "http://45.64.169.215",
+            "https://45.64.169.215")
         .SetIsOriginAllowed(_ => true)
         .AllowCredentials().AllowAnyHeader().AllowAnyMethod();
         //.SetIsOriginAllowedToAllowWildcardSubdomains();
