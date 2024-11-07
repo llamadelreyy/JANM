@@ -1,23 +1,21 @@
-using PBT.Data;
-using PBT.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.Authorization;
-using DevExpress.DashboardCommon;
+using Blazored.Toast;
+using DashboardMainDemo;
+using DevExpress.AspNetCore;
 using DevExpress.DashboardAspNetCore;
 using DevExpress.DashboardWeb;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.AspNetCore.HttpOverrides;
-using DashboardMainDemo;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Globalization;
-using DevExpress.AspNetCore;
-using Blazored.Toast;
-using DevExpress.AspNetCore.Reporting;
-using DevExpress.XtraReports.Web.Extensions;
-using System.Runtime.InteropServices;
-using GoogleMapsComponents;
 using DevExpress.XtraCharts;
-using Microsoft.Extensions.DependencyInjection;
+using DevExpress.XtraReports.Web.Extensions;
+using GoogleMapsComponents;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.FileProviders;
+using PBT.Data;
+using PBT.Services;
+using PBTPro.DAL;
+using PBTPro.DAL.Models;
+using System.Globalization;
+using System.Runtime.InteropServices;
 
 
 
@@ -59,14 +57,21 @@ builder.Services
 
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 //builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddTransient<CompoundService>();
-builder.Services.AddTransient<NoticeService>();
+//builder.Services.AddTransient<CompoundService>();
+//builder.Services.AddTransient<NoticeService>();
+builder.Services.AddTransient<FaqService>();
+builder.Services.AddScoped<FaqService>();
+
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var sqlConnectionConfiguration = new SqlConnectionConfiguration(connectionString);
-builder.Services.AddSingleton(sqlConnectionConfiguration);
+//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+//var sqlConnectionConfiguration = new SqlConnectionConfiguration(connectionString);
+//builder.Services.AddSingleton(sqlConnectionConfiguration);
+
+builder.Services.AddDbContext<PBTProDbContext>(options =>
+       options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
+
 
 var dataDirectory = fileProvider.GetFileInfo("App_Data").PhysicalPath; //Path.Combine(hostingEnvironment.ContentRootPath, "App_Data");
 AppDomain.CurrentDomain.SetData("DataDirectory", dataDirectory);

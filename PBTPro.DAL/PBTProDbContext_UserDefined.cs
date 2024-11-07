@@ -23,18 +23,18 @@ namespace PBTPro.DAL
             _currentUser = userService.GetUser();
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json")
-                    .Build();
-                var test = configuration.GetConnectionString("DefaultConnection");
-                optionsBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite());
-            }
-        }
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    if (!optionsBuilder.IsConfigured)
+        //    {
+        //        var configuration = new ConfigurationBuilder()
+        //            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+        //            .AddJsonFile("appsettings.json")
+        //            .Build();
+        //        var test = configuration.GetConnectionString("DefaultConnection");
+        //        optionsBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite());
+        //    }
+        //}
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
         {

@@ -1,18 +1,15 @@
-using Microsoft.EntityFrameworkCore;
-using PBTPro.Api.Services;
-using PBTPro.Shared.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PBTPro.Api.Controllers;
+using PBTPro.Api.Services;
 using PBTPro.DAL;
 using Prometheus;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-using PBTPro.Api.Controllers.Base;
-using PBTPro.Api.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -31,7 +28,7 @@ builder.Services.AddControllers();
 
 #region DB
 builder.Services.AddDbContext<PBTProDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("ConnectionStrings"), x => x.UseNetTopologySuite()));
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
 #endregion
 
 #region Interface

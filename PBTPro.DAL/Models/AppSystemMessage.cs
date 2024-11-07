@@ -11,6 +11,7 @@ public partial class AppSystemMessage
 
     public string Type { get; set; } = null!;
 
+    public string Feature { get; set; } = null!;
     public string Module { get; set; } = null!;
 
     public string? Message { get; set; }

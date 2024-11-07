@@ -1,18 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
-using NetTopologySuite.Index.HPRtree;
 using Newtonsoft.Json;
-using Npgsql;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
-using PBTPro.Shared.Models;
-using PBTPro.Shared.Models.CommonService;
-using System.Data;
-using System.Reflection;
 
 namespace PBTPro.Api.Controllers
 {
@@ -24,80 +16,113 @@ namespace PBTPro.Api.Controllers
         private readonly ILogger<FaqController> _logger;
         private readonly IConfiguration _configuration;
         private readonly string _module = "Faq";
-        private List<FaqProp> _Faq { get; set; }
-
+        private readonly PBTProDbContext _dbContext;
+        private List<TbFaq> _Faq { get; set; }
 
         public FaqController(PBTProDbContext dbContext, ILogger<FaqController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
         {
             _logger = logger;
             _configuration = configuration;
             _dbConn = configuration.GetValue<string>("ConnectionStrings");
+            _dbContext = dbContext;
         }
 
-        [HttpGet]
         [AllowAnonymous]
-        public string ListFaq()
-        {
-            string jsonResult = "[]";
-
-            try
-             {
-                using (NpgsqlConnection? myConn = new NpgsqlConnection($"{_dbConn}"))
-                {
-                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("listFAQs", myConn))
-                    {
-                        myCmd.CommandType = CommandType.StoredProcedure;
-                        myConn.Open();
-                        using (NpgsqlDataReader? myReader = myCmd.ExecuteReader())
-                        {
-                            //Loop every data
-                            while (myReader.Read())
-                            {
-                                jsonResult = string.IsNullOrEmpty(myReader["dtJSON"].ToString()) ? "[]" : myReader["dtJSON"].ToString();
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw (ex);
-            }
-            return jsonResult;
-        }
-
-        [HttpPost]
-        public int CreateFaq([FromBody] string strJSONAdd, [FromQuery] string userId = "")
-        {
-            int intId = 0;
-            FaqProp faq = JsonConvert.DeserializeObject<FaqProp>(strJSONAdd);
-
-            try
-            {
-                using (NpgsqlConnection? myConn = new NpgsqlConnection($"{_dbConn}"))
-                {
-                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("InsertFaq", myConn))
-                    {
-                        myCmd.CommandType = CommandType.StoredProcedure;
-                        myConn.Open();
-                        using (NpgsqlDataReader? myReader = myCmd.ExecuteReader())
-                        {
-                           
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw (ex);
-            }
-            return intId;
-        }
-
         [HttpGet]
-        public Task<List<FaqProp>> GetFaqAsync(CancellationToken ct = default)
+        public async Task<ActionResult<IEnumerable<TbFaq>>> ListFaq()
         {
-            return Task.FromResult(_Faq);
+            if (_dbContext.TbFaqs == null)
+            {
+                return NotFound();
+            }
+            return await _dbContext.TbFaqs.ToListAsync();
         }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<TbFaq>> RetrieveFaq(int id)
+        {
+            if (_dbContext.TbFaqs == null)
+            {
+                return NotFound();
+            }
+            var faq = await _dbContext.TbFaqs.FindAsync(id);
+
+            if (faq == null)
+            {
+                return NotFound();
+            }
+
+            return faq;
+        }
+
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateFaq(int id, TbFaq faq)
+        {
+            if (id != faq.Faqid)
+            {
+                return BadRequest();
+            }
+
+            _dbContext.Entry(faq).State = EntityState.Modified;
+
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!FaqExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<TbFaq>> InsertFaq([FromBody] string faqs = "")
+        {
+            TbFaq faq = JsonConvert.DeserializeObject<TbFaq>(faqs);
+
+            if (_dbContext.TbFaqs == null)
+            {
+                return Problem("Entity set 'ProPBTDbContext'  is null.");
+            }
+            _dbContext.TbFaqs.Add(faq);
+            await _dbContext.SaveChangesAsync();
+
+            return CreatedAtAction("InsertFaq", new { id = faq.Faqid }, faqs);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteFaq(int id)
+        {
+            if (_dbContext.TbFaqs == null)
+            {
+                return NotFound();
+            }
+            var faq = await _dbContext.TbFaqs.FindAsync(id);
+            if (faq == null)
+            {
+                return NotFound();
+            }
+
+            _dbContext.TbFaqs.Remove(faq);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool FaqExists(int id)
+        {
+            return (_dbContext.TbFaqs?.Any(e => e.Faqid == id)).GetValueOrDefault();
+        }      
     }
 }

@@ -28,4 +28,5 @@ public partial class AppEmailQueue
     public DateTime? ModifiedDtm { get; set; }
 
     public bool Isactive { get; set; }
+    public int CntRetry { get; set; }
 }
