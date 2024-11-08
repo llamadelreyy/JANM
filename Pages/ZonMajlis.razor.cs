@@ -14,6 +14,7 @@ using GoogleMapsComponents.Maps.Places;
 using DevExpress.ClipboardSource.SpreadsheetML;
 using PBT.Data;
 using DevExpress.DashboardCommon;
+using System.Security.Policy;
 
 
 namespace PBT.Pages
@@ -40,12 +41,8 @@ namespace PBT.Pages
 
 
         int intLegend;
-        //Autocomplete
-        //private MapOptions mapOptions;
         private Autocomplete autocomplete;
-
         private string message;
-
         private ElementReference searchBox;
 
         //Map
@@ -136,11 +133,13 @@ namespace PBT.Pages
                     Style = MapTypeControlStyle.HorizontalBar,
                     MapTypeIds = new[] { MapTypeId.Roadmap, MapTypeId.Terrain, MapTypeId.Satellite, MapTypeId.Hybrid }
                 },
+                StreetViewControl = true,
                 FullscreenControlOptions = new FullscreenControlOptions
                 {
                     Position = ControlPosition.RightTop
                 }
             };
+
 
             //For check box
             FilterList = GetMockFilter();
@@ -259,7 +258,7 @@ namespace PBT.Pages
                         // _events.Add("click on " + _title);
                         await OpenSideBar(_notice.NoLesen);
                         StateHasChanged();
-                        ////await e.Stop();
+                        ///await e.Stop();
                     });
 
                     result.Add(_marker);
@@ -313,10 +312,6 @@ namespace PBT.Pages
             // await JsRuntime.InvokeVoidAsync("openRightBar");
             IJSObjectReference serverSideScripts4 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
             await serverSideScripts4.InvokeVoidAsync("openRightBar");
-
-            // IJSObjectReference serverSideScripts3 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/mainPanel.js");
-            // await serverSideScripts3.InvokeVoidAsync("mainPanel");
-
         }
 
         private async Task OpenFilter()
@@ -330,7 +325,6 @@ namespace PBT.Pages
             IJSObjectReference serverSideScripts2 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
             await serverSideScripts2.InvokeVoidAsync("closeNav");
         }
-
 
         //Check Box
         protected async Task ShowSelectedValues()

@@ -1,0 +1,259 @@
+﻿@page "/user_profile"
+@attribute [AllowAnonymous]
+
+@using PBT.Data
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components
+@* @inject AllocationAuthenticationStateProvider AllocationAuthenticationStateProvider *@
+@inject NavigationManager NavigationManager
+
+<div class="d-lg-flex border-bottom">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="/images/icons/card-address.png" />
+        <div class="textTitle">Profil Pengguna</div>
+    </div>
+</div>
+
+<div class="item-container-y">
+    <div class="ProfileBox" style="border:solid 1px #999;border-radius: 5px;box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);">
+        <div class="card-body">
+            <EditForm Model="@userInfo" OnValidSubmit="@HandleValidSubmit" OnInvalidSubmit="@HandleInvalidSubmit" Context="EditFormContext">
+                <DataAnnotationsValidator />
+                <DxFormLayout>
+                    <DxFormLayoutItem ColSpanMd="2">
+                        <div class="align-items-center align-content-center">
+                            <img class="profile-photo" src="images/profile/avatar-user-profile-icon.jpg" alt="" />
+                        </div>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="10">
+                        <div class="upload-container">
+                            <div style="@(SelectedFilesCount > 0 ? "display: none" : string.Empty)">
+                                <span class="drop-file-label mb-1">Click the Select File button to select a file</span>
+                            </div>
+                            <div class="bottom-upload">
+                            <DxUpload Name="ImageUpload"
+                                      MaxFileSize="4000000"
+                                      AllowMultiFileUpload="false"
+                                      AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png" })"
+                                      UploadUrl="@GetUploadUrl("api/UploadValidation/UploadFile/")"
+                                      SelectedFilesChanged="@SelectedFilesChanged">
+                            </DxUpload>
+                            </div>
+                        </div>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Jabatan</div>
+                        <DxComboBox Data="@Jabatan"
+                                    NullText="Pilih Jabatan ..."
+                                    @bind-Value="@Value"
+                                    @bind-Text="@Text"
+                                    CssClass="cw-480"
+                                    InputId="cbUserInput" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Unit</div>
+                        <DxComboBox Data="@Unit"
+                                    NullText="Pilih Unit ..."
+                                    @bind-Value="@Value"
+                                    @bind-Text="@Text"
+                                    CssClass="cw-480"
+                                    InputId="cbUserInput" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="4"></DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>No Pekerja</div>
+                        <DxTextBox @bind-Text="@userInfo.userDepartment" 
+                                   NullText="No Pekerja ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="true" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>No Telefon</div>
+                        <DxTextBox @bind-Text="@userInfo.userDepartment"
+                                   NullText="No Telefon ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   Enabled="true"
+                                   CssClass="cw-480"
+                                   ShowValidationIcon="true" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="4"></DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>ID Pengguna</div>
+                        <DxTextBox @bind-Text="@userInfo.userName"
+                                   NullText="ID Pengguna ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="true" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Peranan</div>
+                        <DxComboBox Data="@Roles"
+                                    NullText="Pilih Peranan ..."
+                                    @bind-Value="@Value"
+                                    @bind-Text="@Text"
+                                    CssClass="cw-480"
+                                    InputId="cbUserInput" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="4"></DxFormLayoutItem>
+
+
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <div>Nama</div>
+                        <DxTextBox @bind-Text="@userInfo.userFullName"
+                                   NullText="Nama Pengguna ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="true" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <div>Emel</div>
+                        <DxTextBox @bind-Text="@userInfo.userEmail"
+                                   NullText="Emel pengguna ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   Enabled="true"
+                                   CssClass="cw-480"
+                                   ShowValidationIcon="true" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Katalaluan Lama</div>
+                        <DxTextBox @bind-Text="@userInfo.userNowPassword"
+                                   NullText="Katalaluan lama ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   Enabled="true"
+                                   Password="true"
+                                   CssClass="cw-480"
+                                   ShowValidationIcon="true"
+                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Katalaluan Baru</div>
+                        <DxTextBox @bind-Text="@userInfo.userNewPassword"
+                                   NullText="Katalaluan baru ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   Enabled="true"
+                                   Password="true"
+                                   CssClass="cw-480"
+                                   ShowValidationIcon="true"
+                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Sah Katalaluan Baru</div>
+                        <DxTextBox @bind-Text="@userInfo.userConfirmPassword"
+                                   NullText="Sahkan Katalaluan baru ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   Enabled="true"
+                                   Password="true"
+                                   CssClass="cw-480"
+                                   ShowValidationIcon="true" />
+                    </DxFormLayoutItem>
+                    <div>&nbsp;<br /></div>
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <ul style="margin-top:-20px;">
+                            <li>Min Kata Laluan mestilah 8 atau lebih aksara campuran huruf dan abjad.</li>
+                            <li>Mesti mengandungi sekurang-kurangnya 1 huruf kecil dan 1 huruf besar abjad.</li>
+                            <li>Mesti mengandungi sekurang-kurangnya 1 digit.</li>
+                            <li>Mesti mengandungi sekurang-kurangnya 1 aksara khas. (cth:!#$%^&)</li>
+                        </ul>
+                        <DxButton CssClass="w-100" Text="Simpan" style="height:40px;border-radius: 3px; border-color:transparent;background-color:green"
+                                  RenderStyle="ButtonRenderStyle.Primary"
+                                  Enabled="true"
+                                  SubmitFormOnClick="true">
+                        </DxButton>
+                    </DxFormLayoutItem>
+                    <div>&nbsp;<br /></div>
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <ValidationSummary />
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+                <div class="row w-100 mx-0">
+                    <p class="demo-text col-12 mt-2">
+                        Pengesahan Maklumat :
+                        <b>@FormValidationState</b>
+                    </p>
+                </div>
+            </EditForm>
+
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    [Inject] IToastNotificationService ToastService { get; set; }
+    public UserProp userInfo = new UserProp();
+
+    //Get current user id
+    int intCurrentUserId { get; set; } = 0;
+    string FormValidationState = @"Sila tekan butang ""Simpan"" untuk sahkan data.";
+    string Text { get; set; } = "";
+    string Value { get; set; }
+    IEnumerable<string> Jabatan = new List<string>() { "Jabatan Perlesenan", "Jabatan Penilaian", "Jabatan Undang-Undang", "Jabatan Kesihatan", };
+    IEnumerable<string> Unit = new List<string>() { "Unit Hasil", };
+    IEnumerable<string> Roles = new List<string>() { "System Admin", };
+
+    //============== Upload file ===============//
+    int SelectedFilesCount { get; set; }
+    protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
+    {
+        SelectedFilesCount = files.ToList().Count;
+        InvokeAsync(StateHasChanged);
+    }
+    protected string GetUploadUrl(string url)
+    {
+        return NavigationManager.ToAbsoluteUri(url).AbsoluteUri;
+    }
+    //================ ** ==================//
+
+    protected override async Task OnInitializedAsync()
+    {
+        userInfo.userOldPassword = "1qazXSW@";
+        userInfo.userPassword = "1qazXSW@";
+        userInfo.userRoles = "System Admin";
+    }
+
+    public async Task HandleValidSubmit()
+    {
+        FormValidationState = @"Maklumat yang dimasukkan sah.";
+        // bool blnSuccess = await _userService.UpdateUserPasswordAsync(userInfo, intCurrentUserId);
+
+        // if (blnSuccess)
+        // {
+        //     toastService.ShowInfo("Proses kemaskini katalaluan selesai.");
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = ToastRenderStyle.Success,
+                Title = "Proses kemaskini katalaluan selesai."
+            });
+
+
+        //     await AllocationAuthenticationStateProvider.LogoutAsync();
+        //     //You actually need to NavigateTo your current Uri with force load. I use simple extension method for this
+        //     NavigationManager.NavigateTo("login", true);
+
+        // }
+        // else
+        // {
+        //     toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+        // }
+    }
+
+    void HandleInvalidSubmit()
+    {
+        FormValidationState = @"Maklumat yang dimasukkan tidak sah!";
+    }
+
+}

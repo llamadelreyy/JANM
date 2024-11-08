@@ -11,7 +11,7 @@ using DashboardMainDemo;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Globalization;
 using DevExpress.AspNetCore;
-using Blazored.Toast;
+//using Blazored.Toast;
 using DevExpress.AspNetCore.Reporting;
 using DevExpress.XtraReports.Web.Extensions;
 using System.Runtime.InteropServices;
@@ -33,7 +33,7 @@ IConfiguration configuration = builder.Configuration;
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddBlazoredToast();
+//builder.Services.AddBlazoredToast();
 builder.Services.AddBlazorBootstrap();
 
 var myFirstClass = builder.Configuration.GetSection("GoogleMap:ApiKey").Value;
@@ -96,7 +96,7 @@ builder.Services.AddScoped<DashboardConfigurator>((IServiceProvider serviceProvi
 //////    return DashboardUtils.CreateDashboardConfigurator(configuration, fileProvider);
 //////});
 
-builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+//builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<SessionDashboardStorage>();
 
 
