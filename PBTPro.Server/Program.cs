@@ -113,6 +113,12 @@ builder.Services.AddTransient<SessionDashboardStorage>();
 //***
 builder.Services.AddScoped<ReportStorageWebExtension, CustomReportStorageWebExtension>();
 
+// 07/11/2024 - ismail adding for API call services
+builder.Services.AddHttpClient<ApiConnector>(client =>
+{
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

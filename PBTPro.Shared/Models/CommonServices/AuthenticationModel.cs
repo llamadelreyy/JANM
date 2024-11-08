@@ -16,6 +16,13 @@ namespace PBTPro.Shared.Models.CommonService
         public string? PhoneNo { get; set; }
     }
 
+    public class LoginResult
+    {
+        public string Token { get; set; } = null!;
+        public List<string?> Roles { get; set; }
+
+    }
+
     public class LoginModel
     {
         public string Username { get; set; } = null!;
