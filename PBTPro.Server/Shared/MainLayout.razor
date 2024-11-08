@@ -2,7 +2,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 @using PBT.Pages
-@using Blazored.Toast.Configuration
+@* @using Blazored.Toast.Configuration *@
 
 <HeadContent>
     @foreach (var item in _activeTheme.StylesheetLinkUrl)
@@ -11,7 +11,7 @@
     }
 </HeadContent>
 
-<BlazoredToasts Position="ToastPosition.BottomCenter"
+@* <BlazoredToasts Position="ToastPosition.BottomCenter"
                 Timeout="2"
                 IconType="IconType.Material"
                 ErrorIcon="error_outline"
@@ -26,7 +26,16 @@
             <span class="myCloseButtonStyleClass">&times;</span>
         </div>
     </CloseButtonContent>
-</BlazoredToasts>
+</BlazoredToasts> *@
+
+<div class="d-flex align-items-center custom-toast-background">
+    <DxToastProvider Name="Overview"
+                     MaxToastCount="5"
+                     AnimationType="ToastAnimationType.Slide"
+                     HorizontalAlignment="HorizontalAlignment.Center"
+                     VerticalAlignment="VerticalEdge.Bottom"
+                     Width="50%" />
+</div>
 
 <DxLayoutBreakpoint MaxWidth="1200"
                     @bind-IsActive="@IsMobileLayout" />

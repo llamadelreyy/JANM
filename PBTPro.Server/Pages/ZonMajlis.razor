@@ -8,7 +8,6 @@
 @inject NoticeService _NoticeService
 @inject ApiConnector _ApiConnector // 07/11/2024 - API Fetcher - ismail
 
-@* @inject IJSRuntime JSRuntime *@
 
 @* <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@AfterMapInit"></GoogleMap> *@
 <div class="topMapControl">
@@ -62,6 +61,7 @@
 <div id="map1" class="map-container">
     <GoogleMap @ref="@map1" Id="map1" Options="@_mapOptions" OnAfterInit="async () => await OnAfterMapInit()" CssClass="mapPBTPro"></GoogleMap>
 </div>
+
 
 <div id="legend" @ref="@LegendReference" style="display: none">
     <table class="tableMap" id="tableLegend">
@@ -137,6 +137,7 @@
         <h1>Paparan Maklumat Premis</h1>
         <a style="text-underline-position:below; cursor:pointer" onclick=@(() => OpenSideBar(_labelText)) class="cd-panel__close js-cd-close">Close</a>
     </header>
+
     <div class="cd-panel__container">
         <div class="cd-panel__content">
             @* <p>_labelText = @_labelText</p> *@
@@ -303,42 +304,6 @@
     </div>
 </div> 
 
-@* <div id="panel-right" class="cd-panel cd-panel--from-right js-cd-panel-main">
-    <header class="cd-panel__header">
-        <h1>Title Goes Here</h1>
-        <a style="text-underline-position:below; cursor:pointer" onclick=@(() => OpenSideBar(_labelText)) class="cd-panel__close js-cd-close">Close</a>
-    </header>
-    <div class="cd-panel__container">
-        <div class="cd-panel__content">
-
-
-            <p>_labelText = @_labelText</p>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quam magnam accusamus obcaecati nisi eveniet quo veniam quibusdam veritatis autem accusantium doloribus nam mollitia maxime explicabo nemo quae aspernatur impedit cupiditate dicta molestias consectetur, sint reprehenderit maiores. Tempora, exercitationem, voluptate. Sapiente modi officiis nulla sed ullam, amet placeat, illum necessitatibus, eveniet dolorum et maiores earum tempora, quas iste perspiciatis quibusdam vero accusamus veritatis. Recusandae sunt, repellat incidunt impedit tempore iusto, nostrum eaque necessitatibus sint eos omnis! Beatae, itaque, in. Vel reiciendis consequatur saepe soluta itaque aliquam praesentium, neque tempora. Voluptatibus sit, totam rerum quo ex nemo pariatur tempora voluptatem est repudiandae iusto, architecto perferendis sequi, asperiores dolores doloremque odit. Libero, ipsum fuga repellat quae numquam cumque nobis ipsa voluptates pariatur, a rerum aspernatur aliquid maxime magnam vero dolorum omnis neque fugit laboriosam eveniet veniam explicabo, similique reprehenderit at. Iusto totam vitae blanditiis. Culpa, earum modi rerum velit voluptatum voluptatibus debitis, architecto aperiam vero tempora ratione sint ullam voluptas non! Odit sequi ipsa, voluptatem ratione illo ullam quaerat qui, vel dolorum eligendi similique inventore quisquam perferendis reprehenderit quos officia! Maxime aliquam, soluta reiciendis beatae quisquam. Alias porro facilis obcaecati et id, corporis accusamus? Ab porro fuga consequatur quisquam illo quae quas tenetur.</p>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque similique, at excepturi adipisci repellat ut veritatis officia, saepe nemo soluta modi ducimus velit quam minus quis reiciendis culpa ullam quibusdam eveniet. Dolorum alias ducimus, ad, vitae delectus eligendi, possimus magni ipsam repudiandae iusto placeat repellat omnis veritatis adipisci aliquam hic ullam facere voluptatibus ratione laudantium perferendis quos ut. Beatae expedita, itaque assumenda libero voluptatem adipisci maiores voluptas accusantium, blanditiis saepe culpa laborum iusto maxime quae aperiam fugiat odit consequatur soluta hic. Sed quasi beatae quia repellendus, adipisci facilis ipsa vel, aperiam, consequatur eaque mollitia quaerat. Iusto fugit inventore eveniet velit.</p>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque similique, at excepturi adipisci repellat ut veritatis officia, saepe nemo soluta modi ducimus velit quam minus quis reiciendis culpa ullam quibusdam eveniet. Dolorum alias ducimus, ad, vitae delectus eligendi, possimus magni ipsam repudiandae iusto placeat repellat omnis veritatis adipisci aliquam hic ullam facere voluptatibus ratione laudantium perferendis quos ut. Beatae expedita, itaque assumenda libero voluptatem adipisci maiores voluptas accusantium, blanditiis saepe culpa laborum iusto maxime quae aperiam fugiat odit consequatur soluta hic. Sed quasi beatae quia repellendus, adipisci facilis ipsa vel, aperiam, consequatur eaque mollitia quaerat. Iusto fugit inventore eveniet velit.</p>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quam magnam accusamus obcaecati nisi eveniet quo veniam quibusdam veritatis autem accusantium doloribus nam mollitia maxime explicabo nemo quae aspernatur impedit cupiditate dicta molestias consectetur, sint reprehenderit maiores. Tempora, exercitationem, voluptate. Sapiente modi officiis nulla sed ullam, amet placeat, illum necessitatibus, eveniet dolorum et maiores earum tempora, quas iste perspiciatis quibusdam vero accusamus veritatis. Recusandae sunt, repellat incidunt impedit tempore iusto, nostrum eaque necessitatibus sint eos omnis! Beatae, itaque, in. Vel reiciendis consequatur saepe soluta itaque aliquam praesentium, neque tempora. Voluptatibus sit, totam rerum quo ex nemo pariatur tempora voluptatem est repudiandae iusto, architecto perferendis sequi, asperiores dolores doloremque odit. Libero, ipsum fuga repellat quae numquam cumque nobis ipsa voluptates pariatur, a rerum aspernatur aliquid maxime magnam vero dolorum omnis neque fugit laboriosam eveniet veniam explicabo, similique reprehenderit at. Iusto totam vitae blanditiis. Culpa, earum modi rerum velit voluptatum voluptatibus debitis, architecto aperiam vero tempora ratione sint ullam voluptas non! Odit sequi ipsa, voluptatem ratione illo ullam quaerat qui, vel dolorum eligendi similique inventore quisquam perferendis reprehenderit quos officia! Maxime aliquam, soluta reiciendis beatae quisquam. Alias porro facilis obcaecati et id, corporis accusamus? Ab porro fuga consequatur quisquam illo quae quas tenetur.</p>
-        </div>
-    </div>
-</div> *@
-
-
 
 <link rel="stylesheet" href="./css/style-sideNav.css">
 <link rel="stylesheet" href="./css/firepanel/style.css">
-
-@* <style>
-
-    .map-marker-label {
-        position: absolute;
-        color: black;
-        background-color: white;
-        font-family: Roboto, Arial, sans-serif;
-        text-align: center;
-        padding: 1px 3px 1px 3px;
-        margin-left: -5px;
-        margin-top: 4px;
-        border: 1px solid #999;
-        box-sizing: border-box;
-        white-space: nowrap;
-    }
-</style> *@

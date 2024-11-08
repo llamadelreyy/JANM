@@ -98,13 +98,13 @@ html, body {
     padding: 0 10px;
     overflow-y: auto;
     overflow-x:hidden;
-    height:95%;
+    height:95.7%;
 }
 
 .item-container-xy {
     padding: 0 10px;
     overflow: auto;
-    height: 95%;
+    height: 95.7%;
 }
 
 .item-container-x {
@@ -422,6 +422,9 @@ i[class^="ri"] {
     }
 }
 
+/*.navbar {
+    background-color: #ccc;
+}*/
 
 .navbar.header-navbar {
     flex-grow: 0;
@@ -1052,6 +1055,20 @@ label {
     text-decoration:none;
 }
 
+.marker-panel {
+    position: relative;
+    font-size: 0.85rem;
+    font-weight: bold;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+    padding: 10px 15px 10px 15px;
+    color: #666;
+    border: 0px solid #000;
+    border-radius: 3px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
 .e-divider, .e-photo {
     --color-opacity: 0.2;
 }
@@ -1093,3 +1110,49 @@ label {
 }
 
 /*================ FOR PREMISE CARD ========================*/
+
+.ProfileBox {
+    top:5px;
+    position:relative;
+    margin: 20px 20px 30px 20px;
+    width: 97%;
+    padding: 0px 10px;
+}
+
+.profile-photo {
+    border: 1px solid #666;
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+}
+
+.upload-container,
+.upload-container > div:first-child {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: start ;
+    width: 100%;
+}
+
+.bottom-upload {
+    top: -20px;
+    position: relative;
+    width: 100%;
+}
+
+    .bottom-upload .dxbl-btn-caption {
+        font-size: 0.85rem;
+        font-weight: bold;
+        letter-spacing: 0.08rem;
+        text-transform: uppercase;
+    }
+
+.drop-file-label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+}
