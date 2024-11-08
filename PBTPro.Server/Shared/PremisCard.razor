@@ -1,4 +1,5 @@
 ﻿@using PBT.Data
+@inject IJSRuntime JSRuntime
 
 <div class="e-cukai-title mb-4"><span class="px-3"><img src="/images/icons/paper-bag-label.png" alt="" /><span class="px-1">Info Taksiran</span></span></div>
 <div class="e-card">
@@ -9,7 +10,13 @@
         <div class="e-info flex-grow-1 ms-3">
             <div class="e-name">Nama Pemilik : @($"{PremisInfo.NamaPemilik}")</div>
             <div class="e-name">No. Akaun : @($"{PremisInfo.NoLesen}")</div>
-            <div class="e-address">Alamat Premis : @($"{PremisInfo.AlamatPerniagaan}")</div>
+            <div class="e-address">Alamat Premis :</div>
+            <div class="e-email">
+                <a class="marker-panel" style="text-decoration:none;cursor:pointer" onclick=@(() => OpenNewStreetWindow(PremisInfo.Position.Lat.ToString(), PremisInfo.Position.Lng.ToString()))>
+                    <img src="/images/icons/marker.png" alt="" />
+                    @($"{PremisInfo.AlamatPerniagaan}")
+                </a>
+            </div>
 
             <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
             <div class="e-divider my-3"></div>
@@ -23,43 +30,44 @@
         </div>
     </div>
 </div>
+
 <div class="e-lesen-title"><span class="px-3"><img src="/images/icons/document-text-image.png" alt="" /><span class="px-1">Info Lesen</span></span></div>
 <div class="e-card">
     <div class="e-main d-flex align-items-center">
-    <div class="e-info flex-grow-1 ms-3 py-3">
-        <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
-        <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
-        <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
+        <div class="e-info flex-grow-1 ms-3 py-3">
+            <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
+            <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
+            <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
 
-        <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
-        <div class="e-divider my-3"></div>
-        <div class="e-email">
-            <a class="receipt-panel">
-                <img src="/images/icons/script-text.png" alt="" />
-                Notis
-                <span class="badge-button-green">0</span>
-            </a>
-            <a class="receipt-panel">
-                <img src="/images/icons/script.png" alt="" />
-                Notis Tamat Tempoh
-                <span class="badge-button-green">0</span>
-            </a>
+            <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
+            <div class="e-divider my-3"></div>
+            <div class="e-email">
+                <a class="receipt-panel">
+                    <img src="/images/icons/script-text.png" alt="" />
+                    Notis
+                    <span class="badge-button-green">0</span>
+                </a>
+                <a class="receipt-panel">
+                    <img src="/images/icons/script.png" alt="" />
+                    Notis Tamat Tempoh
+                    <span class="badge-button-green">0</span>
+                </a>
 
-            <a class="receipt-panel">
-                <img src="/images/icons/receipt-text.png" alt="" />
-                Kompaun
-                <span class="badge-button-red">2</span>
-            </a>
+                <a class="receipt-panel">
+                    <img src="/images/icons/receipt-text.png" alt="" />
+                    Kompaun
+                    <span class="badge-button-red">2</span>
+                </a>
+            </div>
+            <div class="e-divider my-3"></div>
+            <div class="e-email">
+                <button class="btn-panel" type="button">Maklumat Lesen</button>
+                <button class="btn-panel">
+                    Nota Pemeriksaan
+                    <span class="badge-button-green">0</span>
+                </button>
+            </div>
         </div>
-        <div class="e-divider my-3"></div>
-        <div class="e-email">
-            <button class="btn-panel" type="button">Maklumat Lesen</button>
-            <button class="btn-panel">
-                Nota Pemeriksaan
-                <span class="badge-button-green">0</span>
-            </button>
-        </div>
-    </div>
     </div>
 </div>
 
@@ -71,6 +79,11 @@
     public string GetPhotoUrl()
     {
         return "";
+    }
+
+    public async Task OpenNewStreetWindow(string latitude, string longitude)
+    {
+        await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,0,0,0,0", "_blank");
     }
 
     public MarkupString GetStatusIconHtml(string status)
