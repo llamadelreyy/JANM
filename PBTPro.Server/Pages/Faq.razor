@@ -29,7 +29,7 @@ else
             DataItemDeleting="OnDataItemDeleting"
             CustomizeDataRowEditor="Grid_CustomizeDataRowEditor"
             SelectAllCheckboxMode="GridSelectAllCheckboxMode.AllPages"
-            KeyFieldName="Actionid"
+            KeyFieldName="Faqid"
             VirtualScrollingEnabled=true
             ShowFilterRow="true"
             TextWrapEnabled="true"
@@ -40,24 +40,27 @@ else
         <Columns>
             <!--<DxGridSelectionColumn />-->
             <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="20%" />
-            <DxGridDataColumn FieldName="@nameof(TbFaq.Faqid)" Caption="Nama Tindakan" Width="20%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
-            <DxGridDataColumn FieldName="@nameof(TbFaq.Soalanfaq)" Caption="Keterangan Tindakan" Width="60%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
-            <DxGridDataColumn FieldName="@nameof(TbFaq.Jawapanfaq)" Caption="Status" Width="100px" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(TbFaq.Kategorifaq)" Caption="Kategori" Width="20%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(TbFaq.Soalanfaq)" Caption="Soalan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(TbFaq.Jawapanfaq)" Caption="Jawapan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
         </Columns>
         <EditFormTemplate Context="editFormContext">
             @{
-                var action = (TbFaq)editFormContext.EditModel;
+                var faq = (TbFaq)editFormContext.EditModel;
             }
             <DxFormLayout>
+                <DxFormLayoutItem Caption="Kategori:">
+                    @editFormContext.GetEditor("Kategorifaq")
+                </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="Soalan:">
                     @editFormContext.GetEditor("Soalanfaq")
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="Jawapan:">
                     @editFormContext.GetEditor("Jawapanfaq")
                 </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Status:">
+                @* <DxFormLayoutItem Caption="Status:">
                     @editFormContext.GetEditor("Rekstatus")
-                </DxFormLayoutItem>
+                </DxFormLayoutItem> *@
             </DxFormLayout>
         </EditFormTemplate>
     </DxGrid>
@@ -102,7 +105,7 @@ else
     {
         try
         {
-            // Cast EditModel directly to the Action model
+            // Cast EditModel directly to the faq model
             var editModel = e.EditModel as TbFaq;
 
             // Check if editModel is null
@@ -112,12 +115,17 @@ else
                 return; // or throw an exception
             }
 
-            var itmId = editModel.Faqid;
+            var itmId = editModel.Faqid;            
+            editModel.Rekstatus = "A";
+            editModel.Rekcipta = DateTime.Today;
+            editModel.Rekciptauserid = 1;
+            editModel.Rekubah = DateTime.Today;
+            editModel.Rekubahuserid = 1;
 
             // Determine if this is a new item or an update
             if (e.IsNew)
             {
-                // Save new action setting
+                // Save new faq setting
                 var jsonString = JsonConvert.SerializeObject(editModel);
                 await _faq.PostFaq(jsonString);
             }

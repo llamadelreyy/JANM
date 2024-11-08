@@ -1,34 +1,32 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
+using Microsoft.Extensions.Configuration;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Configuration;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
-using System.Net.Http.Headers;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Net.Http.Json;
-using Microsoft.AspNetCore.Authorization;
-using System.Configuration;
-using System.Reflection;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace PBTPro.DAL.Services
 {
     public class CommonFunction : ControllerBase
     {
+        Configuration configuration = null;
+
         protected readonly string? _apiBaseUrl;
         private readonly ILogger? _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private ISession _session;
-
-        public CommonFunction(IHttpContextAccessor contextAccessor)
+        public IConfiguration _configuration { get; }
+        public CommonFunction(IHttpContextAccessor contextAccessor, IConfiguration configuration)
         {
             _httpContextAccessor = contextAccessor;
             _session = contextAccessor.HttpContext.Session;
+            _configuration = configuration;
         }
         public void LogConsole(string message,
         [CallerLineNumber] int lineNumber = 0,
@@ -61,9 +59,9 @@ namespace PBTPro.DAL.Services
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 var apiString = await response.Content.ReadAsStringAsync();
-                var value = JObject.Parse(apiString);
-                string strValue = value.ToString();
-                return strValue;
+                //var value = JObject.Parse(apiString);
+                //string strValue = value.ToString();
+                return apiString;
             }
             return "";
         }
@@ -71,10 +69,10 @@ namespace PBTPro.DAL.Services
         public async Task<string> AddNew(HttpRequestMessage? RequestURL, string JsonStr, string URIRequest)
         {
             var client = new HttpClient();
-            string strAPI = ReadConfig("PlatformAPI");
             var accessToken = CheckToken();
-
-            client.BaseAddress = new Uri(strAPI);
+            var platformApiUrl = _configuration["PlatformAPI"];
+           
+            client.BaseAddress = new Uri(platformApiUrl);
 
             StringContent jsonContent = new(JsonStr, Encoding.UTF8, "application/json");
             RequestURL.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -92,9 +90,9 @@ namespace PBTPro.DAL.Services
         {
             var client = new HttpClient();
             var accessToken = CheckToken(); 
-            string strAPI = ReadConfig("PlatformAPI");
+            var platformApiUrl = _configuration["PlatformAPI"];
+            client.BaseAddress = new Uri(platformApiUrl);
 
-            client.BaseAddress = new Uri(strAPI);
             // Create the request message
             using var requestMessage = new HttpRequestMessage(HttpMethod.Put, URIRequest)
             {
@@ -132,11 +130,10 @@ namespace PBTPro.DAL.Services
             HttpResponseMessage response = await client.SendAsync(RequestURL);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                //_logger.LogDebug("OK");
                 var apiString = await response.Content.ReadAsStringAsync();
-                var value = JObject.Parse(apiString);
-                string JsonStr = value.ToString();
-                return JsonStr;
+                //var value = JObject.Parse(apiString);
+                //string JsonStr = value.ToString();
+                return apiString;
             }
             return "";
         }
@@ -175,12 +172,11 @@ namespace PBTPro.DAL.Services
 
         public string ReadConfig(string strKey)
         {
-            Configuration configuration = null;
             string absolutePath = new Uri(Assembly.GetExecutingAssembly().CodeBase).AbsolutePath;
             absolutePath = absolutePath.Replace("%20", " ");
             try
             {
-                configuration = ConfigurationManager.OpenExeConfiguration(absolutePath);
+                configuration = System.Configuration.ConfigurationManager.OpenExeConfiguration(absolutePath);
             }
             catch (Exception ex)
             {

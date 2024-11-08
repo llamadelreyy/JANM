@@ -50,7 +50,7 @@ namespace PBT.Services
             _configuration = configuration;
             _dbContext = dbContext;
             _httpContextAccessor = httpContextAccessor;
-            _cf = new CommonFunction(httpContextAccessor);
+            _cf = new CommonFunction(httpContextAccessor, configuration);
             _sf = new SharedFunction(httpContextAccessor);
             _logger = logger;
 
@@ -79,7 +79,7 @@ namespace PBT.Services
                 return null;
             }
         }
-        
+        [AllowAnonymous]
         [HttpGet]
         public async Task<TbFaq> GetIdFaq(int id)
         {
@@ -156,6 +156,7 @@ namespace PBT.Services
             throw new NotImplementedException();
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult<TbFaq>> PostFaq([FromBody] string faqs = "")
         {
@@ -180,7 +181,8 @@ namespace PBT.Services
                 return null;
             }
         }
-
+        
+        [AllowAnonymous]
         [HttpPut]
         public async Task<IActionResult> PutFaq(int id, TbFaq faq)
         {

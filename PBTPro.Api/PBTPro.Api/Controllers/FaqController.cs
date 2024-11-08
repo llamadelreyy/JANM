@@ -38,6 +38,7 @@ namespace PBTPro.Api.Controllers
             return await _dbContext.TbFaqs.ToListAsync();
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<TbFaq>> RetrieveFaq(int id)
         {
@@ -55,7 +56,7 @@ namespace PBTPro.Api.Controllers
             return faq;
         }
 
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [AllowAnonymous]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateFaq(int id, TbFaq faq)
         {
@@ -85,7 +86,7 @@ namespace PBTPro.Api.Controllers
             return NoContent();
         }
 
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult<TbFaq>> InsertFaq([FromBody] string faqs = "")
         {

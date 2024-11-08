@@ -17,17 +17,17 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<AppSystemMessage> AppSystemMessages { get; set; }
 
-    public virtual DbSet<AspNetRole> AspNetRoles { get; set; }
+    //public virtual DbSet<AspNetRole> AspNetRoles { get; set; }
 
-    public virtual DbSet<AspNetRoleClaim> AspNetRoleClaims { get; set; }
+    //public virtual DbSet<AspNetRoleClaim> AspNetRoleClaims { get; set; }
 
-    public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
+    //public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
 
-    public virtual DbSet<AspNetUserClaim> AspNetUserClaims { get; set; }
+    //public virtual DbSet<AspNetUserClaim> AspNetUserClaims { get; set; }
 
-    public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; }
+    //public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; }
 
-    public virtual DbSet<AspNetUserToken> AspNetUserTokens { get; set; }
+    //public virtual DbSet<AspNetUserToken> AspNetUserTokens { get; set; }
 
     public virtual DbSet<MstArea> MstAreas { get; set; }
 
@@ -233,194 +233,194 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasColumnName("type");
         });
 
-        modelBuilder.Entity<AspNetRole>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("aspnetroles_pkey");
+        //modelBuilder.Entity<AspNetRole>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id).HasName("aspnetroles_pkey");
 
-            entity.HasIndex(e => e.NormalizedName, "rolenameindex").IsUnique();
+        //    entity.HasIndex(e => e.NormalizedName, "rolenameindex").IsUnique();
 
-            entity.Property(e => e.Id).HasMaxLength(450);
-            entity.Property(e => e.ConcurrencyStamp)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.Name)
-                .HasMaxLength(256)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.NormalizedName)
-                .HasMaxLength(256)
-                .HasDefaultValueSql("NULL::character varying");
-        });
+        //    entity.Property(e => e.Id).HasMaxLength(450);
+        //    entity.Property(e => e.ConcurrencyStamp)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.Name)
+        //        .HasMaxLength(256)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.NormalizedName)
+        //        .HasMaxLength(256)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //});
 
-        modelBuilder.Entity<AspNetRoleClaim>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("aspnetroleclaims_pkey");
+        //modelBuilder.Entity<AspNetRoleClaim>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id).HasName("aspnetroleclaims_pkey");
 
-            entity.HasIndex(e => e.RoleId, "ix_aspnetroleclaims_roleid");
+        //    entity.HasIndex(e => e.RoleId, "ix_aspnetroleclaims_roleid");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("nextval('aspnetroleclaims_id_seq'::regclass)");
-            entity.Property(e => e.ClaimType)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.ClaimValue)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.RoleId).HasMaxLength(450);
+        //    entity.Property(e => e.Id).HasDefaultValueSql("nextval('aspnetroleclaims_id_seq'::regclass)");
+        //    entity.Property(e => e.ClaimType)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.ClaimValue)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.RoleId).HasMaxLength(450);
 
-            entity.HasOne(d => d.Role).WithMany(p => p.AspNetRoleClaims)
-                .HasForeignKey(d => d.RoleId)
-                .HasConstraintName("fk_aspnetroleclaims_aspnetroles_roleid");
-        });
+        //    entity.HasOne(d => d.Role).WithMany(p => p.AspNetRoleClaims)
+        //        .HasForeignKey(d => d.RoleId)
+        //        .HasConstraintName("fk_aspnetroleclaims_aspnetroles_roleid");
+        //});
 
-        modelBuilder.Entity<AspNetUser>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("aspnetusers_pkey");
+        //modelBuilder.Entity<AspNetUser>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id).HasName("aspnetusers_pkey");
 
-            entity.HasIndex(e => e.NormalizedEmail, "emailindex");
+        //    entity.HasIndex(e => e.NormalizedEmail, "emailindex");
 
-            entity.HasIndex(e => e.NormalizedUserName, "usernameindex").IsUnique();
+        //    entity.HasIndex(e => e.NormalizedUserName, "usernameindex").IsUnique();
 
-            entity.Property(e => e.Id).HasMaxLength(450);
-            entity.Property(e => e.ConcurrencyStamp)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(30)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.CreatedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
-                .HasColumnType("timestamp(6) without time zone");
-            entity.Property(e => e.Department)
-                .HasMaxLength(100)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.Email)
-                .HasMaxLength(256)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.EmailConfirmed).HasDefaultValue(false);
-            entity.Property(e => e.LastSeenDtm)
-                .HasDefaultValueSql("NULL::timestamp without time zone")
-                .HasColumnType("timestamp(6) without time zone");
-            entity.Property(e => e.LockoutEnabled).HasDefaultValue(false);
-            entity.Property(e => e.LockoutEnd)
-                .HasDefaultValueSql("NULL::timestamp without time zone")
-                .HasColumnType("timestamp(6) without time zone");
-            entity.Property(e => e.LoginKey).HasMaxLength(50);
-            entity.Property(e => e.ModifiedBy)
-                .HasMaxLength(30)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.ModifiedDtm)
-                .HasDefaultValueSql("NULL::timestamp without time zone")
-                .HasColumnType("timestamp(6) without time zone");
-            entity.Property(e => e.Name)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.NetworkId)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.NormalizedEmail)
-                .HasMaxLength(256)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.NormalizedUserName)
-                .HasMaxLength(256)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.OfficePhone)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.PasswordHash)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.PhoneNumber)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.PhoneNumberConfirmed).HasDefaultValue(false);
-            entity.Property(e => e.SecurityStamp)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.Status)
-                .HasMaxLength(10)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.TwoFactorEnabled).HasDefaultValue(false);
-            entity.Property(e => e.UnitOffice)
-                .HasMaxLength(15)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.UserName)
-                .HasMaxLength(450)
-                .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.Id).HasMaxLength(450);
+        //    entity.Property(e => e.ConcurrencyStamp)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.CreatedBy)
+        //        .HasMaxLength(30)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.CreatedDtm)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
+        //        .HasColumnType("timestamp(6) without time zone");
+        //    entity.Property(e => e.Department)
+        //        .HasMaxLength(100)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.Email)
+        //        .HasMaxLength(256)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.EmailConfirmed).HasDefaultValue(false);
+        //    entity.Property(e => e.LastSeenDtm)
+        //        .HasDefaultValueSql("NULL::timestamp without time zone")
+        //        .HasColumnType("timestamp(6) without time zone");
+        //    entity.Property(e => e.LockoutEnabled).HasDefaultValue(false);
+        //    entity.Property(e => e.LockoutEnd)
+        //        .HasDefaultValueSql("NULL::timestamp without time zone")
+        //        .HasColumnType("timestamp(6) without time zone");
+        //    entity.Property(e => e.LoginKey).HasMaxLength(50);
+        //    entity.Property(e => e.ModifiedBy)
+        //        .HasMaxLength(30)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.ModifiedDtm)
+        //        .HasDefaultValueSql("NULL::timestamp without time zone")
+        //        .HasColumnType("timestamp(6) without time zone");
+        //    entity.Property(e => e.Name)
+        //        .HasMaxLength(50)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.NetworkId)
+        //        .HasMaxLength(50)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.NormalizedEmail)
+        //        .HasMaxLength(256)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.NormalizedUserName)
+        //        .HasMaxLength(256)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.OfficePhone)
+        //        .HasMaxLength(50)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.PasswordHash)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.PhoneNumber)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.PhoneNumberConfirmed).HasDefaultValue(false);
+        //    entity.Property(e => e.SecurityStamp)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.Status)
+        //        .HasMaxLength(10)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.TwoFactorEnabled).HasDefaultValue(false);
+        //    entity.Property(e => e.UnitOffice)
+        //        .HasMaxLength(15)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.UserName)
+        //        .HasMaxLength(450)
+        //        .HasDefaultValueSql("NULL::character varying");
 
-            entity.HasMany(d => d.Roles).WithMany(p => p.Users)
-                .UsingEntity<Dictionary<string, object>>(
-                    "AspNetUserRole",
-                    r => r.HasOne<AspNetRole>().WithMany()
-                        .HasForeignKey("RoleId")
-                        .HasConstraintName("fk_aspnetuserroles_aspnetroles_roleid"),
-                    l => l.HasOne<AspNetUser>().WithMany()
-                        .HasForeignKey("UserId")
-                        .HasConstraintName("fk_aspnetuserroles_aspnetusers_userid"),
-                    j =>
-                    {
-                        j.HasKey("UserId", "RoleId").HasName("aspnetuserroles_pkey");
-                        j.ToTable("AspNetUserRoles");
-                        j.HasIndex(new[] { "RoleId" }, "ix_aspnetuserroles_roleid");
-                        j.IndexerProperty<string>("UserId").HasMaxLength(128);
-                        j.IndexerProperty<string>("RoleId").HasMaxLength(450);
-                    });
-        });
+        //    entity.HasMany(d => d.Roles).WithMany(p => p.Users)
+        //        .UsingEntity<Dictionary<string, object>>(
+        //            "AspNetUserRole",
+        //            r => r.HasOne<AspNetRole>().WithMany()
+        //                .HasForeignKey("RoleId")
+        //                .HasConstraintName("fk_aspnetuserroles_aspnetroles_roleid"),
+        //            l => l.HasOne<AspNetUser>().WithMany()
+        //                .HasForeignKey("UserId")
+        //                .HasConstraintName("fk_aspnetuserroles_aspnetusers_userid"),
+        //            j =>
+        //            {
+        //                j.HasKey("UserId", "RoleId").HasName("aspnetuserroles_pkey");
+        //                j.ToTable("AspNetUserRoles");
+        //                j.HasIndex(new[] { "RoleId" }, "ix_aspnetuserroles_roleid");
+        //                j.IndexerProperty<string>("UserId").HasMaxLength(128);
+        //                j.IndexerProperty<string>("RoleId").HasMaxLength(450);
+        //            });
+        //});
 
-        modelBuilder.Entity<AspNetUserClaim>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("aspnetuserclaims_pkey");
+        //modelBuilder.Entity<AspNetUserClaim>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id).HasName("aspnetuserclaims_pkey");
 
-            entity.HasIndex(e => e.UserId, "ix_aspnetuserclaims_userid");
+        //    entity.HasIndex(e => e.UserId, "ix_aspnetuserclaims_userid");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("nextval('aspnetuserclaims_id_seq'::regclass)");
-            entity.Property(e => e.ClaimType)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.ClaimValue)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.UserId).HasMaxLength(128);
+        //    entity.Property(e => e.Id).HasDefaultValueSql("nextval('aspnetuserclaims_id_seq'::regclass)");
+        //    entity.Property(e => e.ClaimType)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.ClaimValue)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.UserId).HasMaxLength(128);
 
-            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserClaims)
-                .HasForeignKey(d => d.UserId)
-                .HasConstraintName("fk_aspnetuserclaims_aspnetusers_userid");
-        });
+        //    entity.HasOne(d => d.User).WithMany(p => p.AspNetUserClaims)
+        //        .HasForeignKey(d => d.UserId)
+        //        .HasConstraintName("fk_aspnetuserclaims_aspnetusers_userid");
+        //});
 
-        modelBuilder.Entity<AspNetUserLogin>(entity =>
-        {
-            entity.HasKey(e => new { e.LoginProvider, e.ProviderKey }).HasName("aspnetuserlogins_pkey");
+        //modelBuilder.Entity<AspNetUserLogin>(entity =>
+        //{
+        //    entity.HasKey(e => new { e.LoginProvider, e.ProviderKey }).HasName("aspnetuserlogins_pkey");
 
-            entity.HasIndex(e => e.UserId, "ix_aspnetuserlogins_userid");
+        //    entity.HasIndex(e => e.UserId, "ix_aspnetuserlogins_userid");
 
-            entity.Property(e => e.LoginProvider).HasMaxLength(128);
-            entity.Property(e => e.ProviderKey).HasMaxLength(450);
-            entity.Property(e => e.ProviderDisplayName)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.UserId).HasMaxLength(128);
+        //    entity.Property(e => e.LoginProvider).HasMaxLength(128);
+        //    entity.Property(e => e.ProviderKey).HasMaxLength(450);
+        //    entity.Property(e => e.ProviderDisplayName)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.UserId).HasMaxLength(128);
 
-            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserLogins)
-                .HasForeignKey(d => d.UserId)
-                .HasConstraintName("fk_aspnetuserlogins_aspnetusers_userid");
-        });
+        //    entity.HasOne(d => d.User).WithMany(p => p.AspNetUserLogins)
+        //        .HasForeignKey(d => d.UserId)
+        //        .HasConstraintName("fk_aspnetuserlogins_aspnetusers_userid");
+        //});
 
-        modelBuilder.Entity<IdentityUserRole<string>>()
-        .HasKey(ur => new { ur.UserId, ur.RoleId });       
+        //modelBuilder.Entity<IdentityUserRole<string>>()
+        //.HasKey(ur => new { ur.UserId, ur.RoleId });       
 
-        modelBuilder.Entity<AspNetUserToken>(entity =>
-        {
-            entity.HasKey(e => new { e.UserId, e.LoginProvider, e.Name }).HasName("aspnetusertokens_pkey");
+        //modelBuilder.Entity<AspNetUserToken>(entity =>
+        //{
+        //    entity.HasKey(e => new { e.UserId, e.LoginProvider, e.Name }).HasName("aspnetusertokens_pkey");
 
-            entity.Property(e => e.UserId).HasMaxLength(128);
-            entity.Property(e => e.LoginProvider).HasMaxLength(128);
-            entity.Property(e => e.Name).HasMaxLength(450);
-            entity.Property(e => e.Value)
-                .HasMaxLength(2000)
-                .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.UserId).HasMaxLength(128);
+        //    entity.Property(e => e.LoginProvider).HasMaxLength(128);
+        //    entity.Property(e => e.Name).HasMaxLength(450);
+        //    entity.Property(e => e.Value)
+        //        .HasMaxLength(2000)
+        //        .HasDefaultValueSql("NULL::character varying");
 
-            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserTokens)
-                .HasForeignKey(d => d.UserId)
-                .HasConstraintName("fk_aspnetusertokens_aspnetusers_userid");
-        });
+        //    entity.HasOne(d => d.User).WithMany(p => p.AspNetUserTokens)
+        //        .HasForeignKey(d => d.UserId)
+        //        .HasConstraintName("fk_aspnetusertokens_aspnetusers_userid");
+        //});
 
         modelBuilder.Entity<MstArea>(entity =>
         {
