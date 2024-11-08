@@ -14,6 +14,8 @@ using GoogleMapsComponents.Maps.Places;
 using DevExpress.ClipboardSource.SpreadsheetML;
 using PBT.Data;
 using DevExpress.DashboardCommon;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 
 namespace PBT.Pages
@@ -61,6 +63,11 @@ namespace PBT.Pages
         private LatLngBounds _bounds = null!;
         private MarkerClustering? _markerClustering;
         private IEnumerable<AdvancedMarkerElement>? _clusteringMarkers;
+
+        // 07/11/2024 - to reduce API request frequency - ismail
+        private DateTime _lastMoveTime;
+        private readonly TimeSpan _throttleTime = TimeSpan.FromMilliseconds(300);
+        private Dictionary<int, string> _drawnLots = new Dictionary<int, string>();
 
         //Legend
         protected ElementReference LegendReference { get; set; }
@@ -198,6 +205,11 @@ namespace PBT.Pages
             DataLoadedTcs.TrySetResult(true);
             //Start popuate the map
             await InvokeClustering(1);
+
+            // Add listener for map api polygon data -- ismail
+            await ProcessMapAPIData();
+            await this.map1.InteropObject.AddListener("dragend", async () => await ProcessMapAPIData());
+            await this.map1.InteropObject.AddListener("zoom_changed", async () => await ProcessMapAPIData());
 
         }
 
@@ -415,6 +427,169 @@ namespace PBT.Pages
             DataLoadedTcs.TrySetCanceled();
         }
 
+        #region Polygon section
+        /*
+        Description: This section for Polygon & Marker fetch from API
+        Author: Ismail
+        Date: November 2024
+        Version: 1.0
+
+        Additional Notes:
+        - this will load data based on the visible map boundaries.
+        - an initial draft might need to be changes after receive real data
+
+        Changes Logs:
+        07/11/2024 - initial create
+        */
+        private async Task ProcessMapAPIData()
+        {
+            if (DateTime.Now - _lastMoveTime < _throttleTime) return;
+            _lastMoveTime = DateTime.Now;
+
+            var bounds = await this.map1.InteropObject.GetBounds();
+            if (bounds != null)
+            {
+                await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
+            }
+        }
+
+        private async Task GenerateLotData(double southLat, double westLng, double northLat, double eastLng)
+        {
+            try
+            {
+                string requestUrl = $"/api/Lot/GetListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        var tasks = new List<Task>();
+                        dynamic datas = JsonConvert.DeserializeObject(dataString);
+
+                        foreach (var data in datas)
+                        {
+                            int dataId = data.id.ToObject(typeof(int));
+
+                            if(dataId == null)
+                            {
+                                continue;
+                            }
+
+                            if (_drawnLots != null && _drawnLots.ContainsKey(dataId))
+                            {
+                                continue;
+                            }
+
+                            var geometry = data.geom[0];
+                            try
+                            {
+                                if (geometry.type == "Point")
+                                {
+                                    var coords = geometry.coordinates;
+                                    var latLng = new LatLngLiteral(coords[1], coords[0]);
+                                    tasks.Add(CreateMarker(latLng, data));
+                                    /* This is an original approach, commented out to try using task for performance testing.
+                                    await CreateMarker(latLng, data);
+                                    */
+                                }
+                                else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+                                {
+                                    IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
+                                    //List<LatLngLiteral> latLngs = new List<LatLngLiteral>();
+
+                                    if (geometry.type == "Polygon")
+                                    {
+                                        var polygonCoords = geometry.coordinates[0];
+                                        //latLngs.AddRange(ConvertGeoJsonToLatLng(polygonCoords));
+                                        latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+                                    }
+                                    else if (geometry.type == "MultiPolygon")
+                                    {
+                                        List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+                                        foreach (var polygon in geometry.coordinates)
+                                        {
+                                            // latLngs.AddRange(ConvertGeoJsonToLatLng(polygon[0]));
+                                            multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0])); // Each polygon's coordinates
+                                        }
+
+                                        latLngs = multiPolygonCoords;
+                                    }
+                                    tasks.Add(CreatePolygon(latLngs, data));
+                                    /* This is an original approach, commented out to try using task for performance testing.
+                                    await CreatePolygon(latLngs, data)
+                                    */
+                                    ;
+
+                                }
+                                _drawnLots[dataId] = geometry.type;
+                            }
+                            catch (Exception geometryEx)
+                            {
+                                Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+                            }
+                        }
+
+                        if (tasks.Count > 0)
+                        {
+                            await Task.WhenAll(tasks);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"API request error: {ex.Message}");
+            }
+        }
+
+        public IEnumerable<LatLngLiteral> ConvertGeoJsonToLatLng(JArray geoJsonCoords)
+        {
+            List<List<double>> coords = geoJsonCoords.ToObject<List<List<double>>>();
+            return coords.Select(coord => new LatLngLiteral(coord[1], coord[0]));
+        }
+
+        private async Task CreateMarker(LatLngLiteral position, dynamic data)
+        {
+            var marker = await Marker.CreateAsync(this.map1.JsRuntime, new MarkerOptions
+            {
+                Position = position,
+                Map = this.map1.InteropObject,
+                Title = data.NoLesen
+            });
+
+            // Optionally, add a listener for the marker to show more information or interact with it
+            await marker.AddListener<MouseEvent>("click", async (e) =>
+            {
+                await OpenSideBar(data.NoLesen); // Replace with actual function to handle click
+                StateHasChanged();
+            });
+        }
+
+        private async Task CreatePolygon(IEnumerable<IEnumerable<LatLngLiteral>> latLngs, dynamic data)
+        {
+            var polygonOptions = new PolygonOptions
+            {
+                Paths = latLngs,
+                StrokeColor = "#0000FF",
+                StrokeOpacity = (float?)0.8,
+                StrokeWeight = 2,
+                FillColor = "#0000FF",
+                FillOpacity = (float?)0.35
+            };
+
+            var polygon = await GoogleMapsComponents.Maps.Polygon.CreateAsync(this.map1.JsRuntime, polygonOptions);
+            await polygon.SetMap(this.map1.InteropObject);
+            // incase need to popup
+            //await polygon.AddListener<MouseEvent>("click", async (e) =>
+            //{
+            //    await OpenSideBar(data.NoLesen);
+            //    StateHasChanged();
+            //});
+        }
+        #endregion
     }
 
     public class FilterData
