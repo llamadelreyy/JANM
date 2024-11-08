@@ -42,6 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PBTPro.DAL\PBTPro.DAL.csproj" />
     <ProjectReference Include="..\PBTPro.Shared\PBTPro.Shared.csproj" />
   </ItemGroup>
 
