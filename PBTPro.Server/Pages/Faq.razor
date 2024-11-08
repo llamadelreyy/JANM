@@ -1,0 +1,178 @@
+﻿@page "/SenaraiFaq"
+@attribute [AllowAnonymous]
+
+@inject Services.FaqService _faq
+@using DevExpress.Blazor
+@implements IDisposable
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+
+<h1>Senarai Soalan Lazim</h1>
+@if (_lstFaqs == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <DxGrid @ref="Grid"
+            Data="@_lstFaqs"
+            PagerVisible="true"
+            PagerPosition="GridPagerPosition.Bottom"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 5, 10, 15 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PageSize="2"
+            ShowGroupPanel="true"
+            CustomizeEditModel="OnCustomizeEditModel"
+            EditModelSaving="OnEditModelSaving"
+            DataItemDeleting="OnDataItemDeleting"
+            CustomizeDataRowEditor="Grid_CustomizeDataRowEditor"
+            SelectAllCheckboxMode="GridSelectAllCheckboxMode.AllPages"
+            KeyFieldName="Faqid"
+            VirtualScrollingEnabled=true
+            ShowFilterRow="true"
+            TextWrapEnabled="true"
+            ShowSearchBox="true"
+            AutoExpandAllGroupRows="false"
+            SearchBoxNullText="Masukkan kata carian..."
+            CssClass="mw-1000, grid-size">
+        <Columns>
+            <!--<DxGridSelectionColumn />-->
+            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="20%" />
+            <DxGridDataColumn FieldName="@nameof(TbFaq.Kategorifaq)" Caption="Kategori" Width="20%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(TbFaq.Soalanfaq)" Caption="Soalan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(TbFaq.Jawapanfaq)" Caption="Jawapan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+        </Columns>
+        <EditFormTemplate Context="editFormContext">
+            @{
+                var faq = (TbFaq)editFormContext.EditModel;
+            }
+            <DxFormLayout>
+                <DxFormLayoutItem Caption="Kategori:">
+                    @editFormContext.GetEditor("Kategorifaq")
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Soalan:">
+                    @editFormContext.GetEditor("Soalanfaq")
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Jawapan:">
+                    @editFormContext.GetEditor("Jawapanfaq")
+                </DxFormLayoutItem>
+                @* <DxFormLayoutItem Caption="Status:">
+                    @editFormContext.GetEditor("Rekstatus")
+                </DxFormLayoutItem> *@
+            </DxFormLayout>
+        </EditFormTemplate>
+    </DxGrid>
+}
+@code {
+
+    private List<TbFaq> _lstFaqs = new List<TbFaq>();
+    IGrid Grid { get; set; }
+    GridGroupFooterDisplayMode CurrentDisplayMode { get; set; } = GridGroupFooterDisplayMode.Auto;
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    [DefaultValue(GridSelectAllCheckboxMode.Page)]
+    [Parameter]
+    public GridSelectAllCheckboxMode SelectAllCheckboxMode { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadList();
+    }
+
+    private async Task LoadList()
+    {
+        try
+        {
+            _lstFaqs = await _faq.GetAllFaq();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
+        }
+    }
+
+    void OnCustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            var editModel = (TbFaq)e.EditModel;
+            editModel.Faqid = _lstFaqs.Max(x => x.Faqid) + 1;
+        }
+    }
+    async Task OnEditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        try
+        {
+            // Cast EditModel directly to the faq model
+            var editModel = e.EditModel as TbFaq;
+
+            // Check if editModel is null
+            if (editModel == null)
+            {
+                Console.Error.WriteLine("Edit model is null.");
+                return; // or throw an exception
+            }
+
+            var itmId = editModel.Faqid;            
+            editModel.Rekstatus = "A";
+            editModel.Rekcipta = DateTime.Today;
+            editModel.Rekciptauserid = 1;
+            editModel.Rekubah = DateTime.Today;
+            editModel.Rekubahuserid = 1;
+
+            // Determine if this is a new item or an update
+            if (e.IsNew)
+            {
+                // Save new faq setting
+                var jsonString = JsonConvert.SerializeObject(editModel);
+                await _faq.PostFaq(jsonString);
+            }
+            else
+            {
+                var existingFaq = await _faq.GetIdFaq(itmId);
+                if (existingFaq != null)
+                {
+                    existingFaq.Soalanfaq = editModel.Soalanfaq;
+                    existingFaq.Jawapanfaq = editModel.Jawapanfaq;
+                    //existingAction.Actionenabled = editModel.Actionenabled;
+                    await _faq.PutFaq(itmId, existingFaq);
+                }
+            }
+            // Reload the entire Grid
+            _lstFaqs = await _faq.GetAllFaq();
+        }
+        catch (Exception ex)
+        {
+            // Handle exceptions and provide feedback
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
+    }
+    async Task OnDataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        try
+        {
+            var t = e.DataItem as TbFaq;
+            var itmid = t.Faqid;
+            // Remove the data item from the database.
+            var deleteResult = await _faq.DeleteFaq(itmid);
+            // Reload the entire Grid.
+            _lstFaqs = await _faq.GetAllFaq();
+        }
+        catch (Exception ex)
+        {
+            // Handle the exception
+            Console.Error.WriteLine($"An error occurred while deleting the item : {ex.Message}");
+        }
+    }
+    void Grid_CustomizeDataRowEditor(GridCustomizeDataRowEditorEventArgs e)
+    {
+        if (e.EditSettings is ITextEditSettings settings)
+            settings.ShowValidationIcon = true;
+    }
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+}
