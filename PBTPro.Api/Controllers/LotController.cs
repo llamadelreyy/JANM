@@ -52,6 +52,7 @@ namespace PBTPro.Api.Controllers
 
         [HttpGet]
         [Route("GetListByBound")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, string? crs = null)
         {
             try
