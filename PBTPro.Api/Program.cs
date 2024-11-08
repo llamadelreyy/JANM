@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PBTPro.Api.Constants;
+using PBTPro.Api.Controllers;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
 using PBTPro.Shared.Models.CommonService;
@@ -16,11 +17,14 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+IConfiguration configuration = builder.Configuration;
 
 // Add services to the container.
+// Register the configuration for IConfiguration
+builder.Services.AddSingleton<IConfiguration>(configuration);
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
-//builder.Services.AddSignalR();
 
 builder.Services.AddSignalR(hubOptions =>
 {
