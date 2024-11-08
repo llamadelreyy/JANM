@@ -19,6 +19,8 @@ using GoogleMapsComponents;
 using DevExpress.XtraCharts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using PBTPro.DAL;
 
 
 
@@ -61,16 +63,17 @@ builder.Services
 
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 //builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddTransient<CompoundService>();
-builder.Services.AddTransient<NoticeService>();
+//builder.Services.AddTransient<CompoundService>();
+//builder.Services.AddTransient<NoticeService>();
+builder.Services.AddTransient<FaqService>();
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var sqlConnectionConfiguration = new SqlConnectionConfiguration(connectionString);
-builder.Services.AddSingleton(sqlConnectionConfiguration);
+builder.Services.AddDbContext<PBTProDbContext>(options =>
+       options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
 
 var dataDirectory = fileProvider.GetFileInfo("App_Data").PhysicalPath; //Path.Combine(hostingEnvironment.ContentRootPath, "App_Data");
+
 AppDomain.CurrentDomain.SetData("DataDirectory", dataDirectory);
 
 var cultureInfo = new CultureInfo("ms-MY");

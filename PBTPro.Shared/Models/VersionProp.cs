@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PBTPro.Shared.Models;
 
-public partial class Version
+public partial class VersionProp
 {
     public Guid Versionid { get; set; }
 
