@@ -108,7 +108,7 @@ html, body {
 }
 
 .item-container-x {
-    padding: 0px 3px 20px 3px;
+    padding: 0px 2px 20px 1px;
     overflow:hidden;
     height: 100%;
 }
@@ -674,8 +674,8 @@ img.dxbl-image {
 
 .dx-helptitle {
     /*    background-color:#48b;*/
-     --bs-bg-opacity: 1;
-    background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
+    --bs-bg-opacity: 1;
+    background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)); /*!important*/
 }
 
 .priority-info {
@@ -825,6 +825,11 @@ img.dxbl-image {
     display: flex;
     padding-right: 15px;
     padding-bottom:15px;
+}
+
+.dashboard-box {
+    padding-top: 15px;
+    padding-bottom: 0px;
 }
 
 .round-button {
@@ -1155,4 +1160,42 @@ label {
     font-weight: bold;
     letter-spacing: 0.08rem;
     text-transform: uppercase;
+}
+
+/*Header css*/
+.dxbl-grid-header-content {
+    font-weight: bold;
+    letter-spacing: 0.05rem;
+    text-transform: uppercase !important;
+    font-size: 0.8rem !important;
+    line-height: 13px !important;
+    padding: 5px 0px !important;
+}
+
+.layout_edit td {
+    font-weight: bold;
+    letter-spacing: 0.035rem;
+    font-size: 0.95rem !important;
+}
+
+.layout_edit .dxbl-text-edit {
+    border: 1px solid #999;
+    border-radius: 0px;
+    background-color: #fbf9f9;
+    font-size: 0.95rem !important;
+    font-weight: bold !important;
+}
+
+.btn-edit-grid {
+    position: relative;
+    font-size: 0.8rem !important;
+    font-weight: bold;
+    letter-spacing: 0.15rem !important;
+    text-transform: uppercase;
+    padding: 5px 12px 5px 18px !important;
+    background-color: #3d638a !important;
+    color: #fff;
+    border: 0px solid #000 !important;
+    border-radius: 3px !important;
+    cursor: pointer;
 }

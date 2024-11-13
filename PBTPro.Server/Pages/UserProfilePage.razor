@@ -9,7 +9,7 @@
 
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons/card-address.png" />
+        <img class="imgTitle" src="/images/icons-small/card-address.png" />
         <div class="textTitle">Profil Pengguna</div>
     </div>
 </div>
@@ -64,7 +64,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>No Pekerja</div>
-                        <DxTextBox @bind-Text="@userInfo.userDepartment" 
+                        <DxTextBox @bind-Text="@userInfo.staff_no" 
                                    NullText="No Pekerja ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -73,7 +73,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>No Telefon</div>
-                        <DxTextBox @bind-Text="@userInfo.userDepartment"
+                        <DxTextBox @bind-Text="@userInfo.phone_no"
                                    NullText="No Telefon ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    Enabled="true"
@@ -122,7 +122,7 @@
                                    ShowValidationIcon="true" />
                     </DxFormLayoutItem>
 
-                    <DxFormLayoutItem ColSpanMd="4">
+@*                     <DxFormLayoutItem ColSpanMd="4">
                         <div>Katalaluan Lama</div>
                         <DxTextBox @bind-Text="@userInfo.userNowPassword"
                                    NullText="Katalaluan lama ..."
@@ -156,14 +156,14 @@
                                    CssClass="cw-480"
                                    ShowValidationIcon="true" />
                     </DxFormLayoutItem>
-                    <div>&nbsp;<br /></div>
+ *@                    <div>&nbsp;<br /></div>
                     <DxFormLayoutItem ColSpanMd="12">
-                        <ul style="margin-top:-20px;">
+@*                         <ul style="margin-top:-20px;">
                             <li>Min Kata Laluan mestilah 8 atau lebih aksara campuran huruf dan abjad.</li>
                             <li>Mesti mengandungi sekurang-kurangnya 1 huruf kecil dan 1 huruf besar abjad.</li>
                             <li>Mesti mengandungi sekurang-kurangnya 1 digit.</li>
                             <li>Mesti mengandungi sekurang-kurangnya 1 aksara khas. (cth:!#$%^&)</li>
-                        </ul>
+                        </ul> *@
                         <DxButton CssClass="w-100" Text="Simpan" style="height:40px;border-radius: 3px; border-color:transparent;background-color:green"
                                   RenderStyle="ButtonRenderStyle.Primary"
                                   Enabled="true"
@@ -217,9 +217,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        userInfo.userOldPassword = "1qazXSW@";
-        userInfo.userPassword = "1qazXSW@";
-        userInfo.userRoles = "System Admin";
+
     }
 
     public async Task HandleValidSubmit()
