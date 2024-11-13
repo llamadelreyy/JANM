@@ -62,6 +62,7 @@ builder.Services
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 //builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddTransient<CompoundService>();
+builder.Services.AddTransient<RoleService>();
 builder.Services.AddTransient<NoticeService>();
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();
