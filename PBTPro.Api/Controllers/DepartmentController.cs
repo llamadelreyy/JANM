@@ -1,6 +1,6 @@
 ﻿/*
 Project: PBT Pro
-Description: FAQ API controller to handle FAQ Form Field
+Description: Department API controller to handle department Form Field
 Author: Nurulfarhana
 Date: November 2024
 Version: 1.0
@@ -22,16 +22,16 @@ namespace PBTPro.Api.Controllers
 {
     [Route("api/[controller]/[Action]")]
     [ApiController]
-    public class FaqController : IBaseController
+    public class DepartmentController : IBaseController
     {
         protected readonly string? _dbConn;
-        private readonly ILogger<FaqController> _logger;
+        private readonly ILogger<DepartmentController> _logger;
         private readonly IConfiguration _configuration;
-        private readonly string _module = "Faq";
+        private readonly string _module = "Department";
         private readonly PBTProDbContext _dbContext;
-        private List<FaqInfo> _Faq { get; set; }
+        private List<DepartmentInfo> _Department { get; set; }
 
-        public FaqController(PBTProDbContext dbContext, ILogger<FaqController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
+        public DepartmentController(PBTProDbContext dbContext, ILogger<DepartmentController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
         {
             _logger = logger;
             _configuration = configuration;
@@ -41,43 +41,43 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<FaqInfo>>> ListFaq()
+        public async Task<ActionResult<IEnumerable<DepartmentInfo>>> ListDepartment()
         {
-            if (_dbContext.FaqInfos == null)
+            if (_dbContext.DepartmentInfos == null)
             {
                 return NotFound();
             }
-            return await _dbContext.FaqInfos.ToListAsync();
+            return await _dbContext.DepartmentInfos.ToListAsync();
         }
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<ActionResult<FaqInfo>> RetrieveFaq(int id)
+        public async Task<ActionResult<DepartmentInfo>> RetrieveDepartment(int id)
         {
-            if (_dbContext.FaqInfos == null)
+            if (_dbContext.DepartmentInfos == null)
             {
                 return NotFound();
             }
-            var faq = await _dbContext.FaqInfos.FindAsync(id);
+            var Department = await _dbContext.DepartmentInfos.FindAsync(id);
 
-            if (faq == null)
+            if (Department == null)
             {
                 return NotFound();
             }
 
-            return faq;
+            return Department;
         }
 
         [AllowAnonymous]
         [HttpPut("{id}")]
-        public async Task<ActionResult<FaqInfo>> UpdateFaq(int id, FaqInfo faq)
+        public async Task<IActionResult> UpdateDepartment(int id, DepartmentInfo Department)
         {
-            if (id != faq.FaqId)
+            if (id != Department.DepartId)
             {
                 return BadRequest();
             }
 
-            _dbContext.Entry(faq).State = EntityState.Modified;
+            _dbContext.Entry(Department).State = EntityState.Modified;
 
             try
             {
@@ -85,7 +85,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!FaqExists(id))
+                if (!DepartmentExists(id))
                 {
                     return NotFound();
                 }
@@ -99,43 +99,40 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<FaqInfo>> InsertFaq([FromBody] FaqInfo faq)
-        {
-            //FaqInfo faq = JsonConvert.DeserializeObject<FaqInfo>(faqs);
-
-            if (_dbContext.FaqInfos == null)
+        public async Task<ActionResult<DepartmentInfo>> InsertDepartment([FromBody] DepartmentInfo Department)
+        {         
+            if (_dbContext.DepartmentInfos == null)
             {
                 return Problem("Entity set 'ProPBTDbContext'  is null.");
             }
-            _dbContext.FaqInfos.Add(faq);
+            _dbContext.DepartmentInfos.Add(Department);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction("InsertFaq", new { id = faq.FaqId }, faq);
+            return CreatedAtAction("InsertDepartment", new { id = Department.DepartId }, Department);
         }
 
-        [AllowAnonymous]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteFaq(int id)
+        public async Task<IActionResult> DeleteDepartment(int id)
         {
-            if (_dbContext.FaqInfos == null)
+            if (_dbContext.DepartmentInfos == null)
             {
                 return NotFound();
             }
-            var faq = await _dbContext.FaqInfos.FindAsync(id);
-            if (faq == null)
+            var Department = await _dbContext.DepartmentInfos.FindAsync(id);
+            if (Department == null)
             {
                 return NotFound();
             }
 
-            _dbContext.FaqInfos.Remove(faq);
+            _dbContext.DepartmentInfos.Remove(Department);
             await _dbContext.SaveChangesAsync();
 
             return Ok();
         }
 
-        private bool FaqExists(int id)
+        private bool DepartmentExists(int id)
         {
-            return (_dbContext.FaqInfos?.Any(e => e.FaqId == id)).GetValueOrDefault();
+            return (_dbContext.DepartmentInfos?.Any(e => e.DepartId == id)).GetValueOrDefault();
         }      
     }
 }

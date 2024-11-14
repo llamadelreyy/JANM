@@ -1,0 +1,102 @@
+﻿@page "/SenaraiAudit"
+@attribute [AllowAnonymous]
+
+@inject Services.AuditService _audit
+@using DevExpress.Blazor
+@implements IDisposable
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+
+<h1>Senarai Log Audit</h1>
+@if (_lstAudits == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <DxGrid @ref="Grid"
+            Data="@_lstAudits"
+            PagerVisible="true"
+            PagerPosition="GridPagerPosition.Bottom"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 5, 10, 15 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PageSize="2"
+            ShowGroupPanel="true"            
+            DataItemDeleting="OnDataItemDeleting"
+            CustomizeDataRowEditor="Grid_CustomizeDataRowEditor"
+            SelectAllCheckboxMode="GridSelectAllCheckboxMode.AllPages"
+            KeyFieldName="AuditId"
+            VirtualScrollingEnabled=true
+            ShowFilterRow="true"
+            TextWrapEnabled="true"
+            ShowSearchBox="true"
+            AutoExpandAllGroupRows="false"
+            SearchBoxNullText="Masukkan kata carian..."
+            CssClass="mw-1000, grid-size">
+        <Columns>
+            <DxGridDataColumn FieldName="@nameof(AuditlogInfo.CreatedDate)" Caption="Tarikh Dicipta" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditUsername)" Caption="Nama Pengguna" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditType)" Caption="Jenis Maklumat" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditModuleName)" Caption="Nama Modul" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditMethod)" Caption="Method" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditDescription)" Caption="Penerangan" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+        </Columns>      
+    </DxGrid>
+}
+@code {
+
+    private List<AuditlogInfo> _lstAudits = new List<AuditlogInfo>();
+    IGrid Grid { get; set; }
+    GridGroupFooterDisplayMode CurrentDisplayMode { get; set; } = GridGroupFooterDisplayMode.Auto;
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    [DefaultValue(GridSelectAllCheckboxMode.Page)]
+    [Parameter]
+    public GridSelectAllCheckboxMode SelectAllCheckboxMode { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadList();
+    }
+
+    private async Task LoadList()
+    {
+        try
+        {
+            _lstAudits = await _audit.GetAllAudit();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
+        }
+    }
+    
+    async Task OnDataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        try
+        {
+            var t = e.DataItem as AuditlogInfo;
+            var itmid = t.AuditId;
+            // Remove the data item from the database.
+            var deleteResult = await _audit.DeleteAudit(itmid);
+            // Reload the entire Grid.
+            _lstAudits = await _audit.RefreshListAudit();
+        }
+        catch (Exception ex)
+        {
+            // Handle the exception
+            Console.Error.WriteLine($"An error occurred while deleting the item : {ex.Message}");
+        }
+    }
+    void Grid_CustomizeDataRowEditor(GridCustomizeDataRowEditorEventArgs e)
+    {
+        if (e.EditSettings is ITextEditSettings settings)
+            settings.ShowValidationIcon = true;
+    }
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+}

@@ -27,7 +27,7 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var parFormfields = await _dbContext.ParFormFields.Where(x => x.Isactive == true).AsNoTracking().ToListAsync();
-                return Ok(parFormfields, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                return Ok(parFormfields, null, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -42,7 +42,7 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var parFormfields = await _dbContext.ParFormFields.Where(x => x.Isactive == true && x.FormType.ToUpper() == formType.ToUpper()).OrderBy(x => x.Orders).AsNoTracking().ToListAsync();
-                return Ok(parFormfields, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                return Ok(parFormfields, null, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -63,7 +63,7 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
 
-                return Ok(parFormfield, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+                return Ok(parFormfield, null, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -117,7 +117,7 @@ namespace PBTPro.Api.Controllers
                 _dbContext.ParFormFields.Add(formField);
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya menambah medan")));
+                return Ok(formField, null, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya menambah medan")));
             }
             catch (Exception ex)
             {
@@ -176,7 +176,7 @@ namespace PBTPro.Api.Controllers
                 _dbContext.ParFormFields.Update(formField);
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "Update", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
+                return Ok(formField, null, SystemMesg(_feature, "Update", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
             catch (Exception ex)
             {
@@ -203,7 +203,7 @@ namespace PBTPro.Api.Controllers
                 _dbContext.ParFormFields.Remove(formField);
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+                return Ok(formField, null, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
             catch (Exception ex)
             {

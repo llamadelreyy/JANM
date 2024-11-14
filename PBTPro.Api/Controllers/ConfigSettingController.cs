@@ -20,16 +20,16 @@ namespace PBTPro.Api.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        [Route("GetAllActionSetting")]
-        public async Task<IActionResult> GetAllActionSetting()
-        {
-            var actionSettings = new List<ActionSetting>();
+        //[HttpGet]
+        //[Route("GetAllActionSetting")]
+        //public async Task<IActionResult> GetAllActionSetting()
+        //{
+        //    var actionSettings = new List<ActionSetting>();
 
-            actionSettings.Add(new ActionSetting { ActionId = 1, ActionName="Kompaun", ActionDescription="Jenis Tindakan", ActionEnabled=true});
-            actionSettings.Add(new ActionSetting { ActionId = 2, ActionName = "Notis", ActionDescription = "Jenis Tindakan", ActionEnabled = true });
+        //    actionSettings.Add(new ActionSetting { ActionId = 1, ActionName="Kompaun", ActionDescription="Jenis Tindakan", ActionEnabled=true});
+        //    actionSettings.Add(new ActionSetting { ActionId = 2, ActionName = "Notis", ActionDescription = "Jenis Tindakan", ActionEnabled = true });
 
-            return Ok(actionSettings, "Result Found");
-        }
+        //    return Ok(actionSettings, "Result Found");
+        //}
     }
 }

@@ -21,13 +21,13 @@ namespace PBTPro.Api.Controllers
     public class UserController : IBaseController
     {
         protected readonly string? _dbConn;
-        private readonly ILogger<FaqController> _logger;
+        private readonly ILogger<UserController> _logger;
         private readonly IConfiguration _configuration;
         private readonly string _module = "Faq";
         private readonly PBTProDbContext _dbContext;
-        private List<TbFaq> _Faq { get; set; }
+        private List<FaqInfo> _Faq { get; set; }
 
-        public UserController(PBTProDbContext dbContext, ILogger<FaqController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
+        public UserController(PBTProDbContext dbContext, ILogger<UserController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
         {
             _logger = logger;
             _configuration = configuration;
@@ -69,20 +69,20 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public Task<bool> InsertFAQAsync(TbFaq changed, int intCurrentUserId)
+        public Task<bool> InsertFAQAsync(FaqInfo changed, int intCurrentUserId)
         {
             try
             {
                 using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
                 {
-                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("call proc_InsertFAQ(:_soalanfaq, :_jawapanfaq, :_kategorifaq, :_rekCiptaUserID, :_rekstatus)", myConn))
+                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("call faq.proc_InsertFAQ(:_faq_question, :_faq_answer, :_faq_category, :_created_by, :_faq_status)", myConn))
                     {
                         myCmd.CommandType = CommandType.Text;
-                        myCmd.Parameters.AddWithValue("_soalanfaq", DbType.String).Value = "Soalan hari ini?";
-                        myCmd.Parameters.AddWithValue("_jawapanfaq", DbType.String).Value = "Jawapan hari ini.";
-                        myCmd.Parameters.AddWithValue("_kategorifaq", DbType.String).Value = "1";
-                        myCmd.Parameters.AddWithValue("_rekCiptaUserID", DbType.Int32).Value = 1;
-                        myCmd.Parameters.AddWithValue("_rekstatus", DbType.String).Value = "A";
+                        myCmd.Parameters.AddWithValue("_faq_question", DbType.String).Value = changed.FaqQuestion;
+                        myCmd.Parameters.AddWithValue("_faq_answer", DbType.String).Value = changed.FaqAnswer;
+                        myCmd.Parameters.AddWithValue("_faq_category", DbType.String).Value = changed.FaqCategory;
+                        myCmd.Parameters.AddWithValue("_created_by", DbType.Int32).Value = changed.CreatedBy;
+                        myCmd.Parameters.AddWithValue("_faq_status", DbType.String).Value = "A";
 
                         myConn.Open();
                         myCmd.ExecuteNonQuery();
@@ -103,21 +103,21 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPut]
-        public Task<bool> UpdateFAQAsync(int _faqid, TbFaq changed, int intCurrentUserId)
+        public Task<bool> UpdateFAQAsync(int _faqid, FaqInfo changed, int intCurrentUserId)
         {
             try
             {
                 using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
                 {
-                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("call proc_updatefaq(:_faqid, :_soalanfaq, :_jawapanfaq, :_kategorifaq, :_rekUbahUserID, :_rekstatus)", myConn))
+                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("call faq.proc_updatefaq(:_faq_id, :_faq_question, :_faq_answer, :_faq_category, :_updated_by, :_faq_status)", myConn))
                     {
                         myCmd.CommandType = CommandType.Text;
-                        myCmd.Parameters.AddWithValue("_faqid", DbType.Int32).Value = _faqid;
-                        myCmd.Parameters.AddWithValue("_soalanfaq", DbType.String).Value = changed.Soalanfaq;
-                        myCmd.Parameters.AddWithValue("_jawapanfaq", DbType.String).Value = changed.Jawapanfaq;
-                        myCmd.Parameters.AddWithValue("_kategorifaq", DbType.String).Value = changed.Kategorifaq;
-                        myCmd.Parameters.AddWithValue("_rekUbahUserID", DbType.Int32).Value = intCurrentUserId;
-                        myCmd.Parameters.AddWithValue("_rekstatus", DbType.String).Value = changed.Rekstatus;
+                        myCmd.Parameters.AddWithValue("_faq_id", DbType.Int32).Value = _faqid;
+                        myCmd.Parameters.AddWithValue("_faq_question", DbType.String).Value = changed.FaqQuestion;
+                        myCmd.Parameters.AddWithValue("_faq_answer", DbType.String).Value = changed.FaqAnswer;
+                        myCmd.Parameters.AddWithValue("_faq_category", DbType.String).Value = changed.FaqCategory;
+                        myCmd.Parameters.AddWithValue("_updated_by", DbType.Int32).Value = intCurrentUserId;
+                        myCmd.Parameters.AddWithValue("_faq_status", DbType.String).Value = changed.FaqStatus;
 
                         myConn.Open();
                         myCmd.ExecuteNonQuery();
@@ -144,12 +144,12 @@ namespace PBTPro.Api.Controllers
             {
                 using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
                 {
-                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("call proc_deletefaq(:_faqid, :_rekstatus)", myConn))
+                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("call faq.proc_deletefaq(:_faq_id, :_faq_status)", myConn))
                     {
                         myCmd.CommandType = CommandType.Text;
-                        myCmd.Parameters.AddWithValue("_faqid", _faqid);
-                        myCmd.Parameters.AddWithValue("_rekstatus", DbType.String).Value = "TA";
-                        //myCmd.Parameters.AddWithValue("_rekUbahUserID", 1);
+                        myCmd.Parameters.AddWithValue("_faq_id", _faqid);
+                        myCmd.Parameters.AddWithValue("_faq_status", DbType.String).Value = "TA";
+                        //myCmd.Parameters.AddWithValue("_rekUbahUserID", 1);s
 
                         myConn.Open();
                         myCmd.ExecuteNonQuery();
@@ -172,7 +172,7 @@ namespace PBTPro.Api.Controllers
         [HttpGet]
         public async Task<string> ListFAQAsync()
         {
-            List<TbFaq> arrItem = new List<TbFaq>();
+            List<FaqInfo> arrItem = new List<FaqInfo>();
             string jsonStr = "";
             try
             {
@@ -184,7 +184,7 @@ namespace PBTPro.Api.Controllers
                     using (var transaction = await myConn.BeginTransactionAsync())
                     {
                         // Create a command to call the function that returns a refcursor
-                        using (var myCmd = new NpgsqlCommand("SELECT funct_listfaq()", myConn))
+                        using (var myCmd = new NpgsqlCommand("SELECT faq.funct_listfaq()", myConn))
                         {
                             // Execute the function and get the refcursor
                             var cursorName = (await myCmd.ExecuteScalarAsync()) as string;
@@ -202,18 +202,17 @@ namespace PBTPro.Api.Controllers
                                     // Loop through all rows returned by the cursor
                                     while (await myReader.ReadAsync())
                                     {
-                                        var _item = new TbFaq
+                                        var _item = new FaqInfo
                                         {
-                                            Faqid = myReader.GetInt32("faqid"),
-                                            Kategorifaq = myReader.GetString("kategorifaq"),
-                                            Soalanfaq = myReader.GetString("soalanfaq"),
-                                            Jawapanfaq = myReader.GetString("jawapanfaq"),
-                                            Rekstatus = myReader.GetString("rekstatus"),
-                                            Rekcipta = myReader.GetDateTime("rekcipta"),
-                                            Rekciptauserid = myReader.GetInt32("rekciptauserid"),
-                                            Rekubahuserid = (int)(myReader.IsDBNull(myReader.GetOrdinal("rekubahuserid"))? (int?)null  : myReader.GetInt32("rekubahuserid")),
-                                            Rekubah = myReader.GetDateTime("rekubah"),
-                                            //Rekubahuserid = myReader.GetInt32("rekubahuserid")                                            
+                                            FaqId = myReader.GetInt32("faq_id"),
+                                            FaqCategory = myReader.GetString("faq_category"),
+                                            FaqQuestion = myReader.GetString("faq_question"),
+                                            FaqAnswer = myReader.GetString("faq_answer"),
+                                            FaqStatus = myReader.GetString("faq_status"),
+                                            CreatedDate = myReader.GetDateTime("created_date"),
+                                            CreatedBy = myReader.GetInt32("created_by"),
+                                            UpdatedBy = (int)(myReader.IsDBNull(myReader.GetOrdinal("updated_by"))? (int?)null  : myReader.GetInt32("updated_by")),
+                                            UpdatedDate = myReader.GetDateTime("updated_date"),
                                         };
 
                                         arrItem.Add(_item);

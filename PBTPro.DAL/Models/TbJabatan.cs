@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace PBTPro.DAL.Models;
 
-public partial class TbFaq
+public partial class TbJabatan
 {
-    public int Faqid { get; set; }
+    public int jabid { get; set; }
 
-    public string Kategorifaq { get; set; } = null!;
+    public string kodjab { get; set; } = null!;
 
-    public string Soalanfaq { get; set; } = null!;
+    public string namajab { get; set; } = null!;
 
-    public string Jawapanfaq { get; set; } = null!;
+    public string catatan { get; set; } = null!;
 
     public string Rekstatus { get; set; } = null!;
 

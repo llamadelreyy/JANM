@@ -60,7 +60,7 @@ namespace PBTPro.Api.Controllers
 
                 if (QueueList.Count > 0)
                 {
-                    return Ok(QueueList, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                    return Ok(QueueList, null, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
                 }
                 else
                 {
@@ -85,7 +85,7 @@ namespace PBTPro.Api.Controllers
 
                 if (template != null)
                 {
-                    return Ok(template, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data template berjaya dijana")));
+                    return Ok(template, null, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data template berjaya dijana")));
                 }
                 else
                 {
@@ -167,7 +167,7 @@ namespace PBTPro.Api.Controllers
                     });
                 }
 
-                return Ok("", SystemMesg(_feature, "PROCESS_EMAIL_QUEUE", MessageTypeEnum.Success, string.Format("Berjaya process email yang tersusun")));
+                return Ok("", null, SystemMesg(_feature, "PROCESS_EMAIL_QUEUE", MessageTypeEnum.Success, string.Format("Berjaya process email yang tersusun")));
             }
             catch (Exception ex)
             {

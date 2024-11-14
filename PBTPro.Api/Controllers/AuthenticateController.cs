@@ -23,9 +23,10 @@ namespace PBTPro.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly JWTTokenService _tokenService;
         private readonly IEmailSender _emailSender;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly string _feature = "AUTH";
 
-        public AuthenticateController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, PBTProDbContext dbContext, ILogger<AuthenticateController> logger, JWTTokenService tokenService, IEmailSender emailSender) : base(dbContext)
+        public AuthenticateController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, PBTProDbContext dbContext, ILogger<AuthenticateController> logger, JWTTokenService tokenService, IEmailSender emailSender) : base(dbContext)
         {
             _logger = logger;
             _userManager = userManager;
@@ -33,6 +34,7 @@ namespace PBTPro.Api.Controllers
             _configuration = configuration;
             _tokenService = tokenService;
             _emailSender = emailSender;
+            _roleManager = roleManager;
         }
 
         [HttpPost]
