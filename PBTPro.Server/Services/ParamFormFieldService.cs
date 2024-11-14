@@ -51,6 +51,8 @@ namespace PBT.Services
         {
             new { Value = "hidden", Text = "Hidden Box" },
             new { Value = "text", Text = "Text Box" },
+            new { Value = "datetime", Text = "Date Time" },
+            new { Value = "file", Text = "File Upload" },
             new { Value = "textarea", Text = "Text Area" },
             new { Value = "dropdown", Text = "Drop Down" },
             new { Value = "radio", Text = "Radio Button" },
