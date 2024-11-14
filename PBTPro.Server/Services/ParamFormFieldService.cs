@@ -140,13 +140,7 @@ namespace PBT.Services
             }
 
             return result;
-        }
-
-        private TbFaq NotFoundResult()
-        {
-            throw new NotImplementedException();
-        }
-
+        }        
         public async Task<ReturnViewModel> Create(SetupBorangListModel inputModel)
         {
 
