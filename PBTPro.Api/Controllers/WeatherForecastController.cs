@@ -34,7 +34,7 @@ namespace PBTPro.Api.Controllers
             })
             .ToList();
 
-            return Ok(data, "Result Found");
+            return Ok(data, null, "Result Found");
         }
     }
 }

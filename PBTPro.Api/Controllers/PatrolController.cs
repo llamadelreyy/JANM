@@ -29,7 +29,7 @@ namespace PBTPro.Api.Controllers
             try
             {               
                 var mstLots = await _dbContext.TrnPatrols.Where(x => x.Isactive == true).AsNoTracking().ToListAsync();
-                return Ok(mstLots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                return Ok(mstLots, null, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -129,7 +129,7 @@ namespace PBTPro.Api.Controllers
                     Members = memberDets.Where(x => x.Username != runUser).ToList()
                 };
 
-                return Ok(result, SystemMesg(_feature, "START_PATROL", MessageTypeEnum.Success, string.Format("Berjaya memulakan rondaan")));
+                return Ok(result, null, SystemMesg(_feature, "START_PATROL", MessageTypeEnum.Success, string.Format("Berjaya memulakan rondaan")));
             }
             catch (Exception ex)
             {
@@ -186,7 +186,7 @@ namespace PBTPro.Api.Controllers
                     Isleader = true
                 };
 
-                return Ok(result, SystemMesg(_feature, "STOP_PATROL", MessageTypeEnum.Success, string.Format("Berjaya menghentikan rondaan")));
+                return Ok(result, null, SystemMesg(_feature, "STOP_PATROL", MessageTypeEnum.Success, string.Format("Berjaya menghentikan rondaan")));
             }
             catch (Exception ex)
             {

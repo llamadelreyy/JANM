@@ -2,8 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using PBTPro.DAL.Models;
 using Serilog;
 using System.Configuration;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
@@ -17,6 +21,7 @@ namespace PBTPro.DAL.Services
     {
         Configuration configuration = null;
 
+        protected readonly string? _dbConn;
         protected readonly string? _apiBaseUrl;
         private readonly ILogger? _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -27,6 +32,7 @@ namespace PBTPro.DAL.Services
             _httpContextAccessor = contextAccessor;
             _session = contextAccessor.HttpContext.Session;
             _configuration = configuration;
+            _dbConn = configuration.GetValue<string>("ConnectionStrings");
         }
         public void LogConsole(string message,
         [CallerLineNumber] int lineNumber = 0,
@@ -76,11 +82,13 @@ namespace PBTPro.DAL.Services
 
             StringContent jsonContent = new(JsonStr, Encoding.UTF8, "application/json");
             RequestURL.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            HttpResponseMessage response = await client.PostAsJsonAsync(URIRequest, JsonStr).ConfigureAwait(false);
+            HttpResponseMessage response = await client.PostAsync(URIRequest, jsonContent).ConfigureAwait(false);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Created)
             {
                 var result = await response.Content.ReadAsStringAsync();
+                //var value = JObject.Parse(result);
+                //string strValue = value.ToString();
                 return result;
             }
             return "";
@@ -222,5 +230,68 @@ namespace PBTPro.DAL.Services
             var request = new HttpRequestMessage(HttpMethod.Put, $"{_apiBaseUrl}" + RequestURL);
             return request;
         }
+
+        #region audit
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<bool> CreateAuditLog(int intType, string strMethod, string strMessage, int userId, string uname, string moduleName, int roleid=0)
+        {
+            try
+            {
+                AuditlogInfo auditlog = new AuditlogInfo();
+               
+                auditlog.AuditRoleId = roleid;
+                auditlog.AuditModuleName = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName;
+                auditlog.AuditDescription = strMessage;
+                auditlog.CreatedBy = userId;
+                auditlog.AuditType = intType;                
+                auditlog.AuditUsername = uname;                
+                auditlog.AuditMethod = strMethod;
+
+                //Calling api to perform addnew audit transaction
+                var accessToken = CheckToken();
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var request = CheckRequest("/api/Audit/InsertAudit");
+
+                var client = new HttpClient();
+                client.BaseAddress = new Uri(platformApiUrl);
+                string value = JsonConvert.SerializeObject(auditlog);
+                StringContent jsonContent = new(value, Encoding.UTF8, "application/json");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                HttpResponseMessage response = await client.PostAsync("/api/Audit/InsertAudit", jsonContent).ConfigureAwait(false);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    var results= await response.Content.ReadAsStringAsync();
+                    return true;
+                }
+                else
+                {                   
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                   
+                    throw new Exception($"API request failed with status code {response.StatusCode}: {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw (ex);
+            }           
+        }
+        /// <summary>
+        /// Get current method name
+        /// </summary>
+        /// <returns>Return method</returns>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public string GetCurrentMethod()
+        {
+            StackTrace st = new StackTrace();
+            StackFrame sf = st.GetFrame(1);
+
+            return sf.GetMethod().Name;
+        }
+
+
+        #endregion
     }
 }

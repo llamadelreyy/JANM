@@ -1,22 +1,22 @@
-﻿@page "/SenaraiFaq"
+﻿@page "/SenaraiJabatan"
 @attribute [AllowAnonymous]
 
-@inject Services.FaqService _faq
+@inject Services.DepartmentService _department
 @using DevExpress.Blazor
 @implements IDisposable
 @using Newtonsoft.Json
 @using System.ComponentModel
 @using PBTPro.DAL.Models;
 
-<h1>Senarai Soalan Lazim</h1>
-@if (_lstFaqs == null)
+<h1>Senarai Jabatan</h1>
+@if (_lstDepartment == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
     <DxGrid @ref="Grid"
-            Data="@_lstFaqs"
+            Data="@_lstDepartment"
             PagerVisible="true"
             PagerPosition="GridPagerPosition.Bottom"
             PageSizeSelectorVisible="true"
@@ -29,7 +29,7 @@ else
             DataItemDeleting="OnDataItemDeleting"
             CustomizeDataRowEditor="Grid_CustomizeDataRowEditor"
             SelectAllCheckboxMode="GridSelectAllCheckboxMode.AllPages"
-            KeyFieldName="FaqId"
+            KeyFieldName="DepartId"
             VirtualScrollingEnabled=true
             ShowFilterRow="true"
             TextWrapEnabled="true"
@@ -40,23 +40,23 @@ else
         <Columns>
             <!--<DxGridSelectionColumn />-->
             <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="20%" />
-            <DxGridDataColumn FieldName="@nameof(FaqInfo.FaqCategory)" Caption="Kategori" Width="20%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
-            <DxGridDataColumn FieldName="@nameof(FaqInfo.FaqQuestion)" Caption="Soalan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
-            <DxGridDataColumn FieldName="@nameof(FaqInfo.FaqAnswer)" Caption="Jawapan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DepartCode)" Caption="Kod Jabatan" Width="20%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptDepartName)" Caption="Nama Jabatan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptDescription)" Caption="Catatan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
         </Columns>
         <EditFormTemplate Context="editFormContext">
             @{
-                var faq = (FaqInfo)editFormContext.EditModel;
+                var jabatan = (DepartmentInfo)editFormContext.EditModel;
             }
             <DxFormLayout>
-                <DxFormLayoutItem Caption="Kategori:">
-                    @editFormContext.GetEditor("FaqCategory")
+                <DxFormLayoutItem Caption="Kod Jabatan:">
+                    @editFormContext.GetEditor("DepartCode")
                 </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Soalan:">
-                    @editFormContext.GetEditor("FaqQuestion")
+                <DxFormLayoutItem Caption="Nama Jabatan:">
+                    @editFormContext.GetEditor("DeptDepartName")
                 </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Jawapan:">
-                    @editFormContext.GetEditor("FaqAnswer")
+                <DxFormLayoutItem Caption="Catatan:">
+                    @editFormContext.GetEditor("DeptDescription")
                 </DxFormLayoutItem>
                 @* <DxFormLayoutItem Caption="Status:">
                     @editFormContext.GetEditor("Rekstatus")
@@ -67,7 +67,7 @@ else
 }
 @code {
 
-    private List<FaqInfo> _lstFaqs = new List<FaqInfo>();
+    private List<DepartmentInfo> _lstDepartment = new List<DepartmentInfo>();
     IGrid Grid { get; set; }
     GridGroupFooterDisplayMode CurrentDisplayMode { get; set; } = GridGroupFooterDisplayMode.Auto;
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
@@ -85,7 +85,7 @@ else
     {
         try
         {
-            _lstFaqs = await _faq.GetAllFaq();
+            _lstDepartment = await _department.GetAllDepartment();
         }
         catch (Exception ex)
         {
@@ -95,23 +95,16 @@ else
 
     void OnCustomizeEditModel(GridCustomizeEditModelEventArgs e)
     {
-        // if (e.IsNew)
-        // {
-        //     var editModel = (FaqInfo)e.EditModel;
-        //     editModel.FaqId = _lstFaqs.Max(x => x.FaqId) + 1;
-        // }
         if (e.IsNew)
         {
-            var editModel = (FaqInfo)e.EditModel;
-            if (_lstFaqs.Any())
+            var editModel = (DepartmentInfo)e.EditModel;
+            if (_lstDepartment.Any())
             {
-                // If the list is not empty, get the max FaqId and increment it
-                editModel.FaqId = _lstFaqs.Max(x => x.FaqId) + 1;
+                editModel.DepartId = _lstDepartment.Max(x => x.DepartId) + 1;
             }
             else
             {
-                // If the list is empty, set the FaqId to 1
-                editModel.FaqId = 1;
+                editModel.DepartId = 1;
             }
         }
     }
@@ -119,8 +112,8 @@ else
     {
         try
         {
-            // Cast EditModel directly to the faq model
-            var editModel = e.EditModel as FaqInfo;
+            // Cast EditModel directly to the jabatab model
+            var editModel = e.EditModel as DepartmentInfo;
 
             // Check if editModel is null
             if (editModel == null)
@@ -129,8 +122,8 @@ else
                 return; // or throw an exception
             }
 
-            var itmId = editModel.FaqId;
-            editModel.FaqStatus = "A";
+            var itmId = editModel.DepartId;
+            editModel.DepartStatus = "A";
             editModel.CreatedDate = DateTime.Today;
             editModel.CreatedBy = 1;
             editModel.UpdatedDate = DateTime.Today;
@@ -139,24 +132,24 @@ else
             // Determine if this is a new item or an update
             if (e.IsNew)
             {
-                // Save new faq setting
+                // Save new jabatan setting
                 var jsonString = JsonConvert.SerializeObject(editModel);
-                await _faq.PostFaq(jsonString);
+                await _department.PostDepartment(jsonString);
             }
             else
             {
-                var existingFaq = await _faq.GetIdFaq(itmId);
-                if (existingFaq != null)
+                var existingJabatan = await _department.GetIdDepartment(itmId);
+                if (existingJabatan != null)
                 {
-                    existingFaq.FaqCategory = editModel.FaqCategory;
-                    existingFaq.FaqQuestion = editModel.FaqQuestion;
-                    existingFaq.FaqAnswer = editModel.FaqAnswer;
+                    existingJabatan.DepartCode = editModel.DepartCode;
+                    existingJabatan.DeptDepartName = editModel.DeptDepartName;
+                    existingJabatan.DeptDescription = editModel.DeptDescription;
                     //existingAction.Actionenabled = editModel.Actionenabled;
-                    await _faq.PutFaq(itmId, existingFaq);
+                    await _department.PutDepartment(itmId, existingJabatan);
                 }
             }
             // Reload the entire Grid
-            _lstFaqs = await _faq.RefreshListFaq();
+            _lstDepartment = await _department.RefreshListDepartment();
         }
         catch (Exception ex)
         {
@@ -168,12 +161,12 @@ else
     {
         try
         {
-            var t = e.DataItem as FaqInfo;
-            var itmid = t.FaqId;
+            var t = e.DataItem as DepartmentInfo;
+            var itmid = t.DepartId;
             // Remove the data item from the database.
-            var deleteResult = await _faq.DeleteFaq(itmid);
+            var deleteResult = await _department.DeleteDepartment(itmid);
             // Reload the entire Grid.
-            _lstFaqs = await _faq.RefreshListFaq();
+            _lstDepartment = await _department.RefreshListDepartment();
         }
         catch (Exception ex)
         {

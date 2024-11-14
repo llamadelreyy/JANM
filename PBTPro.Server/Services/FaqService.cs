@@ -1,14 +1,21 @@
-﻿using DevExpress.ClipboardSource.SpreadsheetML;
-using DevExpress.Xpo.Logger;
+﻿/*
+Project: PBT Pro
+Description: Faq service to handle FAQ form field
+Author: Nurulfarhana
+Date: November 2024
+Version: 1.0
+Additional Notes:
+- 
+Changes Logs:
+14/11/2024 - initial create
+*/
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using PBT.Pages;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PBT.Services
 {
@@ -44,6 +51,8 @@ namespace PBT.Services
         protected readonly CommonFunction _cf;
         protected readonly SharedFunction _sf;
         private readonly ILogger<FaqService> _logger;
+        private string LoggerName = "";
+        string _controllerName = "";
 
         public FaqService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<FaqService> logger, PBTProDbContext dbContext)
         {
@@ -53,36 +62,72 @@ namespace PBT.Services
             _cf = new CommonFunction(httpContextAccessor, configuration);
             _sf = new SharedFunction(httpContextAccessor);
             _logger = logger;
+            _controllerName = (string)(_httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
 
         }
-
+        public void GetDefaultPermission()
+        {
+            if (LoggerName != null || LoggerName != "")
+                LoggerName = "1";//User.Identity.Name;  // assign value to logger name
+            else LoggerName = null;
+        }
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<TbFaq>> GetAllFaq()
+        public async Task<List<FaqInfo>> GetAllFaq()
         {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
             try
             {
                 var platformApiUrl = _configuration["PlatformAPI"];
-                //var accessToken = _cf.CheckToken();
+                var accessToken = _cf.CheckToken();
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/ListFaq");
                 string jsonString = await _cf.List(request);
+                List<FaqInfo> faqList = JsonConvert.DeserializeObject<List<FaqInfo>>(jsonString);
+                await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - GetAllFaq", "Papar semua senarai soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
 
-                List<TbFaq> faqList = JsonConvert.DeserializeObject<List<TbFaq>>(jsonString);
                 return faqList;
             }
             catch (Exception ex)
             {
-                //TempData.Clear();
-                //ViewData["OperationMsg"] = ex.Message;
-                //_cf.SystemLoggerAsync("AddNewFaq", "", uID, LoggerName, "", 0, ex.Message, 0, "MasjidKita");
+                await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - GetAllFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
+
         [AllowAnonymous]
         [HttpGet]
-        public async Task<TbFaq> GetIdFaq(int id)
+        public async Task<List<FaqInfo>> RefreshListFaq()
         {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/ListFaq");
+                string jsonString = await _cf.List(request);
+
+                List<FaqInfo> faqList = JsonConvert.DeserializeObject<List<FaqInfo>>(jsonString);
+                 await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - RefreshListFaq", "Papar semula senarai soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
+
+                return faqList;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error,  "FaqService - RefreshListFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<FaqInfo> GetIdFaq(int id)
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
             try
             {
                 var platformApiUrl = _configuration["PlatformAPI"];
@@ -90,76 +135,24 @@ namespace PBT.Services
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/RetrieveFaq/" + id);
                 string jsonString = await _cf.Retrieve(request, accessToken);
-
-                TbFaq faq = JsonConvert.DeserializeObject<TbFaq>(jsonString.ToString());
-
+                FaqInfo faq = JsonConvert.DeserializeObject<FaqInfo>(jsonString.ToString());
+                await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - GetIdFaq", "Papar maklumat terperinci soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
+                
                 return faq;
             }
             catch (Exception ex) 
             {
-                // _cf.SystemLoggerAsync("SaveEditPackage", "", uID, LoggerName, "", 0, ex.Message);
+                await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - GetIdFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
-        }
-
-        private TbFaq NotFoundResult()
-        {
-            throw new NotImplementedException();
-        }
-
-        [HttpPost]
-        public async Task<TbFaq> AddNewFaq(string strFaq)
-        {
-
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-
-            try
-            {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
-
-                var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/InsertFaq");
-                string jsonString = await _cf.AddNew(request, strFaq, platformApiUrl + "/api/Faq/InsertFaq");
-                TbFaq faq = JsonConvert.DeserializeObject<TbFaq>(jsonString);
-                //_cf.SystemLogAsync(false, false, true, LoggerName, "AddNewFaq", "", uID, LoggerName, "", 0, "Soalan lazim dihantar ke pangkalan data", 0, "MasjidKita");
-
-                return faq;
-            }
-            catch (Exception ex)
-            {
-                // _cf.SystemLoggerAsync("SaveEditPackage", "", uID, LoggerName, "", 0, ex.Message);
-                return null;
-            }
-        }
-
-        [HttpDelete]
-        public async Task<IActionResult> DeleteFaq(int id)
-        {
-            try
-            {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
-
-                var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/DeleteFaq/" + id);
-                string jsonString = await _cf.Delete(request);
-                return Ok(jsonString);
-            }
-            catch (Exception ex) 
-            {
-                // _cf.SystemLoggerAsync("SaveEditPackage", "", uID, LoggerName, "", 0, ex.Message);
-                return null;
-            }
-        }
-
-        private IActionResult Ok(string jsonString)
-        {
-            throw new NotImplementedException();
-        }
-
+        }        
+                    
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<TbFaq>> PostFaq([FromBody] string faqs = "")
+        public async Task<ActionResult<FaqInfo>> PostFaq([FromBody] string faqs="")
         {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
             try
             {
                 var platformApiUrl = _configuration["PlatformAPI"];
@@ -167,25 +160,47 @@ namespace PBT.Services
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/InsertFaq");
                 string jsonString = await _cf.AddNew(request, faqs, platformApiUrl + "/api/Faq/InsertFaq");
-                TbFaq faq = JsonConvert.DeserializeObject<TbFaq>(jsonString);
-
-                //_cf.SystemLogAsync(false, false, true, LoggerName, "AddNewFaq", "", uID, LoggerName, "", 0, "Soalan lazim dihantar ke pangkalan data", 0, "MasjidKita");
-
+                FaqInfo faq = JsonConvert.DeserializeObject<FaqInfo>(jsonString);
+                await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - PostFaq", "Tambah data baru untuk soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
+                
                 return faq;
             }
             catch (Exception ex)
             {
-                //TempData.Clear();
-                //ViewData["OperationMsg"] = ex.Message;
-                //_cf.SystemLoggerAsync("AddNewFaq", "", uID, LoggerName, "", 0, ex.Message, 0, "MasjidKita");
+                await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - PostFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
-        
+
+        [HttpDelete]
+        public async Task<int> DeleteFaq(int id)
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/DeleteFaq/" + id);
+                string jsonString = await _cf.Delete(request);
+                await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - DeleteFaq", "Berjaya padam data untuk soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
+
+                return id;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - DeleteFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return 0;
+            }
+        }
+
         [AllowAnonymous]
         [HttpPut]
-        public async Task<IActionResult> PutFaq(int id, TbFaq faq)
+        public async Task<ActionResult<FaqInfo>> PutFaq(int id, FaqInfo faq)
         {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
             try
             {
                 var platformApiUrl = _configuration["PlatformAPI"];
@@ -194,14 +209,15 @@ namespace PBT.Services
                 var uri = platformApiUrl + "/api/Faq/UpdateFaq/" + id;
                 var request = _cf.CheckRequestPut(platformApiUrl + "/api/Faq/UpdateFaq/" + id);
                 string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(faq), uri);
-                return Ok(jsonString);
-
+                await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - PutFaq", "Berjaya kemaskini data untuk soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
+                
+                return faq;
             }
             catch (Exception ex)
             {
-               // _cf.SystemLoggerAsync("SaveEditPackage", "", uID, LoggerName, "", 0, ex.Message);
+                await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - PutFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
-        }
+        }       
     }
 }

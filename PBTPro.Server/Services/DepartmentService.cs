@@ -1,0 +1,223 @@
+﻿/*
+Project: PBT Pro
+Description: Department service to handle department Form Field
+Author: Nurulfarhana
+Date: November 2024
+Version: 1.0
+Additional Notes:
+- 
+Changes Logs:
+14/11/2024 - initial create
+*/
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using PBTPro.DAL;
+using PBTPro.DAL.Models;
+using PBTPro.DAL.Services;
+
+namespace PBT.Services
+{
+    [AllowAnonymous]
+    public partial class DepartmentService : IDisposable
+    {
+
+        private bool disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources here
+                }
+
+                // Dispose unmanaged resources here
+
+                disposed = true;
+            }
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        public IConfiguration _configuration { get; }
+
+        private readonly PBTProDbContext _dbContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        protected readonly CommonFunction _cf;
+        protected readonly SharedFunction _sf;
+        private readonly ILogger<DepartmentService> _logger;
+        private string LoggerName = "";
+        string _controllerName = "";
+
+        public DepartmentService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<DepartmentService> logger, PBTProDbContext dbContext)
+        {
+            _configuration = configuration;
+            _dbContext = dbContext;
+            _httpContextAccessor = httpContextAccessor;
+            _cf = new CommonFunction(httpContextAccessor, configuration);
+            _sf = new SharedFunction(httpContextAccessor);
+            _logger = logger;
+
+        }
+        public void GetDefaultPermission()
+        {
+            if (LoggerName != null || LoggerName != "")
+                LoggerName = "1";//User.Identity.Name;  // assign value to logger name
+            else LoggerName = null;
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<List<DepartmentInfo>> GetAllDepartment()
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
+                string jsonString = await _cf.List(request);
+                List<DepartmentInfo> departmentList = JsonConvert.DeserializeObject<List<DepartmentInfo>>(jsonString);
+                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - GetAllDepartment", "Papar semua senarai jabatan.", Convert.ToInt32(uID), LoggerName, "");
+
+                return departmentList;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - GetAllDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<List<DepartmentInfo>> RefreshListDepartment()
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
+                string jsonString = await _cf.List(request);
+                List<DepartmentInfo> departmentList = JsonConvert.DeserializeObject<List<DepartmentInfo>>(jsonString);
+                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - RefreshListDepartment", "Papar semua senarai jabatan.", Convert.ToInt32(uID), LoggerName, "");
+
+                return departmentList;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - RefreshListDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<DepartmentInfo> GetIdDepartment(int id)
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Department/RetrieveDepartment/" + id);
+                string jsonString = await _cf.Retrieve(request, accessToken);
+                DepartmentInfo departmentProp = JsonConvert.DeserializeObject<DepartmentInfo>(jsonString.ToString());
+                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - GetIdDepartment", "Papar maklumat terperinci jabatan.", Convert.ToInt32(uID), LoggerName, "");
+
+                return departmentProp;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - GetIdDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<ActionResult<DepartmentInfo>> PostDepartment([FromBody] string departments = "")
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Department/InsertDepartment");
+                string jsonString = await _cf.AddNew(request, departments, platformApiUrl + "/api/Department/InsertDepartment");
+                DepartmentInfo departmentProp = JsonConvert.DeserializeObject<DepartmentInfo>(jsonString);
+                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - PostDepartment", "Tambah data baru untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
+
+                return departmentProp;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - PostDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
+        [HttpDelete]
+        public async Task<int> DeleteDepartment(int id)
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Department/DeleteDepartment/" + id);
+                string jsonString = await _cf.Delete(request);
+                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - DeleteDepartment", "Berjaya padam data untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
+
+                return id;
+            }
+            catch (Exception ex) 
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - DeleteDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return 0;
+            }
+        }            
+        
+        [AllowAnonymous]
+        [HttpPut]
+        public async Task<ActionResult<DepartmentInfo>> PutDepartment(int id, DepartmentInfo department)
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var uri = platformApiUrl + "/api/Department/UpdateDepartment/" + id;
+                var request = _cf.CheckRequestPut(platformApiUrl + "/api/Department/UpdateDepartment/" + id);
+                string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(department), uri);                
+                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - PutDepartment", "Berjaya kemaskini data untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
+
+                return department;
+
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - PutDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+    }
+}

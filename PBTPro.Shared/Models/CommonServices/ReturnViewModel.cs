@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using PBTPro.DAL.Models.Common;
+using System.Text.Json.Serialization;
 
 namespace PBTPro.Shared.Models.CommonService
 {
@@ -16,6 +17,8 @@ namespace PBTPro.Shared.Models.CommonService
         public DateTime DateTime { get; set; }
         [JsonPropertyName("data")]
         public object? Data { get; set; }
+        [JsonPropertyName("pageInfo")]
+        public PaginationInfo? PaginationInfo { get; set; }
         [JsonPropertyName("server")]
         public string Server { get; set; } = Environment.MachineName;
         public ReturnViewModel()
