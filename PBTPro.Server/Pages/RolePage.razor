@@ -54,7 +54,7 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((LesenInfo)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((RoleProp)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" FieldName="role_name" />
@@ -160,6 +160,7 @@
 
     IEnumerable<RoleProp> dataSource;
 
+
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
@@ -206,7 +207,7 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(LesenInfo item)
+    async Task Delete(RoleProp item)
     {
         ConfirmationShown = true;
     }
