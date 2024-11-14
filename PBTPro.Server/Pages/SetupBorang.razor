@@ -1,0 +1,273 @@
+﻿@*
+Project: PBT Pro
+Description: Page of Borang Configuration
+Author: Ismail
+Date: November 2024
+Version: 1.0
+
+Additional Notes:
+- setup field to be loaded to Mobile Apps Data Collection
+
+Changes Logs:
+11/11/2024 - initial create
+*@
+@page "/setupborang"
+@attribute [AllowAnonymous]
+
+@inject Services.ParamFormFieldService _ParamFormField
+@inject IToastNotificationService ToastService
+@using Newtonsoft.Json
+@using PBT.Data
+@using PBTPro.Shared.Models.CommonService
+@using PBTPro.Shared.Models.RequestPayLoad
+@using System.Text
+
+<div class="item-container-x">
+    <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+        <DxTab Text="Notis"></DxTab>
+        <DxTab Text="Kompaun"></DxTab>
+        <DxTab Text="Sitaan"></DxTab>
+        <DxTab Text="Nota Pemeriksaan"></DxTab>
+    </DxTabs>
+
+    <DxGrid @ref="Grid" Data="@Data"
+        EditorRenderMode="GridEditorRenderMode.Integrated"
+        PageSize="25"
+        @bind-PageIndex="@GridPageIndex"
+        PagerPosition="GridPagerPosition.Bottom"
+        PagerNavigationMode="PagerNavigationMode.InputBox"
+        EditModelSaving="Grid_EditModelSaving"
+        EditFormButtonsVisible="true"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+        PageSizeSelectorAllRowsItemVisible="true"
+        PagerAutoHideNavButtons="false"
+        ColumnResizeMode="@ColumnResizeMode"
+        HighlightRowOnHover="true"
+        CssClass="mv-1000">
+        <Columns>
+            <DxGridCommandColumn Width="120px">
+                <HeaderTemplate>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png"/></a>
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((SetupBorangListModel)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                </CellDisplayTemplate>
+            </DxGridCommandColumn>
+            <DxGridDataColumn FieldName="Name" Caption="Name"/>
+            <DxGridDataColumn FieldName="Label" Caption="Label"/>
+            <DxGridDataColumn FieldName="Type" Caption="Jenis"/>
+            <DxGridDataColumn FieldName="Orders" Caption="Susunan"/>
+        </Columns>
+        <EditFormTemplate Context="EditFormContext">
+            @{
+                var field = (SetupBorangListModel)EditFormContext.EditModel;
+                var editContext = new EditContext(field);
+            }
+            <DxFormLayout EditContext="editContext" CssClass="w-100">
+                <DxFormLayoutItem Caption="RecId" ColSpanMd="6" Visible="false">
+                    <DxTextBox @bind-Value="@field.RecId" ReadOnly="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Nama:" ColSpanMd="6">
+                    <DxTextBox @bind-Text="@field.Name" ShowValidationIcon="true"/>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Label:" ColSpanMd="6">
+                    <DxTextBox @bind-Text="@field.Label" ShowValidationIcon="true"/>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Jenis:" ColSpanMd="6">
+                    <DxComboBox Data="@fieldType"
+                                NullText="Pilih Jenis Medan.."
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                @bind-Value="@field.Type"
+                                TextFieldName="Text"
+                                ValueFieldName="Value"
+                                ShowValidationIcon="true"/>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Pilihan:" ColSpanMd="6">
+                    <DxMemo @bind-Text="@field.Option" ShowValidationIcon="true"/>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Diperlukan:" ColSpanMd="6">
+                    <DxCheckBox @bind-Checked="@field.Required" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Susunan:" ColSpanMd="6">
+                    <DxSpinEdit @bind-Value="@field.Orders" ShowValidationIcon="true"/>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Dari API:" ColSpanMd="6">
+                    <DxCheckBox @bind-Checked="@field.ApiSeeded"/>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="URL Sumber:" ColSpanMd="6">
+                    <DxTextBox @bind-Text="@field.SourceUrl" ShowValidationIcon="true"/>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditFormTemplate>
+    </DxGrid>
+</div>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        <br />Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
+
+@code {
+    int ActiveTabIndex;
+    bool ConfirmationShown { get; set; } = false;
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    IEnumerable<SetupBorangListModel> Data;
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private string formType = "Notis";
+    private SetupBorangListModel itemToDelete; 
+    private List<dynamic> fieldType;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        fieldType = _ParamFormField.fieldType;
+        Data = await GetListDataAsync(formType);
+        DataLoadedTcs.TrySetResult(true);
+    }
+
+    private async Task OnActiveTabIndexChanged(int index)
+    {
+        ActiveTabIndex = index;
+
+        switch (ActiveTabIndex)
+        {
+            case 0:
+                formType = "Notice";
+                break;
+            case 1:
+                formType = "Compound";
+                break;
+            case 2:
+                formType = "Conficate";
+                break;
+            case 3:
+                formType = "Note";
+                break;
+            default:
+                formType = "Notice";
+                break;
+        }
+
+        Data = await GetListDataAsync(formType);
+        StateHasChanged();
+    }
+
+    private async Task<IEnumerable<SetupBorangListModel>> GetListDataAsync(string? formType = "Compound")
+    {
+        IEnumerable<SetupBorangListModel> result = await _ParamFormField.ListByFormType(formType);
+        return result;
+    }
+
+    #region Add/Edit
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        try
+        {            
+            ReturnViewModel response = new ReturnViewModel();
+            var inputModel = e.EditModel as SetupBorangListModel;
+            inputModel.FormType = formType;
+
+            if (e.IsNew)
+            {
+                response = await _ParamFormField.Create(inputModel);
+            }
+            else
+            {
+                response = await _ParamFormField.Update(inputModel.RecId, inputModel);
+            }
+
+            if (response.ReturnCode == 200)
+            {
+                Data = await GetListDataAsync(formType);
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                e.Cancel = true;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch(Exception ex)
+        {
+
+        }
+    }
+    #endregion
+
+    #region Delete
+    async Task Delete(SetupBorangListModel item)
+    {
+        itemToDelete = item;
+        ConfirmationShown = true;
+    }
+    
+    async void OnYesButtonClick()
+    {
+        try
+        {            
+            ReturnViewModel response = new ReturnViewModel();
+            response = await _ParamFormField.Delete(itemToDelete.RecId);
+
+            if (response.ReturnCode == 200)
+            {
+                Data = await GetListDataAsync(formType);
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch(Exception ex)
+        {
+
+        }
+
+        itemToDelete = null;
+        ConfirmationShown = false;
+    }
+
+    void OnNoButtonClick()
+    {
+        itemToDelete = null;
+        ConfirmationShown = false;
+    }
+    #endregion
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if(status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if(status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }else if(status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+        {
+            ProviderName = "Overview",
+            ThemeMode = ToastThemeMode.Saturated,
+            RenderStyle = RenderStyle,
+            Title = message
+        });
+    }
+}

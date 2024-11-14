@@ -31,6 +31,28 @@ namespace PBT.Data
             _config = config;
         }
 
+        public async Task<string?> getBaseApiURL(string? type = "Local")
+        {
+            string result = "https://localhost:7020";
+            try
+            {
+                if (type.ToUpper() != "LOCAL")
+                {
+                    result = _config["ApiBaseUrl:Public"];
+                }
+                else
+                {
+                    result = _config["ApiBaseUrl:Local"];
+                }
+            }
+            catch (Exception e)
+            {
+                result = "https://localhost:7020";
+            }
+
+            return result;
+        } 
+
         public async Task<ReturnViewModel> ProcessLocalApi(string requestUrl, [FromQuery] HttpMethod? RequestMethod = null, [FromBody] HttpContent? RequestContent = null, string? accessToken = null)
         {
             var result = new ReturnViewModel();
