@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.AccessControl;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.DAL.Models;
@@ -20,13 +19,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<AppSystemMessage> AppSystemMessages { get; set; }
 
-    /// <summary>
-    /// scafold 13/11/2024 by farhana
-    /// </summary>
-    #region
-
-    public virtual DbSet<AuditlogInfo> AuditlogInfos { get; set; }
-
     public virtual DbSet<CompoundAct> CompoundActs { get; set; }
 
     public virtual DbSet<CompoundInfo> CompoundInfos { get; set; }
@@ -36,10 +28,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
     public virtual DbSet<CompoundMedium> CompoundMedia { get; set; }
 
     public virtual DbSet<CompoundOfficer> CompoundOfficers { get; set; }
-
-    public virtual DbSet<DepartmentInfo> DepartmentInfos { get; set; }
-
-    public virtual DbSet<FaqInfo> FaqInfos { get; set; }
 
     public virtual DbSet<LicenseAddressSwap> LicenseAddressSwaps { get; set; }
 
@@ -54,8 +42,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
     public virtual DbSet<LicenseTax> LicenseTaxes { get; set; }
 
     public virtual DbSet<LicenseTransaction> LicenseTransactions { get; set; }
-    
-    #endregion
 
     public virtual DbSet<MstArea> MstAreas { get; set; }
 
@@ -69,16 +55,15 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<ParFormField> ParFormFields { get; set; }
 
-    //public virtual DbSet<TbAuditlog> TbAuditlogs { get; set; }
+    public virtual DbSet<TbAuditlog> TbAuditlogs { get; set; }
 
-    //public virtual DbSet<TbFaq> TbFaqs { get; set; }
+    public virtual DbSet<TbFaq> TbFaqs { get; set; }
 
     public virtual DbSet<TbHubungikami> TbHubungikamis { get; set; }
-    //public virtual DbSet<TbJabatan> TbJabatans { get; set; }
 
     public virtual DbSet<TrnPatrol> TrnPatrols { get; set; }
 
-    public virtual DbSet<TrnPatrolDet> TrnPatrolDets { get; set; }   
+    public virtual DbSet<TrnPatrolDet> TrnPatrolDets { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -167,59 +152,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasMaxLength(255)
                 .HasColumnName("subject");
         });
-       
-        modelBuilder.Entity<AppFormField>(entity =>
-        {
-            entity.HasKey(e => e.RecId).HasName("app_form_field_pkey");
-
-            entity.ToTable("app_form_field");
-
-            entity.Property(e => e.RecId).HasColumnName("rec_id");
-            entity.Property(e => e.ApiSeeded)
-                .HasDefaultValue(false)
-                .HasColumnName("api_seeded");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(50)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_dtm");
-            entity.Property(e => e.FormType)
-                .HasMaxLength(50)
-                .HasColumnName("form_type");
-            entity.Property(e => e.Isactive)
-                .HasDefaultValue(true)
-                .HasColumnName("isactive");
-            entity.Property(e => e.Label)
-                .HasMaxLength(50)
-                .HasColumnName("label");
-            entity.Property(e => e.ModifiedBy)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("modified_by");
-            entity.Property(e => e.ModifiedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_dtm");
-            entity.Property(e => e.Name)
-                .HasMaxLength(50)
-                .HasColumnName("name");
-            entity.Property(e => e.Option).HasColumnName("option");
-            entity.Property(e => e.Orders)
-                .HasDefaultValue(0)
-                .HasColumnName("orders");
-            entity.Property(e => e.Required)
-                .HasDefaultValue(false)
-                .HasColumnName("required");
-            entity.Property(e => e.SourceUrl)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("source_url");
-            entity.Property(e => e.Type)
-                .HasMaxLength(10)
-                .HasColumnName("type");
-        });
 
         modelBuilder.Entity<AppSystemMessage>(entity =>
         {
@@ -256,42 +188,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Type)
                 .HasMaxLength(1)
                 .HasColumnName("type");
-        });
-
-
-        #region scafold 13/11/2024
-
-        modelBuilder.Entity<AuditlogInfo>(entity =>
-        {
-            entity.HasKey(e => e.AuditId).HasName("auditlog_pkey");
-
-            entity.ToTable("auditlog_info", "audit");
-
-            entity.Property(e => e.AuditId)
-                .HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)")
-                .HasColumnName("audit_id");
-            entity.Property(e => e.AuditDescription).HasColumnName("audit_description");
-            entity.Property(e => e.AuditMethod)
-                .HasMaxLength(255)
-                .HasColumnName("audit_method");
-            entity.Property(e => e.AuditModuleName)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("audit_module_name");
-            entity.Property(e => e.AuditRoleId)
-                .HasDefaultValue(0)
-                .HasColumnName("audit_role_id");
-            entity.Property(e => e.AuditType).HasColumnName("audit_type");
-            entity.Property(e => e.AuditUsername)
-                .HasMaxLength(25)
-                .HasColumnName("audit_username");
-            entity.Property(e => e.CreatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
         });
 
         modelBuilder.Entity<CompoundAct>(entity =>
@@ -534,73 +430,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.OfficerSerial)
                 .HasMaxLength(30)
                 .HasColumnName("officer_serial");
-        });
-
-        modelBuilder.Entity<DepartmentInfo>(entity =>
-        {
-            entity.HasKey(e => e.DepartId).HasName("department_info_pkey");
-
-            entity.ToTable("department_info", "department");
-
-            entity.Property(e => e.DepartId).HasColumnName("depart_id");
-            entity.Property(e => e.CreatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.DepartCode)
-                .HasMaxLength(50)
-                .HasColumnName("depart_code");
-            entity.Property(e => e.DepartStatus)
-                .HasMaxLength(30)
-                .HasColumnName("depart_status");
-            entity.Property(e => e.DeptDepartName)
-                .HasMaxLength(100)
-                .HasColumnName("dept_depart_name");
-            entity.Property(e => e.DeptDescription)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("dept_description");
-            entity.Property(e => e.UpdatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("updated_by");
-            entity.Property(e => e.UpdatedDate)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
-        });
-
-        modelBuilder.Entity<FaqInfo>(entity =>
-        {
-            entity.HasKey(e => e.FaqId).HasName("faq_info_pkey");
-
-            entity.ToTable("faq_info", "faq");
-
-            entity.Property(e => e.FaqId).HasColumnName("faq_id");
-            entity.Property(e => e.CreatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.FaqAnswer).HasColumnName("faq_answer");
-            entity.Property(e => e.FaqCategory)
-                .HasMaxLength(50)
-                .HasColumnName("faq_category");
-            entity.Property(e => e.FaqQuestion).HasColumnName("faq_question");
-            entity.Property(e => e.FaqStatus)
-                .HasMaxLength(30)
-                .HasColumnName("faq_status");
-            entity.Property(e => e.UpdatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("updated_by");
-            entity.Property(e => e.UpdatedDate)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
         });
 
         modelBuilder.Entity<LicenseAddressSwap>(entity =>
@@ -966,8 +795,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasConstraintName("license_trans_info");
         });
 
-        #endregion
-
         modelBuilder.Entity<MstArea>(entity =>
         {
             entity.HasKey(e => e.Gid).HasName("mst_area_pkey");
@@ -1290,59 +1117,56 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasColumnName("type");
         });
 
-        //modelBuilder.Entity<TbAuditlog>(entity =>
-        //{
-        //    entity.HasKey(e => e.Auditid).HasName("tb_auditlog_pkey");
+        modelBuilder.Entity<TbAuditlog>(entity =>
+        {
+            entity.HasKey(e => e.Auditid).HasName("tb_auditlog_pkey");
 
-        //    entity.ToTable("tb_auditlog");
+            entity.ToTable("tb_auditlog");
 
-        //    entity.Property(e => e.Auditid).HasColumnName("auditid");
-        //    entity.Property(e => e.Catatan).HasColumnName("catatan");
-        //    entity.Property(e => e.Jenisaudit)
-        //        .HasMaxLength(255)
-        //        .HasColumnName("jenisaudit");
-        //    entity.Property(e => e.Method)
-        //        .HasMaxLength(10)
-        //        .HasColumnName("method");
-        //    entity.Property(e => e.Namamodule)
-        //        .HasMaxLength(255)
-        //        .HasColumnName("namamodule");
-        //    entity.Property(e => e.Perananid).HasColumnName("perananid");
-        //    entity.Property(e => e.Rekcipta)
-        //        .HasColumnType("timestamp without time zone")
-        //        .HasColumnName("rekcipta");
-        //    entity.Property(e => e.Rekciptauserid).HasColumnName("rekciptauserid");
-        //    entity.Property(e => e.Username)
-        //        .HasMaxLength(255)
-        //        .HasColumnName("username");
-        //});
+            entity.Property(e => e.Auditid).HasColumnName("auditid");
+            entity.Property(e => e.Catatan).HasColumnName("catatan");
+            entity.Property(e => e.Jenisaudit)
+                .HasMaxLength(255)
+                .HasColumnName("jenisaudit");
+            entity.Property(e => e.Method)
+                .HasMaxLength(10)
+                .HasColumnName("method");
+            entity.Property(e => e.Namamodule)
+                .HasMaxLength(255)
+                .HasColumnName("namamodule");
+            entity.Property(e => e.Perananid).HasColumnName("perananid");
+            entity.Property(e => e.Rekcipta)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("rekcipta");
+            entity.Property(e => e.Rekciptauserid).HasColumnName("rekciptauserid");
+        });
 
-        //modelBuilder.Entity<TbFaq>(entity =>
-        //{
-        //    entity.HasKey(e => e.faq_id).HasName("faq.faq_info_pkey");
+        modelBuilder.Entity<TbFaq>(entity =>
+        {
+            entity.HasKey(e => e.Faqid).HasName("tb_faq_pkey");
 
-        //    entity.ToTable("faq.faq_info");
+            entity.ToTable("tb_faq");
 
-        //    entity.Property(e => e.faq_id).HasColumnName("faq_id");
-        //    entity.Property(e => e.faq_answer).HasColumnName("faq_answer");
-        //    entity.Property(e => e.faq_category)
-        //        .HasMaxLength(255)
-        //        .HasColumnName("faq_category");
-        //    entity.Property(e => e.created_date)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasColumnType("timestamp without time zone")
-        //        .HasColumnName("created_date");
-        //    entity.Property(e => e.created_by).HasColumnName("created_by");
-        //    entity.Property(e => e.faq_status)
-        //        .HasMaxLength(50)
-        //        .HasColumnName("faq_status");
-        //    entity.Property(e => e.updated_date)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasColumnType("timestamp without time zone")
-        //        .HasColumnName("updated_date");
-        //    entity.Property(e => e.updated_by).HasColumnName("updated_by");
-        //    entity.Property(e => e.faq_question).HasColumnName("faq_question");
-        //});
+            entity.Property(e => e.Faqid).HasColumnName("faqid");
+            entity.Property(e => e.Jawapanfaq).HasColumnName("jawapanfaq");
+            entity.Property(e => e.Kategorifaq)
+                .HasMaxLength(255)
+                .HasColumnName("kategorifaq");
+            entity.Property(e => e.Rekcipta)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("rekcipta");
+            entity.Property(e => e.Rekciptauserid).HasColumnName("rekciptauserid");
+            entity.Property(e => e.Rekstatus)
+                .HasMaxLength(50)
+                .HasColumnName("rekstatus");
+            entity.Property(e => e.Rekubah)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("rekubah");
+            entity.Property(e => e.Rekubahuserid).HasColumnName("rekubahuserid");
+            entity.Property(e => e.Soalanfaq).HasColumnName("soalanfaq");
+        });
 
         modelBuilder.Entity<TbHubungikami>(entity =>
         {
@@ -1377,35 +1201,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Tiketid)
                 .HasMaxLength(50)
                 .HasColumnName("tiketid");
-        });
-
-        modelBuilder.Entity<TbJabatan>(entity =>
-        {
-            entity.HasKey(e => e.jabid).HasName("tb_jabatan_pkey");
-
-            entity.ToTable("tb_jabatan");
-
-            entity.Property(e => e.jabid).HasColumnName("jabid");
-            entity.Property(e => e.kodjab).HasMaxLength(50).HasColumnName("kodjab");
-            entity.Property(e => e.namajab)
-                .HasMaxLength(100)
-                .HasColumnName("namajab");
-            entity.Property(e => e.catatan)
-               .HasMaxLength(255)
-               .HasColumnName("catatan");
-            entity.Property(e => e.Rekcipta)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("rekcipta");
-            entity.Property(e => e.Rekciptauserid).HasColumnName("rekciptauserid");
-            entity.Property(e => e.Rekstatus)
-                .HasMaxLength(50)
-                .HasColumnName("rekstatus");
-            entity.Property(e => e.Rekubah)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("rekubah");
-            entity.Property(e => e.Rekubahuserid).HasColumnName("rekubahuserid");
         });
 
         modelBuilder.Entity<TrnPatrol>(entity =>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 namespace PBTPro.DAL.Models;
+
 /// <summary>
 /// TABLE BAGI MENYIMPAN ALAMAT LESEN SEDIA ADA DAN BARU
 /// </summary>
