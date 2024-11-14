@@ -41,6 +41,12 @@ namespace PBTPro.Api.Controllers
                 var mstLots = _dbContext.MstLots
                     .FromSqlRaw(query)
                     .ToList();
+
+                if (mstLots.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
                 //mstLots = await _dbContext.MstLots.AsNoTracking().ToListAsync();
                 return Ok(mstLots, null, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
             }
@@ -66,6 +72,12 @@ namespace PBTPro.Api.Controllers
                 var mstLots = _dbContext.MstLots
                     .FromSqlRaw(query)
                     .ToList();
+
+                if (mstLots.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
                 //mstLots = await _dbContext.MstLots.AsNoTracking().ToListAsync();
                 return Ok(mstLots, null, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
             }
