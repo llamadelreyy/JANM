@@ -1179,7 +1179,7 @@ label {
 }
 
 .layout_edit .dxbl-text-edit {
-    border: 1px solid #999;
+    border: 2px solid #aeacac;
     border-radius: 0px;
     background-color: #fbf9f9;
     font-size: 0.95rem !important;
@@ -1198,4 +1198,9 @@ label {
     border: 0px solid #000 !important;
     border-radius: 3px !important;
     cursor: pointer;
+}
+
+.combo-width {
+    min-width: 400px;
+    max-width: 400px;
 }
