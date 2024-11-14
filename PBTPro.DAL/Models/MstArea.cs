@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 
 namespace PBTPro.DAL.Models;
+
 public partial class MstArea
 {
     public int Gid { get; set; }
