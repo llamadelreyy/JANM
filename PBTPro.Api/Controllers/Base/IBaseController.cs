@@ -137,16 +137,16 @@ namespace PBTPro.Api.Controllers.Base
 
         protected async Task<string> getDefRunUser()
         {
-            var result = "System";
+            string? result = "system";
             try
             {
                 result = User?.Identity?.Name;
             }
             catch (Exception ex)
             {
-                result = "System";
+                result = "system";
             }
-            return result;
+            return result ?? "system";
         }
 
         protected string SystemMesg(string features, string code, MessageTypeEnum type, string msg, List<string>? param = null)
