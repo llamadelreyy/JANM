@@ -32,10 +32,13 @@
         Data="LesenData"
         KeyFieldName="IdLesen"
         ShowGroupPanel="true"
-        ShowFilterRow="true"
+        ShowFilterRow="false"
         CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
         EditorRenderMode="GridEditorRenderMode.Integrated"
         FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        ShowSearchBox="true"
+        AllowSelectRowByClick="true"
+        @bind-SearchText="@GridSearchText"
         PageSize="25"
         @bind-PageIndex="@GridPageIndex"
         PagerPosition="GridPagerPosition.Bottom"
@@ -46,7 +49,7 @@
         PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
         PageSizeSelectorAllRowsItemVisible="true"
         PagerAutoHideNavButtons="false"
-        ColumnResizeMode="@ColumnResizeMode"
+        ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
         CustomizeElement="Grid_CustomizeElement"
         HighlightRowOnHover="true"
         CssClass="mv-1000">
@@ -114,8 +117,8 @@
                 var dtData = (LesenInfo)EditFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
-                <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
-                    <table>
+                <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
+                    <table class="layout_edit">
                         <tr>
                             <td nowrap colspan="7">
                                 #@dtData.NoRujukan &nbsp; @GetStatusBayaranIconHtml(dtData.StatusBayaran) <br />
@@ -127,7 +130,7 @@
                         <tr style="height:10px;"><td colspan="7"></td></tr>
                         <tr>
                             <td nowrap>No Lesen</td>
-                            <td nowrap>&nbsp;:&nbsp;</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxTextBox @bind-Text="@dtData.NoLesen"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -139,7 +142,7 @@
                             </td>
                             <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                             <td nowrap>No Daftar Syarikat</td>
-                            <td nowrap>&nbsp;:&nbsp;</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxTextBox @bind-Text="@dtData.NoLesen"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -152,7 +155,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Nama Pemilik</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxTextBox @bind-Text="@dtData.NamaPemilik"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -165,7 +168,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Nama Perniagaan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="5">
                                 <DxTextBox @bind-Text="@dtData.NamaPerniagaan"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -178,7 +181,7 @@
                         </tr>
                         <tr>
                             <td nowrap valign="top">Alamat Perniagaan</td>
-                            <td valign="top">&nbsp;:&nbsp;</td>
+                            <td valign="top">&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxMemo @bind-Text="@dtData.AlamatPerniagaan"
                                         CssClass="cw-480"
@@ -190,7 +193,7 @@
                         <tr style="height:10px;"><td colspan="7"></td></tr>
                         <tr>
                             <td nowrap valign="top">Akta Kesalahan</td>
-                            <td valign="top">&nbsp;:&nbsp;</td>
+                            <td valign="top">&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxMemo @bind-Text="@dtData.AktaKesalahan"
                                         CssClass="cw-480"
@@ -199,7 +202,7 @@
                         </tr>
                         <tr>
                             <td nowrap valign="top">Kod Kesalahan</td>
-                            <td valign="top">&nbsp;:&nbsp;</td>
+                            <td valign="top">&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxMemo @bind-Text="@dtData.KodKesalahan"
                                         CssClass="cw-480"
@@ -208,7 +211,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Arahan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxTextBox @bind-Text="@dtData.Arahan"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -221,7 +224,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Lokasi Kesalahan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxTextBox @bind-Text="@dtData.LokasiKesalahan"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -233,7 +236,7 @@
                             </td>
                             <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                             <td nowrap>Nama Pegawai</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxTextBox @bind-Text="@dtData.NamaPegawaiPengeluar"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -246,7 +249,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Nama Saksi</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxTextBox @bind-Text="@dtData.NamaSaksi"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -258,7 +261,7 @@
                             </td>
                             <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                             <td nowrap>Cara Serahan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxTextBox @bind-Text="@dtData.CaraSerahan"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -274,7 +277,7 @@
                         <tr style="height:10px;"><td colspan="7"></td></tr>
                         <tr>
                             <td nowrap>Bukti</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="5">
                                 <img src="/images/Bukti/shoe1.jpg" style="width:20%" />
                                 <img src="/images/Bukti/shoe2.jpg" style="width:20%" />
@@ -285,7 +288,7 @@
                         <tr style="height:10px;"><td colspan="7"></td></tr>
                         <tr>
                             <td nowrap>Amaun Kompaun (RM)</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxSpinEdit @bind-Value="@dtData.AmaunKompaun"
                                             DisplayFormat="C"
@@ -306,7 +309,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Status Bayaran</td>
-                            <td nowrap>&nbsp;:&nbsp;</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxTextBox @bind-Text="@dtData.StatusBayaran"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -318,7 +321,7 @@
                             </td>
                             <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                             <td nowrap>No Resit Bayaran</td>
-                            <td nowrap>&nbsp;:&nbsp;</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxTextBox @bind-Text="@dtData.NoResitBayaran"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
@@ -333,8 +336,8 @@
                 </DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12">
-                    <DxButton SubmitFormOnClick="true" Text="Simpan" />
-                    <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
+                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid"  Text="Batal" />
                 </DxFormLayoutItem>
             </DxFormLayout>
         </EditFormTemplate>
@@ -359,14 +362,14 @@
 
 </div>
 
-<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
         <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
         <br />Anda pasti untuk menghapuskan rekod ini?
         <br /><br />
         <div class="confirm-dialog-buttons">
-            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
         </div>
     </BodyContentTemplate>
 </DxPopup>
@@ -386,7 +389,6 @@
     string strSelected { get; set; }
     LesenInfo dtData { get; set; }
 
-    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     // // // static Task<IQueryable<LesenInfo>> CreateDataSource()

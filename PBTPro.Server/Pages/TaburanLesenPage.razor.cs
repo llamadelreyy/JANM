@@ -20,7 +20,7 @@ using Newtonsoft.Json.Linq;
 
 namespace PBT.Pages
 {
-    public partial class ZonMajlis 
+    public partial class TaburanLesenPage
     {
 
         //For check box ===========
@@ -109,7 +109,13 @@ namespace PBT.Pages
             string dataUrl = $"data:image/svg+xml,{urlEncodedSvg}";
             return dataUrl;
         }
-        //protected override void OnInitialized()
+
+        /*
+        Description: Set the map properties
+        Author: Azmee
+        Date: November 2024
+        Version: 1.0
+        */
         protected override async Task OnInitializedAsync()
         {
             //Show legend
@@ -139,7 +145,7 @@ namespace PBT.Pages
                     Style = MapTypeControlStyle.HorizontalBar,
                     MapTypeIds = new[] { MapTypeId.Roadmap, MapTypeId.Terrain, MapTypeId.Satellite, MapTypeId.Hybrid }
                 },
-                StreetViewControl = true,
+                //StreetViewControl = true,
                 FullscreenControlOptions = new FullscreenControlOptions
                 {
                     Position = ControlPosition.RightTop
@@ -154,60 +160,67 @@ namespace PBT.Pages
 
         private async Task OnAfterMapInit()
         {
-            IJSObjectReference serverSideScripts3 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/firepanel/main.js");
-
-            this.autocomplete = await Autocomplete.CreateAsync(this.map1.JsRuntime, this.searchBox, new AutocompleteOptions
+            try
             {
-                StrictBounds = false,
-            });
+                IJSObjectReference serverSideScripts3 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/firepanel/main.js");
 
-            await this.autocomplete.SetFields(new[] { "address_components", "geometry", "name" });
-            await this.autocomplete.AddListener("place_changed", async () =>
-            {
-                var place = await this.autocomplete.GetPlace();
-
-                if (place?.Geometry == null)
+                this.autocomplete = await Autocomplete.CreateAsync(this.map1.JsRuntime, this.searchBox, new AutocompleteOptions
                 {
-                    this.message = "No results available for " + place?.Name;
-                }
-                else if (place.Geometry.Location != null)
-                {
-                    await this.map1.InteropObject.SetCenter(place.Geometry.Location);
-                    await this.map1.InteropObject.SetZoom(18);
+                    StrictBounds = false,
+                });
 
-                    var marker = await Marker.CreateAsync(this.map1.JsRuntime, new MarkerOptions
+                await this.autocomplete.SetFields(new[] { "address_components", "geometry", "name" });
+                await this.autocomplete.AddListener("place_changed", async () =>
+                {
+                    var place = await this.autocomplete.GetPlace();
+
+                    if (place?.Geometry == null)
                     {
-                        Position = place.Geometry.Location,
-                        Map = this.map1.InteropObject,
-                        Title = place.Name
-                    });
+                        this.message = "No results available for " + place?.Name;
+                    }
+                    else if (place.Geometry.Location != null)
+                    {
+                        await this.map1.InteropObject.SetCenter(place.Geometry.Location);
+                        await this.map1.InteropObject.SetZoom(18);
 
-                    this.markersPin.Push(marker);
+                        var marker = await Marker.CreateAsync(this.map1.JsRuntime, new MarkerOptions
+                        {
+                            Position = place.Geometry.Location,
+                            Map = this.map1.InteropObject,
+                            Title = place.Name
+                        });
 
-                    this.message = "Displaying result for " + place.Name;
-                }
-                else if (place.Geometry.Viewport != null)
-                {
-                    await this.map1.InteropObject.FitBounds(place.Geometry.Viewport, 5);
-                    this.message = "Displaying result for " + place.Name;
-                }
+                        this.markersPin.Push(marker);
 
-                this.StateHasChanged();
-            });
+                        this.message = "Displaying result for " + place.Name;
+                    }
+                    else if (place.Geometry.Viewport != null)
+                    {
+                        await this.map1.InteropObject.FitBounds(place.Geometry.Viewport, 5);
+                        this.message = "Displaying result for " + place.Name;
+                    }
 
-            _bounds = await LatLngBounds.CreateAsync(map1.JsRuntime);
+                    this.StateHasChanged();
+                });
 
-            //Get record
-            NoticeData = await _NoticeService.GetNoticeAsync();
-            //Items = NoticeData.Select((item, index) => (item, index));
-            DataLoadedTcs.TrySetResult(true);
-            //Start popuate the map
-            await InvokeClustering(1);
+                _bounds = await LatLngBounds.CreateAsync(map1.JsRuntime);
 
-            // Add listener for map api polygon data -- ismail
-            await ProcessMapAPIData();
-            await this.map1.InteropObject.AddListener("dragend", async () => await ProcessMapAPIData());
-            await this.map1.InteropObject.AddListener("zoom_changed", async () => await ProcessMapAPIData());
+                //Get record
+                NoticeData = await _NoticeService.GetNoticeAsync();
+                //Items = NoticeData.Select((item, index) => (item, index));
+                DataLoadedTcs.TrySetResult(true);
+                //Start populate the map
+                await InvokeClustering(1);
+
+                // Add listener for map api polygon data -- ismail
+                await ProcessMapAPIData();
+                await this.map1.InteropObject.AddListener("dragend", async () => await ProcessMapAPIData());
+                await this.map1.InteropObject.AddListener("zoom_changed", async () => await ProcessMapAPIData());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"OnAfterMapInit error : {ex.Message}");
+            }
 
         }
 
@@ -436,13 +449,20 @@ namespace PBT.Pages
         */
         private async Task ProcessMapAPIData()
         {
-            if (DateTime.Now - _lastMoveTime < _throttleTime) return;
-            _lastMoveTime = DateTime.Now;
+            try 
+            { 
+                if (DateTime.Now - _lastMoveTime < _throttleTime) return;
+                _lastMoveTime = DateTime.Now;
 
-            var bounds = await this.map1.InteropObject.GetBounds();
-            if (bounds != null)
+                var bounds = await this.map1.InteropObject.GetBounds();
+                if (bounds != null)
+                {
+                    await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
+                }
+            }
+            catch (Exception ex)
             {
-                await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
+                Console.WriteLine($"ProcessMapAPIData error : {ex.Message}");
             }
         }
 
@@ -465,7 +485,7 @@ namespace PBT.Pages
                         {
                             int dataId = data.id.ToObject(typeof(int));
 
-                            if(dataId == null)
+                            if (dataId == null)
                             {
                                 continue;
                             }
@@ -585,23 +605,9 @@ namespace PBT.Pages
         #endregion
     }
 
-    public class FilterData
-    {
-        public int TypeId
-        { get; set; }
-        public string Description
-        { get; set; }
+    //public class FilterData
+    //{
 
-        public string Color
-        { get; set; }
 
-        public string ColorDesc
-        {
-            get
-            {
-                return Description + ":" + Color;
-            }
-        }
-
-    }
+    //}
 }
