@@ -24,6 +24,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
     /// scafold 13/11/2024 by farhana
     /// </summary>
     #region
+    public virtual DbSet<AuditlogArchiveInfo> AuditlogArchiveInfos { get; set; }
 
     public virtual DbSet<AuditlogInfo> AuditlogInfos { get; set; }
 
@@ -199,8 +200,43 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasMaxLength(1)
                 .HasColumnName("type");
         });
-       
+
         #region scafold 13/11/2024
+        modelBuilder.Entity<AuditlogArchiveInfo>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("auditlog_archive_info", "audit");
+
+            entity.Property(e => e.ArchiveDescription).HasColumnName("archive_description");
+            entity.Property(e => e.ArchiveId)
+                .HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)")
+                .HasColumnName("archive_id");
+            entity.Property(e => e.ArchiveIsarchived)
+                .HasDefaultValue(true)
+                .HasColumnName("archive_isarchived");
+            entity.Property(e => e.ArchiveMethod)
+                .HasMaxLength(255)
+                .HasColumnName("archive_method");
+            entity.Property(e => e.ArchiveModuleName)
+                .HasMaxLength(255)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasColumnName("archive_module_name");
+            entity.Property(e => e.ArchiveRoleId)
+                .HasDefaultValue(0)
+                .HasColumnName("archive_role_id");
+            entity.Property(e => e.ArchiveType).HasColumnName("archive_type");
+            entity.Property(e => e.ArchiveUsername)
+                .HasMaxLength(25)
+                .HasColumnName("archive_username");
+            entity.Property(e => e.CreatedBy)
+                .HasDefaultValue(0)
+                .HasColumnName("created_by");
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_date");
+        });
 
         modelBuilder.Entity<AuditlogInfo>(entity =>
         {
