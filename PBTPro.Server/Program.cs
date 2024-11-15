@@ -21,6 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.DAL;
+using Blazored.Toast;
 
 
 
@@ -37,7 +38,7 @@ IConfiguration configuration = builder.Configuration;
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-//builder.Services.AddBlazoredToast();
+builder.Services.AddBlazoredToast();
 builder.Services.AddBlazorBootstrap();
 
 var myFirstClass = builder.Configuration.GetSection("GoogleMap:ApiKey").Value;

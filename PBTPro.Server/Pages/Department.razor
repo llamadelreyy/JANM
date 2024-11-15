@@ -2,87 +2,196 @@
 @attribute [AllowAnonymous]
 
 @inject Services.DepartmentService _department
-@using DevExpress.Blazor
+@using System.Globalization
 @implements IDisposable
+@using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
 @using PBTPro.DAL.Models;
+@using PBT.Data
+@inject NavigationManager NavigationManager
+@inject IToastService toastService
 
-<h1>Senarai Jabatan</h1>
-@if (_lstDepartment == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <DxGrid @ref="Grid"
+<div class="d-lg-flex border-bottom mb-2">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="/images/icons/information.png" />
+        <div class="textTitle">Tetapan - Senarai Jabatan</div>
+    </div>
+</div>
+
+<style>
+    .dxbl-grid {
+        height: 79vh;
+        max-height: 79vh;
+    }
+</style>
+
+<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+<div class="item-container-x">
+     <DxGrid @ref="Grid"
             Data="@_lstDepartment"
-            PagerVisible="true"
-            PagerPosition="GridPagerPosition.Bottom"
-            PageSizeSelectorVisible="true"
-            PageSizeSelectorItems="@(new int[] { 5, 10, 15 })"
-            PageSizeSelectorAllRowsItemVisible="true"
-            PageSize="2"
+            KeyFieldName="DeptId"
             ShowGroupPanel="true"
-            CustomizeEditModel="OnCustomizeEditModel"
-            EditModelSaving="OnEditModelSaving"
-            DataItemDeleting="OnDataItemDeleting"
-            CustomizeDataRowEditor="Grid_CustomizeDataRowEditor"
-            SelectAllCheckboxMode="GridSelectAllCheckboxMode.AllPages"
-            KeyFieldName="DepartId"
-            VirtualScrollingEnabled=true
             ShowFilterRow="true"
-            TextWrapEnabled="true"
-            ShowSearchBox="true"
-            AutoExpandAllGroupRows="false"
-            SearchBoxNullText="Masukkan kata carian..."
-            CssClass="mw-1000, grid-size">
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="@ColumnResizeMode"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
+
         <Columns>
-            <!--<DxGridSelectionColumn />-->
-            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="20%" />
-            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DepartCode)" Caption="Kod Jabatan" Width="20%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
-            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptDepartName)" Caption="Nama Jabatan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
-            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptDescription)" Caption="Catatan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+
+            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
+                <HeaderTemplate>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((DepartmentInfo)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                </CellDisplayTemplate>
+            </DxGridCommandColumn>
+
+
+            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptCode)" Caption="Kod Jabatan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptDepartName)" Caption="Nama Jabatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptDescription)" Caption="Catatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptStatus)" Caption="Status Aktif" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                <CellDisplayTemplate>
+                    <div>@GetStatusDepartmentIconHtml(((DepartmentInfo)context.DataItem).DeptStatus)</div>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn FieldName=@nameof(DepartmentInfo.CreatedDate)
+                              DisplayFormat="dd/MM/yyyy"
+                              Caption="Tarikh Cipta"
+                              MinWidth="120"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0" />
         </Columns>
+
         <EditFormTemplate Context="editFormContext">
             @{
-                var jabatan = (DepartmentInfo)editFormContext.EditModel;
+                var dtData = (DepartmentInfo)editFormContext.EditModel;
             }
-            <DxFormLayout>
-                <DxFormLayoutItem Caption="Kod Jabatan:">
-                    @editFormContext.GetEditor("DepartCode")
+            <DxFormLayout CssClass="w-100">
+
+
+
+                <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
+                    <table>
+
+                        <tr>
+                            <td nowrap>Status Paparan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@DeptStatusOptions"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Status..."
+                                            @bind-Value="@dtData.DeptStatus"
+                                            @bind-Text="@dtData.DeptStatus">
+                                </DxComboBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Kod Jabatan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.DeptCode"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Kod Jabatan..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" style="width:370px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Nama Jabatan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.DeptDepartName"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Nama Jabatan..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" style="width:370px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap valign="top">Catatan</td>
+                            <td valign="top">&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxMemo @bind-Text="@dtData.DeptDescription"
+                                        CssClass="cw-480"
+                                        Rows="3" />
+                            </td>
+                        </tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+
+                    </table>
                 </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Nama Jabatan:">
-                    @editFormContext.GetEditor("DeptDepartName")
+
+                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12">
+                    <DxButton SubmitFormOnClick="true" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Catatan:">
-                    @editFormContext.GetEditor("DeptDescription")
-                </DxFormLayoutItem>
-                @* <DxFormLayoutItem Caption="Status:">
-                    @editFormContext.GetEditor("Rekstatus")
-                </DxFormLayoutItem> *@
             </DxFormLayout>
         </EditFormTemplate>
+        <CustomValidators>
+            <MyCustomValidator DataItemValidating="ValidateGridData" />
+        </CustomValidators>
     </DxGrid>
-}
+
+
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+            <br />Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
+</div>
+
 @code {
 
     private List<DepartmentInfo> _lstDepartment = new List<DepartmentInfo>();
+
     IGrid Grid { get; set; }
-    GridGroupFooterDisplayMode CurrentDisplayMode { get; set; } = GridGroupFooterDisplayMode.Auto;
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
+    bool ConfirmationShown { get; set; } = false;
+    string strSelected { get; set; }
+    int intSelected { get; set; }
+    DepartmentInfo dtData { get; set; }
+
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    [DefaultValue(GridSelectAllCheckboxMode.Page)]
-    [Parameter]
-    public GridSelectAllCheckboxMode SelectAllCheckboxMode { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadList();
-    }
-
-    private async Task LoadList()
-    {
+        _lstDepartment = await _department.GetDepartmentAsync();
+        DataLoadedTcs.TrySetResult(true);
         try
         {
             _lstDepartment = await _department.GetAllDepartment();
@@ -92,95 +201,140 @@ else
             Console.Error.WriteLine($"Error loading actions: {ex.Message}");
         }
     }
-
-    void OnCustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (e.IsNew)
+        if (firstRender)
         {
-            var editModel = (DepartmentInfo)e.EditModel;
-            if (_lstDepartment.Any())
-            {
-                editModel.DepartId = _lstDepartment.Max(x => x.DepartId) + 1;
-            }
-            else
-            {
-                editModel.DepartId = 1;
-            }
+            await DataLoadedTcs.Task;
+            await Grid.CancelEditAsync();
         }
     }
-    async Task OnEditModelSaving(GridEditModelSavingEventArgs e)
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
+        var _data = (DepartmentInfo)e.EditModel;
+        
+        if (_data.DeptStatus == null || _data.DeptStatus.Trim() == "")
+        {
+            e.AddError(nameof(_data.DeptStatus), "Status Jabatan tidak dipilih. Medan perlu diisi.");
+        }
+
+        if (_data.DeptCode == null || _data.DeptCode.Trim() == "")
+        {
+            e.AddError(nameof(_data.DeptCode), "Kod Jabatan tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.DeptDepartName == null || _data.DeptDepartName == "")
+        {
+            e.AddError(nameof(_data.DeptDepartName), "Nama Jabatan tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.DeptDescription == null || _data.DeptDescription == "")
+        {
+            e.AddError(nameof(_data.DeptDescription), "Catatan Jabatan tidak sah. Medan perlu diisi.");
+        }
+    }
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        bool blnSuccess = false;
+        var editModel = e.EditModel as DepartmentInfo;
+        var itmId = editModel.DeptId;
         try
         {
-            // Cast EditModel directly to the jabatab model
-            var editModel = e.EditModel as DepartmentInfo;
-
-            // Check if editModel is null
-            if (editModel == null)
-            {
-                Console.Error.WriteLine("Edit model is null.");
-                return; // or throw an exception
-            }
-
-            var itmId = editModel.DepartId;
-            editModel.DepartStatus = "A";
-            editModel.CreatedDate = DateTime.Today;
-            editModel.CreatedBy = 1;
-            editModel.UpdatedDate = DateTime.Today;
-            editModel.UpdatedBy = 1;
-
-            // Determine if this is a new item or an update
             if (e.IsNew)
             {
-                // Save new jabatan setting
                 var jsonString = JsonConvert.SerializeObject(editModel);
                 await _department.PostDepartment(jsonString);
+                blnSuccess = true;
             }
             else
             {
-                var existingJabatan = await _department.GetIdDepartment(itmId);
-                if (existingJabatan != null)
-                {
-                    existingJabatan.DepartCode = editModel.DepartCode;
-                    existingJabatan.DeptDepartName = editModel.DeptDepartName;
-                    existingJabatan.DeptDescription = editModel.DeptDescription;
-                    //existingAction.Actionenabled = editModel.Actionenabled;
-                    await _department.PutDepartment(itmId, existingJabatan);
-                }
+                var existingDept = await _department.GetIdDepartment(itmId);
+                await _department.PutDepartment(itmId, existingDept);
+                blnSuccess = true;
             }
-            // Reload the entire Grid
-            _lstDepartment = await _department.RefreshListDepartment();
+            if (blnSuccess)
+            {
+                await UpdateDataAsync();
+                toastService.ShowInfo("Proses kemaskini selesai.");
+            }
+            else
+            {
+                toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+            }
         }
         catch (Exception ex)
         {
-            // Handle exceptions and provide feedback
             Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
     }
-    async Task OnDataItemDeleting(GridDataItemDeletingEventArgs e)
+    async Task UpdateDataAsync()
     {
-        try
-        {
-            var t = e.DataItem as DepartmentInfo;
-            var itmid = t.DepartId;
-            // Remove the data item from the database.
-            var deleteResult = await _department.DeleteDepartment(itmid);
-            // Reload the entire Grid.
-            _lstDepartment = await _department.RefreshListDepartment();
-        }
-        catch (Exception ex)
-        {
-            // Handle the exception
-            Console.Error.WriteLine($"An error occurred while deleting the item : {ex.Message}");
-        }
+        _lstDepartment = await _department.RefreshListDepartment();
     }
-    void Grid_CustomizeDataRowEditor(GridCustomizeDataRowEditorEventArgs e)
-    {
-        if (e.EditSettings is ITextEditSettings settings)
-            settings.ShowValidationIcon = true;
-    }
+
     public void Dispose()
     {
         DataLoadedTcs.TrySetCanceled();
     }
+
+    async Task Delete(DepartmentInfo item)
+    {
+        strSelected = item.DeptCode;
+        intSelected = item.DeptId;
+        dtData = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        if (dtData != null)
+        {
+            var deleteResult = await _department.DeleteDepartment(dtData.DeptId);
+            await UpdateDataAsync();
+        }
+        ConfirmationShown = false;
+        toastService.ShowInfo("Proses hapus selesai.");
+    }
+
+    void OnNoButtonClick()
+    {
+        ConfirmationShown = false;
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    public MarkupString GetStatusDepartmentIconHtml(string status)
+    {
+        string priorytyClass = "";
+        string title = "";
+
+        if (status == "Aktif")
+        {
+            priorytyClass = "info";
+            title = " AKTIF ";
+        }
+        else if (status == "Tidak Aktif")
+        {
+            priorytyClass = "danger";
+            title = " TIDAK AKTIF ";
+        }
+
+        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+        title);
+        return new MarkupString(html);
+    }
+    public MarkupString CombineText(string strStatus, string strNama)
+    {
+        string html = string.Format("{0} <br/> {1}", strStatus, strNama.ToUpper());
+        return new MarkupString(html);
+    }
+    private List<string> DeptStatusOptions = new List<string>
+    {
+        "Aktif",
+        "Tidak Aktif"
+    };
 }

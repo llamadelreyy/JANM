@@ -13,6 +13,7 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using PBT.Pages;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
@@ -45,6 +46,7 @@ namespace PBT.Services
             GC.SuppressFinalize(this);
         }
         public IConfiguration _configuration { get; }
+        private List<DepartmentInfo> _Department { get; set; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -62,7 +64,7 @@ namespace PBT.Services
             _cf = new CommonFunction(httpContextAccessor, configuration);
             _sf = new SharedFunction(httpContextAccessor);
             _logger = logger;
-
+            _controllerName = (string)(_httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
         }
         public void GetDefaultPermission()
         {
@@ -218,6 +220,11 @@ namespace PBT.Services
                 await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - PutDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
+        }
+        public Task<List<DepartmentInfo>> GetDepartmentAsync(CancellationToken ct = default)
+        {
+            var result = _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - GetDepartmentAsync", "Berjaya muat semula senarai untuk jabatan.", 1, LoggerName, "");
+            return Task.FromResult(_Department);
         }
     }
 }

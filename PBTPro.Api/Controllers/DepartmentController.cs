@@ -72,7 +72,7 @@ namespace PBTPro.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDepartment(int id, DepartmentInfo Department)
         {
-            if (id != Department.DepartId)
+            if (id != Department.DeptId)
             {
                 return BadRequest();
             }
@@ -108,7 +108,7 @@ namespace PBTPro.Api.Controllers
             _dbContext.DepartmentInfos.Add(Department);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction("InsertDepartment", new { id = Department.DepartId }, Department);
+            return CreatedAtAction("InsertDepartment", new { id = Department.DeptId }, Department);
         }
 
         [HttpDelete("{id}")]
@@ -132,7 +132,7 @@ namespace PBTPro.Api.Controllers
 
         private bool DepartmentExists(int id)
         {
-            return (_dbContext.DepartmentInfos?.Any(e => e.DepartId == id)).GetValueOrDefault();
+            return (_dbContext.DepartmentInfos?.Any(e => e.DeptId == id)).GetValueOrDefault();
         }      
     }
 }

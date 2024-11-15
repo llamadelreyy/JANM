@@ -9,10 +9,10 @@ Additional Notes:
 Changes Logs:
 14/11/2024 - initial create
 */
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using PBT.Data;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
@@ -45,6 +45,7 @@ namespace PBT.Services
             GC.SuppressFinalize(this);
         }
         public IConfiguration _configuration { get; }
+        private List<FaqInfo> _Faq { get; set; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -101,7 +102,7 @@ namespace PBT.Services
         public async Task<List<FaqInfo>> RefreshListFaq()
         {
             GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            //var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
             try
             {
                 var platformApiUrl = _configuration["PlatformAPI"];
@@ -111,13 +112,13 @@ namespace PBT.Services
                 string jsonString = await _cf.List(request);
 
                 List<FaqInfo> faqList = JsonConvert.DeserializeObject<List<FaqInfo>>(jsonString);
-                 await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - RefreshListFaq", "Papar semula senarai soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
+                 await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - RefreshListFaq", "Papar semula senarai soalan lazim.", 1, LoggerName, "");
 
                 return faqList;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error,  "FaqService - RefreshListFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error,  "FaqService - RefreshListFaq", ex.Message, 1, LoggerName, "");
                 return null;
             }
         }
@@ -218,6 +219,12 @@ namespace PBT.Services
                 await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - PutFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
-        }       
+        }
+        public Task<List<FaqInfo>> GetFAQAsync(CancellationToken ct = default)
+        {
+            var result = _cf.CreateAuditLog((int)AuditType.Information, "FaqService - GetFAQAsync", "Berjaya muat semula senarai untuk soalan lazim.", 1, LoggerName, "");
+
+            return Task.FromResult(_Faq);
+        }
     }
 }

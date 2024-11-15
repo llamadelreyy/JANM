@@ -24,6 +24,8 @@ public partial class AuditlogInfo
     public string? AuditUsername { get; set; }
 
     public string? AuditMethod { get; set; }
+
+    public bool? AuditIsarchived { get; set; }
 }
 public enum AuditType
 {
