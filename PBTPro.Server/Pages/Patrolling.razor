@@ -1,0 +1,33 @@
+﻿@* @page "/SenaraiRondaan"
+@attribute [AllowAnonymous]
+
+
+@using System.Globalization
+@implements IDisposable
+@using Blazored.Toast.Services
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+@using PBT.Data
+@inject NavigationManager NavigationManager
+@inject IToastService toastService
+
+<div class="d-lg-flex border-bottom mb-2">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="/images/icons/information.png" />
+        <div class="textTitle">Soalan Lazim - Senarai Soalan Lazim</div>
+    </div>
+</div>
+
+<style>
+    .dxbl-grid {
+        height: 79vh;
+        max-height: 79vh;
+    }
+</style>
+
+<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+@code {
+
+}
+ *@

@@ -56,6 +56,8 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<LicenseTransaction> LicenseTransactions { get; set; }
 
+    public virtual DbSet<PatrollingInfo> PatrollingInfos { get; set; }
+
     #endregion    
 
     public virtual DbSet<MstArea> MstAreas { get; set; }
@@ -944,6 +946,38 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(d => d.LicenseTransInfo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("license_trans_info");
+        });
+
+        modelBuilder.Entity<PatrollingInfo>(entity =>
+        {
+            entity.HasKey(e => e.PatrollingId).HasName("patrolling_info_pkey");
+
+            entity.ToTable("patrolling_info", "patrolling");
+
+            entity.Property(e => e.PatrollingId)
+                .ValueGeneratedNever()
+                .HasColumnName("patrolling_id");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.CreatedDate)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_date");
+            entity.Property(e => e.PatrollingEndTime).HasColumnName("patrolling_end_time");
+            entity.Property(e => e.PatrollingLocation)
+                .HasMaxLength(255)
+                .HasColumnName("patrolling_location");
+            entity.Property(e => e.PatrollingOfficerName)
+                .HasMaxLength(150)
+                .HasColumnName("patrolling_officer_name");
+            entity.Property(e => e.PatrollingStartTime)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("patrolling_start_time");
+            entity.Property(e => e.PatrollingStatus)
+                .HasColumnType("character varying")
+                .HasColumnName("patrolling_status");
+            entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
+            entity.Property(e => e.UpdatedDate)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_date");
         });
 
         #endregion
