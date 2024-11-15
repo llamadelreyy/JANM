@@ -5,9 +5,9 @@ namespace PBTPro.DAL.Models;
 
 public partial class DepartmentInfo
 {
-    public int DepartId { get; set; }
+    public int DeptId { get; set; }
 
-    public string DepartCode { get; set; } = null!;
+    public string DeptCode { get; set; } = null!;
 
     public string DeptDepartName { get; set; } = null!;
 
@@ -21,5 +21,5 @@ public partial class DepartmentInfo
 
     public int? UpdatedBy { get; set; }
 
-    public string DepartStatus { get; set; } = null!;
+    public string DeptStatus { get; set; } = null!;
 }

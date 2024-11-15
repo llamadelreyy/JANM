@@ -233,6 +233,9 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_date");
+            entity.Property(e => e.AuditIsarchived)
+               .HasDefaultValue(false)
+               .HasColumnName("audit_isarchived");
         });
 
         modelBuilder.Entity<CompoundAct>(entity =>
@@ -479,11 +482,11 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<DepartmentInfo>(entity =>
         {
-            entity.HasKey(e => e.DepartId).HasName("department_info_pkey");
+            entity.HasKey(e => e.DeptId).HasName("department_info_pkey");
 
             entity.ToTable("department_info", "department");
 
-            entity.Property(e => e.DepartId).HasColumnName("depart_id");
+            entity.Property(e => e.DeptId).HasColumnName("dept_id");
             entity.Property(e => e.CreatedBy)
                 .HasDefaultValue(0)
                 .HasColumnName("created_by");
@@ -491,12 +494,12 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_date");
-            entity.Property(e => e.DepartCode)
+            entity.Property(e => e.DeptCode)
                 .HasMaxLength(50)
-                .HasColumnName("depart_code");
-            entity.Property(e => e.DepartStatus)
+                .HasColumnName("dept_code");
+            entity.Property(e => e.DeptStatus)
                 .HasMaxLength(30)
-                .HasColumnName("depart_status");
+                .HasColumnName("dept_status");
             entity.Property(e => e.DeptDepartName)
                 .HasMaxLength(100)
                 .HasColumnName("dept_depart_name");

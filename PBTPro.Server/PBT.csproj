@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+	<PackageReference Include="Blazored.Toast" Version="4.2.1" />
     <PackageReference Include="Blazor.Bootstrap" Version="3.0.0" />
     <PackageReference Include="BlazorGoogleMaps" Version="4.7.12" />
     <PackageReference Include="DevExpress.AspNetCore.Common" Version="24.1.6" />

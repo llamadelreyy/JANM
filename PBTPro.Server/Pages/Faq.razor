@@ -1,88 +1,192 @@
 ﻿@page "/SenaraiFaq"
 @attribute [AllowAnonymous]
 
-@inject Services.FaqService _faq
-@using DevExpress.Blazor
+@using System.Globalization
 @implements IDisposable
+@using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
 @using PBTPro.DAL.Models;
+@using PBT.Data
+@inject NavigationManager NavigationManager
+@inject Services.FaqService _faq
+@inject IToastService toastService
 
-<h1>Senarai Soalan Lazim</h1>
-@if (_lstFaqs == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
+<div class="d-lg-flex border-bottom mb-2">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="/images/icons/information.png" />
+        <div class="textTitle">Soalan Lazim - Senarai Soalan Lazim</div>
+    </div>
+</div>
+
+<style>
+    .dxbl-grid {
+        height: 79vh;
+        max-height: 79vh;
+    }
+</style>
+
+<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+<div class="item-container-x">
     <DxGrid @ref="Grid"
             Data="@_lstFaqs"
-            PagerVisible="true"
-            PagerPosition="GridPagerPosition.Bottom"
-            PageSizeSelectorVisible="true"
-            PageSizeSelectorItems="@(new int[] { 5, 10, 15 })"
-            PageSizeSelectorAllRowsItemVisible="true"
-            PageSize="2"
-            ShowGroupPanel="true"
-            CustomizeEditModel="OnCustomizeEditModel"
-            EditModelSaving="OnEditModelSaving"
-            DataItemDeleting="OnDataItemDeleting"
-            CustomizeDataRowEditor="Grid_CustomizeDataRowEditor"
-            SelectAllCheckboxMode="GridSelectAllCheckboxMode.AllPages"
             KeyFieldName="FaqId"
-            VirtualScrollingEnabled=true
+            ShowGroupPanel="true"
             ShowFilterRow="true"
-            TextWrapEnabled="true"
-            ShowSearchBox="true"
-            AutoExpandAllGroupRows="false"
-            SearchBoxNullText="Masukkan kata carian..."
-            CssClass="mw-1000, grid-size">
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="@ColumnResizeMode"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
+
         <Columns>
-            <!--<DxGridSelectionColumn />-->
-            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="20%" />
-            <DxGridDataColumn FieldName="@nameof(FaqInfo.FaqCategory)" Caption="Kategori" Width="20%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
-            <DxGridDataColumn FieldName="@nameof(FaqInfo.FaqQuestion)" Caption="Soalan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
-            <DxGridDataColumn FieldName="@nameof(FaqInfo.FaqAnswer)" Caption="Jawapan" Width="40%" SortOrder="GridColumnSortOrder.Ascending" SortIndex="1" />
+
+            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
+                <HeaderTemplate>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((FaqInfo)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                </CellDisplayTemplate>
+            </DxGridCommandColumn>
+
+
+            <DxGridDataColumn FieldName="@nameof(FaqInfo.FaqCategory)" Caption="Kategori" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(FaqInfo.FaqQuestion)" Caption="Soalan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(FaqInfo.FaqAnswer)" Caption="Jawapan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(FaqInfo.FaqStatus)" Caption="Status Aktif" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                <CellDisplayTemplate>
+                    <div>@GetStatusFAQIconHtml(((FaqInfo)context.DataItem).FaqStatus)</div>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn FieldName=@nameof(FaqInfo.CreatedDate)
+                              DisplayFormat="dd/MM/yyyy"
+                              Caption="Tarikh Cipta"
+                              MinWidth="120"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0" />
         </Columns>
+
         <EditFormTemplate Context="editFormContext">
             @{
-                var faq = (FaqInfo)editFormContext.EditModel;
+                var dtData = (FaqInfo)editFormContext.EditModel;
             }
-            <DxFormLayout>
-                <DxFormLayoutItem Caption="Kategori:">
-                    @editFormContext.GetEditor("FaqCategory")
+            <DxFormLayout CssClass="w-100">
+
+
+
+                <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
+                    <table>
+
+                        <tr>
+                            <td nowrap>Status Paparan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@faqStatusOptions"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Status..."
+                                            @bind-Value="@dtData.FaqStatus"
+                                            @bind-Text="@dtData.FaqStatus">
+                                </DxComboBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Kategori Soalan Lazim</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.FaqCategory"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Kategori Soalan Lazim..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" style="width:370px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap valign="top">Soalan</td>
+                            <td valign="top">&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxMemo @bind-Text="@dtData.FaqQuestion"
+                                        CssClass="cw-480"
+                                        Rows="3" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap valign="top">Jawapan</td>
+                            <td valign="top">&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxMemo @bind-Text="@dtData.FaqAnswer"
+                                        CssClass="cw-480"
+                                        Rows="3" />
+                            </td>
+                        </tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+
+                    </table>
                 </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Soalan:">
-                    @editFormContext.GetEditor("FaqQuestion")
+
+                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12">
+                    <DxButton SubmitFormOnClick="true" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Jawapan:">
-                    @editFormContext.GetEditor("FaqAnswer")
-                </DxFormLayoutItem>
-                @* <DxFormLayoutItem Caption="Status:">
-                    @editFormContext.GetEditor("Rekstatus")
-                </DxFormLayoutItem> *@
             </DxFormLayout>
         </EditFormTemplate>
+        <CustomValidators>
+            <MyCustomValidator DataItemValidating="ValidateGridData" />
+        </CustomValidators>
     </DxGrid>
-}
+
+
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+            <br />Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
+</div>
 @code {
 
     private List<FaqInfo> _lstFaqs = new List<FaqInfo>();
+
     IGrid Grid { get; set; }
-    GridGroupFooterDisplayMode CurrentDisplayMode { get; set; } = GridGroupFooterDisplayMode.Auto;
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
+    bool ConfirmationShown { get; set; } = false;
+    string strSelected { get; set; }
+    int intSelected { get; set; }
+    FaqInfo dtData { get; set; }
+
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    [DefaultValue(GridSelectAllCheckboxMode.Page)]
-    [Parameter]
-    public GridSelectAllCheckboxMode SelectAllCheckboxMode { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadList();
-    }
-
-    private async Task LoadList()
-    {
+        _lstFaqs = await _faq.GetFAQAsync();
+        DataLoadedTcs.TrySetResult(true);
         try
         {
             _lstFaqs = await _faq.GetAllFaq();
@@ -92,102 +196,135 @@ else
             Console.Error.WriteLine($"Error loading actions: {ex.Message}");
         }
     }
-
-    void OnCustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // if (e.IsNew)
-        // {
-        //     var editModel = (FaqInfo)e.EditModel;
-        //     editModel.FaqId = _lstFaqs.Max(x => x.FaqId) + 1;
-        // }
-        if (e.IsNew)
+        if (firstRender)
         {
-            var editModel = (FaqInfo)e.EditModel;
-            if (_lstFaqs.Any())
-            {
-                // If the list is not empty, get the max FaqId and increment it
-                editModel.FaqId = _lstFaqs.Max(x => x.FaqId) + 1;
-            }
-            else
-            {
-                // If the list is empty, set the FaqId to 1
-                editModel.FaqId = 1;
-            }
+            await DataLoadedTcs.Task;
+            await Grid.CancelEditAsync();
         }
     }
-    async Task OnEditModelSaving(GridEditModelSavingEventArgs e)
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
+        var _data = (FaqInfo)e.EditModel;
+
+        if (_data.FaqCategory == null || _data.FaqCategory.Trim() == "")
+        {
+            e.AddError(nameof(_data.FaqCategory), "Kategori soalan lazim tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.FaqQuestion == null || _data.FaqQuestion == "")
+        {
+            e.AddError(nameof(_data.FaqQuestion), "Soalan lazim tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.FaqAnswer == null || _data.FaqAnswer == "")
+        {
+            e.AddError(nameof(_data.FaqAnswer), "Jawapan soalan lazim tidak sah. Medan perlu diisi.");
+        }
+    }
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        bool blnSuccess = false;
+        var editModel = e.EditModel as FaqInfo;
+        var itmId = editModel.FaqId;
         try
         {
-            // Cast EditModel directly to the faq model
-            var editModel = e.EditModel as FaqInfo;
-
-            // Check if editModel is null
-            if (editModel == null)
-            {
-                Console.Error.WriteLine("Edit model is null.");
-                return; // or throw an exception
-            }
-
-            var itmId = editModel.FaqId;
-            editModel.FaqStatus = "A";
-            editModel.CreatedDate = DateTime.Today;
-            editModel.CreatedBy = 1;
-            editModel.UpdatedDate = DateTime.Today;
-            editModel.UpdatedBy = 1;
-
-            // Determine if this is a new item or an update
             if (e.IsNew)
             {
-                // Save new faq setting
                 var jsonString = JsonConvert.SerializeObject(editModel);
                 await _faq.PostFaq(jsonString);
+                blnSuccess = true;
             }
             else
             {
                 var existingFaq = await _faq.GetIdFaq(itmId);
-                if (existingFaq != null)
-                {
-                    existingFaq.FaqCategory = editModel.FaqCategory;
-                    existingFaq.FaqQuestion = editModel.FaqQuestion;
-                    existingFaq.FaqAnswer = editModel.FaqAnswer;
-                    //existingAction.Actionenabled = editModel.Actionenabled;
-                    await _faq.PutFaq(itmId, existingFaq);
-                }
+                await _faq.PutFaq(itmId, existingFaq);
+                blnSuccess = true;
             }
-            // Reload the entire Grid
-            _lstFaqs = await _faq.RefreshListFaq();
+            if (blnSuccess)
+            {
+                await UpdateDataAsync();
+                toastService.ShowInfo("Proses kemaskini selesai.");
+            }
+            else
+            {
+                toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+            }
         }
         catch (Exception ex)
         {
-            // Handle exceptions and provide feedback
             Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
     }
-    async Task OnDataItemDeleting(GridDataItemDeletingEventArgs e)
+    async Task UpdateDataAsync()
     {
-        try
-        {
-            var t = e.DataItem as FaqInfo;
-            var itmid = t.FaqId;
-            // Remove the data item from the database.
-            var deleteResult = await _faq.DeleteFaq(itmid);
-            // Reload the entire Grid.
-            _lstFaqs = await _faq.RefreshListFaq();
-        }
-        catch (Exception ex)
-        {
-            // Handle the exception
-            Console.Error.WriteLine($"An error occurred while deleting the item : {ex.Message}");
-        }
+        _lstFaqs = await _faq.RefreshListFaq();
     }
-    void Grid_CustomizeDataRowEditor(GridCustomizeDataRowEditorEventArgs e)
-    {
-        if (e.EditSettings is ITextEditSettings settings)
-            settings.ShowValidationIcon = true;
-    }
+
     public void Dispose()
     {
         DataLoadedTcs.TrySetCanceled();
     }
+
+    async Task Delete(FaqInfo item)
+    {
+        strSelected = item.FaqQuestion;
+        intSelected = item.FaqId;
+        dtData = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        if (dtData != null)
+        {
+            var deleteResult = await _faq.DeleteFaq(dtData.FaqId);
+            await UpdateDataAsync();
+        }
+        ConfirmationShown = false;
+        toastService.ShowInfo("Proses hapus selesai.");
+    }
+
+    void OnNoButtonClick()
+    {
+        ConfirmationShown = false;
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    public MarkupString GetStatusFAQIconHtml(string status)
+    {
+        string priorytyClass = "";
+        string title = "";
+
+        if (status == "Aktif")
+        {
+            priorytyClass = "info";
+            title = " AKTIF ";
+        }
+        else if (status == "Tidak Aktif")
+        {
+            priorytyClass = "danger";
+            title = " TIDAK AKTIF ";
+        }
+
+        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+        title);
+        return new MarkupString(html);
+    }
+    public MarkupString CombineText(string strStatus, string strNama)
+    {
+        string html = string.Format("{0} <br/> {1}", strStatus, strNama.ToUpper());
+        return new MarkupString(html);
+    }
+    private List<string> faqStatusOptions = new List<string>
+    {
+        "Aktif",
+        "Tidak Aktif"
+    };
 }
