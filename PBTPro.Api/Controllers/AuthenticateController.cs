@@ -118,7 +118,7 @@ namespace PBTPro.Api.Controllers
                 var user = await _userManager.FindByNameAsync(model.Username);
                 if (user == null)
                 {
-                    return Error("", SystemMesg(_feature, "USER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pengguna Tidak Sah")));
+                    return Error("", SystemMesg(_feature, "USER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pengguna tidak sah.")));
                 }
 
                 var LoginResult = await _signInManager.PasswordSignInAsync(user, model.Password, false, true);
@@ -141,13 +141,52 @@ namespace PBTPro.Api.Controllers
                 }
                 else if (LoginResult.IsLockedOut)
                 {
+                    DateTimeOffset? lockoutEnd = user.LockoutEnd;
+                    if (lockoutEnd.HasValue)
+                    {
+                        DateTime currentTime = DateTime.Now;
+                        TimeSpan difference = lockoutEnd.Value - currentTime;
+
+                        string Message = "";
+                        if(difference.Days > 0)
+                        {
+                            Message += $" {difference.Days} hari";
+                        }
+                        if (difference.Hours > 0)
+                        {
+                            Message += $" {difference.Hours} jam";
+                        }
+                        if (difference.Minutes > 0)
+                        {
+                            Message += $" {difference.Minutes} minit";
+                        }
+                        if (difference.Seconds > 0)
+                        {
+                            if (!string.IsNullOrWhiteSpace(Message))
+                            {
+                                Message += " dan";
+                            }
+
+                            Message += $" {difference.Seconds} saat";
+                        }
+
+                        List<string> param = new List<string> { Message };
+                        return Error("", SystemMesg(_feature, "RETRY_AFTER", MessageTypeEnum.Error, string.Format("Percubaan log masuk maksimum dicapai. Sila cuba selepas[0]"), param));
+                    }
                     return Error("", SystemMesg(_feature, "MAXED_ATTEMPT", MessageTypeEnum.Error, string.Format("Percubaan log masuk maksimum dicapai. Hubungi pentadbir sistem untuk menyahsekat")));
                 }
                 else
                 {
-                    var attempLeft = (5 - user.AccessFailedCount);
-                    List<string> param = new List<string> { attempLeft.ToString() };
-                    return Error("", SystemMesg(_feature, "INCORRECT_LOGIN", MessageTypeEnum.Error, string.Format("Nama pengguna atau kata laluan yang salah.[0] cubaan tinggal"), param));
+                    if (user.AccessFailedCount < 4)
+                    {
+                        var attempLeft = (5 - user.AccessFailedCount);
+                        List<string> param = new List<string> { attempLeft.ToString() };
+                        return Error("", SystemMesg(_feature, "INCORRECT_LOGIN", MessageTypeEnum.Error, string.Format("Kata laluan tidak sah. [0] cubaan tinggal."), param));
+                    }
+                    else
+                    {
+                        return Error("", SystemMesg(_feature, "INCORRECT_LAST_TRY", MessageTypeEnum.Error, string.Format("Kata laluan tidak sah. cubaan terakhir.")));
+                    }
                 }
             }
             catch(Exception ex)
