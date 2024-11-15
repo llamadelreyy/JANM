@@ -76,6 +76,8 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<TrnPatrolDet> TrnPatrolDets { get; set; }
 
+    public virtual DbSet<UserProfile> UserProfiles { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
@@ -1406,6 +1408,78 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Username)
                 .HasMaxLength(50)
                 .HasColumnName("username");
+        });
+
+        modelBuilder.Entity<UserProfile>(entity =>
+        {
+            entity.HasKey(e => e.ProfileId).HasName("user_profile_pkey");
+
+            entity.ToTable("user_profile", "users");
+
+            entity.Property(e => e.ProfileId).HasColumnName("profile_id");
+            entity.Property(e => e.CreatedBy)
+                .HasDefaultValue(0)
+                .HasColumnName("created_by");
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_date");
+            entity.Property(e => e.ProfileAcceptTerm1)
+                .HasColumnType("char")
+                .HasColumnName("profile_accept_term1");
+            entity.Property(e => e.ProfileAcceptTerm2)
+                .HasColumnType("char")
+                .HasColumnName("profile_accept_term2");
+            entity.Property(e => e.ProfileAcceptTerm3)
+                .HasColumnType("char")
+                .HasColumnName("profile_accept_term3");
+            entity.Property(e => e.ProfileAddress1).HasColumnName("profile_address1");
+            entity.Property(e => e.ProfileAddress2).HasColumnName("profile_address2");
+            entity.Property(e => e.ProfileCityId).HasColumnName("profile_city_id");
+            entity.Property(e => e.ProfileCountryId).HasColumnName("profile_country_id");
+            entity.Property(e => e.ProfileDepartmentId).HasColumnName("profile_department_id");
+            entity.Property(e => e.ProfileDistrictId).HasColumnName("profile_district_id");
+            entity.Property(e => e.ProfileDob).HasColumnName("profile_dob");
+            entity.Property(e => e.ProfileEmail)
+                .HasMaxLength(150)
+                .HasColumnName("profile_email");
+            entity.Property(e => e.ProfileIcno)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasColumnName("profile_icno");
+            entity.Property(e => e.ProfileLastLogin)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("profile_last_login");
+            entity.Property(e => e.ProfileName)
+                .HasMaxLength(50)
+                .HasColumnName("profile_name");
+            entity.Property(e => e.ProfileNatId).HasColumnName("profile_nat_id");
+            entity.Property(e => e.ProfilePhotoName)
+                .HasColumnType("character varying")
+                .HasColumnName("profile_photo_name");
+            entity.Property(e => e.ProfilePostcode)
+                .HasMaxLength(1)
+                .HasColumnName("profile_postcode");
+            entity.Property(e => e.ProfileRaceId).HasColumnName("profile_race_id");
+            entity.Property(e => e.ProfileSectionId).HasColumnName("profile_section_id");
+            entity.Property(e => e.ProfileStateId).HasColumnName("profile_state_id");
+            entity.Property(e => e.ProfileStatus)
+                .HasMaxLength(30)
+                .HasColumnName("profile_status");
+            entity.Property(e => e.ProfileTelNo)
+                .HasMaxLength(150)
+                .HasColumnName("profile_tel_no");
+            entity.Property(e => e.ProfileUnitId).HasColumnName("profile_unit_id");
+            entity.Property(e => e.ProfileUserId)
+                .HasMaxLength(450)
+                .HasColumnName("profile_user_id");
+            entity.Property(e => e.UpdatedBy)
+                .HasDefaultValue(0)
+                .HasColumnName("updated_by");
+            entity.Property(e => e.UpdatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_date");
         });
 
         OnModelCreatingPartial(modelBuilder);

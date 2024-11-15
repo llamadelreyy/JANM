@@ -52,7 +52,7 @@ namespace PBTPro.Api.Controllers
             try
             {
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", request.User, request.Message);                   
-                return Ok("", null, SystemMesg(_feature, "SEND_MSG", MessageTypeEnum.Success, string.Format("Message berjaya dihantar")));
+                return Ok("", SystemMesg(_feature, "SEND_MSG", MessageTypeEnum.Success, string.Format("Message berjaya dihantar")));
             }
             catch (Exception ex)
             {
@@ -79,7 +79,7 @@ namespace PBTPro.Api.Controllers
                         await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", request.User, request.Message);
                     }
                 }
-                return Ok("", null, SystemMesg(_feature, "SEND_MSG", MessageTypeEnum.Success, string.Format("Message berjaya dihantar")));
+                return Ok("", SystemMesg(_feature, "SEND_MSG", MessageTypeEnum.Success, string.Format("Message berjaya dihantar")));
             }
             catch (Exception ex)
             {
@@ -96,7 +96,7 @@ namespace PBTPro.Api.Controllers
             try
             {
                 await _hubContext.Clients.Group(request.GroupName).SendAsync("ReceiveMessage", request.User, request.Message);
-                return Ok("", null, SystemMesg(_feature, "SEND_MSG", MessageTypeEnum.Success, string.Format("Message berjaya dihantar")));
+                return Ok("", SystemMesg(_feature, "SEND_MSG", MessageTypeEnum.Success, string.Format("Message berjaya dihantar")));
             }
             catch (Exception ex)
             {

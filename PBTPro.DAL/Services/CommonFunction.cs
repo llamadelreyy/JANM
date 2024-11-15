@@ -30,7 +30,7 @@ namespace PBTPro.DAL.Services
         public CommonFunction(IHttpContextAccessor contextAccessor, IConfiguration configuration)
         {
             _httpContextAccessor = contextAccessor;
-            _session = contextAccessor.HttpContext.Session;
+            //_session = contextAccessor.HttpContext.Session;
             _configuration = configuration;
             _dbConn = configuration.GetValue<string>("ConnectionStrings");
         }
