@@ -1,13 +1,6 @@
-﻿@page "/SenaraiAudit"
+﻿@page "/SenaraiArkibAudit"
 @attribute [AllowAnonymous]
 
-@* @inject Services.AuditService _audit
-@using DevExpress.Blazor
-@implements IDisposable
-@using Newtonsoft.Json
-@using System.ComponentModel
-@using PBTPro.DAL.Models;
- *@
 
  @using System.Globalization
 @implements IDisposable
@@ -17,14 +10,14 @@
 @using PBTPro.DAL.Models;
 @using PBT.Data
 @inject NavigationManager NavigationManager
-@inject Services.AuditService _audit
+@inject Services.ArchiveAuditService _audit
 @inject IToastService toastService
 
 
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="/images/icons/information.png" />
-        <div class="textTitle">Log Audit - Senarai Log Audit</div>
+        <div class="textTitle">Log Audit - Senarai Arkib Log Audit</div>
     </div>
 </div>
 
@@ -40,7 +33,7 @@
 <div class="item-container-x">
     <DxGrid @ref="Grid"
         Data="@_lstAudits" 
-        KeyFieldName="AuditId"
+        KeyFieldName="ArchiveId"
         ShowGroupPanel="true"
         ShowFilterRow="true"
         FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
@@ -57,28 +50,27 @@
         CssClass="mv-1000">
 
         <Columns>
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.CreatedDate)" Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center" AllowGroup="false" />
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditUsername)" Caption="Nama Pengguna" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditType)" Caption="Jenis Maklumat" TextAlignment="GridTextAlignment.Center" AllowGroup="false" >
+            <DxGridDataColumn FieldName="@nameof(AuditlogArchiveInfo.CreatedDate)" Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(AuditlogArchiveInfo.ArchiveUsername)" Caption="Nama Pengguna" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(AuditlogArchiveInfo.ArchiveType)" Caption="Jenis Maklumat" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
             <CellDisplayTemplate>
-                <div>@GetStatusAuditIconHtml(((AuditlogInfo)context.DataItem).AuditType)</div>
+                    <div>@GetStatusAuditIconHtml(((AuditlogArchiveInfo)context.DataItem).ArchiveType)</div>
             </CellDisplayTemplate>
         </DxGridDataColumn>
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditModuleName)" Caption="Nama Modul" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditMethod)" Caption="Method" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditDescription)" Caption="Penerangan" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(AuditlogArchiveInfo.ArchiveModuleName)" Caption="Nama Modul" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(AuditlogArchiveInfo.ArchiveMethod)" Caption="Method" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(AuditlogArchiveInfo.ArchiveDescription)" Caption="Penerangan" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
         </Columns>      
     </DxGrid>
     <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
-    <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
+@*     <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
     <DxButton Text="Export XLS" Click="ExportXls_Click" />
     <DxButton Text="Export CSV" Click="ExportCsv_Click" />
-    <DxButton Text="Archive Audit Log within 6 months data" Click="InsertArchiveAudit_Click" />
-    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+ *@    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 </div>
 @code {
 
-    private List<AuditlogInfo> _lstAudits = new List<AuditlogInfo>();
+    private List<AuditlogArchiveInfo> _lstAudits = new List<AuditlogArchiveInfo>();
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -87,7 +79,7 @@
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
     int intSelected { get; set; }
-    AuditlogInfo dtData { get; set; }
+    AuditlogArchiveInfo dtData { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -144,24 +136,5 @@
         string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
         title);
         return new MarkupString(html);
-    }
-
-    async Task ExportXlsx_Click()
-    {
-        await Grid.ExportToXlsxAsync("ExportResult");
-    }
-
-    async Task ExportXls_Click()
-    {
-        await Grid.ExportToXlsAsync("ExportResult");
-    }
-
-    async Task ExportCsv_Click()
-    {
-        await Grid.ExportToCsvAsync("ExportResult");
-    }
-    async Task InsertArchiveAudit_Click()
-    {
-        await _audit.InsertArchiveAudit();
     }
 }

@@ -154,24 +154,16 @@ namespace PBTPro.Api.Controllers
 
         #region Archived auditlog
         [AllowAnonymous]
-        [HttpPost]
-        public Task<bool> InsertArchiveAudit(AuditlogInfo changed, int intCurrentUserId)
+        //[HttpPost("InsertArchiveAudit")]
+        [HttpGet]
+        public async Task<IActionResult> InsertArchiveAudit()
         {
             try
             {
                 using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
                 {
-                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("call audit.proc_insertaudit(:_audit_role_id, :_audit_module_name, :_audit_description, :_created_by, :_audit_type, :_audit_username, :_audit_method)", myConn))
-                    {
-                        myCmd.CommandType = CommandType.Text;
-                        myCmd.Parameters.AddWithValue("_audit_role_id", DbType.Int32).Value = changed.AuditRoleId;
-                        myCmd.Parameters.AddWithValue("_audit_module_name", DbType.String).Value = changed.AuditModuleName;
-                        myCmd.Parameters.AddWithValue("_audit_description", DbType.String).Value = changed.AuditDescription;
-                        myCmd.Parameters.AddWithValue("_created_by", DbType.Int32).Value = changed.CreatedBy;
-                        myCmd.Parameters.AddWithValue("_audit_type", DbType.Int32).Value = changed.AuditType;
-                        myCmd.Parameters.AddWithValue("_audit_username", DbType.String).Value = changed.AuditUsername;
-                        myCmd.Parameters.AddWithValue("_audit_method", DbType.String).Value = changed.AuditMethod;
-
+                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("SELECT audit.func_copy_archive_audit_logs()", myConn))
+                    {                       
                         myConn.Open();
                         myCmd.ExecuteNonQuery();
                     }
@@ -179,13 +171,13 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception caught : InsertAudit - {0}", ex);
-                return Task.FromResult(false); ;
+                Console.WriteLine("Exception caught : InsertArchiveAudit - {0}", ex);
+                return null;
             }
             finally
-            {
+            {                
             }
-            return Task.FromResult(true);
+            return Ok();
         }
         #endregion
 
