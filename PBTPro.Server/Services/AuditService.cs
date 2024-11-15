@@ -76,8 +76,8 @@ namespace PBT.Services
         [HttpGet]
         public async Task<List<AuditlogInfo>> GetAllAudit()
         {
+            GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-
             try
             {
                 var platformApiUrl = _configuration["PlatformAPI"];
@@ -101,8 +101,8 @@ namespace PBT.Services
         [HttpGet]
         public async Task<List<AuditlogInfo>> RefreshListAudit()
         {
+            GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-
             try
             {
                 var platformApiUrl = _configuration["PlatformAPI"];
@@ -125,8 +125,8 @@ namespace PBT.Services
         [HttpGet]
         public async Task<AuditlogInfo> GetIdAudit(int id)
         {
+            GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-
             try
             {
                 var platformApiUrl = _configuration["PlatformAPI"];
@@ -149,6 +149,7 @@ namespace PBT.Services
         [HttpPost]
         public async Task<AuditlogInfo> AddNewAudit(string strAudit)
         {
+            GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
             try
             {
@@ -172,6 +173,7 @@ namespace PBT.Services
         [HttpDelete]
         public async Task<IActionResult> DeleteAudit(int id)
         {
+            GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
             try
             {
@@ -200,53 +202,28 @@ namespace PBT.Services
             var result = _cf.CreateAuditLog((int)AuditType.Information, "AuditService - GetAuditAsync", "Berjaya muat semula senarai untuk log audit.", 1, LoggerName, "");
             return Task.FromResult(_Audit);
         }
-        //[AllowAnonymous]
-        //[HttpPost]
-        //public async Task<ActionResult<TbAuditlog>> PostAudit([FromBody] string audits = "")
-        //{
-        //    var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-        //    try
-        //    {
-        //        var platformApiUrl = _configuration["PlatformAPI"];
-        //        var accessToken = _cf.CheckToken();
 
-        //        var request = _cf.CheckRequest(platformApiUrl + "/api/Audit/InsertAudit");
-        //        string jsonString = await _cf.AddNew(request, audits, platformApiUrl + "/api/Audit/InsertAudit");
-        //        TbAuditlog audit = JsonConvert.DeserializeObject<TbAuditlog>(jsonString);
+        [HttpGet]
+        public async Task<IActionResult> InsertArchiveAudit()
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
 
-        //        await _cf.CreateAuditLog((int)AuditType.Information, "AuditService - PostAudit", "Tambah data baru untuk log audit.", Convert.ToInt32(uID), LoggerName, "");
-        //        return audit;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _cf.CreateAuditLog((int)AuditType.Error, "AuditService - PostAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
-        //        return null;
-        //    }
-        //}
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Audit/InsertArchiveAudit/");
+                string jsonString = await _cf.List(request);
 
-        //[AllowAnonymous]
-        //[HttpPut]
-        //public async Task<IActionResult> PutAudit(int id, TbAuditlog audit)
-        //{
-        //    var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-        //    try
-        //    {
-        //        var platformApiUrl = _configuration["PlatformAPI"];
-        //        var accessToken = _cf.CheckToken();
-
-        //        var uri = platformApiUrl + "/api/Audit/UpdateAudit/" + id;
-        //        var request = _cf.CheckRequestPut(platformApiUrl + "/api/Audit/UpdateAudit/" + id);
-        //        string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(audit), uri);
-
-        //        await _cf.CreateAuditLog((int)AuditType.Information, "AuditService - PutAudit", "Berjaya kemaskini data untuk log audit.", Convert.ToInt32(uID), LoggerName, "");
-        //        return Ok(jsonString);
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _cf.CreateAuditLog((int)AuditType.Error, "AuditService - PutAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
-        //        return null;
-        //    }
-        //}
+                await _cf.CreateAuditLog((int)AuditType.Information, "AuditService - ArchiveAuditLog", "Berjaya arkib data untuk log audit.", 1, LoggerName, "");
+                return Ok(jsonString);
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, "AuditService - ArchiveAuditLog", ex.Message, 1, LoggerName, "");
+                return null;
+            }
+        }       
     }
 }
