@@ -43,7 +43,8 @@
         PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
         PageSizeSelectorAllRowsItemVisible="true"
         PagerAutoHideNavButtons="false"
-        ColumnResizeMode="GridColumnResizeMode.NextColumn"
+        ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+        GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
         HighlightRowOnHover="true"
         CssClass="mv-1000">
 
@@ -132,32 +133,23 @@
         </TotalSummary>
 
     </DxGrid>
-
-@*     
-    <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
-    <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
-    <DxButton Text="Export XLS" Click="ExportXls_Click" />
-    <DxButton Text="Export CSV" Click="ExportCsv_Click" />
-    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" /> 
-*@
-
 </div>
 
-<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
         <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
         <br />Anda pasti untuk menghapuskan rekod ini?
         <br /><br />
         <div class="confirm-dialog-buttons">
-            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
         </div>
     </BodyContentTemplate>
 </DxPopup>
 
 
 @code {
-
+    [Inject] IToastNotificationService ToastService { get; set; }
     IEnumerable<RoleProp> dataSource;
 
 
@@ -170,7 +162,6 @@
     RoleProp dtData { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -189,17 +180,49 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-
+        var _data = (RoleProp)e.EditModel;
+        if (_data.role_desc == null || _data.role_desc.Trim() == "")
+        {
+            e.AddError(nameof(_data.role_desc), "!!!!!!. Medan perlu diisi.");
+        }
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
+        bool blnSuccess = false;
+        if (e.IsNew)
+            blnSuccess = true; //await _RoleService.InsertUserRoleAsync((RoleProp)e.EditModel, intCurrentUserId);
+        else
+            blnSuccess = true; //await _RoleService.UpdateUserRoleAsync((RoleProp)e.EditModel, intCurrentUserId);
 
+        if (blnSuccess)
+        {
+            await UpdateDataAsync();
+
+            ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = ToastRenderStyle.Success,
+                Title = "Proses kemaskini selesai."
+            });
+        }
+        else
+        {
+            ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = ToastRenderStyle.Danger,
+                Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
+            });
+        }
     }
 
     async Task UpdateDataAsync()
     {
-
+        //Refresh back the data source
+        dataSource = await _RoleService.GetRoleAsync();
     }
 
     public void Dispose()
@@ -209,12 +232,26 @@
 
     async Task Delete(RoleProp item)
     {
+        strSelected = item.role_name;
+        dtData = item;
         ConfirmationShown = true;
     }
 
     async void OnYesButtonClick()
     {
+        if (dtData != null)
+        {
+            //await _RoleService.RemoveRoleAsync((RoleProp)dtData);
+            //await UpdateDataAsync();
+        }
         ConfirmationShown = false;
+        ToastService.ShowToast(new ToastOptions()
+        {
+            ProviderName = "Overview",
+            ThemeMode = ToastThemeMode.Saturated,
+            RenderStyle = ToastRenderStyle.Success,
+            Title = "Proses hapus selesai."
+        });
     }
 
     void OnNoButtonClick()

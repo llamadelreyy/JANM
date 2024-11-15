@@ -64,6 +64,7 @@ builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<CompoundService>();
 builder.Services.AddTransient<RoleService>();
 builder.Services.AddTransient<UserRoleService>();
+builder.Services.AddTransient<JabatanService>();
 builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<NoticeService>();
 builder.Services.AddSingleton<FileUrlStorageService>();

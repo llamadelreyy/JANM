@@ -226,11 +226,11 @@ namespace PBT.Data
                                 //_item.issuesNews = myReader.IsDBNull("tbIssuesNews") ? "" : myReader.GetString("tbIssuesNews");
                                 //_item.marketShare = myReader.IsDBNull("tbMarketShare") ? 0 : myReader.GetDouble("tbMarketShare");
 
-                                //////_item.rekCipta = myReader.IsDBNull("rekCipta") ? null : myReader.GetDateTime("rekCipta");
-                                //////_item.rekCiptaUserID = myReader.IsDBNull("rekCiptaUserID") ? 0 : myReader.GetInt32("rekCiptaUserID");
-                                //////_item.rekUbah = myReader.IsDBNull("rekUbah") ? null : myReader.GetDateTime("rekUbah");
-                                //////_item.rekUbahUserID = myReader.IsDBNull("rekUbahUserID") ? 0 : myReader.GetInt32("rekUbahUserID");
-                                //////_item.rekStatus = myReader.IsDBNull("rekStatus") ? "" : myReader.GetString("rekStatus");
+                                _item.created_date = myReader.IsDBNull("created_date") ? null : myReader.GetDateTime("created_date");
+                                _item.created_by = myReader.IsDBNull("created_by") ? "" : myReader.GetString("created_by");
+                                _item.updated_date = myReader.IsDBNull("updated_date") ? null : myReader.GetDateTime("updated_date");
+                                _item.updated_by = myReader.IsDBNull("updated_by") ? "" : myReader.GetString("updated_by");
+                                _item.active_flag = myReader.IsDBNull("active_flag") ? false : myReader.GetBoolean("active_flag");
 
                                 //Add item into list
                                 arrItem.Add(_item);
