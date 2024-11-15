@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace PBT.Data
 {
-    public class RoleService : IDisposable
+    public class JabatanService : IDisposable
     {
         private bool disposed = false;
 
@@ -29,39 +29,41 @@ namespace PBT.Data
             GC.SuppressFinalize(this);
         }
 
-        private List<RoleProp> _Role { get; set; }
+        private List<JabatanProp> _Jabatan { get; set; }
 
         private readonly SqlConnectionConfiguration _configuration;
-        public RoleService(SqlConnectionConfiguration configuration)
+        public JabatanService(SqlConnectionConfiguration configuration)
         {
             _configuration = configuration;
-            _Role = CreateRole();
+            _Jabatan = CreateJabatan();
         }
 
-        public List<RoleProp> CreateRole()
+        public List<JabatanProp> CreateJabatan()
         {
-            List<RoleProp> dataSource = new List<RoleProp>();
+            List<JabatanProp> dataSource = new List<JabatanProp>();
 
             try
             {
-                dataSource = new List<RoleProp> {
-                    new RoleProp {
-                        role_id = 1,
-                        role_name = "Administrator",
-                        role_desc = "Admin of the system",
+                dataSource = new List<JabatanProp> {
+                    new JabatanProp {
+                        dept_id = 1,
+                        dept_code = "001",
+                        dept_name = "Perlesenan",
+                        dept_desc = "Jabatan Perlesenan",
                         created_date = DateTime.Parse("2023/03/11")
                     },
-                    new RoleProp {
-                        role_id = 2,
-                        role_name = "Head of Department",
-                        role_desc = "Head of department for perlesenan",
+                    new JabatanProp {
+                        dept_id = 2,
+                        dept_code = "002",
+                        dept_name = "Penilaian",
+                        dept_desc = "Jabatan Cukai & Penilaian",
                         created_date = DateTime.Parse("2023/03/11")
                     }
                  };
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception caught : CreateRole - {0}", ex);
+                Console.WriteLine("Exception caught : CreateJabatan - {0}", ex);
                 return dataSource;
             }
             finally
@@ -71,13 +73,13 @@ namespace PBT.Data
             return dataSource;
         }
 
-        public Task<List<RoleProp>> GetRoleAsync(CancellationToken ct = default)
+        public Task<List<JabatanProp>> GetJabatanAsync(CancellationToken ct = default)
         {
-            return Task.FromResult(_Role);
+            return Task.FromResult(_Jabatan);
         }
 
 
-        public Task<bool> InsertJabatanAsync(RoleProp changed)
+        public Task<bool> InsertJabatanAsync(JabatanProp changed)
         {
             using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
             {
@@ -107,7 +109,39 @@ namespace PBT.Data
             return Task.FromResult(true);
         }
 
-        public Task<bool> UpdateJabatanAsync(RoleProp changed)
+        public Task<bool> UpdateJabatanAsync(JabatanProp changed)
+        {
+
+            using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
+            {
+                const string strSQL = @"";
+                if (conn.State == ConnectionState.Closed)
+                    conn.Open();
+
+                using (MySqlCommand? myCmd = new MySqlCommand(strSQL, conn))
+                {
+                    try
+                    {
+                        myCmd.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Exception caught : " + MethodBase.GetCurrentMethod().Name + " --> {0}", ex);
+                        return Task.FromResult(false); ;
+                    }
+                    finally
+                    {
+                        if (conn.State == ConnectionState.Open)
+                            conn.Close();
+                    }
+                }
+            }
+
+
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> RemoveJabatanAsync(JabatanProp dtDataItem)
         {
             using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
             {
@@ -137,40 +171,10 @@ namespace PBT.Data
             return Task.FromResult(true);
         }
 
-        public Task<bool> RemoveJabatanAsync(RoleProp dtDataItem)
+        public Task<List<JabatanProp>> RefreshJabatanAsync()
         {
-            using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
-            {
-                const string strSQL = @"";
-                if (conn.State == ConnectionState.Closed)
-                    conn.Open();
-
-                using (MySqlCommand? myCmd = new MySqlCommand(strSQL, conn))
-                {
-                    try
-                    {
-                        myCmd.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Exception caught : " + MethodBase.GetCurrentMethod().Name + " --> {0}", ex);
-                        return Task.FromResult(false); ;
-                    }
-                    finally
-                    {
-                        if (conn.State == ConnectionState.Open)
-                            conn.Close();
-                    }
-                }
-            }
-
-            return Task.FromResult(true);
-        }
-
-        public Task<List<RoleProp>> RefreshJabatanAsync()
-        {
-            List<RoleProp> arrItem = new List<RoleProp>();
-            RoleProp _item;
+            List<JabatanProp> arrItem = new List<JabatanProp>();
+            JabatanProp _item;
 
             using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
             {
@@ -187,7 +191,7 @@ namespace PBT.Data
                             //Loop every data
                             while (myReader.Read())
                             {
-                                _item = new RoleProp();
+                                _item = new JabatanProp();
                                 //_item.tbId = myReader.IsDBNull("tbID") ? 0 : myReader.GetInt32("tbID");
                                 //_item.code = myReader.IsDBNull("tbCode") ? "" : myReader.GetString("tbCode");
                                 //_item.divisionName = myReader.IsDBNull("tbDivision") ? "" : myReader.GetString("tbDivision");

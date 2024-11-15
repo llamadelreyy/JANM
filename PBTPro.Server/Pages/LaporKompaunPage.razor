@@ -32,10 +32,13 @@
         Data="LesenData"
         KeyFieldName="IdLesen"
         ShowGroupPanel="true"
-        ShowFilterRow="true"
+        ShowFilterRow="false"
         CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
         EditorRenderMode="GridEditorRenderMode.Integrated"
         FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        ShowSearchBox="true"
+        AllowSelectRowByClick="true"
+        @bind-SearchText="@GridSearchText"
         PageSize="25"
         @bind-PageIndex="@GridPageIndex"
         PagerPosition="GridPagerPosition.Bottom"
@@ -46,7 +49,7 @@
         PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
         PageSizeSelectorAllRowsItemVisible="true"
         PagerAutoHideNavButtons="false"
-        ColumnResizeMode="@ColumnResizeMode"
+        ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
         CustomizeElement="Grid_CustomizeElement"
         HighlightRowOnHover="true"
         CssClass="mv-1000">
@@ -359,14 +362,14 @@
 
 </div>
 
-<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
         <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
         <br />Anda pasti untuk menghapuskan rekod ini?
         <br /><br />
         <div class="confirm-dialog-buttons">
-            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
         </div>
     </BodyContentTemplate>
 </DxPopup>
@@ -386,7 +389,6 @@
     string strSelected { get; set; }
     LesenInfo dtData { get; set; }
 
-    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     // // // static Task<IQueryable<LesenInfo>> CreateDataSource()

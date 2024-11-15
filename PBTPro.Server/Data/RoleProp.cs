@@ -10,5 +10,6 @@
         public DateTime? updated_date { get; set; }
         public string created_by { get; set; }
         public string updated_by { get; set; }
+        public bool active_flag { get; set; }
     }
 }
