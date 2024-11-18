@@ -72,7 +72,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<ParFormField> ParFormFields { get; set; }
 
-    public virtual DbSet<TbHubungikami> TbHubungikamis { get; set; }
+   // public virtual DbSet<TbHubungikami> TbHubungikamis { get; set; }
 
     public virtual DbSet<TrnPatrol> TrnPatrols { get; set; }
 
@@ -1306,40 +1306,40 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasColumnName("type");
         });       
 
-        modelBuilder.Entity<TbHubungikami>(entity =>
-        {
-            entity.HasKey(e => e.Hubkamiid).HasName("tb_hubungikami_pkey");
+        //modelBuilder.Entity<TbHubungikami>(entity =>
+        //{
+        //    entity.HasKey(e => e.Hubkamiid).HasName("tb_hubungikami_pkey");
 
-            entity.ToTable("tb_hubungikami");
+        //    entity.ToTable("tb_hubungikami");
 
-            entity.Property(e => e.Hubkamiid).HasColumnName("hubkamiid");
-            entity.Property(e => e.Catatan).HasColumnName("catatan");
-            entity.Property(e => e.Emailpenghantar)
-                .HasMaxLength(255)
-                .HasColumnName("emailpenghantar");
-            entity.Property(e => e.Namapenerima)
-                .HasMaxLength(255)
-                .HasColumnName("namapenerima");
-            entity.Property(e => e.Namapenghantar)
-                .HasMaxLength(255)
-                .HasColumnName("namapenghantar");
-            entity.Property(e => e.Rekcipta)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("rekcipta");
-            entity.Property(e => e.Rekciptauserid).HasColumnName("rekciptauserid");
-            entity.Property(e => e.Rekubah)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("rekubah");
-            entity.Property(e => e.Rekubahuserid).HasColumnName("rekubahuserid");
-            entity.Property(e => e.Telnopenghantar)
-                .HasMaxLength(20)
-                .HasColumnName("telnopenghantar");
-            entity.Property(e => e.Tiketid)
-                .HasMaxLength(50)
-                .HasColumnName("tiketid");
-        });      
+        //    entity.Property(e => e.Hubkamiid).HasColumnName("hubkamiid");
+        //    entity.Property(e => e.Catatan).HasColumnName("catatan");
+        //    entity.Property(e => e.Emailpenghantar)
+        //        .HasMaxLength(255)
+        //        .HasColumnName("emailpenghantar");
+        //    entity.Property(e => e.Namapenerima)
+        //        .HasMaxLength(255)
+        //        .HasColumnName("namapenerima");
+        //    entity.Property(e => e.Namapenghantar)
+        //        .HasMaxLength(255)
+        //        .HasColumnName("namapenghantar");
+        //    entity.Property(e => e.Rekcipta)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        //        .HasColumnType("timestamp without time zone")
+        //        .HasColumnName("rekcipta");
+        //    entity.Property(e => e.Rekciptauserid).HasColumnName("rekciptauserid");
+        //    entity.Property(e => e.Rekubah)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        //        .HasColumnType("timestamp without time zone")
+        //        .HasColumnName("rekubah");
+        //    entity.Property(e => e.Rekubahuserid).HasColumnName("rekubahuserid");
+        //    entity.Property(e => e.Telnopenghantar)
+        //        .HasMaxLength(20)
+        //        .HasColumnName("telnopenghantar");
+        //    entity.Property(e => e.Tiketid)
+        //        .HasMaxLength(50)
+        //        .HasColumnName("tiketid");
+        //});      
 
         modelBuilder.Entity<TrnPatrol>(entity =>
         {
