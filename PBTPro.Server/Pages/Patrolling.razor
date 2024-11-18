@@ -1,6 +1,5 @@
-﻿@* @page "/SenaraiRondaan"
+﻿@page "/SenaraiRondaan"
 @attribute [AllowAnonymous]
-
 
 @using System.Globalization
 @implements IDisposable
@@ -10,12 +9,13 @@
 @using PBTPro.DAL.Models;
 @using PBT.Data
 @inject NavigationManager NavigationManager
+@inject PatrollingService _patrolling
 @inject IToastService toastService
 
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="/images/icons/information.png" />
-        <div class="textTitle">Soalan Lazim - Senarai Soalan Lazim</div>
+        <div class="textTitle">Rondaan - Senarai Jadual Rondaan</div>
     </div>
 </div>
 
@@ -27,7 +27,341 @@
 </style>
 
 <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+<div class="item-container-x">
+    <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+        <DxTab Text="Belum Mula (8)"></DxTab>
+        <DxTab Text="Dalam Rondaan (5)"></DxTab>
+        <DxTab Text="Selesai (1)"></DxTab>
+    </DxTabs>
+
+    <DxGrid @ref="Grid"
+            Data="@_lstPatrollings"
+            KeyFieldName="PatrollingId"
+            ShowGroupPanel="true"
+            ShowFilterRow="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
+
+        <Columns>
+
+            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
+                <HeaderTemplate>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((PatrollingInfo)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                </CellDisplayTemplate>
+            </DxGridCommandColumn>
+
+
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingId)" Caption="#" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName=@nameof(PatrollingInfo.CreatedDate)
+                              DisplayFormat="dd/MM/yyyy"
+                              Caption="Tarikh Cipta"
+                              MinWidth="120"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0" />
+
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingLocation)" Caption="Lokasi Rondaan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingOfficerName)" Caption="Nama Pegawai" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingStartTime)" Caption="Masa Mula Rondaan" DisplayFormat="dd/MM/yyyy"
+                              MinWidth="120"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0" />
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingEndTime)" Caption="Masa Mula Rondaan" DisplayFormat="dd/MM/yyyy"
+                              MinWidth="120"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0" />
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingStatus)" Caption="Status Rondaan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+
+        </Columns>
+
+        <EditFormTemplate Context="editFormContext">
+            @{
+                var dtData = (PatrollingInfo)editFormContext.EditModel;
+            }
+            <DxFormLayout CssClass="w-100">
+
+
+
+                <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
+                    <table class="layout_edit">
+
+                        <tr>
+                            <td nowrap>Status Rondaan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@patrollingStatusOptions"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Status..."
+                                            @bind-Value="@dtData.PatrollingStatus"
+                                            @bind-Text="@dtData.PatrollingStatus">
+                                </DxComboBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Nama Pegawai</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@patrollingOfficerName"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Nama Pegawai..."
+                                            @bind-Value="@dtData.PatrollingOfficerName"
+                                            @bind-Text="@dtData.PatrollingOfficerName">
+                                </DxComboBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Lokasi Rondaan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@patrollingLocation"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Lokasi Rondaan..."
+                                            @bind-Value="@dtData.PatrollingLocation"
+                                            @bind-Text="@dtData.PatrollingLocation">
+                                </DxComboBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Tarikh Mohon</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%"><b>@(dtData.PatrollingStartTime.Value.ToString("dd/MM/yyyy"))</b></td>
+                            <td width="100px">&nbsp;</td>
+                            <td nowrap></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%"></td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Tarikh Lulus</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%"><b>@(dtData.PatrollingEndTime == null ? "" : dtData.PatrollingEndTime.Value.ToString("dd/MM/yyyy"))</b></td>
+                            <td width="100px">&nbsp;</td>
+                            <td nowrap></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%"></td>
+                        </tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+
+                    </table>
+                </DxFormLayoutItem>
+
+                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12">
+                    <DxButton SubmitFormOnClick="true" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditFormTemplate>
+        <CustomValidators>
+            <MyCustomValidator DataItemValidating="ValidateGridData" />
+        </CustomValidators>
+    </DxGrid>
+
+
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+            <br />Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
+</div>
 @code {
 
+    private List<PatrollingInfo> _lstPatrollings = new List<PatrollingInfo>();
+    int ActiveTabIndex;
+
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
+    bool ConfirmationShown { get; set; } = false;
+    string strSelected { get; set; }
+    int intSelected { get; set; }
+    PatrollingInfo dtData { get; set; }
+
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _lstPatrollings = await _patrolling.GetPatrollingAsync();
+        DataLoadedTcs.TrySetResult(true);
+        try
+        {
+            _lstPatrollings = await _patrolling.GetAllPatrolling();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+            await Grid.CancelEditAsync();
+        }
+    }
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (PatrollingInfo)e.EditModel;
+
+        if (_data.PatrollingOfficerName == null || _data.PatrollingOfficerName.Trim() == "")
+        {
+            e.AddError(nameof(_data.PatrollingOfficerName), "Nama pegawai rondaan tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.PatrollingLocation == null || _data.PatrollingLocation == "")
+        {
+            e.AddError(nameof(_data.PatrollingLocation), "Lokasi rondaan tidak sah. Medan perlu diisi.");
+        }
+    }
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        bool blnSuccess = false;
+        var editModel = e.EditModel as PatrollingInfo;
+        var itmId = editModel.PatrollingId;
+        try
+        {
+            if (e.IsNew)
+            {
+                var jsonString = JsonConvert.SerializeObject(editModel);
+                await _patrolling.PostPatrolling(jsonString);
+                blnSuccess = true;
+            }
+            else
+            {
+                var existingPatrolling = await _patrolling.GetIdPatrolling(itmId);
+                await _patrolling.PutPatrolling(itmId, existingPatrolling);
+                blnSuccess = true;
+            }
+            if (blnSuccess)
+            {
+                await UpdateDataAsync();
+                toastService.ShowInfo("Proses kemaskini selesai.");
+            }
+            else
+            {
+                toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
+    }
+    async Task UpdateDataAsync()
+    {
+        _lstPatrollings = await _patrolling.RefreshListPatrolling();
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+    async Task Delete(PatrollingInfo item)
+    {
+        strSelected = item.PatrollingOfficerName;
+        intSelected = item.PatrollingId;
+        dtData = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        if (dtData != null)
+        {
+            var deleteResult = await _patrolling.DeletePatrolling(dtData.PatrollingId);
+            await UpdateDataAsync();
+        }
+        ConfirmationShown = false;
+        toastService.ShowInfo("Proses hapus selesai.");
+    }
+
+    void OnNoButtonClick()
+    {
+        ConfirmationShown = false;
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    public MarkupString GetStatusPatrollingIconHtml(string status)
+    {
+        string priorytyClass = "";
+        string title = "";
+
+        if (status == "Aktif")
+        {
+            priorytyClass = "info";
+            title = " AKTIF ";
+        }
+        else if (status == "Tidak Aktif")
+        {
+            priorytyClass = "danger";
+            title = " TIDAK AKTIF ";
+        }
+
+        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+        title);
+        return new MarkupString(html);
+    }
+    public MarkupString CombineText(string strStatus, string strNama)
+    {
+        string html = string.Format("{0} <br/> {1}", strStatus, strNama.ToUpper());
+        return new MarkupString(html);
+    }
+    private List<string> patrollingStatusOptions = new List<string>
+    {
+        "Aktif",
+        "Tidak Aktif"
+    };
+    private List<string> patrollingOfficerName = new List<string>
+    {
+        "Mohd Abu",
+        "Siti"
+    };
+    private List<string> patrollingLocation = new List<string>
+    {
+        "Bukit Jalil",
+        "Klang"
+    };
+    void OnActiveTabIndexChanged(int index)
+    {
+        ActiveTabIndex = index;
+    }
 }
- *@

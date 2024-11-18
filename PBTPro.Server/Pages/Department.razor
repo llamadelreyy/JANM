@@ -1,7 +1,7 @@
 ﻿@page "/SenaraiJabatan"
 @attribute [AllowAnonymous]
 
-@inject Services.DepartmentService _department
+@inject DepartmentService _department
 @using System.Globalization
 @implements IDisposable
 @using Blazored.Toast.Services
@@ -28,7 +28,7 @@
 
 <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 <div class="item-container-x">
-     <DxGrid @ref="Grid"
+    <DxGrid @ref="Grid"
             Data="@_lstDepartment"
             KeyFieldName="DeptId"
             ShowGroupPanel="true"
@@ -212,7 +212,7 @@
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
         var _data = (DepartmentInfo)e.EditModel;
-        
+
         if (_data.DeptStatus == null || _data.DeptStatus.Trim() == "")
         {
             e.AddError(nameof(_data.DeptStatus), "Status Jabatan tidak dipilih. Medan perlu diisi.");

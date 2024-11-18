@@ -18,7 +18,7 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
 
-namespace PBT.Services
+namespace PBT.Data
 {
     [AllowAnonymous]
     public partial class DepartmentService : IDisposable
@@ -189,13 +189,13 @@ namespace PBT.Services
 
                 return id;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - DeleteDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return 0;
             }
-        }            
-        
+        }
+
         [AllowAnonymous]
         [HttpPut]
         public async Task<ActionResult<DepartmentInfo>> PutDepartment(int id, DepartmentInfo department)
@@ -209,7 +209,7 @@ namespace PBT.Services
 
                 var uri = platformApiUrl + "/api/Department/UpdateDepartment/" + id;
                 var request = _cf.CheckRequestPut(platformApiUrl + "/api/Department/UpdateDepartment/" + id);
-                string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(department), uri);                
+                string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(department), uri);
                 await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - PutDepartment", "Berjaya kemaskini data untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return department;

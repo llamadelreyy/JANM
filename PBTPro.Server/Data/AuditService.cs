@@ -18,7 +18,7 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
 
-namespace PBT.Services
+namespace PBT.Data
 {
     [AllowAnonymous]
     public partial class AuditService : IDisposable
