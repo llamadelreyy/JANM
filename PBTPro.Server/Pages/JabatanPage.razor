@@ -1,0 +1,286 @@
+﻿@page "/jabatan"
+@attribute [AllowAnonymous]
+
+@using PBT.Data
+@inject JabatanService _JabatanService
+@inject NavigationManager NavigationManager
+
+<style>
+    .dxbl-grid {
+        height: 88vh;
+        max-height: 88vh;
+    }
+</style>
+
+<div class="d-lg-flex border-bottom">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="\images\icons-small\hard-hat.png" />
+        <div class="textTitle">Jabatan</div>
+    </div>
+</div>
+
+<div class="item-container-x">
+
+    <DxGrid @ref="Grid"
+            Data="dataSource"
+            KeyFieldName="dept_id"
+            ShowGroupPanel="true"
+            ShowFilterRow="false"
+            TextWrapEnabled="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
+
+        <Columns>
+            <DxGridCommandColumn Width="55px">
+                <HeaderTemplate>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((JabatanProp)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                </CellDisplayTemplate>
+            </DxGridCommandColumn>
+            <DxGridDataColumn Caption="Kod" MinWidth="100" Width="12%" FieldName="dept_code" />
+            <DxGridDataColumn Caption="Nama" MinWidth="150" Width="28%" FieldName="dept_name" />
+            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="60%" FieldName="dept_desc" TextAlignment="GridTextAlignment.Left" />
+
+            <DxGridDataColumn FieldName="created_date"
+                              DisplayFormat="dd/MM/yyyy"
+                              Caption="Tarikh Data"
+                              MinWidth="100"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0">
+                <FilterMenuTemplate>
+                    <DateRange FilterContext="context" />
+                </FilterMenuTemplate>
+            </DxGridDataColumn>
+        </Columns>
+
+        <EditFormTemplate Context="EditFormContext">
+            @{
+                var dtData = (JabatanProp)EditFormContext.EditModel;
+            }
+            <DxFormLayout CssClass="w-100">
+                <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                    <table class="layout_edit">
+                        <tr>
+                            <td nowrap>Kod</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
+                            <td width="50%">
+                                <DxTextBox @bind-Text="@dtData.dept_code"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Kod ..."
+                                           Maxlength="10"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" />
+                            </td>
+                            <td width="100px">&nbsp;</td>
+                            <td nowrap></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%"></td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Nama</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
+                            <td width="50%">
+                                <DxTextBox @bind-Text="@dtData.dept_name"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Jabatan ..."
+                                           Maxlength="30"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" />
+                            </td>
+                            <td width="100px">&nbsp;</td>
+                            <td nowrap></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%"></td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Keterangan</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
+                            <td width="50%" colspan="6">
+                                <DxTextBox @bind-Text="@dtData.dept_desc"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Keterangan jabatan ..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" />
+                            </td>
+                        </tr>
+                    </table>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12">
+                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditFormTemplate>
+        <CustomValidators>
+            <MyCustomValidator DataItemValidating="ValidateGridData" />
+        </CustomValidators>
+
+        @*This is to count the summary*@
+        <TotalSummary>
+            <DxGridSummaryItem FooterColumnName="role_name"
+                               Name="Custom"
+                               SummaryType=GridSummaryItemType.Count />
+        </TotalSummary>
+
+    </DxGrid>
+</div>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+        <br />Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
+
+
+@code {
+    [Inject] IToastNotificationService ToastService { get; set; }
+    IEnumerable<JabatanProp> dataSource;
+
+
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
+    bool ConfirmationShown { get; set; } = false;
+    string strSelected { get; set; }
+    JabatanProp dtData { get; set; }
+
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    protected override async Task OnInitializedAsync()
+    {
+        dataSource = await _JabatanService.GetJabatanAsync();
+        DataLoadedTcs.TrySetResult(true);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+            await Grid.CancelEditAsync(); //.StartEditRowAsync(0);
+        }
+    }
+
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (JabatanProp)e.EditModel;
+        if (_data.dept_desc == null || _data.dept_desc.Trim() == "")
+        {
+            e.AddError(nameof(_data.dept_desc), "!!!!!!. Medan perlu diisi.");
+        }
+    }
+
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        bool blnSuccess = false;
+        if (e.IsNew)
+            blnSuccess = true; //await _JabatanService.InsertUserRoleAsync((JabatanProp)e.EditModel, intCurrentUserId);
+        else
+            blnSuccess = true; //await _JabatanService.UpdateUserRoleAsync((JabatanProp)e.EditModel, intCurrentUserId);
+
+        if (blnSuccess)
+        {
+            await UpdateDataAsync();
+
+            ToastService.ShowToast(new ToastOptions()
+                {
+                    ProviderName = "Overview",
+                    ThemeMode = ToastThemeMode.Saturated,
+                    RenderStyle = ToastRenderStyle.Success,
+                    Title = "Proses kemaskini selesai."
+                });
+        }
+        else
+        {
+            ToastService.ShowToast(new ToastOptions()
+                {
+                    ProviderName = "Overview",
+                    ThemeMode = ToastThemeMode.Saturated,
+                    RenderStyle = ToastRenderStyle.Danger,
+                    Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
+                });
+        }
+    }
+
+    async Task UpdateDataAsync()
+    {
+        //Refresh back the data source
+        dataSource = await _JabatanService.GetJabatanAsync();
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+    async Task Delete(JabatanProp item)
+    {
+        strSelected = item.dept_name;
+        dtData = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        if (dtData != null)
+        {
+            //await _JabatanService.RemoveJabatanAsync((JabatanProp)dtData);
+            //await UpdateDataAsync();
+        }
+        ConfirmationShown = false;
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = ToastRenderStyle.Success,
+                Title = "Proses hapus selesai."
+            });
+    }
+
+    void OnNoButtonClick()
+    {
+        ConfirmationShown = false;
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+}

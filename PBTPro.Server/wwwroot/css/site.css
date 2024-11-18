@@ -108,7 +108,7 @@ html, body {
 }
 
 .item-container-x {
-    padding: 0px 3px 20px 3px;
+    padding: 0px 2px 20px 1px;
     overflow:hidden;
     height: 100%;
 }
@@ -674,8 +674,8 @@ img.dxbl-image {
 
 .dx-helptitle {
     /*    background-color:#48b;*/
-     --bs-bg-opacity: 1;
-    background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
+    --bs-bg-opacity: 1;
+    background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)); /*!important*/
 }
 
 .priority-info {
@@ -825,6 +825,11 @@ img.dxbl-image {
     display: flex;
     padding-right: 15px;
     padding-bottom:15px;
+}
+
+.dashboard-box {
+    padding-top: 15px;
+    padding-bottom: 0px;
 }
 
 .round-button {
@@ -1155,4 +1160,79 @@ label {
     font-weight: bold;
     letter-spacing: 0.08rem;
     text-transform: uppercase;
+}
+
+/*Header css*/
+.dxbl-grid-header-content {
+    font-weight: bold;
+    letter-spacing: 0.05rem;
+    text-transform: uppercase !important;
+    font-size: 0.8rem !important;
+    line-height: 13px !important;
+    padding: 5px 0px !important;
+}
+
+.layout_edit td, .dxbl-fl-ctrl div {
+    font-weight: bold;
+    letter-spacing: 0.035rem;
+    font-size: 0.95rem !important;
+}
+
+.layout_edit .dxbl-text-edit, .dxbl-text-edit {
+    border: 0.12rem solid #aeacac !important;
+    border-radius: 3px !important;
+    background-color: #fbf9f9;
+    font-size: 0.95rem !important;
+    font-weight: bold !important;
+}
+
+.btn-edit-grid {
+    position: relative;
+    font-size: 0.8rem !important;
+    font-weight: bold;
+    letter-spacing: 0.15rem !important;
+    text-transform: uppercase;
+    padding: 5px 12px 5px 18px !important;
+    color: #fff;
+    border-radius: 3px !important;
+    cursor: pointer;
+}
+
+.combo-width {
+    min-width: 400px;
+    max-width: 400px;
+}
+
+.dxbl-modal-title {
+    font-weight: bold;
+    letter-spacing: 0.05rem;
+    text-transform: uppercase !important;
+    font-size: 0.9rem !important;
+}
+
+.dxbl-modal-body {
+    letter-spacing: 0.02rem;
+    font-size: 1rem !important;
+    padding:15px 15px !important;
+}
+
+.confirmation-btn {
+    position: relative;
+    font-size: 0.8rem !important;
+    font-weight: bold;
+    letter-spacing: 0.15rem !important;
+    text-transform: uppercase;
+    border-radius: 3px !important;
+    cursor: pointer;
+}
+
+.normal-btn {
+    position: relative;
+    font-size: 0.8rem !important;
+    font-weight: bold;
+    letter-spacing: 0.15rem !important;
+    text-transform: uppercase;
+    border-radius: 3px !important;
+    cursor: pointer;
+    padding: 7px 0 !important;
 }
