@@ -61,6 +61,7 @@ namespace PBTPro.Api.Controllers
             paginationInfo.CurrentPageNo = page;
 
             return Ok(audits, paginationInfo, "Sucess");
+            //return Ok(audits, "Sucess");
             //return await _dbContext.TbAuditlogs.ToListAsync();
         }
         [AllowAnonymous]

@@ -48,7 +48,7 @@ namespace PBTPro.Api.Controllers
                 }
 
                 //mstLots = await _dbContext.MstLots.AsNoTracking().ToListAsync();
-                return Ok(mstLots, null, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
+                return Ok(mstLots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -79,7 +79,7 @@ namespace PBTPro.Api.Controllers
                 }
 
                 //mstLots = await _dbContext.MstLots.AsNoTracking().ToListAsync();
-                return Ok(mstLots, null, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
+                return Ok(mstLots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
             }
             catch (Exception ex)
             {

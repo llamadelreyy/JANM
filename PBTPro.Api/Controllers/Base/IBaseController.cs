@@ -31,18 +31,34 @@ namespace PBTPro.Api.Controllers.Base
         /// <param name="returnMessage">Message to caller</param>
         /// <param name="returnParameter">Parameter for returnMessage</param>
         /// <returns>The created Microsoft.AspNetCore.Mvc.OkObjectResult for the response.</returns>
-        //protected OkObjectResult Ok<T>(T data, string returnMessage = "", List<string>? returnParameter = null)
-        //{
-        //    return base.Ok(new ReturnViewModel
-        //    {
-        //        DateTime = DateTime.Now,
-        //        ReturnCode = (int)HttpStatus.Success,
-        //        Status = "OK",
-        //        Data = data,
-        //        ReturnMessage = returnMessage,
-        //        ReturnParameter = returnParameter
-        //    });
-        //}
+        protected OkObjectResult Ok<T>(T data, string returnMessage = "", List<string>? returnParameter = null)
+        {
+            return base.Ok(new ReturnViewModel
+            {
+                DateTime = DateTime.Now,
+                ReturnCode = (int)HttpStatus.Success,
+                Status = "OK",
+                Data = data,
+                ReturnMessage = returnMessage,
+                ReturnParameter = returnParameter
+            });
+        }
+
+        protected PaginationInfo GetPaginationInfo(int count, int? skip, int? take)
+        {
+            var pageInfo = new PaginationInfo();
+            decimal tp = (decimal)count / (decimal)take!.Value;
+            int totalPage = (int)Math.Ceiling(tp);
+            int page = (skip!.Value / take!.Value) + 1;
+
+            pageInfo.TotalPages = totalPage;
+            pageInfo.TotalRecords = count;
+            pageInfo.RecordPerPage = take!.Value;
+            pageInfo.CurrentPageNo = page;
+
+            return pageInfo;
+        }
+
         protected OkObjectResult Ok<T>(T data, PaginationInfo paginationInfo, string returnMessage = "", List<string>? returnParameter = null)
         {
             return base.Ok(new ReturnViewModel
