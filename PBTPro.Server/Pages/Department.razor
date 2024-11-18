@@ -10,7 +10,7 @@
 @using PBTPro.DAL.Models;
 @using PBT.Data
 @inject NavigationManager NavigationManager
-@inject IToastService toastService
+@* @inject IToastService toastService *@
 
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -173,7 +173,7 @@
 </div>
 
 @code {
-
+    [Inject] IToastNotificationService ToastService { get; set; }
     private List<DepartmentInfo> _lstDepartment = new List<DepartmentInfo>();
 
     IGrid Grid { get; set; }
@@ -255,11 +255,25 @@
             if (blnSuccess)
             {
                 await UpdateDataAsync();
-                toastService.ShowInfo("Proses kemaskini selesai.");
+                // toastService.ShowInfo("Proses kemaskini selesai.");
+                ToastService.ShowToast(new ToastOptions()
+                    {
+                        ProviderName = "Overview",
+                        ThemeMode = ToastThemeMode.Saturated,
+                        RenderStyle = ToastRenderStyle.Success,
+                        Title = "Proses kemaskini selesai."
+                    });
             }
             else
             {
-                toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+                // toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+                ToastService.ShowToast(new ToastOptions()
+                    {
+                        ProviderName = "Overview",
+                        ThemeMode = ToastThemeMode.Saturated,
+                        RenderStyle = ToastRenderStyle.Danger,
+                        Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
+                    });
             }
         }
         catch (Exception ex)
@@ -293,7 +307,14 @@
             await UpdateDataAsync();
         }
         ConfirmationShown = false;
-        toastService.ShowInfo("Proses hapus selesai.");
+        // toastService.ShowInfo("Proses hapus selesai.");
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = ToastRenderStyle.Success,
+                Title = "Proses hapus selesai."
+            });
     }
 
     void OnNoButtonClick()
