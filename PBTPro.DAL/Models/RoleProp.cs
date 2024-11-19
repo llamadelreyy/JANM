@@ -1,4 +1,4 @@
-﻿namespace PBT.Data
+﻿namespace PBTPro.DAL.Models
 {
     public class RoleProp
     {

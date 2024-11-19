@@ -39,8 +39,6 @@ namespace PBT.Data
         }
 
         private List<EmailProp> _Email { get; set; }
-
-        const string className = "EmailService";
         public IConfiguration _configuration { get; }
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -87,11 +85,11 @@ namespace PBT.Data
                 //Open this when the API is completed
                 _Email = JsonConvert.DeserializeObject<List<EmailProp>>(jsonString);
 
-                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar konfigurasi emel.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar konfigurasi emel.", Convert.ToInt32(uID), LoggerName, "");
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
             }
         }
 
@@ -114,13 +112,13 @@ namespace PBT.Data
                 var request = _cf.CheckRequest(platformApiUrl + "/api/EmailConfig/InsertEmail");
                 string jsonString = await _cf.AddNew(request, emails, platformApiUrl + "/api/EmailConfig/InsertEmail");
                 EmailProp dtEmail = JsonConvert.DeserializeObject<EmailProp>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Tambah email config baru.", Convert.ToInt32(uID), LoggerName, "");
 
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah email config baru.", Convert.ToInt32(uID), LoggerName, "");
                 return dtEmail;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
@@ -137,13 +135,13 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/EmailConfig/DeleteEmail/" + id);
                 string jsonString = await _cf.Delete(request);
-                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk emel.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk emel.", Convert.ToInt32(uID), LoggerName, "");
 
                 return id;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return 0;
             }
         }
@@ -162,14 +160,14 @@ namespace PBT.Data
                 var uri = platformApiUrl + "/api/EmailConfig/UpdateEmail/" + id;
                 var request = _cf.CheckRequestPut(platformApiUrl + "/api/EmailConfig/UpdateEmail/" + id);
                 string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(dtEmail), uri);
-                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk emel.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk emel.", Convert.ToInt32(uID), LoggerName, "");
 
                 return dtEmail;
 
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
@@ -188,13 +186,13 @@ namespace PBT.Data
                 var request = _cf.CheckRequest(platformApiUrl + "/api/EmailConfig/ListEmailConfig");
                 string jsonString = await _cf.List(request);
                 List<EmailProp> arrItem = JsonConvert.DeserializeObject<List<EmailProp>>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai konfigurasi emel.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai konfigurasi emel.", Convert.ToInt32(uID), LoggerName, "");
 
                 return arrItem;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
@@ -229,7 +227,7 @@ namespace PBT.Data
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return "MSG=" + ex.Message + "; SOURCE=" + ex.Source + "; STACK TRACE=" + ex.StackTrace + "; EXCEPTION=" + ex.InnerException;
             }
         }
@@ -245,7 +243,7 @@ namespace PBT.Data
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return false;
             }
             finally

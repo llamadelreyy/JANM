@@ -36,8 +36,8 @@
             this.pageInfo2 = new DevExpress.XtraReports.UI.XRPageInfo();
             this.ReportHeader = new DevExpress.XtraReports.UI.ReportHeaderBand();
             this.xrLabel2 = new DevExpress.XtraReports.UI.XRLabel();
-            this.xrPictureBox1 = new DevExpress.XtraReports.UI.XRPictureBox();
             this.label1 = new DevExpress.XtraReports.UI.XRLabel();
+            this.xrPictureBox2 = new DevExpress.XtraReports.UI.XRPictureBox();
             this.objectDataSource1 = new DevExpress.DataAccess.ObjectBinding.ObjectDataSource(this.components);
             this.Title = new DevExpress.XtraReports.UI.XRControlStyle();
             this.DetailCaption1 = new DevExpress.XtraReports.UI.XRControlStyle();
@@ -149,8 +149,8 @@
             // 
             this.ReportHeader.Controls.AddRange(new DevExpress.XtraReports.UI.XRControl[] {
             this.xrLabel2,
-            this.xrPictureBox1,
-            this.label1});
+            this.label1,
+            this.xrPictureBox2});
             this.ReportHeader.HeightF = 111F;
             this.ReportHeader.Name = "ReportHeader";
             // 
@@ -165,16 +165,8 @@
             this.xrLabel2.StylePriority.UseFont = false;
             this.xrLabel2.StylePriority.UseForeColor = false;
             this.xrLabel2.StylePriority.UseTextAlignment = false;
-            this.xrLabel2.Text = "MAJLIS BANDARAYA PETALING JAYA";
+            this.xrLabel2.Text = "MAJLIS BANDARAYA DIRAJA KLANG";
             this.xrLabel2.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopCenter;
-            // 
-            // xrPictureBox1
-            // 
-            this.xrPictureBox1.ImageSource = new DevExpress.XtraPrinting.Drawing.ImageSource("svg", resources.GetString("xrPictureBox1.ImageSource"));
-            this.xrPictureBox1.LocationFloat = new DevExpress.Utils.PointFloat(0F, 0F);
-            this.xrPictureBox1.Name = "xrPictureBox1";
-            this.xrPictureBox1.SizeF = new System.Drawing.SizeF(149.2387F, 81.00001F);
-            this.xrPictureBox1.Sizing = DevExpress.XtraPrinting.ImageSizeMode.ZoomImage;
             // 
             // label1
             // 
@@ -194,9 +186,17 @@
             this.label1.Text = "LAPORAN KOMPAUN BERSERTA TAWARAN ";
             this.label1.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleLeft;
             // 
+            // xrPictureBox2
+            // 
+            this.xrPictureBox2.ImageSource = new DevExpress.XtraPrinting.Drawing.ImageSource("img", resources.GetString("xrPictureBox2.ImageSource"));
+            this.xrPictureBox2.LocationFloat = new DevExpress.Utils.PointFloat(0F, 0F);
+            this.xrPictureBox2.Name = "xrPictureBox2";
+            this.xrPictureBox2.SizeF = new System.Drawing.SizeF(91.45811F, 84.81001F);
+            this.xrPictureBox2.Sizing = DevExpress.XtraPrinting.ImageSizeMode.ZoomImage;
+            // 
             // objectDataSource1
             // 
-            this.objectDataSource1.DataSource = typeof(global::PBT.Data.LesenInfo);
+            this.objectDataSource1.DataSource = typeof(global::PBTPro.DAL.Models.LesenInfo);
             this.objectDataSource1.Name = "objectDataSource1";
             // 
             // Title
@@ -315,15 +315,15 @@
             // 
             this.xrLabel58.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel58.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
-            this.xrLabel58.LocationFloat = new DevExpress.Utils.PointFloat(0F, 646F);
+            this.xrLabel58.LocationFloat = new DevExpress.Utils.PointFloat(0F, 645F);
             this.xrLabel58.Name = "xrLabel58";
             this.xrLabel58.Padding = new DevExpress.XtraPrinting.PaddingInfo(6, 6, 0, 0, 100F);
-            this.xrLabel58.SizeF = new System.Drawing.SizeF(347.8752F, 22.5F);
+            this.xrLabel58.SizeF = new System.Drawing.SizeF(393.7086F, 22.5F);
             this.xrLabel58.StylePriority.UseBackColor = false;
             this.xrLabel58.StylePriority.UseFont = false;
             this.xrLabel58.StylePriority.UsePadding = false;
             this.xrLabel58.StylePriority.UseTextAlignment = false;
-            this.xrLabel58.Text = "YANG DIPERTUA MAJLIS BANDARAYA PETALING JAYA";
+            this.xrLabel58.Text = "DATUK BANDAR MAJLIS BANDARAYA DIRAJA KLANG";
             this.xrLabel58.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
             this.xrLabel58.WordWrap = false;
             // 
@@ -334,12 +334,12 @@
             this.xrLabel57.LocationFloat = new DevExpress.Utils.PointFloat(0F, 629.5F);
             this.xrLabel57.Name = "xrLabel57";
             this.xrLabel57.Padding = new DevExpress.XtraPrinting.PaddingInfo(6, 6, 0, 0, 100F);
-            this.xrLabel57.SizeF = new System.Drawing.SizeF(347.8752F, 22.5F);
+            this.xrLabel57.SizeF = new System.Drawing.SizeF(393.7086F, 22.5F);
             this.xrLabel57.StylePriority.UseBackColor = false;
             this.xrLabel57.StylePriority.UseFont = false;
             this.xrLabel57.StylePriority.UsePadding = false;
             this.xrLabel57.StylePriority.UseTextAlignment = false;
-            this.xrLabel57.Text = "(MUHAMMAD FAIZAL SHAH BIN SAFIAN SURI, PMP., AMP.) ";
+            this.xrLabel57.Text = "(YBHG DATIN PADUKA TPR NORAINI BINTI ROSLAN, DSIS., PPT.) ";
             this.xrLabel57.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
             this.xrLabel57.WordWrap = false;
             // 
@@ -350,12 +350,13 @@
             this.xrLabel56.LocationFloat = new DevExpress.Utils.PointFloat(0F, 601.4999F);
             this.xrLabel56.Name = "xrLabel56";
             this.xrLabel56.Padding = new DevExpress.XtraPrinting.PaddingInfo(6, 6, 0, 0, 100F);
-            this.xrLabel56.SizeF = new System.Drawing.SizeF(313.5F, 28F);
+            this.xrLabel56.SizeF = new System.Drawing.SizeF(393.7086F, 28F);
             this.xrLabel56.StylePriority.UseBackColor = false;
             this.xrLabel56.StylePriority.UseFont = false;
             this.xrLabel56.StylePriority.UsePadding = false;
             this.xrLabel56.StylePriority.UseTextAlignment = false;
-            this.xrLabel56.Text = "  ----------------------------------------------------------------";
+            this.xrLabel56.Text = "   ------------------------------------------------------------------------------" +
+    "------------";
             this.xrLabel56.TextAlignment = DevExpress.XtraPrinting.TextAlignment.BottomLeft;
             this.xrLabel56.WordWrap = false;
             // 
@@ -1157,7 +1158,7 @@
             this.DetailData1,
             this.DetailData3_Odd,
             this.PageInfo});
-            this.Version = "23.1";
+            this.Version = "24.1";
             ((System.ComponentModel.ISupportInitialize)(this.objectDataSource1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this)).EndInit();
 
@@ -1176,7 +1177,6 @@
         private DevExpress.XtraReports.UI.XRControlStyle DetailData1;
         private DevExpress.XtraReports.UI.XRControlStyle DetailData3_Odd;
         private DevExpress.XtraReports.UI.XRControlStyle PageInfo;
-        private DevExpress.XtraReports.UI.XRPictureBox xrPictureBox1;
         private DevExpress.XtraReports.UI.XRLabel xrLabel2;
         private DevExpress.XtraReports.UI.DetailBand Detail;
         private DevExpress.XtraReports.UI.XRLabel xrLabel3;
@@ -1235,5 +1235,6 @@
         private DevExpress.XtraReports.UI.XRLabel xrLabel58;
         private DevExpress.XtraReports.UI.XRLabel label1;
         private DevExpress.XtraReports.UI.PageFooterBand PageFooter;
+        private DevExpress.XtraReports.UI.XRPictureBox xrPictureBox2;
     }
 }

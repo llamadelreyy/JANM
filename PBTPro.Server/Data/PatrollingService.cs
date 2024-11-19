@@ -16,6 +16,7 @@ using PBT.Data;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
+using System.Reflection;
 
 namespace PBT.Data
 {
@@ -78,7 +79,7 @@ namespace PBT.Data
         public async Task<List<PatrollingInfo>> GetAllPatrolling()
         {
             GetDefaultPermission();
-            //var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
             try
             {
                 var platformApiUrl = _configuration["PlatformAPI"];
@@ -87,13 +88,13 @@ namespace PBT.Data
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Patrolling/ListPatrolling");
                 string jsonString = await _cf.List(request);
                 List<PatrollingInfo> patrollingList = JsonConvert.DeserializeObject<List<PatrollingInfo>>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, "PatrollingService - GetAllPatrolling", "Papar semua senarai jadual rondaan.", 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai jadual rondaan.", 1, LoggerName, "");
 
                 return patrollingList;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "PatrollingService - GetAllPatrolling", ex.Message, 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }

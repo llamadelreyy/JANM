@@ -1,4 +1,7 @@
 ﻿using MySqlConnector;
+using PBTPro.DAL;
+using PBTPro.DAL.Models;
+using PBTPro.DAL.Services;
 using System.Data;
 using System.Reflection;
 
@@ -31,20 +34,51 @@ namespace PBT.Data
 
         private List<UserRoleProp> _UserRole { get; set; }
 
-        private readonly SqlConnectionConfiguration _configuration;
-        public UserRoleService(SqlConnectionConfiguration configuration)
+        public IConfiguration _configuration { get; }
+        private readonly PBTProDbContext _dbContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        protected readonly CommonFunction _cf;
+        protected readonly SharedFunction _sf;
+        private readonly ILogger<UserRoleService> _logger;
+        private string LoggerName = "";
+        string _controllerName = "";
+
+        public UserRoleService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<UserRoleService> logger, PBTProDbContext dbContext)
         {
             _configuration = configuration;
-            _UserRole = CreateUserRole();
+            _dbContext = dbContext;
+            _httpContextAccessor = httpContextAccessor;
+            _cf = new CommonFunction(httpContextAccessor, configuration);
+            _sf = new SharedFunction(httpContextAccessor);
+            _logger = logger;
+            _controllerName = (string)(_httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
+            CreateUserRole();
         }
-
-        public List<UserRoleProp> CreateUserRole()
+        public void GetDefaultPermission()
         {
-            List<UserRoleProp> dataSource = new List<UserRoleProp>();
+            if (LoggerName != null || LoggerName != "")
+                LoggerName = "1";//User.Identity.Name;  // assign value to logger name
+            else LoggerName = null;
+        }
+        public async void CreateUserRole()
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
 
             try
             {
-                dataSource = new List<UserRoleProp> {
+
+                //////var platformApiUrl = _configuration["PlatformAPI"];
+                //////var accessToken = _cf.CheckToken();
+
+                //////var request = _cf.CheckRequest(platformApiUrl + "/api/UserRole/ListUserRole");
+                //////string jsonString = await _cf.List(request);
+
+                ////////Open this when the API is completed
+                //////_UserRole = JsonConvert.DeserializeObject<List<UserRoleProp>>(jsonString);
+                ///
+
+                _UserRole = new List<UserRoleProp> {
                     new UserRoleProp {
                         table_id = 1,
                         user_id = 1,
@@ -76,181 +110,19 @@ namespace PBT.Data
                         created_date = DateTime.Parse("2023/03/10")
                     }
                  };
+
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai pengguna dan peranan sistem.", Convert.ToInt32(uID), LoggerName, "");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception caught : CreateUserRole - {0}", ex);
-                return dataSource;
-            }
-            finally
-            {
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
             }
 
-            return dataSource;
         }
 
         public Task<List<UserRoleProp>> GetUserRoleAsync(CancellationToken ct = default)
         {
             return Task.FromResult(_UserRole);
-        }
-
-
-        public Task<bool> InsertUserRoleAsync(UserRoleProp changed)
-        {
-            using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
-            {
-                const string strSQL = @"insert into dbo.City (Name,State) values (@Name,@State)";
-                if (conn.State == ConnectionState.Closed)
-                    conn.Open();
-
-                using (MySqlCommand? myCmd = new MySqlCommand(strSQL, conn))
-                {
-                    try
-                    {
-                        myCmd.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Exception caught : " + MethodBase.GetCurrentMethod().Name + " --> {0}", ex);
-                        return Task.FromResult(false); ;
-                    }
-                    finally
-                    {
-                        if (conn.State == ConnectionState.Open)
-                            conn.Close();
-                    }
-                }
-            }
-
-            return Task.FromResult(true);
-        }
-
-        public Task<bool> UpdateUserRoleAsync(UserRoleProp changed)
-        {
-
-            using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
-            {
-                const string strSQL = @"";
-                if (conn.State == ConnectionState.Closed)
-                    conn.Open();
-
-                using (MySqlCommand? myCmd = new MySqlCommand(strSQL, conn))
-                {
-                    try
-                    {
-                        myCmd.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Exception caught : " + MethodBase.GetCurrentMethod().Name + " --> {0}", ex);
-                        return Task.FromResult(false); ;
-                    }
-                    finally
-                    {
-                        if (conn.State == ConnectionState.Open)
-                            conn.Close();
-                    }
-                }
-            }
-
-
-            return Task.FromResult(true);
-        }
-
-        public Task<bool> RemoveUserRoleAsync(UserRoleProp dtDataItem)
-        {
-            using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
-            {
-                const string strSQL = @"";
-                if (conn.State == ConnectionState.Closed)
-                    conn.Open();
-
-                using (MySqlCommand? myCmd = new MySqlCommand(strSQL, conn))
-                {
-                    try
-                    {
-                        myCmd.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Exception caught : " + MethodBase.GetCurrentMethod().Name + " --> {0}", ex);
-                        return Task.FromResult(false); ;
-                    }
-                    finally
-                    {
-                        if (conn.State == ConnectionState.Open)
-                            conn.Close();
-                    }
-                }
-            }
-
-            return Task.FromResult(true);
-        }
-
-        public Task<List<UserRoleProp>> RefreshUserRoleAsync()
-        {
-            List<UserRoleProp> arrItem = new List<UserRoleProp>();
-            UserRoleProp _item;
-
-            using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
-            {
-                const string strSQL = @"";
-                if (conn.State == ConnectionState.Closed)
-                    conn.Open();
-
-                using (MySqlCommand? myCmd = new MySqlCommand(strSQL, conn))
-                {
-                    using (MySqlDataReader? myReader = myCmd.ExecuteReader())
-                    {
-                        try
-                        {
-                            //Loop every data
-                            while (myReader.Read())
-                            {
-                                _item = new UserRoleProp();
-                                //_item.tbId = myReader.IsDBNull("tbID") ? 0 : myReader.GetInt32("tbID");
-                                //_item.code = myReader.IsDBNull("tbCode") ? "" : myReader.GetString("tbCode");
-                                //_item.divisionName = myReader.IsDBNull("tbDivision") ? "" : myReader.GetString("tbDivision");
-                                //_item.sourcesName = myReader.IsDBNull("tbSources") ? "" : myReader.GetString("tbSources");
-                                //_item.industryName = myReader.IsDBNull("tbIndustry") ? "" : myReader.GetString("tbIndustry");
-                                //_item.sectorName = myReader.IsDBNull("tbSector") ? "" : myReader.GetString("tbSector");
-                                //_item.companyName = myReader.IsDBNull("tbCompanyName") ? "" : myReader.GetString("tbCompanyName");
-                                //_item.yearOfEstablishment = myReader.IsDBNull("tbYearOfEstablishment") ? null : myReader.GetDateTime("tbYearOfEstablishment");
-                                //_item.directorsManagement = myReader.IsDBNull("tbDirectorsManagement") ? "" : myReader.GetString("tbDirectorsManagement");
-                                //_item.natureOfBusiness = myReader.IsDBNull("tbNatureOfBusiness") ? "" : myReader.GetString("tbNatureOfBusiness");
-                                //_item.ownership = myReader.IsDBNull("tbOwnership") ? "" : myReader.GetString("tbOwnership");
-                                //_item.revenue = myReader.IsDBNull("tbRevenue") ? 0 : myReader.GetDouble("tbRevenue");
-                                //_item.revenueYear = myReader.IsDBNull("tbYear") ? 0 : myReader.GetInt32("tbYear");
-                                //_item.competitionMarketIssues = myReader.IsDBNull("tbCompetitionMarketIssues") ? "" : myReader.GetString("tbCompetitionMarketIssues");
-                                //_item.myccsRecommendations = myReader.IsDBNull("tbMyCCsRecommendations") ? "" : myReader.GetString("tbMyCCsRecommendations");
-                                //_item.issuesNews = myReader.IsDBNull("tbIssuesNews") ? "" : myReader.GetString("tbIssuesNews");
-                                //_item.marketShare = myReader.IsDBNull("tbMarketShare") ? 0 : myReader.GetDouble("tbMarketShare");
-
-                                _item.created_date = myReader.IsDBNull("created_date") ? null : myReader.GetDateTime("created_date");
-                                _item.created_by = myReader.IsDBNull("created_by") ? "" : myReader.GetString("created_by");
-                                _item.updated_date = myReader.IsDBNull("updated_date") ? null : myReader.GetDateTime("updated_date");
-                                _item.updated_by = myReader.IsDBNull("updated_by") ? "" : myReader.GetString("updated_by");
-                                _item.active_flag = myReader.IsDBNull("active_flag") ? false : myReader.GetBoolean("active_flag");
-
-                                //Add item into list
-                                arrItem.Add(_item);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("Exception caught : " + MethodBase.GetCurrentMethod().Name + " --> {0}", ex);
-                            return Task.FromResult(arrItem); ;
-                        }
-                        finally
-                        {
-                            if (conn.State == ConnectionState.Open)
-                                conn.Close();
-                        }
-                    }
-                }
-            }
-
-            return Task.FromResult(arrItem);
         }
 
     }

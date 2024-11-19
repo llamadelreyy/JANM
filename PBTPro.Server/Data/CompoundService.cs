@@ -48,7 +48,7 @@ namespace PBT.Data
         private string LoggerName = "";
         string _controllerName = "";
 
-        public CompoundService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<DepartmentService> logger, PBTProDbContext dbContext)
+        public CompoundService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<CompoundService> logger, PBTProDbContext dbContext)
         {
             _configuration = configuration;
             _dbContext = dbContext;

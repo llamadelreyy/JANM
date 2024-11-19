@@ -237,47 +237,53 @@ namespace PBTPro.DAL.Services
         [AllowAnonymous]
         public async Task<bool> CreateAuditLog(int intType, string strMethod, string strMessage, int userId, string uname, string moduleName, int roleid=0)
         {
-            try
-            {
-                AuditlogInfo auditlog = new AuditlogInfo();
-               
-                auditlog.AuditRoleId = roleid;
-                auditlog.AuditModuleName = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName;
-                auditlog.AuditDescription = strMessage;
-                auditlog.CreatedBy = userId;
-                auditlog.AuditType = intType;                
-                auditlog.AuditUsername = uname;                
-                auditlog.AuditMethod = strMethod;
+            //////try
+            //////{
+            //////    AuditlogInfo auditlog = new AuditlogInfo();
 
-                //Calling api to perform addnew audit transaction
-                var accessToken = CheckToken();
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var request = CheckRequest("/api/Audit/InsertAudit");
+            //////    auditlog.AuditRoleId = roleid;
+            //////    auditlog.AuditModuleName = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName;
+            //////    auditlog.AuditDescription = strMessage;
+            //////    auditlog.CreatedBy = userId;
+            //////    auditlog.AuditType = intType;                
+            //////    auditlog.AuditUsername = uname;                
+            //////    auditlog.AuditMethod = strMethod;
 
-                var client = new HttpClient();
-                client.BaseAddress = new Uri(platformApiUrl);
-                string value = JsonConvert.SerializeObject(auditlog);
-                StringContent jsonContent = new(value, Encoding.UTF8, "application/json");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                HttpResponseMessage response = await client.PostAsync("/api/Audit/InsertAudit", jsonContent).ConfigureAwait(false);
+            //////    //Calling api to perform addnew audit transaction
+            //////    var accessToken = CheckToken();
+            //////    var platformApiUrl = _configuration["PlatformAPI"];
+            //////    var request = CheckRequest("/api/Audit/InsertAudit");
 
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    var results= await response.Content.ReadAsStringAsync();
-                    return true;
-                }
-                else
-                {                   
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                   
-                    throw new Exception($"API request failed with status code {response.StatusCode}: {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                throw (ex);
-            }           
+            //////    var client = new HttpClient();
+            //////    client.BaseAddress = new Uri(platformApiUrl);
+            //////    string value = JsonConvert.SerializeObject(auditlog);
+            //////    StringContent jsonContent = new(value, Encoding.UTF8, "application/json");
+            //////    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            //////    HttpResponseMessage response = await client.PostAsync("/api/Audit/InsertAudit", jsonContent).ConfigureAwait(false);
+
+            //////    if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            //////    {
+            //////        var results= await response.Content.ReadAsStringAsync();
+            //////        return true;
+            //////    }
+            //////    else
+            //////    {                   
+            //////        var errorContent = await response.Content.ReadAsStringAsync();
+
+            //////        throw new Exception($"API request failed with status code {response.StatusCode}: {errorContent}");
+            //////    }
+            //////}
+            //////catch (Exception ex)
+            //////{
+            //////    throw (ex);
+            //////}
+            ///
+
+            //skip for development - azmee
+            await Task.Delay(500); // Wait for 1/2 seconds
+            return true;
         }
+
         /// <summary>
         /// Get current method name
         /// </summary>

@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
+using System.Reflection;
 
 namespace PBT.Data
 {
@@ -86,13 +87,13 @@ namespace PBT.Data
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
                 string jsonString = await _cf.List(request);
                 List<DepartmentInfo> departmentList = JsonConvert.DeserializeObject<List<DepartmentInfo>>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - GetAllDepartment", "Papar semua senarai jabatan.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return departmentList;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - GetAllDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
@@ -111,13 +112,13 @@ namespace PBT.Data
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
                 string jsonString = await _cf.List(request);
                 List<DepartmentInfo> departmentList = JsonConvert.DeserializeObject<List<DepartmentInfo>>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - RefreshListDepartment", "Papar semua senarai jabatan.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return departmentList;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - RefreshListDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
@@ -136,13 +137,13 @@ namespace PBT.Data
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/RetrieveDepartment/" + id);
                 string jsonString = await _cf.Retrieve(request, accessToken);
                 DepartmentInfo departmentProp = JsonConvert.DeserializeObject<DepartmentInfo>(jsonString.ToString());
-                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - GetIdDepartment", "Papar maklumat terperinci jabatan.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return departmentProp;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - GetIdDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
@@ -161,13 +162,13 @@ namespace PBT.Data
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/InsertDepartment");
                 string jsonString = await _cf.AddNew(request, departments, platformApiUrl + "/api/Department/InsertDepartment");
                 DepartmentInfo departmentProp = JsonConvert.DeserializeObject<DepartmentInfo>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - PostDepartment", "Tambah data baru untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah data baru untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return departmentProp;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - PostDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
@@ -184,13 +185,13 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/DeleteDepartment/" + id);
                 string jsonString = await _cf.Delete(request);
-                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - DeleteDepartment", "Berjaya padam data untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return id;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - DeleteDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return 0;
             }
         }
@@ -209,21 +210,21 @@ namespace PBT.Data
                 var uri = platformApiUrl + "/api/Department/UpdateDepartment/" + id;
                 var request = _cf.CheckRequestPut(platformApiUrl + "/api/Department/UpdateDepartment/" + id);
                 string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(department), uri);
-                await _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - PutDepartment", "Berjaya kemaskini data untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return department;
 
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "DepartmentService - PutDepartment", ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
 
         public Task<List<DepartmentInfo>> GetDepartmentAsync(CancellationToken ct = default)
         {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - GetDepartmentAsync", "Berjaya muat semula senarai untuk jabatan.", 1, LoggerName, "");
+            var result = _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk jabatan.", 1, LoggerName, "");
             return Task.FromResult(_Department);
         }
     }

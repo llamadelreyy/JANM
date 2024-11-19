@@ -170,7 +170,7 @@ namespace PBT.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - PostFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return faq;
+                return null;
             }
         }
 

@@ -1,4 +1,6 @@
 ﻿using GoogleMapsComponents.Maps;
+using PBTPro.DAL.Models;
+
 
 namespace PBT.Data
 {
