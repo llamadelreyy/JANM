@@ -62,4 +62,10 @@ public partial class UserProfile
     public int? ProfileSectionId { get; set; }
 
     public int? ProfileUnitId { get; set; }
+
+    public string? ProfileUserName { get; set; }
+
+    public string? ProfileStaffNo { get; set; }
+    public string ProfileUserRoles { get; set; } = "";
+    public string Text => $"{ProfileUserName} ({ProfileName})"; 
 }

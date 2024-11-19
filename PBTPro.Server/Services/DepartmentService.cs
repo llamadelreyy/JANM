@@ -13,7 +13,6 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using PBT.Pages;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
@@ -221,6 +220,7 @@ namespace PBT.Services
                 return null;
             }
         }
+
         public Task<List<DepartmentInfo>> GetDepartmentAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, "DepartmentService - GetDepartmentAsync", "Berjaya muat semula senarai untuk jabatan.", 1, LoggerName, "");
