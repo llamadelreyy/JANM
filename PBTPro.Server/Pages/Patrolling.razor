@@ -1,7 +1,6 @@
-﻿@page "/SenaraiJabatan"
+﻿@page "/SenaraiRondaan"
 @attribute [AllowAnonymous]
 
-@inject DepartmentService _department
 @using System.Globalization
 @implements IDisposable
 @using Blazored.Toast.Services
@@ -10,12 +9,13 @@
 @using PBTPro.DAL.Models;
 @using PBT.Data
 @inject NavigationManager NavigationManager
-@* @inject IToastService toastService *@
+@inject PatrollingService _patrolling
+@inject IToastService toastService
 
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="/images/icons/information.png" />
-        <div class="textTitle">Tetapan - Senarai Jabatan</div>
+        <div class="textTitle">Rondaan - Senarai Jadual Rondaan</div>
     </div>
 </div>
 
@@ -28,9 +28,15 @@
 
 <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 <div class="item-container-x">
+    <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+        <DxTab Text="Belum Mula (8)"></DxTab>
+        <DxTab Text="Dalam Rondaan (5)"></DxTab>
+        <DxTab Text="Selesai (1)"></DxTab>
+    </DxTabs>
+
     <DxGrid @ref="Grid"
-            Data="@_lstDepartment"
-            KeyFieldName="DeptId"
+            Data="@_lstPatrollings"
+            KeyFieldName="PatrollingId"
             ShowGroupPanel="true"
             ShowFilterRow="true"
             CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
@@ -46,7 +52,7 @@
             PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
             PageSizeSelectorAllRowsItemVisible="true"
             PagerAutoHideNavButtons="false"
-            ColumnResizeMode="@ColumnResizeMode"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
             HighlightRowOnHover="true"
             CssClass="mv-1000">
 
@@ -58,20 +64,13 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((DepartmentInfo)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((PatrollingInfo)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
 
 
-            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptCode)" Caption="Kod Jabatan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptDepartName)" Caption="Nama Jabatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptDescription)" Caption="Catatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(DepartmentInfo.DeptStatus)" Caption="Status Aktif" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
-                <CellDisplayTemplate>
-                    <div>@GetStatusDepartmentIconHtml(((DepartmentInfo)context.DataItem).DeptStatus)</div>
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-            <DxGridDataColumn FieldName=@nameof(DepartmentInfo.CreatedDate)
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingId)" Caption="#" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName=@nameof(PatrollingInfo.CreatedDate)
                               DisplayFormat="dd/MM/yyyy"
                               Caption="Tarikh Cipta"
                               MinWidth="120"
@@ -79,65 +78,89 @@
                               TextAlignment="GridTextAlignment.Center"
                               SortOrder="GridColumnSortOrder.Ascending"
                               SortIndex="0" />
+
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingLocation)" Caption="Lokasi Rondaan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingOfficerName)" Caption="Nama Pegawai" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingStartTime)" Caption="Masa Mula Rondaan" DisplayFormat="dd/MM/yyyy"
+                              MinWidth="120"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0" />
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingEndTime)" Caption="Masa Mula Rondaan" DisplayFormat="dd/MM/yyyy"
+                              MinWidth="120"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0" />
+            <DxGridDataColumn FieldName="@nameof(PatrollingInfo.PatrollingStatus)" Caption="Status Rondaan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+
         </Columns>
 
         <EditFormTemplate Context="editFormContext">
             @{
-                var dtData = (DepartmentInfo)editFormContext.EditModel;
+                var dtData = (PatrollingInfo)editFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
 
 
 
                 <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
-                    <table>
+                    <table class="layout_edit">
 
                         <tr>
-                            <td nowrap>Status Paparan</td>
+                            <td nowrap>Status Rondaan</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxComboBox Data="@DeptStatusOptions"
+                                <DxComboBox Data="@patrollingStatusOptions"
                                             ShowValidationIcon="true"
                                             NullText="Pilih Status..."
-                                            @bind-Value="@dtData.DeptStatus"
-                                            @bind-Text="@dtData.DeptStatus">
+                                            @bind-Value="@dtData.PatrollingStatus"
+                                            @bind-Text="@dtData.PatrollingStatus">
                                 </DxComboBox>
                             </td>
                         </tr>
                         <tr>
-                            <td nowrap>Kod Jabatan</td>
+                            <td nowrap>Nama Pegawai</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.DeptCode"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Kod Jabatan..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:370px;" />
+                                <DxComboBox Data="@patrollingOfficerName"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Nama Pegawai..."
+                                            @bind-Value="@dtData.PatrollingOfficerName"
+                                            @bind-Text="@dtData.PatrollingOfficerName">
+                                </DxComboBox>
                             </td>
                         </tr>
                         <tr>
-                            <td nowrap>Nama Jabatan</td>
+                            <td nowrap>Lokasi Rondaan</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.DeptDepartName"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Nama Jabatan..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:370px;" />
+                                <DxComboBox Data="@patrollingLocation"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Lokasi Rondaan..."
+                                            @bind-Value="@dtData.PatrollingLocation"
+                                            @bind-Text="@dtData.PatrollingLocation">
+                                </DxComboBox>
                             </td>
                         </tr>
                         <tr>
-                            <td nowrap valign="top">Catatan</td>
-                            <td valign="top">&nbsp;:&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxMemo @bind-Text="@dtData.DeptDescription"
-                                        CssClass="cw-480"
-                                        Rows="3" />
-                            </td>
+                            <td nowrap>Tarikh Mohon</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%"><b>@(dtData.PatrollingStartTime.Value.ToString("dd/MM/yyyy"))</b></td>
+                            <td width="100px">&nbsp;</td>
+                            <td nowrap></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%"></td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Tarikh Lulus</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%"><b>@(dtData.PatrollingEndTime == null ? "" : dtData.PatrollingEndTime.Value.ToString("dd/MM/yyyy"))</b></td>
+                            <td width="100px">&nbsp;</td>
+                            <td nowrap></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%"></td>
                         </tr>
                         <tr style="height:10px;"><td colspan="7"></td></tr>
                         <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
@@ -171,10 +194,10 @@
         </BodyContentTemplate>
     </DxPopup>
 </div>
-
 @code {
-    [Inject] IToastNotificationService ToastService { get; set; }
-    private List<DepartmentInfo> _lstDepartment = new List<DepartmentInfo>();
+
+    private List<PatrollingInfo> _lstPatrollings = new List<PatrollingInfo>();
+    int ActiveTabIndex;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -183,18 +206,18 @@
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
     int intSelected { get; set; }
-    DepartmentInfo dtData { get; set; }
+    PatrollingInfo dtData { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
-        _lstDepartment = await _department.GetDepartmentAsync();
+        _lstPatrollings = await _patrolling.GetPatrollingAsync();
         DataLoadedTcs.TrySetResult(true);
         try
         {
-            _lstDepartment = await _department.GetAllDepartment();
+            _lstPatrollings = await _patrolling.GetAllPatrolling();
         }
         catch (Exception ex)
         {
@@ -211,69 +234,45 @@
     }
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (DepartmentInfo)e.EditModel;
+        var _data = (PatrollingInfo)e.EditModel;
 
-        if (_data.DeptStatus == null || _data.DeptStatus.Trim() == "")
+        if (_data.PatrollingOfficerName == null || _data.PatrollingOfficerName.Trim() == "")
         {
-            e.AddError(nameof(_data.DeptStatus), "Status Jabatan tidak dipilih. Medan perlu diisi.");
+            e.AddError(nameof(_data.PatrollingOfficerName), "Nama pegawai rondaan tidak sah. Medan perlu diisi.");
         }
 
-        if (_data.DeptCode == null || _data.DeptCode.Trim() == "")
+        if (_data.PatrollingLocation == null || _data.PatrollingLocation == "")
         {
-            e.AddError(nameof(_data.DeptCode), "Kod Jabatan tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.DeptDepartName == null || _data.DeptDepartName == "")
-        {
-            e.AddError(nameof(_data.DeptDepartName), "Nama Jabatan tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.DeptDescription == null || _data.DeptDescription == "")
-        {
-            e.AddError(nameof(_data.DeptDescription), "Catatan Jabatan tidak sah. Medan perlu diisi.");
+            e.AddError(nameof(_data.PatrollingLocation), "Lokasi rondaan tidak sah. Medan perlu diisi.");
         }
     }
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         bool blnSuccess = false;
-        var editModel = e.EditModel as DepartmentInfo;
-        var itmId = editModel.DeptId;
+        var editModel = e.EditModel as PatrollingInfo;
+        var itmId = editModel.PatrollingId;
         try
         {
             if (e.IsNew)
             {
                 var jsonString = JsonConvert.SerializeObject(editModel);
-                await _department.PostDepartment(jsonString);
+                await _patrolling.PostPatrolling(jsonString);
                 blnSuccess = true;
             }
             else
             {
-                var existingDept = await _department.GetIdDepartment(itmId);
-                await _department.PutDepartment(itmId, existingDept);
+                var existingPatrolling = await _patrolling.GetIdPatrolling(itmId);
+                await _patrolling.PutPatrolling(itmId, existingPatrolling);
                 blnSuccess = true;
             }
             if (blnSuccess)
             {
                 await UpdateDataAsync();
-                // toastService.ShowInfo("Proses kemaskini selesai.");
-                ToastService.ShowToast(new ToastOptions()
-                    {
-                        ProviderName = "Overview",
-                        ThemeMode = ToastThemeMode.Saturated,
-                        RenderStyle = ToastRenderStyle.Success,
-                        Title = "Proses kemaskini selesai."
-                    });
+                toastService.ShowInfo("Proses kemaskini selesai.");
             }
             else
             {
-                // toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
-                ToastService.ShowToast(new ToastOptions()
-                    {
-                        ProviderName = "Overview",
-                        ThemeMode = ToastThemeMode.Saturated,
-                        RenderStyle = ToastRenderStyle.Danger,
-                        Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
-                    });
+                toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
             }
         }
         catch (Exception ex)
@@ -283,7 +282,7 @@
     }
     async Task UpdateDataAsync()
     {
-        _lstDepartment = await _department.RefreshListDepartment();
+        _lstPatrollings = await _patrolling.RefreshListPatrolling();
     }
 
     public void Dispose()
@@ -291,10 +290,10 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(DepartmentInfo item)
+    async Task Delete(PatrollingInfo item)
     {
-        strSelected = item.DeptCode;
-        intSelected = item.DeptId;
+        strSelected = item.PatrollingOfficerName;
+        intSelected = item.PatrollingId;
         dtData = item;
         ConfirmationShown = true;
     }
@@ -303,18 +302,11 @@
     {
         if (dtData != null)
         {
-            var deleteResult = await _department.DeleteDepartment(dtData.DeptId);
+            var deleteResult = await _patrolling.DeletePatrolling(dtData.PatrollingId);
             await UpdateDataAsync();
         }
         ConfirmationShown = false;
-        // toastService.ShowInfo("Proses hapus selesai.");
-        ToastService.ShowToast(new ToastOptions()
-            {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = ToastRenderStyle.Success,
-                Title = "Proses hapus selesai."
-            });
+        toastService.ShowInfo("Proses hapus selesai.");
     }
 
     void OnNoButtonClick()
@@ -328,7 +320,7 @@
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
-    public MarkupString GetStatusDepartmentIconHtml(string status)
+    public MarkupString GetStatusPatrollingIconHtml(string status)
     {
         string priorytyClass = "";
         string title = "";
@@ -353,9 +345,23 @@
         string html = string.Format("{0} <br/> {1}", strStatus, strNama.ToUpper());
         return new MarkupString(html);
     }
-    private List<string> DeptStatusOptions = new List<string>
+    private List<string> patrollingStatusOptions = new List<string>
     {
         "Aktif",
         "Tidak Aktif"
     };
+    private List<string> patrollingOfficerName = new List<string>
+    {
+        "Mohd Abu",
+        "Siti"
+    };
+    private List<string> patrollingLocation = new List<string>
+    {
+        "Bukit Jalil",
+        "Klang"
+    };
+    void OnActiveTabIndexChanged(int index)
+    {
+        ActiveTabIndex = index;
+    }
 }

@@ -77,6 +77,8 @@ builder.Services.AddTransient<ParamFormFieldService>();
 builder.Services.AddTransient<DepartmentService>();
 builder.Services.AddTransient<AuditService>();
 builder.Services.AddTransient<ArchiveAuditService>();
+builder.Services.AddTransient<PatrollingService>();
+
 
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();
