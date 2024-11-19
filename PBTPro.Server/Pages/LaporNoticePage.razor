@@ -3,6 +3,7 @@
 
 @using System.Globalization
 @using PBT.Data
+@using PBTPro.DAL.Models;
 @inject NoticeService _NoticeService
 @inject NavigationManager NavigationManager
 
@@ -19,6 +20,7 @@
         max-height: 79vh;
     }
 </style>
+
 <div class="item-container-x">
     <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
         <DxTab Text="Notis Lesen (8)"></DxTab>

@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MySqlConnector;
 using Polly;
+using PBTPro.DAL.Models;
 
 namespace PBT.Services;
 

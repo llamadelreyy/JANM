@@ -2,6 +2,7 @@
 @attribute [AllowAnonymous]
 
 @using PBT.Data
+@using PBTPro.DAL.Models
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components
 @* @inject AllocationAuthenticationStateProvider AllocationAuthenticationStateProvider *@
@@ -64,7 +65,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>No Pekerja</div>
-                        <DxTextBox @bind-Text="@userInfo.staff_no" 
+                        <DxTextBox @bind-Text="@userInfo.ProfileStaffNo"
                                    NullText="No Pekerja ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -73,7 +74,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>No Telefon</div>
-                        <DxTextBox @bind-Text="@userInfo.phone_no"
+                        <DxTextBox @bind-Text="@userInfo.ProfileTelNo"
                                    NullText="No Telefon ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    Enabled="true"
@@ -84,7 +85,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>ID Pengguna</div>
-                        <DxTextBox @bind-Text="@userInfo.user_name"
+                        <DxTextBox @bind-Text="@userInfo.ProfileUserName"
                                    NullText="ID Pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -105,7 +106,7 @@
 
                     <DxFormLayoutItem ColSpanMd="12">
                         <div>Nama</div>
-                        <DxTextBox @bind-Text="@userInfo.user_full_name"
+                        <DxTextBox @bind-Text="@userInfo.ProfileName"
                                    NullText="Nama Pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -114,7 +115,7 @@
 
                     <DxFormLayoutItem ColSpanMd="12">
                         <div>Emel</div>
-                        <DxTextBox @bind-Text="@userInfo.user_email"
+                        <DxTextBox @bind-Text="@userInfo.ProfileEmail"
                                    NullText="Emel pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    Enabled="true"
@@ -191,7 +192,7 @@
 
 @code {
     [Inject] IToastNotificationService ToastService { get; set; }
-    public UserProp userInfo = new UserProp();
+    public UserProfile userInfo = new UserProfile();
 
     //Get current user id
     int intCurrentUserId { get; set; } = 0;
