@@ -13,11 +13,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PBT.Data;
+using PBT.Pages;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
 
-namespace PBT.Services
+namespace PBT.Data
 {
     [AllowAnonymous]
     public partial class FaqService : IDisposable
@@ -169,7 +170,7 @@ namespace PBT.Services
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - PostFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                return faq;
             }
         }
 
