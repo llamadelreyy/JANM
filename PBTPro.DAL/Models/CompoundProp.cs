@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PBT.Data
+namespace PBTPro.DAL.Models
 {
     public class LesenInfo
     {

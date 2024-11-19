@@ -1,10 +1,13 @@
-﻿using PBT.Services;
-using PBT.Data;
+﻿using PBTPro.DAL;
+using PBTPro.DAL.Models;
+using PBTPro.DAL.Services;
 using MySqlConnector;
 using System.Data;
-using DevExpress.DashboardCommon;
-using System.Data.SqlClient;
 using System.Reflection;
+using PBT.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace PBT.Data
 {
@@ -35,26 +38,53 @@ namespace PBT.Data
 
         private List<LesenInfo> _Lesen { get; set; }
 
-        //public IConfiguration Configuration { get; }
-        //public CompoundService(IConfiguration configuration)
-        //{
-        //    Configuration = configuration;
-        //    _Lesen = CreateLesen();
-        //}
-        private readonly SqlConnectionConfiguration _configuration;
-        public CompoundService(SqlConnectionConfiguration configuration)
+        const string className = "CompoundService";
+        public IConfiguration _configuration { get; }
+        private readonly PBTProDbContext _dbContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        protected readonly CommonFunction _cf;
+        protected readonly SharedFunction _sf;
+        private readonly ILogger<CompoundService> _logger;
+        private string LoggerName = "";
+        string _controllerName = "";
+
+        public CompoundService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<DepartmentService> logger, PBTProDbContext dbContext)
         {
             _configuration = configuration;
-            _Lesen = CreateLesen();
+            _dbContext = dbContext;
+            _httpContextAccessor = httpContextAccessor;
+            _cf = new CommonFunction(httpContextAccessor, configuration);
+            _sf = new SharedFunction(httpContextAccessor);
+            _logger = logger;
+            _controllerName = (string)(_httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
+            CreateLesen();
         }
 
-        public List<LesenInfo> CreateLesen()
+        public void GetDefaultPermission()
         {
-            List<LesenInfo> dataSource = new List<LesenInfo>();
+            if (LoggerName != null || LoggerName != "")
+                LoggerName = "1";//User.Identity.Name;  // assign value to logger name
+            else LoggerName = null;
+        }
+
+
+        public async void CreateLesen()
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
 
             try
             {
-                dataSource = new List<LesenInfo> {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/License/ListLicense");
+                string jsonString = await _cf.List(request);
+
+                //Open this when the API is completed
+                //dataSource = JsonConvert.DeserializeObject<List<LesenInfo>>(jsonString);
+
+                _Lesen = new List<LesenInfo> {
                     new LesenInfo {
                         IdLesen = 1,
                         Bil = 1,
@@ -336,181 +366,48 @@ namespace PBT.Data
                         DateCreated = DateTime.Parse("2023/03/11")
                     }
                  };
+
+                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai lesen.", Convert.ToInt32(uID), LoggerName, "");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception caught : CreateCompany - {0}", ex);
-                return dataSource;
+                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name,  ex.Message, Convert.ToInt32(uID), LoggerName, "");
             }
-            finally
-            {
-            }
-
-            return dataSource;
         }
 
+        [AllowAnonymous]
+        [HttpGet]
         public Task<List<LesenInfo>> GetLesenAsync(CancellationToken ct = default)
         {
+            var result = _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai lesen.", 1, LoggerName, "");
             return Task.FromResult(_Lesen);
         }
 
 
-        public Task<bool> InsertLesenAsync(LesenInfo changed)
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<List<LesenInfo>> RefreshLesenAsync()
         {
-            using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
-            {
-                const string strSQL = @"insert into dbo.City (Name,State) values (@Name,@State)";
-                if (conn.State == ConnectionState.Closed)
-                    conn.Open();
-
-                using (MySqlCommand? myCmd = new MySqlCommand(strSQL, conn))
-                {
-                    try
-                    {
-                        myCmd.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Exception caught : " + MethodBase.GetCurrentMethod().Name + " --> {0}", ex);
-                        return Task.FromResult(false); ;
-                    }
-                    finally
-                    {
-                        if (conn.State == ConnectionState.Open)
-                            conn.Close();
-                    }
-                }
-            }
-
-            return Task.FromResult(true);
-        }
-
-        public Task<bool> UpdateLesenAsync(LesenInfo changed)
-        {
-
-            using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
-            {
-                const string strSQL = @"";
-                if (conn.State == ConnectionState.Closed)
-                    conn.Open();
-
-                using (MySqlCommand? myCmd = new MySqlCommand(strSQL, conn))
-                {
-                    try
-                    {
-                        myCmd.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Exception caught : " + MethodBase.GetCurrentMethod().Name + " --> {0}", ex);
-                        return Task.FromResult(false); ;
-                    }
-                    finally
-                    {
-                        if (conn.State == ConnectionState.Open)
-                            conn.Close();
-                    }
-                }
-            }
-
-
-            return Task.FromResult(true);
-        }
-
-        public Task<bool> RemoveLesenAsync(LesenInfo dtDataItem)
-        {
-            using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
-            {
-                const string strSQL = @"";
-                if (conn.State == ConnectionState.Closed)
-                    conn.Open();
-
-                using (MySqlCommand? myCmd = new MySqlCommand(strSQL, conn))
-                {
-                    try
-                    {
-                        myCmd.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Exception caught : " + MethodBase.GetCurrentMethod().Name + " --> {0}", ex);
-                        return Task.FromResult(false); ;
-                    }
-                    finally
-                    {
-                        if (conn.State == ConnectionState.Open)
-                            conn.Close();
-                    }
-                }
-            }
-
-            return Task.FromResult(true);
-        }
-
-        public Task<List<LesenInfo>> RefreshLesenAsync()
-        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
             List<LesenInfo> arrItem = new List<LesenInfo>();
-            LesenInfo _item;
 
-            using (MySqlConnection? conn = new MySqlConnection(_configuration.Value))
+            try
             {
-                const string strSQL = @"";
-                if (conn.State == ConnectionState.Closed)
-                    conn.Open();
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
 
-                using (MySqlCommand? myCmd = new MySqlCommand(strSQL, conn))
-                {
-                    using (MySqlDataReader? myReader = myCmd.ExecuteReader())
-                    {
-                        try
-                        {
-                            //Loop every data
-                            while (myReader.Read())
-                            {
-                                _item = new LesenInfo();
-                                //_item.tbId = myReader.IsDBNull("tbID") ? 0 : myReader.GetInt32("tbID");
-                                //_item.code = myReader.IsDBNull("tbCode") ? "" : myReader.GetString("tbCode");
-                                //_item.divisionName = myReader.IsDBNull("tbDivision") ? "" : myReader.GetString("tbDivision");
-                                //_item.sourcesName = myReader.IsDBNull("tbSources") ? "" : myReader.GetString("tbSources");
-                                //_item.industryName = myReader.IsDBNull("tbIndustry") ? "" : myReader.GetString("tbIndustry");
-                                //_item.sectorName = myReader.IsDBNull("tbSector") ? "" : myReader.GetString("tbSector");
-                                //_item.companyName = myReader.IsDBNull("tbCompanyName") ? "" : myReader.GetString("tbCompanyName");
-                                //_item.yearOfEstablishment = myReader.IsDBNull("tbYearOfEstablishment") ? null : myReader.GetDateTime("tbYearOfEstablishment");
-                                //_item.directorsManagement = myReader.IsDBNull("tbDirectorsManagement") ? "" : myReader.GetString("tbDirectorsManagement");
-                                //_item.natureOfBusiness = myReader.IsDBNull("tbNatureOfBusiness") ? "" : myReader.GetString("tbNatureOfBusiness");
-                                //_item.ownership = myReader.IsDBNull("tbOwnership") ? "" : myReader.GetString("tbOwnership");
-                                //_item.revenue = myReader.IsDBNull("tbRevenue") ? 0 : myReader.GetDouble("tbRevenue");
-                                //_item.revenueYear = myReader.IsDBNull("tbYear") ? 0 : myReader.GetInt32("tbYear");
-                                //_item.competitionMarketIssues = myReader.IsDBNull("tbCompetitionMarketIssues") ? "" : myReader.GetString("tbCompetitionMarketIssues");
-                                //_item.myccsRecommendations = myReader.IsDBNull("tbMyCCsRecommendations") ? "" : myReader.GetString("tbMyCCsRecommendations");
-                                //_item.issuesNews = myReader.IsDBNull("tbIssuesNews") ? "" : myReader.GetString("tbIssuesNews");
-                                //_item.marketShare = myReader.IsDBNull("tbMarketShare") ? 0 : myReader.GetDouble("tbMarketShare");
-
-                                //////_item.rekCipta = myReader.IsDBNull("rekCipta") ? null : myReader.GetDateTime("rekCipta");
-                                //////_item.rekCiptaUserID = myReader.IsDBNull("rekCiptaUserID") ? 0 : myReader.GetInt32("rekCiptaUserID");
-                                //////_item.rekUbah = myReader.IsDBNull("rekUbah") ? null : myReader.GetDateTime("rekUbah");
-                                //////_item.rekUbahUserID = myReader.IsDBNull("rekUbahUserID") ? 0 : myReader.GetInt32("rekUbahUserID");
-                                //////_item.rekStatus = myReader.IsDBNull("rekStatus") ? "" : myReader.GetString("rekStatus");
-
-                                //Add item into list
-                                arrItem.Add(_item);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("Exception caught : " + MethodBase.GetCurrentMethod().Name + " --> {0}", ex);
-                            return Task.FromResult(arrItem); ;
-                        }
-                        finally
-                        {
-                            if (conn.State == ConnectionState.Open)
-                                conn.Close();
-                        }
-                    }
-                }
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
+                string jsonString = await _cf.List(request);
+                arrItem = JsonConvert.DeserializeObject<List<LesenInfo>>(jsonString);
+                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name , "Papar semua senarai lesen.", Convert.ToInt32(uID), LoggerName, "");
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
             }
 
-            return Task.FromResult(arrItem);
+            return arrItem;
         }
 
     }

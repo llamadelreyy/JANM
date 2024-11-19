@@ -1,6 +1,6 @@
 ﻿using GoogleMapsComponents.Maps;
 
-namespace PBT.Data
+namespace PBTPro.DAL.Models
 {
     public class NoticeProp
     {
