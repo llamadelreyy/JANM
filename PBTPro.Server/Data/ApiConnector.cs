@@ -22,6 +22,7 @@ namespace PBTPro.Data
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
+        public string accessToken { get; set; } = "";
 
         public ApiConnector(HttpClient httpClient, IConfiguration config)
         {
@@ -51,7 +52,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> ProcessLocalApi(string requestUrl, [FromQuery] HttpMethod? RequestMethod = null, [FromBody] HttpContent? RequestContent = null, string? accessToken = null)
+        public async Task<ReturnViewModel> ProcessLocalApi(string requestUrl, [FromQuery] HttpMethod? RequestMethod = null, [FromBody] HttpContent? RequestContent = null)
         {
             var result = new ReturnViewModel();
             try

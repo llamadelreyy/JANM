@@ -1,17 +1,27 @@
 ﻿@using PBTPro.Data
+@inject PBTAuthStateProvider PBTAuthStateProvider
 
 
 <div class="sidebar @StateCssClass">
     <!-- Sidebar Header-->
     <div class="sidebar-header d-flex align-items-center pt-3 px-3 pb-3" style="border-bottom:solid 1px #ccc;">
-        @*<img class="avatar shadow-0 img-fluid rounded-circle" src="https://d19m59y37dris4.cloudfront.net/admin/2-2-0/img/avatar-1.ce912d90.jpg" alt="...">*@
-        <a href="" class="avatar-text online"><span class="avatar-text-initial">R</span></a>
-        <div class="ms-3 title">
-            <span class="loginuser mb-2">Rudzuan </span>[ <a href="user_profile" alt="ubah profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="#" alt="ubah profail"><i class="ri-lock-password-line ri-1x"></i></a> ]
-            <p class="text-sm text-gray-500 fw-light mb-0 lh-1">
-                <span class="loginusername">Administrator</span> [ <a alt="logout" href="#"><i class="ri-logout-box-r-line ri-1x"></i></a> ]
-            </p>
-        </div>
+        <AuthorizeView>
+            <Authorized>
+                @*<img class="avatar shadow-0 img-fluid rounded-circle" src="https://d19m59y37dris4.cloudfront.net/admin/2-2-0/img/avatar-1.ce912d90.jpg" alt="...">*@
+                <a href="" class="avatar-text online"><span class="avatar-text-initial">R</span></a>
+                <div class="ms-3 title">
+                    <span class="loginuser mb-2">@PBTAuthStateProvider.CurrentUser.Fullname </span>[ <a href="user_profile" alt="ubah profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="#" alt="ubah profail"><i class="ri-lock-password-line ri-1x"></i></a> ]
+                    <p class="text-sm text-gray-500 fw-light mb-0 lh-1">
+                        <span class="loginusername">@string.Join(", ", PBTAuthStateProvider.CurrentUser.Roles)</span> [ <a alt="logout" href="/logout"><i class="ri-logout-box-r-line ri-1x"></i></a>]
+                    </p>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="ms-3 title">
+                    Pengguna Umum <a alt="login" href="/login"><i class="ri-login-box-line ri-1x"></i></a>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>        
     </div>
     <DxTreeView AllowSelectNodes="true" CssClass="app-sidebar" style="padding-top:5px;">
         <Nodes>

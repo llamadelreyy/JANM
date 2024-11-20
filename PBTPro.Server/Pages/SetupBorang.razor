@@ -12,8 +12,9 @@ Changes Logs:
 11/11/2024 - initial create
 *@
 @page "/setupborang"
-@attribute [AllowAnonymous]
+@attribute [Authorize(Roles = "Administrator")]
 
+@inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject ConfigFormFieldService _ConfigFormField
 @inject IToastNotificationService ToastService
 @using Newtonsoft.Json
