@@ -1,14 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
-using PBTPro.DAL.Models;
-using PBTPro.Shared.Models.CommonService;
-using System.Reflection;
+using PBTPro.DAL.Models.CommonServices;
 using System.Security.Claims;
 
 namespace PBTPro.Api.Controllers

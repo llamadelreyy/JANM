@@ -6,8 +6,9 @@ using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
 using DevExpress.Map.Native;
 using Newtonsoft.Json;
+using PBTPro.DAL.Models.CommonServices;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     public class UserService : IDisposable
     {
@@ -95,11 +96,11 @@ namespace PBT.Data
                  };
 
 
-                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai pengguna sistem.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai pengguna sistem.", Convert.ToInt32(uID), LoggerName, "");
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
             }
         }
 

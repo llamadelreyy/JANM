@@ -1,4 +1,4 @@
-namespace PBT.Data;
+namespace PBTPro.Data;
 
 public class EmailQueueData
 {

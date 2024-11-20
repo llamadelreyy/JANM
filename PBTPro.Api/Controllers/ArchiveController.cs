@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Npgsql;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
-using PBTPro.DAL.Models.Common;
-using System.Data;
 
 namespace PBTPro.Api.Controllers
 {
@@ -20,7 +17,7 @@ namespace PBTPro.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly string _module = "Archive";
         private readonly PBTProDbContext _dbContext;
-        private List<AuditlogArchiveInfo> _Faq { get; set; }
+        private List<auditlog_archive_info> _Faq { get; set; }
         public ArchiveController(PBTProDbContext dbContext, ILogger<ArchiveController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
         {
             _logger = logger;
@@ -32,24 +29,24 @@ namespace PBTPro.Api.Controllers
        
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AuditlogArchiveInfo>>> ListAudit()
+        public async Task<ActionResult<IEnumerable<auditlog_archive_info>>> ListAudit()
         {
-            if (_dbContext.AuditlogArchiveInfos == null)
+            if (_dbContext.auditlog_archive_infos == null)
             {
                 return NotFound();
             }
-            return await _dbContext.AuditlogArchiveInfos.ToListAsync();           
+            return await _dbContext.auditlog_archive_infos.ToListAsync();           
         }
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<ActionResult<AuditlogArchiveInfo>> RetrieveAudit(int id)
+        public async Task<ActionResult<auditlog_archive_info>> RetrieveAudit(int id)
         {
-            if (_dbContext.AuditlogArchiveInfos == null)
+            if (_dbContext.auditlog_archive_infos == null)
             {
                 return NotFound();
             }
-            var audit = await _dbContext.AuditlogArchiveInfos.FindAsync(id);
+            var audit = await _dbContext.auditlog_archive_infos.FindAsync(id);
 
             if (audit == null)
             {
@@ -65,17 +62,17 @@ namespace PBTPro.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAudit(int id)
         {
-            if (_dbContext.AuditlogArchiveInfos == null)
+            if (_dbContext.auditlog_archive_infos == null)
             {
                 return NotFound();
             }
-            var audit = await _dbContext.AuditlogArchiveInfos.FindAsync(id);
+            var audit = await _dbContext.auditlog_archive_infos.FindAsync(id);
             if (audit == null)
             {
                 return NotFound();
             }
 
-            _dbContext.AuditlogArchiveInfos.Remove(audit);
+            _dbContext.auditlog_archive_infos.Remove(audit);
             await _dbContext.SaveChangesAsync();
 
             return NoContent();
@@ -83,7 +80,7 @@ namespace PBTPro.Api.Controllers
 
         private bool AuditExists(int id)
         {
-            return (_dbContext.AuditlogArchiveInfos?.Any(e => e.ArchiveId == id)).GetValueOrDefault();
+            return (_dbContext.auditlog_archive_infos?.Any(e => e.archive_id == id)).GetValueOrDefault();
         }
 
         #region Archived auditlog

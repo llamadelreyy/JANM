@@ -11,14 +11,12 @@ Additional Notes:
 Changes Logs:
 07/11/2024 - initial create
 */
-using DevExpress.DataAccess.Native.Sql;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using PBTPro.Shared.Models.CommonService;
+using PBTPro.DAL.Models.CommonServices;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     public class ApiConnector
     {
@@ -51,7 +49,7 @@ namespace PBT.Data
             }
 
             return result;
-        } 
+        }
 
         public async Task<ReturnViewModel> ProcessLocalApi(string requestUrl, [FromQuery] HttpMethod? RequestMethod = null, [FromBody] HttpContent? RequestContent = null, string? accessToken = null)
         {
@@ -68,12 +66,12 @@ namespace PBT.Data
                 }
 
                 var request = new HttpRequestMessage(RequestMethod, requestUrl);
-                
+
                 if (!string.IsNullOrEmpty(accessToken))
                 {
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 }
-                
+
                 if (RequestContent != null)
                 {
                     request.Content = RequestContent;
@@ -160,7 +158,7 @@ namespace PBT.Data
                     }
                 }
             }
-            catch (System.Text.Json.JsonException jsonEx)
+            catch (JsonException jsonEx)
             {
                 result.ReturnCode = 500;
                 result.ReturnMessage = "Invalid JSON response: " + jsonEx.Message;
@@ -285,7 +283,7 @@ namespace PBT.Data
                     }
                 }
             }
-            catch (System.Text.Json.JsonException jsonEx)
+            catch (JsonException jsonEx)
             {
                 result.ReturnCode = 500;
                 result.ReturnMessage = "Invalid JSON response: " + jsonEx.Message;

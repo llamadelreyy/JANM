@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.DataProtection;
 //////    }
 //////}
 
-namespace PBT.Controllers
+namespace PBTPro
 {
     public class DefaultDashboardController : DashboardController
     {

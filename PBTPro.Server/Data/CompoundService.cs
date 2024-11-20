@@ -4,12 +4,13 @@ using PBTPro.DAL.Services;
 using MySqlConnector;
 using System.Data;
 using System.Reflection;
-using PBT.Services;
+using PBTPro.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using PBTPro.DAL.Models.CommonServices;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     public partial class CompoundService : IDisposable
     {
@@ -371,7 +372,7 @@ namespace PBT.Data
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name,  ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
             }
         }
 
@@ -400,7 +401,7 @@ namespace PBT.Data
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
                 string jsonString = await _cf.List(request);
                 arrItem = JsonConvert.DeserializeObject<List<LesenInfo>>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name , "Papar semua senarai lesen.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai lesen.", Convert.ToInt32(uID), LoggerName, "");
             }
             catch (Exception ex)
             {

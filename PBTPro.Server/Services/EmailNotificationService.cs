@@ -2,14 +2,14 @@
 using System.Data;
 using System.Net;
 using System.Net.Mail;
-using PBT.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MySqlConnector;
 using Polly;
 using PBTPro.DAL.Models;
+using PBTPro.Data;
 
-namespace PBT.Services;
+namespace PBTPro.Services;
 
 public class EmailNotificationService : BackgroundService
 {

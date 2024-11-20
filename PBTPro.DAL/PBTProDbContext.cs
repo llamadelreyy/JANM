@@ -14,1506 +14,952 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
     //{
     //}
 
-    public virtual DbSet<AppEmailQueue> AppEmailQueues { get; set; }
+    public virtual DbSet<auditlog_archive_info> auditlog_archive_infos { get; set; }
 
-    public virtual DbSet<AppEmailTemplate> AppEmailTemplates { get; set; }
+    public virtual DbSet<auditlog_info> auditlog_infos { get; set; }
 
-    public virtual DbSet<AppSystemMessage> AppSystemMessages { get; set; }
+    public virtual DbSet<compound_act> compound_acts { get; set; }
 
-    /// <summary>
-    /// scafold 13/11/2024 by farhana
-    /// </summary>
-    #region
-    public virtual DbSet<AuditlogArchiveInfo> AuditlogArchiveInfos { get; set; }
+    public virtual DbSet<compound_info> compound_infos { get; set; }
 
-    public virtual DbSet<AuditlogInfo> AuditlogInfos { get; set; }
+    public virtual DbSet<compound_location> compound_locations { get; set; }
 
-    public virtual DbSet<CompoundAct> CompoundActs { get; set; }
+    public virtual DbSet<compound_medium> compound_media { get; set; }
 
-    public virtual DbSet<CompoundInfo> CompoundInfos { get; set; }
+    public virtual DbSet<compound_officer> compound_officers { get; set; }
 
-    public virtual DbSet<CompoundLocation> CompoundLocations { get; set; }
+    public virtual DbSet<config_building> config_buildings { get; set; }
 
-    public virtual DbSet<CompoundMedium> CompoundMedia { get; set; }
+    public virtual DbSet<config_department> config_departments { get; set; }
 
-    public virtual DbSet<CompoundOfficer> CompoundOfficers { get; set; }
+    public virtual DbSet<config_email_template> config_email_templates { get; set; }
 
-    public virtual DbSet<DepartmentInfo> DepartmentInfos { get; set; }
+    public virtual DbSet<config_form_field> config_form_fields { get; set; }
 
-    public virtual DbSet<FaqInfo> FaqInfos { get; set; }
+    public virtual DbSet<config_pbt> config_pbts { get; set; }
 
-    public virtual DbSet<LicenseAddressSwap> LicenseAddressSwaps { get; set; }
+    public virtual DbSet<config_system_message> config_system_messages { get; set; }
 
-    public virtual DbSet<LicenseHistory> LicenseHistories { get; set; }
+    public virtual DbSet<confiscation_info> confiscation_infos { get; set; }
 
-    public virtual DbSet<LicenseHolder> LicenseHolders { get; set; }
+    public virtual DbSet<confiscation_medium> confiscation_media { get; set; }
 
-    public virtual DbSet<LicenseInformation> LicenseInformations { get; set; }
+    public virtual DbSet<department_info> department_infos { get; set; }
 
-    public virtual DbSet<LicenseMedium> LicenseMedia { get; set; }
+    public virtual DbSet<faq_info> faq_infos { get; set; }
 
-    public virtual DbSet<LicenseTax> LicenseTaxes { get; set; }
+    public virtual DbSet<license_address_swap> license_address_swaps { get; set; }
 
-    public virtual DbSet<LicenseTransaction> LicenseTransactions { get; set; }
+    public virtual DbSet<license_history> license_histories { get; set; }
 
-    public virtual DbSet<PatrollingInfo> PatrollingInfos { get; set; }
+    public virtual DbSet<license_holder> license_holders { get; set; }
 
-    #endregion    
+    public virtual DbSet<license_information> license_informations { get; set; }
 
-    public virtual DbSet<MstArea> MstAreas { get; set; }
+    public virtual DbSet<license_location> license_locations { get; set; }
 
-    public virtual DbSet<MstDaerah> MstDaerahs { get; set; }
+    public virtual DbSet<license_medium> license_media { get; set; }
 
-    public virtual DbSet<MstDistrict> MstDistricts { get; set; }
+    public virtual DbSet<license_tax> license_taxes { get; set; }
 
-    public virtual DbSet<MstLot> MstLots { get; set; }
+    public virtual DbSet<license_transaction> license_transactions { get; set; }
 
-    public virtual DbSet<MstMukim> MstMukims { get; set; }
+    public virtual DbSet<mst_area> mst_areas { get; set; }
 
-    public virtual DbSet<ParFormField> ParFormFields { get; set; }
+    public virtual DbSet<mst_daerah> mst_daerahs { get; set; }
 
-   // public virtual DbSet<TbHubungikami> TbHubungikamis { get; set; }
+    public virtual DbSet<mst_district> mst_districts { get; set; }
 
-    public virtual DbSet<TrnPatrol> TrnPatrols { get; set; }
+    public virtual DbSet<mst_lot> mst_lots { get; set; }
 
-    public virtual DbSet<TrnPatrolDet> TrnPatrolDets { get; set; }
+    public virtual DbSet<mst_mukim> mst_mukims { get; set; }
 
-    public virtual DbSet<UserProfile> UserProfiles { get; set; }
+    public virtual DbSet<notification_email_history> notification_email_histories { get; set; }
+
+    public virtual DbSet<notification_email_queue> notification_email_queues { get; set; }
+
+    public virtual DbSet<patrol_info> patrol_infos { get; set; }
+
+    public virtual DbSet<patrol_member> patrol_members { get; set; }
+
+    public virtual DbSet<patrol_scheduler> patrol_schedulers { get; set; }
+
+    public virtual DbSet<user_menu> user_menus { get; set; }
+
+    public virtual DbSet<user_permission> user_permissions { get; set; }
+
+    public virtual DbSet<user_profile> user_profiles { get; set; }
+
+    public virtual DbSet<user_role_menu> user_role_menus { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
 
-        modelBuilder.Entity<AppEmailQueue>(entity =>
-        {
-            entity.HasKey(e => e.RecId).HasName("app_email_queue_pkey");
-
-            entity.ToTable("app_email_queue");
-
-            entity.Property(e => e.RecId)
-                .HasDefaultValueSql("nextval('app_email_queue_recid_seq'::regclass)")
-                .HasColumnName("rec_id");
-            entity.Property(e => e.CntRetry)
-                .HasDefaultValue(0)
-                .HasColumnName("cnt_retry");
-            entity.Property(e => e.Content).HasColumnName("content");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(50)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_dtm");
-            entity.Property(e => e.DateSent)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("date_sent");
-            entity.Property(e => e.Isactive)
-                .HasDefaultValue(true)
-                .HasColumnName("isactive");
-            entity.Property(e => e.ModifiedBy)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("modified_by");
-            entity.Property(e => e.ModifiedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_dtm");
-            entity.Property(e => e.Remark).HasColumnName("remark");
-            entity.Property(e => e.Status)
-                .HasMaxLength(30)
-                .HasDefaultValueSql("'New'::character varying")
-                .HasColumnName("status");
-            entity.Property(e => e.Subject)
-                .HasMaxLength(255)
-                .HasColumnName("subject");
-            entity.Property(e => e.ToEmail)
-                .HasMaxLength(255)
-                .HasColumnName("to_email");
-        });
-
-        modelBuilder.Entity<AppEmailTemplate>(entity =>
-        {
-            entity.HasKey(e => e.RecId).HasName("app_email_templates_pkey");
-
-            entity.ToTable("app_email_template");
-
-            entity.Property(e => e.RecId)
-                .HasDefaultValueSql("nextval('app_email_templates_recid_seq'::regclass)")
-                .HasColumnName("rec_id");
-            entity.Property(e => e.Code)
-                .HasMaxLength(50)
-                .HasColumnName("code");
-            entity.Property(e => e.Content).HasColumnName("content");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(50)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_dtm");
-            entity.Property(e => e.Isactive)
-                .HasDefaultValue(true)
-                .HasColumnName("isactive");
-            entity.Property(e => e.ModifiedBy)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("modified_by");
-            entity.Property(e => e.ModifiedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_dtm");
-            entity.Property(e => e.Subject)
-                .HasMaxLength(255)
-                .HasColumnName("subject");
-        });
-
-        modelBuilder.Entity<AppSystemMessage>(entity =>
-        {
-            entity.HasKey(e => e.RecId).HasName("app_system_message_pkey");
-
-            entity.ToTable("app_system_message");
-
-            entity.Property(e => e.RecId).HasColumnName("rec_id");
-            entity.Property(e => e.Code)
-                .HasMaxLength(255)
-                .HasColumnName("code");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(50)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_dtm");
-            entity.Property(e => e.Feature)
-                .HasMaxLength(50)
-                .HasColumnName("feature");
-            entity.Property(e => e.Isactive)
-                .HasDefaultValue(true)
-                .HasColumnName("isactive");
-            entity.Property(e => e.Message).HasColumnName("message");
-            entity.Property(e => e.ModifiedBy)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("modified_by");
-            entity.Property(e => e.ModifiedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_dtm");
-            entity.Property(e => e.Type)
-                .HasMaxLength(1)
-                .HasColumnName("type");
-        });
-
-        #region scafold 13/11/2024
-        modelBuilder.Entity<AuditlogArchiveInfo>(entity =>
+        modelBuilder.Entity<auditlog_archive_info>(entity =>
         {
             entity
                 .HasNoKey()
                 .ToTable("auditlog_archive_info", "audit");
 
-            entity.Property(e => e.ArchiveDescription).HasColumnName("archive_description");
-            entity.Property(e => e.ArchiveId)
-                .HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)")
-                .HasColumnName("archive_id");
-            entity.Property(e => e.ArchiveIsarchived)
-                .HasDefaultValue(true)
-                .HasColumnName("archive_isarchived");
-            entity.Property(e => e.ArchiveMethod)
+            entity.Property(e => e.archive_id).HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)");
+            entity.Property(e => e.archive_isarchived).HasDefaultValue(true);
+            entity.Property(e => e.archive_method).HasMaxLength(255);
+            entity.Property(e => e.archive_module_name)
                 .HasMaxLength(255)
-                .HasColumnName("archive_method");
-            entity.Property(e => e.ArchiveModuleName)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("archive_module_name");
-            entity.Property(e => e.ArchiveRoleId)
-                .HasDefaultValue(0)
-                .HasColumnName("archive_role_id");
-            entity.Property(e => e.ArchiveType).HasColumnName("archive_type");
-            entity.Property(e => e.ArchiveUsername)
-                .HasMaxLength(25)
-                .HasColumnName("archive_username");
-            entity.Property(e => e.CreatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("NULL::character varying");
+            entity.Property(e => e.archive_role_id).HasDefaultValue(0);
+            entity.Property(e => e.archive_username).HasMaxLength(25);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
+                .HasColumnType("timestamp without time zone");
         });
 
-        modelBuilder.Entity<AuditlogInfo>(entity =>
+        modelBuilder.Entity<auditlog_info>(entity =>
         {
-            entity.HasKey(e => e.AuditId).HasName("auditlog_pkey");
+            entity.HasKey(e => e.audit_id).HasName("auditlog_pkey");
 
             entity.ToTable("auditlog_info", "audit");
 
-            entity.Property(e => e.AuditId)
-                .HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)")
-                .HasColumnName("audit_id");
-            entity.Property(e => e.AuditDescription).HasColumnName("audit_description");
-            entity.Property(e => e.AuditMethod)
+            entity.Property(e => e.audit_id).HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)");
+            entity.Property(e => e.audit_isarchived).HasDefaultValue(false);
+            entity.Property(e => e.audit_method).HasMaxLength(255);
+            entity.Property(e => e.audit_module_name)
                 .HasMaxLength(255)
-                .HasColumnName("audit_method");
-            entity.Property(e => e.AuditModuleName)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("audit_module_name");
-            entity.Property(e => e.AuditRoleId)
-                .HasDefaultValue(0)
-                .HasColumnName("audit_role_id");
-            entity.Property(e => e.AuditType).HasColumnName("audit_type");
-            entity.Property(e => e.AuditUsername)
-                .HasMaxLength(25)
-                .HasColumnName("audit_username");
-            entity.Property(e => e.CreatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("NULL::character varying");
+            entity.Property(e => e.audit_role_id).HasDefaultValue(0);
+            entity.Property(e => e.audit_username).HasMaxLength(25);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.AuditIsarchived)
-               .HasDefaultValue(false)
-               .HasColumnName("audit_isarchived");
+                .HasColumnType("timestamp without time zone");
         });
 
-        modelBuilder.Entity<CompoundAct>(entity =>
+        modelBuilder.Entity<compound_act>(entity =>
         {
-            entity.HasKey(e => e.ActId).HasName("compound_act_pkey");
+            entity.HasKey(e => e.act_id).HasName("compound_act_pkey");
 
             entity.ToTable("compound_act", "compound");
 
-            entity.Property(e => e.ActId).HasColumnName("act_id");
-            entity.Property(e => e.ActAmount1)
-                .HasPrecision(15, 2)
-                .HasColumnName("act_amount1");
-            entity.Property(e => e.ActAmount2)
-                .HasPrecision(15, 2)
-                .HasColumnName("act_amount2");
-            entity.Property(e => e.ActAmount3)
-                .HasPrecision(15, 2)
-                .HasColumnName("act_amount3");
-            entity.Property(e => e.ActCode)
-                .HasMaxLength(30)
-                .HasColumnName("act_code");
-            entity.Property(e => e.ActCourtAmount)
-                .HasPrecision(15, 2)
-                .HasColumnName("act_court_amount");
-            entity.Property(e => e.ActDeptCode)
-                .HasMaxLength(30)
-                .HasColumnName("act_dept_code");
-            entity.Property(e => e.ActDeptName)
-                .HasMaxLength(250)
-                .HasColumnName("act_dept_name");
-            entity.Property(e => e.ActFnoticeAmount)
-                .HasPrecision(15, 2)
-                .HasColumnName("act_fnotice_amount");
-            entity.Property(e => e.ActFnoticePeriod)
-                .HasPrecision(5)
-                .HasColumnName("act_fnotice_period");
-            entity.Property(e => e.ActName)
-                .HasMaxLength(500)
-                .HasColumnName("act_name");
-            entity.Property(e => e.ActNoticeAmount)
-                .HasPrecision(15, 2)
-                .HasColumnName("act_notice_amount");
-            entity.Property(e => e.ActNoticePeriod)
-                .HasPrecision(5)
-                .HasColumnName("act_notice_period");
-            entity.Property(e => e.ActOffenceCode)
-                .HasMaxLength(30)
-                .HasColumnName("act_offence_code");
-            entity.Property(e => e.ActOffenceName)
-                .HasMaxLength(500)
-                .HasColumnName("act_offence_name");
-            entity.Property(e => e.ActPbtCode)
-                .HasPrecision(5)
-                .HasColumnName("act_pbt_code");
-            entity.Property(e => e.ActPeriod1)
-                .HasPrecision(5)
-                .HasColumnName("act_period1");
-            entity.Property(e => e.ActPeriod2)
-                .HasPrecision(5)
-                .HasColumnName("act_period2");
-            entity.Property(e => e.ActPeriod3)
-                .HasPrecision(5)
-                .HasColumnName("act_period3");
-            entity.Property(e => e.ActTransactionCode)
-                .HasMaxLength(30)
-                .HasColumnName("act_transaction_code");
-            entity.Property(e => e.ActTransactionName)
-                .HasMaxLength(500)
-                .HasColumnName("act_transaction_name");
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.UpdatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+            entity.Property(e => e.act_amount1).HasPrecision(15, 2);
+            entity.Property(e => e.act_amount2).HasPrecision(15, 2);
+            entity.Property(e => e.act_amount3).HasPrecision(15, 2);
+            entity.Property(e => e.act_code).HasMaxLength(30);
+            entity.Property(e => e.act_court_amount).HasPrecision(15, 2);
+            entity.Property(e => e.act_dept_code).HasMaxLength(30);
+            entity.Property(e => e.act_dept_name).HasMaxLength(250);
+            entity.Property(e => e.act_fnotice_amount).HasPrecision(15, 2);
+            entity.Property(e => e.act_fnotice_period).HasPrecision(5);
+            entity.Property(e => e.act_name).HasMaxLength(500);
+            entity.Property(e => e.act_notice_amount).HasPrecision(15, 2);
+            entity.Property(e => e.act_notice_period).HasPrecision(5);
+            entity.Property(e => e.act_offence_code).HasMaxLength(30);
+            entity.Property(e => e.act_offence_name).HasMaxLength(500);
+            entity.Property(e => e.act_pbt_code).HasPrecision(5);
+            entity.Property(e => e.act_period1).HasPrecision(5);
+            entity.Property(e => e.act_period2).HasPrecision(5);
+            entity.Property(e => e.act_period3).HasPrecision(5);
+            entity.Property(e => e.act_transaction_code).HasMaxLength(30);
+            entity.Property(e => e.act_transaction_name).HasMaxLength(500);
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
         });
 
-        modelBuilder.Entity<CompoundInfo>(entity =>
+        modelBuilder.Entity<compound_info>(entity =>
         {
-            entity.HasKey(e => e.CompoundId).HasName("compound_info_pkey");
+            entity.HasKey(e => e.compound_id).HasName("compound_info_pkey");
 
             entity.ToTable("compound_info", "compound");
 
-            entity.Property(e => e.CompoundId).HasColumnName("compound_id");
-            entity.Property(e => e.CompoundActCode)
-                .HasMaxLength(30)
-                .HasColumnName("compound_act_code");
-            entity.Property(e => e.CompoundAmount)
-                .HasPrecision(15, 2)
-                .HasColumnName("compound_amount");
-            entity.Property(e => e.CompoundCourtDate).HasColumnName("compound_court_date");
-            entity.Property(e => e.CompoundDate).HasColumnName("compound_date");
-            entity.Property(e => e.CompoundDesc)
-                .HasMaxLength(500)
-                .HasColumnName("compound_desc");
-            entity.Property(e => e.CompoundLicenseNo)
-                .HasMaxLength(50)
-                .HasColumnName("compound_license_no");
-            entity.Property(e => e.CompoundNo)
-                .HasMaxLength(30)
-                .HasColumnName("compound_no");
-            entity.Property(e => e.CompoundOffenceCode)
-                .HasMaxLength(30)
-                .HasColumnName("compound_offence_code");
-            entity.Property(e => e.CompoundOffenderAddr1)
-                .HasMaxLength(100)
-                .HasColumnName("compound_offender_addr1");
-            entity.Property(e => e.CompoundOffenderAddr2)
-                .HasMaxLength(150)
-                .HasColumnName("compound_offender_addr2");
-            entity.Property(e => e.CompoundOffenderAddr3)
-                .HasMaxLength(150)
-                .HasColumnName("compound_offender_addr3");
-            entity.Property(e => e.CompoundOffenderArea)
-                .HasMaxLength(50)
-                .HasColumnName("compound_offender_area");
-            entity.Property(e => e.CompoundOffenderId)
-                .HasMaxLength(30)
-                .HasColumnName("compound_offender_id");
-            entity.Property(e => e.CompoundOffenderName)
-                .HasMaxLength(250)
-                .HasColumnName("compound_offender_name");
-            entity.Property(e => e.CompoundOffenderPcode)
-                .HasPrecision(5)
-                .HasColumnName("compound_offender_pcode");
-            entity.Property(e => e.CompoundOffenderState)
-                .HasMaxLength(30)
-                .HasColumnName("compound_offender_state");
-            entity.Property(e => e.CompoundOfficerCode)
-                .HasMaxLength(30)
-                .HasColumnName("compound_officer_code");
-            entity.Property(e => e.CompoundPayAmount)
-                .HasPrecision(15, 2)
-                .HasColumnName("compound_pay_amount");
-            entity.Property(e => e.CompoundPayDate).HasColumnName("compound_pay_date");
-            entity.Property(e => e.CompoundPayStatus)
-                .HasMaxLength(30)
-                .HasColumnName("compound_pay_status");
-            entity.Property(e => e.CompoundPbtCode)
-                .HasPrecision(5)
-                .HasColumnName("compound_pbt_code");
-            entity.Property(e => e.CompoundRoadTax)
-                .HasMaxLength(30)
-                .HasColumnName("compound_road_tax");
-            entity.Property(e => e.CompoundStatus)
-                .HasMaxLength(30)
-                .HasColumnName("compound_status");
-            entity.Property(e => e.CompoundTransCode)
-                .HasMaxLength(30)
-                .HasColumnName("compound_trans_code");
-            entity.Property(e => e.CompoundVehicleBrand)
-                .HasMaxLength(50)
-                .HasColumnName("compound_vehicle_brand");
-            entity.Property(e => e.CompoundVehicleModel)
-                .HasMaxLength(50)
-                .HasColumnName("compound_vehicle_model");
-            entity.Property(e => e.CompoundVehiclePlate)
-                .HasMaxLength(10)
-                .HasColumnName("compound_vehicle_plate");
-            entity.Property(e => e.CompoundVehicleType)
-                .HasMaxLength(30)
-                .HasColumnName("compound_vehicle_type");
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.UpdatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+            entity.Property(e => e.compound_act_code).HasMaxLength(30);
+            entity.Property(e => e.compound_amount).HasPrecision(15, 2);
+            entity.Property(e => e.compound_desc).HasMaxLength(500);
+            entity.Property(e => e.compound_license_no).HasMaxLength(50);
+            entity.Property(e => e.compound_no).HasMaxLength(30);
+            entity.Property(e => e.compound_offence_code).HasMaxLength(30);
+            entity.Property(e => e.compound_offender_addr1).HasMaxLength(100);
+            entity.Property(e => e.compound_offender_addr2).HasMaxLength(150);
+            entity.Property(e => e.compound_offender_addr3).HasMaxLength(150);
+            entity.Property(e => e.compound_offender_area).HasMaxLength(50);
+            entity.Property(e => e.compound_offender_id).HasMaxLength(30);
+            entity.Property(e => e.compound_offender_name).HasMaxLength(250);
+            entity.Property(e => e.compound_offender_pcode).HasPrecision(5);
+            entity.Property(e => e.compound_offender_state).HasMaxLength(30);
+            entity.Property(e => e.compound_officer_code).HasMaxLength(30);
+            entity.Property(e => e.compound_pay_amount).HasPrecision(15, 2);
+            entity.Property(e => e.compound_pay_status).HasMaxLength(30);
+            entity.Property(e => e.compound_pbt_code).HasPrecision(5);
+            entity.Property(e => e.compound_road_tax).HasMaxLength(30);
+            entity.Property(e => e.compound_status).HasMaxLength(30);
+            entity.Property(e => e.compound_trans_code).HasMaxLength(30);
+            entity.Property(e => e.compound_vehicle_brand).HasMaxLength(50);
+            entity.Property(e => e.compound_vehicle_model).HasMaxLength(50);
+            entity.Property(e => e.compound_vehicle_plate).HasMaxLength(10);
+            entity.Property(e => e.compound_vehicle_type).HasMaxLength(30);
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
         });
 
-        modelBuilder.Entity<CompoundLocation>(entity =>
+        modelBuilder.Entity<compound_location>(entity =>
         {
-            entity.HasKey(e => e.LocationId).HasName("compound_location_pkey");
+            entity.HasKey(e => e.location_id).HasName("compound_location_pkey");
 
             entity.ToTable("compound_location", "compound");
 
-            entity.Property(e => e.LocationId).HasColumnName("location_id");
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.LocationCompId).HasColumnName("location_comp_id");
-            entity.Property(e => e.LocationCompNo)
-                .HasMaxLength(30)
-                .HasColumnName("location_comp_no");
-            entity.Property(e => e.LocationLatitude)
-                .HasMaxLength(100)
-                .HasColumnName("location_latitude");
-            entity.Property(e => e.LocationLongitude)
-                .HasMaxLength(100)
-                .HasColumnName("location_longitude");
-            entity.Property(e => e.LocationPbtCode)
-                .HasPrecision(5)
-                .HasColumnName("location_pbt_code");
-            entity.Property(e => e.UpdatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.location_comp_no).HasMaxLength(30);
+            entity.Property(e => e.location_latitude).HasMaxLength(100);
+            entity.Property(e => e.location_longitude).HasMaxLength(100);
+            entity.Property(e => e.location_pbt_code).HasPrecision(5);
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
+
+            entity.HasOne(d => d.location_comp).WithMany(p => p.compound_locations)
+                .HasForeignKey(d => d.location_comp_id)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("compund_id");
         });
 
-        modelBuilder.Entity<CompoundMedium>(entity =>
+        modelBuilder.Entity<compound_medium>(entity =>
         {
-            entity.HasKey(e => e.MediaCompId).HasName("compound_media_pkey");
+            entity.HasKey(e => e.media_comp_id).HasName("compound_media_pkey");
 
             entity.ToTable("compound_media", "compound");
 
-            entity.Property(e => e.MediaCompId).HasColumnName("media_comp_id");
-            entity.Property(e => e.MediaCompIdno).HasColumnName("media_comp_idno");
-            entity.Property(e => e.MediaCompNo)
-                .HasMaxLength(30)
-                .HasColumnName("media_comp_no");
-            entity.Property(e => e.MediaPbtCode)
-                .HasPrecision(5)
-                .HasColumnName("media_pbt_code");
-            entity.Property(e => e.MediaUrlLink)
-                .HasMaxLength(500)
-                .HasColumnName("media_url_link");
+            entity.Property(e => e.media_comp_no).HasMaxLength(30);
+            entity.Property(e => e.media_pbt_code).HasPrecision(5);
+            entity.Property(e => e.media_url_link).HasMaxLength(500);
+
+            entity.HasOne(d => d.media_comp_idnoNavigation).WithMany(p => p.compound_media)
+                .HasForeignKey(d => d.media_comp_idno)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("comp_id");
         });
 
-        modelBuilder.Entity<CompoundOfficer>(entity =>
+        modelBuilder.Entity<compound_officer>(entity =>
         {
-            entity.HasKey(e => e.OfficerId).HasName("compound_officer_pkey");
+            entity.HasKey(e => e.officer_id).HasName("compound_officer_pkey");
 
             entity.ToTable("compound_officer", "compound");
 
-            entity.Property(e => e.OfficerId).HasColumnName("officer_id");
-            entity.Property(e => e.OfficerDept)
-                .HasMaxLength(30)
-                .HasColumnName("officer_dept");
-            entity.Property(e => e.OfficerGrade)
-                .HasMaxLength(30)
-                .HasColumnName("officer_grade");
-            entity.Property(e => e.OfficerGradeDesc)
-                .HasMaxLength(150)
-                .HasColumnName("officer_grade_desc");
-            entity.Property(e => e.OfficerName)
-                .HasMaxLength(250)
-                .HasColumnName("officer_name");
-            entity.Property(e => e.OfficerPbtCode)
-                .HasPrecision(5)
-                .HasColumnName("officer_pbt_code");
-            entity.Property(e => e.OfficerSerial)
-                .HasMaxLength(30)
-                .HasColumnName("officer_serial");
+            entity.Property(e => e.officer_dept).HasMaxLength(30);
+            entity.Property(e => e.officer_grade).HasMaxLength(30);
+            entity.Property(e => e.officer_grade_desc).HasMaxLength(150);
+            entity.Property(e => e.officer_name).HasMaxLength(250);
+            entity.Property(e => e.officer_pbt_code).HasPrecision(5);
+            entity.Property(e => e.officer_serial).HasMaxLength(30);
         });
 
-        modelBuilder.Entity<DepartmentInfo>(entity =>
+        modelBuilder.Entity<config_building>(entity =>
         {
-            entity.HasKey(e => e.DeptId).HasName("department_info_pkey");
+            entity.HasKey(e => e.building_id).HasName("config_building_pkey");
+
+            entity.ToTable("config_building", "config");
+
+            entity.Property(e => e.building_code).HasMaxLength(30);
+            entity.Property(e => e.building_name)
+                .HasMaxLength(250)
+                .IsFixedLength();
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
+        });
+
+        modelBuilder.Entity<config_department>(entity =>
+        {
+            entity.HasKey(e => e.config_dept_id).HasName("config_department_pkey");
+
+            entity.ToTable("config_department", "config");
+
+            entity.Property(e => e.config_dept_email).HasMaxLength(150);
+            entity.Property(e => e.config_dept_head).HasMaxLength(300);
+            entity.Property(e => e.config_dept_name).HasMaxLength(250);
+            entity.Property(e => e.config_dept_notel).HasMaxLength(25);
+
+            entity.HasOne(d => d.config_dept_pbtNavigation).WithMany(p => p.config_departments)
+                .HasForeignKey(d => d.config_dept_pbt)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("pbt_code");
+        });
+
+        modelBuilder.Entity<config_email_template>(entity =>
+        {
+            entity.HasKey(e => e.template_id).HasName("config_email_template_pkey");
+
+            entity.ToTable("config_email_template", "config");
+
+            entity.Property(e => e.active_flag).HasDefaultValue(true);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.update_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.template_code).HasMaxLength(50);
+            entity.Property(e => e.template_subject).HasMaxLength(255);
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<config_form_field>(entity =>
+        {
+            entity.HasKey(e => e.field_id).HasName("config_form_field_pkey");
+
+            entity.ToTable("config_form_field", "config");
+
+            entity.Property(e => e.active_flag).HasDefaultValue(true);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.field_api_seeded).HasDefaultValue(false);
+            entity.Property(e => e.field_form_type).HasMaxLength(50);
+            entity.Property(e => e.field_label).HasMaxLength(50);
+            entity.Property(e => e.field_name).HasMaxLength(50);
+            entity.Property(e => e.field_orders).HasDefaultValue(0);
+            entity.Property(e => e.field_required).HasDefaultValue(false);
+            entity.Property(e => e.field_source_url)
+                .HasMaxLength(255)
+                .HasDefaultValueSql("NULL::character varying");
+            entity.Property(e => e.field_type).HasMaxLength(10);
+            entity.Property(e => e.update_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<config_pbt>(entity =>
+        {
+            entity.HasKey(e => e.pbt_id).HasName("config_pbt_pkey");
+
+            entity.ToTable("config_pbt", "config");
+
+            entity.Property(e => e.pbt_address1).HasMaxLength(150);
+            entity.Property(e => e.pbt_address2).HasMaxLength(150);
+            entity.Property(e => e.pbt_address3).HasMaxLength(150);
+            entity.Property(e => e.pbt_code).HasPrecision(5);
+            entity.Property(e => e.pbt_email).HasMaxLength(250);
+            entity.Property(e => e.pbt_name).HasMaxLength(500);
+            entity.Property(e => e.pbt_notel).HasMaxLength(25);
+            entity.Property(e => e.pbt_pcode).HasPrecision(5);
+            entity.Property(e => e.pbt_state).HasMaxLength(30);
+        });
+
+        modelBuilder.Entity<config_system_message>(entity =>
+        {
+            entity.HasKey(e => e.message_id).HasName("config_system_message_pkey");
+
+            entity.ToTable("config_system_message", "config");
+
+            entity.Property(e => e.active_flag).HasDefaultValue(true);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.message_code).HasMaxLength(255);
+            entity.Property(e => e.message_feature).HasMaxLength(50);
+            entity.Property(e => e.message_type).HasMaxLength(1);
+            entity.Property(e => e.update_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<confiscation_info>(entity =>
+        {
+            entity.HasKey(e => e.confiscation_id).HasName("confiscation_info_pkey");
+
+            entity.ToTable("confiscation_info", "compound");
+
+            entity.Property(e => e.confiscation_act_code).HasMaxLength(30);
+            entity.Property(e => e.confiscation_address1).HasMaxLength(100);
+            entity.Property(e => e.confiscation_address2).HasMaxLength(150);
+            entity.Property(e => e.confiscation_address3).HasMaxLength(150);
+            entity.Property(e => e.confiscation_amount).HasPrecision(15, 2);
+            entity.Property(e => e.confiscation_area).HasMaxLength(50);
+            entity.Property(e => e.confiscation_detail).HasMaxLength(1000);
+            entity.Property(e => e.confiscation_langitude).HasMaxLength(200);
+            entity.Property(e => e.confiscation_license_no).HasMaxLength(50);
+            entity.Property(e => e.confiscation_longitude).HasMaxLength(200);
+            entity.Property(e => e.confiscation_offence_code).HasMaxLength(30);
+            entity.Property(e => e.confiscation_offender).HasMaxLength(250);
+            entity.Property(e => e.confiscation_offender_id).HasMaxLength(30);
+            entity.Property(e => e.confiscation_officer).HasMaxLength(30);
+            entity.Property(e => e.confiscation_pcode).HasPrecision(5);
+            entity.Property(e => e.confiscation_state).HasMaxLength(30);
+            entity.Property(e => e.confiscation_status).HasMaxLength(30);
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
+        });
+
+        modelBuilder.Entity<confiscation_medium>(entity =>
+        {
+            entity.HasKey(e => e.confiscation_media_id).HasName("confiscation_media_pkey");
+
+            entity.ToTable("confiscation_media", "compound");
+
+            entity.Property(e => e.confiscation_url_link).HasMaxLength(300);
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
+
+            entity.HasOne(d => d.confiscation_main).WithMany(p => p.confiscation_media)
+                .HasForeignKey(d => d.confiscation_main_id)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("confiscation_main_id");
+        });
+
+        modelBuilder.Entity<department_info>(entity =>
+        {
+            entity.HasKey(e => e.dept_id).HasName("department_info_pkey");
 
             entity.ToTable("department_info", "department");
 
-            entity.Property(e => e.DeptId).HasColumnName("dept_id");
-            entity.Property(e => e.CreatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
+            entity.Property(e => e.dept_id).HasDefaultValueSql("nextval('department.department_info_depart_id_seq'::regclass)");
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.DeptCode)
-                .HasMaxLength(50)
-                .HasColumnName("dept_code");
-            entity.Property(e => e.DeptStatus)
-                .HasMaxLength(30)
-                .HasColumnName("dept_status");
-            entity.Property(e => e.DeptDepartName)
-                .HasMaxLength(100)
-                .HasColumnName("dept_depart_name");
-            entity.Property(e => e.DeptDescription)
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.dept_code).HasMaxLength(50);
+            entity.Property(e => e.dept_depart_name).HasMaxLength(100);
+            entity.Property(e => e.dept_description)
                 .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("dept_description");
-            entity.Property(e => e.UpdatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("updated_by");
-            entity.Property(e => e.UpdatedDate)
+                .HasDefaultValueSql("NULL::character varying");
+            entity.Property(e => e.dept_status).HasMaxLength(30);
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+            entity.Property(e => e.updated_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+                .HasColumnType("timestamp without time zone");
         });
 
-        modelBuilder.Entity<FaqInfo>(entity =>
+        modelBuilder.Entity<faq_info>(entity =>
         {
-            entity.HasKey(e => e.FaqId).HasName("faq_info_pkey");
+            entity.HasKey(e => e.faq_id).HasName("faq_info_pkey");
 
             entity.ToTable("faq_info", "faq");
 
-            entity.Property(e => e.FaqId).HasColumnName("faq_id");
-            entity.Property(e => e.CreatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.FaqAnswer).HasColumnName("faq_answer");
-            entity.Property(e => e.FaqCategory)
-                .HasMaxLength(50)
-                .HasColumnName("faq_category");
-            entity.Property(e => e.FaqQuestion).HasColumnName("faq_question");
-            entity.Property(e => e.FaqStatus)
-                .HasMaxLength(30)
-                .HasColumnName("faq_status");
-            entity.Property(e => e.UpdatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("updated_by");
-            entity.Property(e => e.UpdatedDate)
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.faq_category).HasMaxLength(50);
+            entity.Property(e => e.faq_status).HasMaxLength(30);
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+            entity.Property(e => e.updated_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+                .HasColumnType("timestamp without time zone");
         });
 
-        modelBuilder.Entity<LicenseAddressSwap>(entity =>
+        modelBuilder.Entity<license_address_swap>(entity =>
         {
-            entity.HasKey(e => e.SwapLicenseId).HasName("license_address_swap_pkey");
+            entity.HasKey(e => e.swap_license_id).HasName("license_address_swap_pkey");
 
             entity.ToTable("license_address_swap", "license", tb => tb.HasComment("TABLE BAGI MENYIMPAN ALAMAT LESEN SEDIA ADA DAN BARU"));
 
-            entity.Property(e => e.SwapLicenseId).HasColumnName("swap_license_id");
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.SwapCurrentAddr1)
-                .HasMaxLength(100)
-                .HasColumnName("swap_current_addr1");
-            entity.Property(e => e.SwapCurrentAddr2)
-                .HasMaxLength(150)
-                .HasColumnName("swap_current_addr2");
-            entity.Property(e => e.SwapCurrentAddr3)
-                .HasMaxLength(150)
-                .HasColumnName("swap_current_addr3");
-            entity.Property(e => e.SwapCurrentArea)
-                .HasMaxLength(50)
-                .HasColumnName("swap_current_area");
-            entity.Property(e => e.SwapCurrentPcode)
-                .HasPrecision(5)
-                .HasColumnName("swap_current_pcode");
-            entity.Property(e => e.SwapCurrentState)
-                .HasMaxLength(30)
-                .HasColumnName("swap_current_state");
-            entity.Property(e => e.SwapIdInfo).HasColumnName("swap_id_info");
-            entity.Property(e => e.SwapLicenseAccount)
-                .HasMaxLength(20)
-                .HasColumnName("swap_license_account");
-            entity.Property(e => e.SwapNewAddr1)
-                .HasMaxLength(100)
-                .HasColumnName("swap_new_addr1");
-            entity.Property(e => e.SwapNewAddr2)
-                .HasMaxLength(150)
-                .HasColumnName("swap_new_addr2");
-            entity.Property(e => e.SwapNewAddr3)
-                .HasMaxLength(150)
-                .HasColumnName("swap_new_addr3");
-            entity.Property(e => e.SwapNewArea)
-                .HasMaxLength(50)
-                .HasColumnName("swap_new_area");
-            entity.Property(e => e.SwapNewPcode)
-                .HasPrecision(5)
-                .HasColumnName("swap_new_pcode");
-            entity.Property(e => e.SwapNewState)
-                .HasMaxLength(30)
-                .HasColumnName("swap_new_state");
-            entity.Property(e => e.UpdatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.swap_current_addr1).HasMaxLength(100);
+            entity.Property(e => e.swap_current_addr2).HasMaxLength(150);
+            entity.Property(e => e.swap_current_addr3).HasMaxLength(150);
+            entity.Property(e => e.swap_current_area).HasMaxLength(50);
+            entity.Property(e => e.swap_current_pcode).HasPrecision(5);
+            entity.Property(e => e.swap_current_state).HasMaxLength(30);
+            entity.Property(e => e.swap_license_account).HasMaxLength(20);
+            entity.Property(e => e.swap_new_addr1).HasMaxLength(100);
+            entity.Property(e => e.swap_new_addr2).HasMaxLength(150);
+            entity.Property(e => e.swap_new_addr3).HasMaxLength(150);
+            entity.Property(e => e.swap_new_area).HasMaxLength(50);
+            entity.Property(e => e.swap_new_pcode).HasPrecision(5);
+            entity.Property(e => e.swap_new_state).HasMaxLength(30);
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
 
-            entity.HasOne(d => d.SwapIdInfoNavigation).WithMany(p => p.LicenseAddressSwaps)
-                .HasForeignKey(d => d.SwapIdInfo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+            entity.HasOne(d => d.swap_id_infoNavigation).WithMany(p => p.license_address_swaps)
+                .HasForeignKey(d => d.swap_id_info)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("swap_id_info");
         });
 
-        modelBuilder.Entity<LicenseHistory>(entity =>
+        modelBuilder.Entity<license_history>(entity =>
         {
-            entity.HasKey(e => e.LicenseHistId).HasName("license_history_pkey");
+            entity.HasKey(e => e.license_hist_id).HasName("license_history_pkey");
 
             entity.ToTable("license_history", "license", tb => tb.HasComment("TABLE SEJARAH LESEN"));
 
-            entity.Property(e => e.LicenseHistId).HasColumnName("license_hist_id");
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.LastUpdated)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("last_updated");
-            entity.Property(e => e.LicenseHistAccount)
-                .HasMaxLength(20)
-                .HasColumnName("license_hist_account");
-            entity.Property(e => e.LicenseHistAddr1)
-                .HasMaxLength(100)
-                .HasColumnName("license_hist_addr1");
-            entity.Property(e => e.LicenseHistAddr2)
-                .HasMaxLength(150)
-                .HasColumnName("license_hist_addr2");
-            entity.Property(e => e.LicenseHistAddr3)
-                .HasMaxLength(150)
-                .HasColumnName("license_hist_addr3");
-            entity.Property(e => e.LicenseHistArea)
-                .HasMaxLength(50)
-                .HasColumnName("license_hist_area");
-            entity.Property(e => e.LicenseHistEndd).HasColumnName("license_hist_endd");
-            entity.Property(e => e.LicenseHistHolder)
-                .HasMaxLength(20)
-                .HasColumnName("license_hist_holder");
-            entity.Property(e => e.LicenseHistPcode)
-                .HasPrecision(5)
-                .HasColumnName("license_hist_pcode");
-            entity.Property(e => e.LicenseHistStartd).HasColumnName("license_hist_startd");
-            entity.Property(e => e.LicenseHistState)
-                .HasMaxLength(30)
-                .HasColumnName("license_hist_state");
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.last_updated).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.license_hist_account).HasMaxLength(20);
+            entity.Property(e => e.license_hist_addr1).HasMaxLength(100);
+            entity.Property(e => e.license_hist_addr2).HasMaxLength(150);
+            entity.Property(e => e.license_hist_addr3).HasMaxLength(150);
+            entity.Property(e => e.license_hist_area).HasMaxLength(50);
+            entity.Property(e => e.license_hist_holder).HasMaxLength(20);
+            entity.Property(e => e.license_hist_pcode).HasPrecision(5);
+            entity.Property(e => e.license_hist_state).HasMaxLength(30);
         });
 
-        modelBuilder.Entity<LicenseHolder>(entity =>
+        modelBuilder.Entity<license_holder>(entity =>
         {
-            entity.HasKey(e => e.LicenseHolderId).HasName("license_holder_pkey");
+            entity.HasKey(e => e.license_holder_id).HasName("license_holder_pkey");
 
             entity.ToTable("license_holder", "license", tb => tb.HasComment("TABLE MAKLUMAT PELESEN"));
 
-            entity.Property(e => e.LicenseHolderId).HasColumnName("license_holder_id");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(10)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.LicenseHolderAccount)
-                .HasMaxLength(20)
-                .HasColumnName("license_holder_account");
-            entity.Property(e => e.LicenseHolderAddr1)
-                .HasMaxLength(100)
-                .HasColumnName("license_holder_addr1");
-            entity.Property(e => e.LicenseHolderAddr2)
-                .HasMaxLength(150)
-                .HasColumnName("license_holder_addr2");
-            entity.Property(e => e.LicenseHolderAddr3)
-                .HasMaxLength(150)
-                .HasColumnName("license_holder_addr3");
-            entity.Property(e => e.LicenseHolderArea)
-                .HasMaxLength(50)
-                .HasColumnName("license_holder_area");
-            entity.Property(e => e.LicenseHolderCustid)
-                .HasMaxLength(50)
-                .HasColumnName("license_holder_custid");
-            entity.Property(e => e.LicenseHolderEmail)
-                .HasMaxLength(100)
-                .HasColumnName("license_holder_email");
-            entity.Property(e => e.LicenseHolderInfo).HasColumnName("license_holder_info");
-            entity.Property(e => e.LicenseHolderName)
-                .HasMaxLength(250)
-                .HasColumnName("license_holder_name");
-            entity.Property(e => e.LicenseHolderPcode)
-                .HasPrecision(5)
-                .HasColumnName("license_holder_pcode");
-            entity.Property(e => e.LicenseHolderPhone)
-                .HasPrecision(20)
-                .HasColumnName("license_holder_phone");
-            entity.Property(e => e.LicenseHolderState)
+            entity.Property(e => e.created_by).HasMaxLength(10);
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.license_holder_account).HasMaxLength(20);
+            entity.Property(e => e.license_holder_addr1).HasMaxLength(100);
+            entity.Property(e => e.license_holder_addr2).HasMaxLength(150);
+            entity.Property(e => e.license_holder_addr3).HasMaxLength(150);
+            entity.Property(e => e.license_holder_area).HasMaxLength(50);
+            entity.Property(e => e.license_holder_custid).HasMaxLength(50);
+            entity.Property(e => e.license_holder_email).HasMaxLength(100);
+            entity.Property(e => e.license_holder_name).HasMaxLength(250);
+            entity.Property(e => e.license_holder_pcode).HasPrecision(5);
+            entity.Property(e => e.license_holder_phone).HasPrecision(20);
+            entity.Property(e => e.license_holder_state)
                 .HasMaxLength(30)
-                .IsFixedLength()
-                .HasColumnName("license_holder_state");
-            entity.Property(e => e.UpdatedBy)
-                .HasMaxLength(10)
-                .HasColumnName("updated_by");
-            entity.Property(e => e.UpdatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+                .IsFixedLength();
+            entity.Property(e => e.updated_by).HasMaxLength(10);
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
 
-            entity.HasOne(d => d.LicenseHolderInfoNavigation).WithMany(p => p.LicenseHolders)
-                .HasForeignKey(d => d.LicenseHolderInfo)
+            entity.HasOne(d => d.license_holder_infoNavigation).WithMany(p => p.license_holders)
+                .HasForeignKey(d => d.license_holder_info)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("license_holder_info");
         });
 
-        modelBuilder.Entity<LicenseInformation>(entity =>
+        modelBuilder.Entity<license_information>(entity =>
         {
-            entity.HasKey(e => e.LicenseId).HasName("license_information_pkey");
+            entity.HasKey(e => e.license_id).HasName("license_information_pkey");
 
             entity.ToTable("license_information", "license", tb => tb.HasComment("TABLE BAGI MAKLUMAT LESEN"));
 
-            entity.HasIndex(e => e.LicenseId, "index_license_id")
+            entity.HasIndex(e => e.license_id, "index_license_id")
                 .IsUnique()
                 .HasAnnotation("Npgsql:StorageParameter:deduplicate_items", "false");
 
-            entity.Property(e => e.LicenseId).HasColumnName("license_id");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(10)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.LicenseAccountNumber)
-                .HasMaxLength(50)
-                .HasColumnName("license_account_number");
-            entity.Property(e => e.LicenseAmount)
-                .HasPrecision(15, 2)
-                .HasColumnName("license_amount");
-            entity.Property(e => e.LicenseAmountBalance)
-                .HasPrecision(15, 2)
-                .HasColumnName("license_amount_balance");
-            entity.Property(e => e.LicenseApplyDate).HasColumnName("license_apply_date");
-            entity.Property(e => e.LicenseApprovedDate).HasColumnName("license_approved_date");
-            entity.Property(e => e.LicenseBusinessAddr1)
-                .HasMaxLength(100)
-                .HasColumnName("license_business_addr1");
-            entity.Property(e => e.LicenseBusinessAddr2)
-                .HasMaxLength(150)
-                .HasColumnName("license_business_addr2");
-            entity.Property(e => e.LicenseBusinessAddr3)
-                .HasMaxLength(150)
-                .HasColumnName("license_business_addr3");
-            entity.Property(e => e.LicenseBusinessArea)
-                .HasMaxLength(50)
-                .HasColumnName("license_business_area");
-            entity.Property(e => e.LicenseBusinessName)
-                .HasMaxLength(250)
-                .HasColumnName("license_business_name");
-            entity.Property(e => e.LicenseBusinessPcode)
-                .HasPrecision(5)
-                .HasColumnName("license_business_pcode");
-            entity.Property(e => e.LicenseBusinessState)
-                .HasMaxLength(30)
-                .HasColumnName("license_business_state");
-            entity.Property(e => e.LicenseEndDate).HasColumnName("license_end_date");
-            entity.Property(e => e.LicenseLatitude)
-                .HasMaxLength(250)
-                .HasColumnName("license_latitude");
-            entity.Property(e => e.LicenseLongitud)
-                .HasMaxLength(250)
-                .HasColumnName("license_longitud");
-            entity.Property(e => e.LicensePaymentStatus)
-                .HasMaxLength(30)
-                .HasColumnName("license_payment_status");
-            entity.Property(e => e.LicensePbtOrigin)
-                .HasPrecision(5)
-                .HasColumnName("license_pbt_origin");
-            entity.Property(e => e.LicensePeriod).HasColumnName("license_period");
-            entity.Property(e => e.LicensePeriodStatus)
-                .HasMaxLength(30)
-                .HasColumnName("license_period_status");
-            entity.Property(e => e.LicenseRiskStatus)
-                .HasMaxLength(30)
-                .HasColumnName("license_risk_status");
-            entity.Property(e => e.LicenseStartDate).HasColumnName("license_start_date");
-            entity.Property(e => e.LicenseStatus)
-                .HasMaxLength(20)
-                .HasColumnName("license_status");
-            entity.Property(e => e.LicenseType)
-                .HasMaxLength(50)
-                .HasColumnName("license_type");
-            entity.Property(e => e.UpdatedBy)
-                .HasMaxLength(10)
-                .HasColumnName("updated_by");
-            entity.Property(e => e.UpdatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+            entity.Property(e => e.created_by).HasMaxLength(10);
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.license_account_number).HasMaxLength(50);
+            entity.Property(e => e.license_amount).HasPrecision(15, 2);
+            entity.Property(e => e.license_amount_balance).HasPrecision(15, 2);
+            entity.Property(e => e.license_business_addr1).HasMaxLength(100);
+            entity.Property(e => e.license_business_addr2).HasMaxLength(150);
+            entity.Property(e => e.license_business_addr3).HasMaxLength(150);
+            entity.Property(e => e.license_business_area).HasMaxLength(50);
+            entity.Property(e => e.license_business_name).HasMaxLength(250);
+            entity.Property(e => e.license_business_pcode).HasPrecision(5);
+            entity.Property(e => e.license_business_state).HasMaxLength(30);
+            entity.Property(e => e.license_latitude).HasMaxLength(250);
+            entity.Property(e => e.license_longitud).HasMaxLength(250);
+            entity.Property(e => e.license_payment_status).HasMaxLength(30);
+            entity.Property(e => e.license_pbt_origin).HasPrecision(5);
+            entity.Property(e => e.license_period_status).HasMaxLength(30);
+            entity.Property(e => e.license_risk_status).HasMaxLength(30);
+            entity.Property(e => e.license_status).HasMaxLength(20);
+            entity.Property(e => e.license_type).HasMaxLength(50);
+            entity.Property(e => e.updated_by).HasMaxLength(10);
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
         });
 
-        modelBuilder.Entity<LicenseMedium>(entity =>
+        modelBuilder.Entity<license_location>(entity =>
         {
-            entity.HasKey(e => e.MediaId).HasName("license_media_pkey");
+            entity.HasKey(e => e.license_loc_id).HasName("license_location_pkey");
+
+            entity.ToTable("license_location", "license");
+
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.license_loc_latitude).HasMaxLength(100);
+            entity.Property(e => e.license_loc_longitude).HasMaxLength(100);
+            entity.Property(e => e.license_loc_no).HasMaxLength(30);
+            entity.Property(e => e.license_loc_pbt).HasPrecision(5);
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
+
+            entity.HasOne(d => d.license_loc_infoNavigation).WithMany(p => p.license_locations)
+                .HasForeignKey(d => d.license_loc_info)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("license_loc_info");
+        });
+
+        modelBuilder.Entity<license_medium>(entity =>
+        {
+            entity.HasKey(e => e.media_id).HasName("license_media_pkey");
 
             entity.ToTable("license_media", "license");
 
-            entity.Property(e => e.MediaId).HasColumnName("media_id");
-            entity.Property(e => e.MediaIdInfo).HasColumnName("media_id_info");
-            entity.Property(e => e.MediaLicenseAccount)
-                .HasMaxLength(50)
-                .HasColumnName("media_license_account");
-            entity.Property(e => e.MediaUrlLink)
-                .HasMaxLength(500)
-                .HasColumnName("media_url_link");
+            entity.Property(e => e.media_license_account).HasMaxLength(50);
+            entity.Property(e => e.media_url_link).HasMaxLength(500);
 
-            entity.HasOne(d => d.MediaIdInfoNavigation).WithMany(p => p.LicenseMedia)
-                .HasForeignKey(d => d.MediaIdInfo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+            entity.HasOne(d => d.media_id_infoNavigation).WithMany(p => p.license_media)
+                .HasForeignKey(d => d.media_id_info)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("media_id_info");
         });
 
-        modelBuilder.Entity<LicenseTax>(entity =>
+        modelBuilder.Entity<license_tax>(entity =>
         {
-            entity.HasKey(e => e.TaxId).HasName("license_tax_pkey");
+            entity.HasKey(e => e.tax_id).HasName("license_tax_pkey");
 
             entity.ToTable("license_tax", "license", tb => tb.HasComment("TABLE MAKLUMAT CUKAI TAKSIRAN"));
 
-            entity.Property(e => e.TaxId).HasColumnName("tax_id");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(10)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.TaxLicenseAccount)
-                .HasMaxLength(20)
-                .HasColumnName("tax_license_account");
-            entity.Property(e => e.TaxLicenseInfo).HasColumnName("tax_license_info");
-            entity.Property(e => e.TaxMainAccount)
-                .HasMaxLength(20)
-                .HasColumnName("tax_main_account");
-            entity.Property(e => e.TaxPropertyAddress1)
-                .HasMaxLength(100)
-                .HasColumnName("tax_property_address1");
-            entity.Property(e => e.TaxPropertyAddress2)
-                .HasMaxLength(250)
-                .HasColumnName("tax_property_address2");
-            entity.Property(e => e.TaxPropertyAmount)
-                .HasPrecision(15, 2)
-                .HasColumnName("tax_property_amount");
-            entity.Property(e => e.TaxPropertyArea)
-                .HasMaxLength(50)
-                .HasColumnName("tax_property_area");
-            entity.Property(e => e.TaxPropertyPcode)
-                .HasPrecision(5)
-                .HasColumnName("tax_property_pcode");
-            entity.Property(e => e.TaxPropertyState)
-                .HasMaxLength(50)
-                .HasColumnName("tax_property_state");
-            entity.Property(e => e.TaxPropertyStatus)
-                .HasMaxLength(1)
-                .HasColumnName("tax_property_status");
-            entity.Property(e => e.UpdatedBy)
-                .HasMaxLength(10)
-                .HasColumnName("updated_by");
-            entity.Property(e => e.UpdatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+            entity.Property(e => e.created_by).HasMaxLength(10);
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.tax_license_account).HasMaxLength(20);
+            entity.Property(e => e.tax_main_account).HasMaxLength(20);
+            entity.Property(e => e.tax_property_address1).HasMaxLength(100);
+            entity.Property(e => e.tax_property_address2).HasMaxLength(250);
+            entity.Property(e => e.tax_property_amount).HasPrecision(15, 2);
+            entity.Property(e => e.tax_property_area).HasMaxLength(50);
+            entity.Property(e => e.tax_property_pcode).HasPrecision(5);
+            entity.Property(e => e.tax_property_state).HasMaxLength(50);
+            entity.Property(e => e.tax_property_status).HasMaxLength(1);
+            entity.Property(e => e.updated_by).HasMaxLength(10);
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
 
-            entity.HasOne(d => d.TaxLicenseInfoNavigation).WithMany(p => p.LicenseTaxes)
-                .HasForeignKey(d => d.TaxLicenseInfo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+            entity.HasOne(d => d.tax_license_infoNavigation).WithMany(p => p.license_taxes)
+                .HasForeignKey(d => d.tax_license_info)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("tax_license_info");
         });
 
-        modelBuilder.Entity<LicenseTransaction>(entity =>
+        modelBuilder.Entity<license_transaction>(entity =>
         {
-            entity.HasKey(e => e.LicenseTransId).HasName("license_transaction_pkey");
+            entity.HasKey(e => e.license_trans_id).HasName("license_transaction_pkey");
 
             entity.ToTable("license_transaction", "license", tb => tb.HasComment("TABLE TRANSAKSI LESEN"));
 
-            entity.Property(e => e.LicenseTransId).HasColumnName("license_trans_id");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(10)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.LicenseTransAccount)
-                .HasMaxLength(20)
-                .HasColumnName("license_trans_account");
-            entity.Property(e => e.LicenseTransAmount)
-                .HasPrecision(15, 2)
-                .HasColumnName("license_trans_amount");
-            entity.Property(e => e.LicenseTransCode)
-                .HasMaxLength(50)
-                .HasColumnName("license_trans_code");
-            entity.Property(e => e.LicenseTransInfo).HasColumnName("license_trans_info");
-            entity.Property(e => e.LicenseTransName)
-                .HasMaxLength(250)
-                .HasColumnName("license_trans_name");
-            entity.Property(e => e.LicenseTransStatus)
-                .HasMaxLength(1)
-                .HasColumnName("license_trans_status");
-            entity.Property(e => e.UpdatedBy)
-                .HasMaxLength(10)
-                .HasColumnName("updated_by");
-            entity.Property(e => e.UpdatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+            entity.Property(e => e.created_by).HasMaxLength(10);
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.license_trans_account).HasMaxLength(20);
+            entity.Property(e => e.license_trans_amount).HasPrecision(15, 2);
+            entity.Property(e => e.license_trans_code).HasMaxLength(50);
+            entity.Property(e => e.license_trans_name).HasMaxLength(250);
+            entity.Property(e => e.license_trans_status).HasMaxLength(1);
+            entity.Property(e => e.updated_by).HasMaxLength(10);
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
 
-            entity.HasOne(d => d.LicenseTransInfoNavigation).WithMany(p => p.LicenseTransactions)
-                .HasForeignKey(d => d.LicenseTransInfo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+            entity.HasOne(d => d.license_trans_infoNavigation).WithMany(p => p.license_transactions)
+                .HasForeignKey(d => d.license_trans_info)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("license_trans_info");
         });
 
-        modelBuilder.Entity<PatrollingInfo>(entity =>
+        modelBuilder.Entity<mst_area>(entity =>
         {
-            entity.HasKey(e => e.PatrollingId).HasName("patrolling_info_pkey");
-
-            entity.ToTable("patrolling_info", "patrolling");
-
-            entity.Property(e => e.PatrollingId)
-                .ValueGeneratedNever()
-                .HasColumnName("patrolling_id");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.PatrollingEndTime).HasColumnName("patrolling_end_time");
-            entity.Property(e => e.PatrollingLocation)
-                .HasMaxLength(255)
-                .HasColumnName("patrolling_location");
-            entity.Property(e => e.PatrollingOfficerName)
-                .HasMaxLength(150)
-                .HasColumnName("patrolling_officer_name");
-            entity.Property(e => e.PatrollingStartTime)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("patrolling_start_time");
-            entity.Property(e => e.PatrollingStatus)
-                .HasColumnType("character varying")
-                .HasColumnName("patrolling_status");
-            entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
-            entity.Property(e => e.UpdatedDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
-        });
-
-        #endregion
-
-        modelBuilder.Entity<MstArea>(entity =>
-        {
-            entity.HasKey(e => e.Gid).HasName("mst_area_pkey");
+            entity.HasKey(e => e.gid).HasName("mst_area_pkey");
 
             entity.ToTable("mst_area");
 
-            entity.HasIndex(e => e.Geom, "mst_area_geom_idx").HasMethod("gist");
+            entity.HasIndex(e => e.geom, "mst_area_geom_idx").HasMethod("gist");
 
-            entity.Property(e => e.Gid).HasColumnName("gid");
-            entity.Property(e => e.Acc)
-                .HasMaxLength(50)
-                .HasColumnName("acc");
-            entity.Property(e => e.Ark)
-                .HasMaxLength(50)
-                .HasColumnName("ark");
-            entity.Property(e => e.Bds)
-                .HasMaxLength(50)
-                .HasColumnName("bds");
-            entity.Property(e => e.Fcd)
-                .HasMaxLength(7)
-                .HasColumnName("fcd");
-            entity.Property(e => e.Fnm)
-                .HasMaxLength(100)
-                .HasColumnName("fnm");
-            entity.Property(e => e.Geom)
-                .HasColumnType("geometry(MultiPolygon,3375)")
-                .HasColumnName("geom");
-            entity.Property(e => e.Keluasan)
-                .HasMaxLength(50)
-                .HasColumnName("keluasan");
-            entity.Property(e => e.Kemaskini)
-                .HasMaxLength(50)
-                .HasColumnName("kemaskini");
-            entity.Property(e => e.KodDaerah)
-                .HasMaxLength(50)
-                .HasColumnName("kod_daerah");
-            entity.Property(e => e.KodNegeri)
-                .HasMaxLength(50)
-                .HasColumnName("kod_negeri");
-            entity.Property(e => e.Nam)
-                .HasMaxLength(50)
-                .HasColumnName("nam");
-            entity.Property(e => e.Objectid).HasColumnName("objectid");
-            entity.Property(e => e.ShapeArea).HasColumnName("shape_area");
-            entity.Property(e => e.ShapeLeng).HasColumnName("shape_leng");
+            entity.Property(e => e.acc).HasMaxLength(50);
+            entity.Property(e => e.ark).HasMaxLength(50);
+            entity.Property(e => e.bds).HasMaxLength(50);
+            entity.Property(e => e.fcd).HasMaxLength(7);
+            entity.Property(e => e.fnm).HasMaxLength(100);
+            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,3375)");
+            entity.Property(e => e.keluasan).HasMaxLength(50);
+            entity.Property(e => e.kemaskini).HasMaxLength(50);
+            entity.Property(e => e.kod_daerah).HasMaxLength(50);
+            entity.Property(e => e.kod_negeri).HasMaxLength(50);
+            entity.Property(e => e.nam).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<MstDaerah>(entity =>
+        modelBuilder.Entity<mst_daerah>(entity =>
         {
-            entity.HasKey(e => e.Gid).HasName("mst_daerah_pkey");
+            entity.HasKey(e => e.gid).HasName("mst_daerah_pkey");
 
             entity.ToTable("mst_daerah");
 
-            entity.HasIndex(e => e.Geom, "mst_daerah_geom_idx").HasMethod("gist");
+            entity.HasIndex(e => e.geom, "mst_daerah_geom_idx").HasMethod("gist");
 
-            entity.Property(e => e.Gid).HasColumnName("gid");
-            entity.Property(e => e.Acc)
-                .HasMaxLength(50)
-                .HasColumnName("acc");
-            entity.Property(e => e.Ark)
-                .HasMaxLength(50)
-                .HasColumnName("ark");
-            entity.Property(e => e.Bds)
-                .HasMaxLength(50)
-                .HasColumnName("bds");
-            entity.Property(e => e.Fcd)
-                .HasMaxLength(7)
-                .HasColumnName("fcd");
-            entity.Property(e => e.Fnm)
-                .HasMaxLength(100)
-                .HasColumnName("fnm");
-            entity.Property(e => e.Geom)
-                .HasColumnType("geometry(MultiPolygon,3375)")
-                .HasColumnName("geom");
-            entity.Property(e => e.Keluasan)
-                .HasMaxLength(50)
-                .HasColumnName("keluasan");
-            entity.Property(e => e.Kemaskini)
-                .HasMaxLength(50)
-                .HasColumnName("kemaskini");
-            entity.Property(e => e.KodDaerah)
-                .HasMaxLength(50)
-                .HasColumnName("kod_daerah");
-            entity.Property(e => e.KodNegeri)
-                .HasMaxLength(50)
-                .HasColumnName("kod_negeri");
-            entity.Property(e => e.Nam)
-                .HasMaxLength(50)
-                .HasColumnName("nam");
-            entity.Property(e => e.Objectid).HasColumnName("objectid");
-            entity.Property(e => e.ShapeArea).HasColumnName("shape_area");
-            entity.Property(e => e.ShapeLeng).HasColumnName("shape_leng");
+            entity.Property(e => e.acc).HasMaxLength(50);
+            entity.Property(e => e.ark).HasMaxLength(50);
+            entity.Property(e => e.bds).HasMaxLength(50);
+            entity.Property(e => e.fcd).HasMaxLength(7);
+            entity.Property(e => e.fnm).HasMaxLength(100);
+            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,3375)");
+            entity.Property(e => e.keluasan).HasMaxLength(50);
+            entity.Property(e => e.kemaskini).HasMaxLength(50);
+            entity.Property(e => e.kod_daerah).HasMaxLength(50);
+            entity.Property(e => e.kod_negeri).HasMaxLength(50);
+            entity.Property(e => e.nam).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<MstDistrict>(entity =>
+        modelBuilder.Entity<mst_district>(entity =>
         {
-            entity.HasKey(e => e.Gid).HasName("mst_district_pkey");
+            entity.HasKey(e => e.gid).HasName("mst_district_pkey");
 
             entity.ToTable("mst_district");
 
-            entity.HasIndex(e => e.Geom, "mst_district_geom_idx").HasMethod("gist");
+            entity.HasIndex(e => e.geom, "mst_district_geom_idx").HasMethod("gist");
 
-            entity.Property(e => e.Gid).HasColumnName("gid");
-            entity.Property(e => e.Acc)
-                .HasMaxLength(50)
-                .HasColumnName("acc");
-            entity.Property(e => e.Ark)
-                .HasMaxLength(50)
-                .HasColumnName("ark");
-            entity.Property(e => e.Bds)
-                .HasMaxLength(50)
-                .HasColumnName("bds");
-            entity.Property(e => e.Dasdas)
-                .HasMaxLength(50)
-                .HasColumnName("dasdas");
-            entity.Property(e => e.Fcd)
-                .HasMaxLength(10)
-                .HasColumnName("fcd");
-            entity.Property(e => e.Fnm)
-                .HasMaxLength(50)
-                .HasColumnName("fnm");
-            entity.Property(e => e.Geom)
-                .HasColumnType("geometry(MultiPolygon,3375)")
-                .HasColumnName("geom");
-            entity.Property(e => e.Globalid)
-                .HasMaxLength(38)
-                .HasColumnName("globalid");
-            entity.Property(e => e.Keluasan)
-                .HasMaxLength(50)
-                .HasColumnName("keluasan");
-            entity.Property(e => e.KodDaerah)
-                .HasMaxLength(50)
-                .HasColumnName("kod_daerah");
-            entity.Property(e => e.KodMukim)
-                .HasMaxLength(50)
-                .HasColumnName("kod_mukim");
-            entity.Property(e => e.KodNegeri)
-                .HasMaxLength(50)
-                .HasColumnName("kod_negeri");
-            entity.Property(e => e.Nam)
-                .HasMaxLength(50)
-                .HasColumnName("nam");
-            entity.Property(e => e.Objectid).HasColumnName("objectid");
-            entity.Property(e => e.ShapeArea).HasColumnName("shape_area");
-            entity.Property(e => e.ShapeLeng).HasColumnName("shape_leng");
+            entity.Property(e => e.acc).HasMaxLength(50);
+            entity.Property(e => e.ark).HasMaxLength(50);
+            entity.Property(e => e.bds).HasMaxLength(50);
+            entity.Property(e => e.dasdas).HasMaxLength(50);
+            entity.Property(e => e.fcd).HasMaxLength(10);
+            entity.Property(e => e.fnm).HasMaxLength(50);
+            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,3375)");
+            entity.Property(e => e.globalid).HasMaxLength(38);
+            entity.Property(e => e.keluasan).HasMaxLength(50);
+            entity.Property(e => e.kod_daerah).HasMaxLength(50);
+            entity.Property(e => e.kod_mukim).HasMaxLength(50);
+            entity.Property(e => e.kod_negeri).HasMaxLength(50);
+            entity.Property(e => e.nam).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<MstLot>(entity =>
+        modelBuilder.Entity<mst_lot>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("Sample_Lot_pkey");
+            entity.HasKey(e => e.id).HasName("Sample_Lot_pkey");
 
             entity.ToTable("mst_lot");
 
-            entity.HasIndex(e => e.Geom, "sidx_Sample_Lot_geom").HasMethod("gist");
+            entity.HasIndex(e => e.geom, "sidx_Sample_Lot_geom").HasMethod("gist");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.Apdate)
-                .HasMaxLength(8)
-                .HasColumnName("apdate");
-            entity.Property(e => e.Cls)
-                .HasMaxLength(1)
-                .HasColumnName("cls");
-            entity.Property(e => e.Daerah)
-                .HasMaxLength(2)
-                .HasColumnName("daerah");
-            entity.Property(e => e.Entrymode)
-                .HasMaxLength(1)
-                .HasColumnName("entrymode");
-            entity.Property(e => e.GArea).HasColumnName("g_area");
-            entity.Property(e => e.Geom)
-                .HasColumnType("geometry(MultiPolygon,3375)")
-                .HasColumnName("geom");
-            entity.Property(e => e.Guid)
-                .HasMaxLength(32)
-                .HasColumnName("guid");
-            entity.Property(e => e.Landtitlec)
-                .HasMaxLength(2)
-                .HasColumnName("landtitlec");
-            entity.Property(e => e.Landusecod)
-                .HasMaxLength(2)
-                .HasColumnName("landusecod");
-            entity.Property(e => e.Lot)
-                .HasMaxLength(7)
-                .HasColumnName("lot");
-            entity.Property(e => e.MArea).HasColumnName("m_area");
-            entity.Property(e => e.MiPrinx).HasColumnName("mi_prinx");
-            entity.Property(e => e.Mukim)
-                .HasMaxLength(2)
-                .HasColumnName("mukim");
-            entity.Property(e => e.Negeri)
-                .HasMaxLength(2)
-                .HasColumnName("negeri");
-            entity.Property(e => e.Objectid).HasColumnName("objectid");
-            entity.Property(e => e.Pa)
-                .HasMaxLength(15)
-                .HasColumnName("pa");
-            entity.Property(e => e.Refplan)
-                .HasMaxLength(15)
-                .HasColumnName("refplan");
-            entity.Property(e => e.SArea).HasColumnName("s_area");
-            entity.Property(e => e.Seksyen)
-                .HasMaxLength(3)
-                .HasColumnName("seksyen");
-            entity.Property(e => e.ShapeArea).HasColumnName("shape_area");
-            entity.Property(e => e.ShapeLeng).HasColumnName("shape_leng");
-            entity.Property(e => e.Unit)
-                .HasMaxLength(1)
-                .HasColumnName("unit");
-            entity.Property(e => e.Updated).HasColumnName("updated");
-            entity.Property(e => e.Upi)
-                .HasMaxLength(16)
-                .HasColumnName("upi");
+            entity.Property(e => e.id).ValueGeneratedNever();
+            entity.Property(e => e.apdate).HasMaxLength(8);
+            entity.Property(e => e.cls).HasMaxLength(1);
+            entity.Property(e => e.daerah).HasMaxLength(2);
+            entity.Property(e => e.entrymode).HasMaxLength(1);
+            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,3375)");
+            entity.Property(e => e.guid).HasMaxLength(32);
+            entity.Property(e => e.landtitlec).HasMaxLength(2);
+            entity.Property(e => e.landusecod).HasMaxLength(2);
+            entity.Property(e => e.lot).HasMaxLength(7);
+            entity.Property(e => e.mukim).HasMaxLength(2);
+            entity.Property(e => e.negeri).HasMaxLength(2);
+            entity.Property(e => e.pa).HasMaxLength(15);
+            entity.Property(e => e.refplan).HasMaxLength(15);
+            entity.Property(e => e.seksyen).HasMaxLength(3);
+            entity.Property(e => e.unit).HasMaxLength(1);
+            entity.Property(e => e.upi).HasMaxLength(16);
         });
 
-        modelBuilder.Entity<MstMukim>(entity =>
+        modelBuilder.Entity<mst_mukim>(entity =>
         {
-            entity.HasKey(e => e.Gid).HasName("mst_mukim_pkey");
+            entity.HasKey(e => e.gid).HasName("mst_mukim_pkey");
 
             entity.ToTable("mst_mukim");
 
-            entity.HasIndex(e => e.Geom, "mst_mukim_geom_idx").HasMethod("gist");
+            entity.HasIndex(e => e.geom, "mst_mukim_geom_idx").HasMethod("gist");
 
-            entity.Property(e => e.Gid).HasColumnName("gid");
-            entity.Property(e => e.Acc)
-                .HasMaxLength(50)
-                .HasColumnName("acc");
-            entity.Property(e => e.Ark)
-                .HasMaxLength(50)
-                .HasColumnName("ark");
-            entity.Property(e => e.Bds)
-                .HasMaxLength(50)
-                .HasColumnName("bds");
-            entity.Property(e => e.Dasdas)
-                .HasMaxLength(50)
-                .HasColumnName("dasdas");
-            entity.Property(e => e.Fcd)
-                .HasMaxLength(10)
-                .HasColumnName("fcd");
-            entity.Property(e => e.Fnm)
-                .HasMaxLength(50)
-                .HasColumnName("fnm");
-            entity.Property(e => e.Geom)
-                .HasColumnType("geometry(MultiPolygon,3375)")
-                .HasColumnName("geom");
-            entity.Property(e => e.Globalid)
-                .HasMaxLength(38)
-                .HasColumnName("globalid");
-            entity.Property(e => e.Keluasan)
-                .HasMaxLength(50)
-                .HasColumnName("keluasan");
-            entity.Property(e => e.KodDaerah)
-                .HasMaxLength(50)
-                .HasColumnName("kod_daerah");
-            entity.Property(e => e.KodMukim)
-                .HasMaxLength(50)
-                .HasColumnName("kod_mukim");
-            entity.Property(e => e.KodNegeri)
-                .HasMaxLength(50)
-                .HasColumnName("kod_negeri");
-            entity.Property(e => e.Nam)
-                .HasMaxLength(50)
-                .HasColumnName("nam");
-            entity.Property(e => e.Objectid).HasColumnName("objectid");
-            entity.Property(e => e.ShapeArea).HasColumnName("shape_area");
-            entity.Property(e => e.ShapeLeng).HasColumnName("shape_leng");
+            entity.Property(e => e.acc).HasMaxLength(50);
+            entity.Property(e => e.ark).HasMaxLength(50);
+            entity.Property(e => e.bds).HasMaxLength(50);
+            entity.Property(e => e.dasdas).HasMaxLength(50);
+            entity.Property(e => e.fcd).HasMaxLength(10);
+            entity.Property(e => e.fnm).HasMaxLength(50);
+            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,3375)");
+            entity.Property(e => e.globalid).HasMaxLength(38);
+            entity.Property(e => e.keluasan).HasMaxLength(50);
+            entity.Property(e => e.kod_daerah).HasMaxLength(50);
+            entity.Property(e => e.kod_mukim).HasMaxLength(50);
+            entity.Property(e => e.kod_negeri).HasMaxLength(50);
+            entity.Property(e => e.nam).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<ParFormField>(entity =>
+        modelBuilder.Entity<notification_email_history>(entity =>
         {
-            entity.HasKey(e => e.RecId).HasName("par_form_field_pkey");
+            entity.HasKey(e => e.history_id).HasName("notification_email_history_pkey");
 
-            entity.ToTable("par_form_field");
+            entity.ToTable("notification_email_history", "notification");
 
-            entity.Property(e => e.RecId).HasColumnName("rec_id");
-            entity.Property(e => e.ApiSeeded)
-                .HasDefaultValue(false)
-                .HasColumnName("api_seeded");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(50)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDtm)
+            entity.Property(e => e.active_flag).HasDefaultValue(true);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_dtm");
-            entity.Property(e => e.FormType)
-                .HasMaxLength(50)
-                .HasColumnName("form_type");
-            entity.Property(e => e.Isactive)
-                .HasDefaultValue(true)
-                .HasColumnName("isactive");
-            entity.Property(e => e.Label)
-                .HasMaxLength(50)
-                .HasColumnName("label");
-            entity.Property(e => e.ModifiedBy)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("modified_by");
-            entity.Property(e => e.ModifiedDtm)
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.history_cnt_retry).HasDefaultValue(0);
+            entity.Property(e => e.history_date_sent)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_dtm");
-            entity.Property(e => e.Name)
-                .HasMaxLength(50)
-                .HasColumnName("name");
-            entity.Property(e => e.Option).HasColumnName("option");
-            entity.Property(e => e.Orders)
-                .HasDefaultValue(0)
-                .HasColumnName("orders");
-            entity.Property(e => e.Required)
-                .HasDefaultValue(false)
-                .HasColumnName("required");
-            entity.Property(e => e.SourceUrl)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("source_url");
-            entity.Property(e => e.Type)
-                .HasMaxLength(10)
-                .HasColumnName("type");
-        });       
-
-        //modelBuilder.Entity<TbHubungikami>(entity =>
-        //{
-        //    entity.HasKey(e => e.Hubkamiid).HasName("tb_hubungikami_pkey");
-
-        //    entity.ToTable("tb_hubungikami");
-
-        //    entity.Property(e => e.Hubkamiid).HasColumnName("hubkamiid");
-        //    entity.Property(e => e.Catatan).HasColumnName("catatan");
-        //    entity.Property(e => e.Emailpenghantar)
-        //        .HasMaxLength(255)
-        //        .HasColumnName("emailpenghantar");
-        //    entity.Property(e => e.Namapenerima)
-        //        .HasMaxLength(255)
-        //        .HasColumnName("namapenerima");
-        //    entity.Property(e => e.Namapenghantar)
-        //        .HasMaxLength(255)
-        //        .HasColumnName("namapenghantar");
-        //    entity.Property(e => e.Rekcipta)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasColumnType("timestamp without time zone")
-        //        .HasColumnName("rekcipta");
-        //    entity.Property(e => e.Rekciptauserid).HasColumnName("rekciptauserid");
-        //    entity.Property(e => e.Rekubah)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasColumnType("timestamp without time zone")
-        //        .HasColumnName("rekubah");
-        //    entity.Property(e => e.Rekubahuserid).HasColumnName("rekubahuserid");
-        //    entity.Property(e => e.Telnopenghantar)
-        //        .HasMaxLength(20)
-        //        .HasColumnName("telnopenghantar");
-        //    entity.Property(e => e.Tiketid)
-        //        .HasMaxLength(50)
-        //        .HasColumnName("tiketid");
-        //});      
-
-        modelBuilder.Entity<TrnPatrol>(entity =>
-        {
-            entity.HasKey(e => e.RecId).HasName("trn_patrol_pkey");
-
-            entity.ToTable("trn_patrol");
-
-            entity.Property(e => e.RecId).HasColumnName("rec_id");
-            entity.Property(e => e.CntCompound)
-                .HasDefaultValue(0)
-                .HasColumnName("cnt_compound");
-            entity.Property(e => e.CntNotes)
-                .HasDefaultValue(0)
-                .HasColumnName("cnt_notes");
-            entity.Property(e => e.CntNotice)
-                .HasDefaultValue(0)
-                .HasColumnName("cnt_notice");
-            entity.Property(e => e.CntSeizure)
-                .HasDefaultValue(0)
-                .HasColumnName("cnt_seizure");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(50)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_dtm");
-            entity.Property(e => e.Isactive)
-                .HasDefaultValue(true)
-                .HasColumnName("isactive");
-            entity.Property(e => e.ModifiedBy)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("modified_by");
-            entity.Property(e => e.ModifiedDtm)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_dtm");
-            entity.Property(e => e.StartDtm)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("start_dtm");
-            entity.Property(e => e.StartLocation)
-                .HasColumnType("geometry(Point,3375)")
-                .HasColumnName("start_location");
-            entity.Property(e => e.Status)
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.history_recipient).HasMaxLength(255);
+            entity.Property(e => e.history_status)
                 .HasMaxLength(30)
-                .HasDefaultValueSql("'New'::character varying")
-                .HasColumnName("status");
-            entity.Property(e => e.StopDtm)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("stop_dtm");
-            entity.Property(e => e.StopLocation)
-                .HasColumnType("geometry(Point,3375)")
-                .HasColumnName("stop_location");
+                .HasDefaultValueSql("'New'::character varying");
+            entity.Property(e => e.history_subject).HasMaxLength(255);
+            entity.Property(e => e.update_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
         });
 
-        modelBuilder.Entity<TrnPatrolDet>(entity =>
+        modelBuilder.Entity<notification_email_queue>(entity =>
         {
-            entity.HasKey(e => e.RecId).HasName("trn_patrol_det_pkey");
+            entity.HasKey(e => e.queue_id).HasName("notification_email_queue_pkey");
 
-            entity.ToTable("trn_patrol_det");
+            entity.ToTable("notification_email_queue", "notification");
 
-            entity.Property(e => e.RecId).HasColumnName("rec_id");
-            entity.Property(e => e.CntCompound)
-                .HasDefaultValue(0)
-                .HasColumnName("cnt_compound");
-            entity.Property(e => e.CntNotes)
-                .HasDefaultValue(0)
-                .HasColumnName("cnt_notes");
-            entity.Property(e => e.CntNotice)
-                .HasDefaultValue(0)
-                .HasColumnName("cnt_notice");
-            entity.Property(e => e.CntSeizure)
-                .HasDefaultValue(0)
-                .HasColumnName("cnt_seizure");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(50)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDtm)
+            entity.Property(e => e.active_flag).HasDefaultValue(true);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_dtm");
-            entity.Property(e => e.Isactive)
-                .HasDefaultValue(true)
-                .HasColumnName("isactive");
-            entity.Property(e => e.Isleader)
-                .HasDefaultValue(false)
-                .HasColumnName("isleader");
-            entity.Property(e => e.ModifiedBy)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("modified_by");
-            entity.Property(e => e.ModifiedDtm)
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.update_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_dtm");
-            entity.Property(e => e.PatrolId)
-                .HasDefaultValueSql("nextval('trn_patrol_det_parol_id_seq'::regclass)")
-                .HasColumnName("patrol_id");
-            entity.Property(e => e.Username)
-                .HasMaxLength(50)
-                .HasColumnName("username");
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.queue_cnt_retry).HasDefaultValue(0);
+            entity.Property(e => e.queue_date_sent)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.queue_recipient).HasMaxLength(255);
+            entity.Property(e => e.queue_status)
+                .HasMaxLength(30)
+                .HasDefaultValueSql("'New'::character varying");
+            entity.Property(e => e.queue_subject).HasMaxLength(255);
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
         });
 
-        modelBuilder.Entity<UserProfile>(entity =>
+        modelBuilder.Entity<patrol_info>(entity =>
         {
-            entity.HasKey(e => e.ProfileId).HasName("user_profile_pkey");
+            entity.HasKey(e => e.patrol_id).HasName("patrol_info_pkey");
+
+            entity.ToTable("patrol_info", "patrol");
+
+            entity.Property(e => e.active_flag).HasDefaultValue(true);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.update_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.patrol_cnt_compound).HasDefaultValue(0);
+            entity.Property(e => e.patrol_cnt_notes).HasDefaultValue(0);
+            entity.Property(e => e.patrol_cnt_notice).HasDefaultValue(0);
+            entity.Property(e => e.patrol_cnt_seizure).HasDefaultValue(0);
+            entity.Property(e => e.patrol_end_dtm).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.patrol_end_location).HasColumnType("geometry(Point,3375)");
+            entity.Property(e => e.patrol_start_dtm).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.patrol_start_location).HasColumnType("geometry(Point,3375)");
+            entity.Property(e => e.patrol_status)
+                .HasMaxLength(30)
+                .HasDefaultValueSql("'New'::character varying");
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<patrol_member>(entity =>
+        {
+            entity.HasKey(e => e.member_id).HasName("patrol_member_pkey");
+
+            entity.ToTable("patrol_member", "patrol");
+
+            entity.Property(e => e.active_flag).HasDefaultValue(true);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.member_cnt_compound).HasDefaultValue(0);
+            entity.Property(e => e.member_cnt_notes).HasDefaultValue(0);
+            entity.Property(e => e.member_cnt_notice).HasDefaultValue(0);
+            entity.Property(e => e.member_cnt_seizure).HasDefaultValue(0);
+            entity.Property(e => e.member_leader_flag).HasDefaultValue(false);
+            entity.Property(e => e.member_patrol_id).ValueGeneratedOnAdd();
+            entity.Property(e => e.member_username).HasMaxLength(50);
+            entity.Property(e => e.update_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<patrol_scheduler>(entity =>
+        {
+            entity.HasKey(e => e.scheduler_id).HasName("patrol_scheduler_pkey");
+
+            entity.ToTable("patrol_scheduler", "patrol");
+
+            entity.Property(e => e.active_flag).HasDefaultValue(true);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.update_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.scheduler_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.scheduler_location).HasMaxLength(255);
+            entity.Property(e => e.scheduler_officer).HasMaxLength(50);
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<user_menu>(entity =>
+        {
+            entity.HasKey(e => e.menu_id).HasName("user_menu_pkey");
+
+            entity.ToTable("user_menu", "users");
+
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.menu_name).HasMaxLength(50);
+            entity.Property(e => e.menu_path).HasMaxLength(150);
+            entity.Property(e => e.menu_status).HasMaxLength(30);
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+            entity.Property(e => e.updated_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+        });
+
+        modelBuilder.Entity<user_permission>(entity =>
+        {
+            entity.HasKey(e => e.permission_id).HasName("user_permission_pkey");
+
+            entity.ToTable("user_permission", "users");
+
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.permission_status).HasMaxLength(30);
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+            entity.Property(e => e.updated_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+        });
+
+        modelBuilder.Entity<user_profile>(entity =>
+        {
+            entity.HasKey(e => e.profile_id).HasName("user_profile_pkey");
 
             entity.ToTable("user_profile", "users");
 
-            entity.Property(e => e.ProfileId).HasColumnName("profile_id");
-            entity.Property(e => e.CreatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("created_by");
-            entity.Property(e => e.CreatedDate)
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
-            entity.Property(e => e.ProfileAcceptTerm1)
-                .HasColumnType("char")
-                .HasColumnName("profile_accept_term1");
-            entity.Property(e => e.ProfileAcceptTerm2)
-                .HasColumnType("char")
-                .HasColumnName("profile_accept_term2");
-            entity.Property(e => e.ProfileAcceptTerm3)
-                .HasColumnType("char")
-                .HasColumnName("profile_accept_term3");
-            entity.Property(e => e.ProfileAddress1).HasColumnName("profile_address1");
-            entity.Property(e => e.ProfileAddress2).HasColumnName("profile_address2");
-            entity.Property(e => e.ProfileCityId).HasColumnName("profile_city_id");
-            entity.Property(e => e.ProfileCountryId).HasColumnName("profile_country_id");
-            entity.Property(e => e.ProfileDepartmentId).HasColumnName("profile_department_id");
-            entity.Property(e => e.ProfileDistrictId).HasColumnName("profile_district_id");
-            entity.Property(e => e.ProfileDob).HasColumnName("profile_dob");
-            entity.Property(e => e.ProfileEmail)
-                .HasMaxLength(150)
-                .HasColumnName("profile_email");
-            entity.Property(e => e.ProfileIcno)
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.profile_accept_term1).HasColumnType("char");
+            entity.Property(e => e.profile_accept_term2).HasColumnType("char");
+            entity.Property(e => e.profile_accept_term3).HasColumnType("char");
+            entity.Property(e => e.profile_email).HasMaxLength(150);
+            entity.Property(e => e.profile_icno)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasColumnName("profile_icno");
-            entity.Property(e => e.ProfileLastLogin)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("profile_last_login");
-            entity.Property(e => e.ProfileName)
-                .HasMaxLength(50)
-                .HasColumnName("profile_name");
-            entity.Property(e => e.ProfileNatId).HasColumnName("profile_nat_id");
-            entity.Property(e => e.ProfilePhotoName)
-                .HasColumnType("character varying")
-                .HasColumnName("profile_photo_name");
-            entity.Property(e => e.ProfilePostcode)
-                .HasMaxLength(1)
-                .HasColumnName("profile_postcode");
-            entity.Property(e => e.ProfileRaceId).HasColumnName("profile_race_id");
-            entity.Property(e => e.ProfileSectionId).HasColumnName("profile_section_id");
-            entity.Property(e => e.ProfileStateId).HasColumnName("profile_state_id");
-            entity.Property(e => e.ProfileStatus)
-                .HasMaxLength(30)
-                .HasColumnName("profile_status");
-            entity.Property(e => e.ProfileTelNo)
-                .HasMaxLength(150)
-                .HasColumnName("profile_tel_no");
-            entity.Property(e => e.ProfileUnitId).HasColumnName("profile_unit_id");
-            entity.Property(e => e.ProfileUserId)
-                .HasMaxLength(450)
-                .HasColumnName("profile_user_id");
-            entity.Property(e => e.UpdatedBy)
-                .HasDefaultValue(0)
-                .HasColumnName("updated_by");
-            entity.Property(e => e.UpdatedDate)
+                .HasDefaultValueSql("NULL::character varying");
+            entity.Property(e => e.profile_last_login).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.profile_name).HasMaxLength(50);
+            entity.Property(e => e.profile_photo_name).HasColumnType("character varying");
+            entity.Property(e => e.profile_postcode).HasMaxLength(1);
+            entity.Property(e => e.profile_status).HasMaxLength(30);
+            entity.Property(e => e.profile_tel_no).HasMaxLength(150);
+            entity.Property(e => e.profile_user_id).HasMaxLength(50);
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+            entity.Property(e => e.updated_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_date");
+                .HasColumnType("timestamp without time zone");
+        });
+
+        modelBuilder.Entity<user_role_menu>(entity =>
+        {
+            entity.HasKey(e => e.rolemenu_id).HasName("user_role_menu_pkey");
+
+            entity.ToTable("user_role_menu", "users");
+
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.permission_status).HasMaxLength(30);
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+            entity.Property(e => e.updated_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
         });
 
         OnModelCreatingPartial(modelBuilder);

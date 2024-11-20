@@ -13,12 +13,13 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using PBT.Pages;
+using PBTPro.Pages;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
+using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     [AllowAnonymous]
     public partial class ArchiveAuditService : IDisposable
@@ -46,7 +47,7 @@ namespace PBT.Data
             GC.SuppressFinalize(this);
         }
         public IConfiguration _configuration { get; }
-        private List<AuditlogArchiveInfo> _Audit { get; set; }
+        private List<auditlog_archive_info> _Audit { get; set; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -74,7 +75,7 @@ namespace PBT.Data
         }
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<AuditlogArchiveInfo>> GetAllAudit()
+        public async Task<List<auditlog_archive_info>> GetAllAudit()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -85,7 +86,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Archive/ListAudit");
                 string jsonString = await _cf.List(request);
-                List<AuditlogArchiveInfo> auditList = JsonConvert.DeserializeObject<List<AuditlogArchiveInfo>>(jsonString);
+                List<auditlog_archive_info> auditList = JsonConvert.DeserializeObject<List<auditlog_archive_info>>(jsonString);
 
                 await _cf.CreateAuditLog((int)AuditType.Information, "ArchiveAuditService - GetAllAudit", "Papar semua senarai arkib log audit.", Convert.ToInt32(uID), LoggerName, "");
                 return auditList;
@@ -99,7 +100,7 @@ namespace PBT.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<AuditlogArchiveInfo>> RefreshListAudit()
+        public async Task<List<auditlog_archive_info>> RefreshListAudit()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -110,7 +111,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Archive/ListAudit");
                 string jsonString = await _cf.List(request);
-                List<AuditlogArchiveInfo> auditList = JsonConvert.DeserializeObject<List<AuditlogArchiveInfo>>(jsonString);
+                List<auditlog_archive_info> auditList = JsonConvert.DeserializeObject<List<auditlog_archive_info>>(jsonString);
 
                 await _cf.CreateAuditLog((int)AuditType.Information, "ArchiveAuditService - RefreshListAudit", "Papar semula semua senarai arkib log audit.", Convert.ToInt32(uID), LoggerName, "");
                 return auditList;
@@ -123,7 +124,7 @@ namespace PBT.Data
         }
         [AllowAnonymous]
         [HttpGet]
-        public async Task<AuditlogArchiveInfo> GetIdAudit(int id)
+        public async Task<auditlog_archive_info> GetIdAudit(int id)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -134,12 +135,12 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Archive/RetrieveAudit/" + id);
                 string jsonString = await _cf.Retrieve(request, accessToken);
-                AuditlogArchiveInfo audit = JsonConvert.DeserializeObject<AuditlogArchiveInfo>(jsonString.ToString());
+                auditlog_archive_info audit = JsonConvert.DeserializeObject<auditlog_archive_info>(jsonString.ToString());
 
                 await _cf.CreateAuditLog((int)AuditType.Information, "ArchiveAuditService - GetIdAudit", "Papar maklumat terperinci arkib audit log", Convert.ToInt32(uID), LoggerName, "");
                 return audit;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "ArchiveAuditService - GetIdAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
@@ -162,7 +163,7 @@ namespace PBT.Data
                 await _cf.CreateAuditLog((int)AuditType.Information, "ArchiveAuditService - DeleteAudit", "Berjaya padam data untuk arkib log audit.", Convert.ToInt32(uID), LoggerName, "");
                 return Ok(jsonString);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "ArchiveAuditService - DeleteAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
@@ -173,10 +174,10 @@ namespace PBT.Data
         {
             throw new NotImplementedException();
         }
-        public Task<List<AuditlogArchiveInfo>> GetAuditAsync(CancellationToken ct = default)
+        public Task<List<auditlog_archive_info>> GetAuditAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, "ArchiveAuditService - GetAuditAsync", "Berjaya muat semula senarai untuk arkib log audit.", 1, LoggerName, "");
             return Task.FromResult(_Audit);
-        }            
+        }
     }
 }

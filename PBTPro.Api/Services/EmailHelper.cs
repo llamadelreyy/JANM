@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
-using PBTPro.Shared.Models.CommonService;
+using PBTPro.DAL.Models.CommonServices;
 
 namespace PBTPro.Api.Services
 {
@@ -10,6 +10,7 @@ namespace PBTPro.Api.Services
     {
         private readonly PBTProDbContext _dbcontext;
         private readonly IEmailSender _emailSender;
+        private readonly int _maxRetry = 5;
 
         public EmailHelper(PBTProDbContext dbcontext, IEmailSender emailSender)
         {
@@ -27,27 +28,34 @@ namespace PBTPro.Api.Services
 
             try
             {
-                var template = await _dbcontext.AppEmailTemplates.Where(x => x.Code == code).Select(x => new { x.Subject, x.Content }).AsNoTracking().FirstOrDefaultAsync();
+                var template = await _dbcontext.config_email_templates.Where(x => x.template_code == code).Select(x => new { x.template_subject, x.template_content }).AsNoTracking().FirstOrDefaultAsync();
                 if (template != null)
                 {
                     //Apply template from database if available
-                    if (!string.IsNullOrWhiteSpace(template.Subject))
+                    if (!string.IsNullOrWhiteSpace(template.template_subject))
                     {
-                        result.subject = template.Subject;
+                        result.subject = template.template_subject;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(template.Content))
+                    if (!string.IsNullOrWhiteSpace(template.template_content))
                     {
-                        result.body = template.Content;
+                        result.body = template.template_content;
                     }
                 }
                 else
                 {
                     if (!string.IsNullOrWhiteSpace(code) && !string.IsNullOrWhiteSpace(result.body))
                     {
-                        string createdBy = await getDefRunUser();
-                        AppEmailTemplate data = new AppEmailTemplate { Code = code, Subject = result.subject, Content = result.body, CreatedBy = createdBy, CreatedDtm = DateTime.Now };
-                        _dbcontext.AppEmailTemplates.Add(data);
+                        var createdBy = await getDefRunUser();
+                        config_email_template data = new config_email_template { 
+                            template_code = code, 
+                            template_subject = result.subject, 
+                            template_content = result.body, 
+                            created_by = createdBy, 
+                            created_date = DateTime.Now 
+                        };
+
+                        _dbcontext.config_email_templates.Add(data);
                         await _dbcontext.SaveChangesAsync();
                     }
                 }
@@ -71,24 +79,24 @@ namespace PBTPro.Api.Services
             return result;
         }
 
-        public async Task<AppEmailQueue> QueueEmail(string subject, string body, string toEmail)
+        public async Task<notification_email_queue> QueueEmail(string subject, string body, string toEmail)
         {
-            AppEmailQueue result = new AppEmailQueue();
+            notification_email_queue result = new notification_email_queue();
             try
             {
-                string createdBy = await getDefRunUser();
+                var createdBy = await getDefRunUser();
 
-                AppEmailQueue EmailQueue = new AppEmailQueue()
+                notification_email_queue EmailQueue = new notification_email_queue()
                 {
-                    ToEmail = toEmail,
-                    Subject = subject,
-                    Content = body,
-                    Status = "New",
-                    CreatedBy = createdBy,
-                    CreatedDtm = DateTime.Now
+                    queue_recipient = toEmail,
+                    queue_subject = subject,
+                    queue_content = body,
+                    queue_status = "New",
+                    created_by = createdBy,
+                    created_date = DateTime.Now
                 };
 
-                _dbcontext.AppEmailQueues.Add(EmailQueue);
+                _dbcontext.notification_email_queues.Add(EmailQueue);
                 await _dbcontext.SaveChangesAsync();
 
                 result = EmailQueue;
@@ -100,23 +108,23 @@ namespace PBTPro.Api.Services
             }
         }
 
-        public async Task<AppEmailQueue> ForceProcessQueue(AppEmailQueue queue)
+        public async Task<notification_email_queue> ForceProcessQueue(notification_email_queue queue)
         {
-            queue.CntRetry = queue.CntRetry + 1;
+            queue.queue_cnt_retry = queue.queue_cnt_retry + 1;
 
-            AppEmailQueue result = new AppEmailQueue();
+            notification_email_queue result = new notification_email_queue();
             try
             {
-                string createdBy = await getDefRunUser();
+                var createdBy = await getDefRunUser();
 
-                EmailSenderRs emailRs = await _emailSender.SendEmail(queue.Subject, queue.Content, queue.ToEmail);
+                EmailSenderRs emailRs = await _emailSender.SendEmail(queue.queue_subject, queue.queue_content, queue.queue_recipient);
 
-                queue.Status = emailRs.Status;
-                queue.Remark = emailRs.Remars;
-                queue.ModifiedDtm = DateTime.Now;
-                queue.ModifiedBy = createdBy;
+                queue.queue_status = emailRs.Status;
+                queue.queue_remark = emailRs.Remars;
+                queue.update_date= DateTime.Now;
+                queue.updated_by = createdBy;
 
-                _dbcontext.AppEmailQueues.Update(queue);
+                _dbcontext.notification_email_queues.Update(queue);
                 await _dbcontext.SaveChangesAsync();
 
                 result = queue;
@@ -129,9 +137,10 @@ namespace PBTPro.Api.Services
         }
 
         #region Private Logic
-        protected async Task<string> getDefRunUser()
+        protected async Task<int> getDefRunUser()
         {
-            var result = "System";
+            var result = 0;//"System";
+            /*
             try
             {
                 result = User?.Identity?.Name;
@@ -140,6 +149,7 @@ namespace PBTPro.Api.Services
             {
                 result = "System";
             }
+            */
             return result;
         }
         #endregion
