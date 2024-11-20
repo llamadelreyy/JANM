@@ -1,5 +1,3 @@
-using PBT.Data;
-using PBT.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using DevExpress.DashboardCommon;
@@ -7,7 +5,6 @@ using DevExpress.DashboardAspNetCore;
 using DevExpress.DashboardWeb;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.HttpOverrides;
-using DashboardMainDemo;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Globalization;
 using DevExpress.AspNetCore;
@@ -22,6 +19,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.DAL;
 using Blazored.Toast;
+using PBTPro.Services;
+using PBTPro.Data;
 
 
 

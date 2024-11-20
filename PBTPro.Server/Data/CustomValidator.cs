@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     public class ValidationMessageStoreEventArgs : EventArgs
     {

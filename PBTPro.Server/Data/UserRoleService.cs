@@ -6,7 +6,7 @@ using PBTPro.DAL.Services;
 using System.Data;
 using System.Reflection;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     public class UserRoleService : IDisposable
     {
@@ -112,11 +112,11 @@ namespace PBT.Data
                     }
                  };
 
-                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai pengguna dan peranan sistem.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai pengguna dan peranan sistem.", Convert.ToInt32(uID), LoggerName, "");
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
             }
 
         }

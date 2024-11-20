@@ -1,5 +1,4 @@
-﻿using DashboardMainDemo;
-using DevExpress.DashboardAspNetCore;
+﻿using DevExpress.DashboardAspNetCore;
 using DevExpress.DashboardCommon;
 using DevExpress.DashboardWeb;
 using DevExpress.DataAccess.Excel;
@@ -7,10 +6,10 @@ using DevExpress.DataAccess.Sql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting.Internal;
-using PBT.Data;
+using PBTPro.Data;
 using System;
 
-namespace PBT.Services
+namespace PBTPro.Services
 {
     public static class DashboardUtils
     {

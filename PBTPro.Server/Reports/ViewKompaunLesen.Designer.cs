@@ -1,4 +1,4 @@
-﻿namespace PBT.Reports
+﻿namespace PBTPro.Reports
 {
     partial class ViewKompaunLesen
     {

@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace PBT.Services
+namespace PBTPro.Services
 {
     // The intent is not for military or banking grade cryptography, but something strong enough
     // to pass an internal company audit.  At the very least, it is far better using this than
@@ -91,7 +91,7 @@ namespace PBT.Services
                 return null;
             }
             SecureString result = new SecureString();
-            foreach (var character in value.ToArray<char>())
+            foreach (var character in value.ToArray())
             {
                 result.AppendChar(character);
             }

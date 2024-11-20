@@ -2,7 +2,7 @@
 using PBTPro.DAL.Models;
 
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     public partial class NoticeService : IDisposable
     {

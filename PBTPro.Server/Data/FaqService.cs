@@ -12,14 +12,13 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using PBT.Data;
-using PBT.Pages;
+using PBTPro.Pages;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     [AllowAnonymous]
     public partial class FaqService : IDisposable
@@ -114,13 +113,13 @@ namespace PBT.Data
                 string jsonString = await _cf.List(request);
 
                 List<faq_info> faqList = JsonConvert.DeserializeObject<List<faq_info>>(jsonString);
-                 await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - RefreshListFaq", "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - RefreshListFaq", "Papar semula senarai soalan lazim.", 1, LoggerName, "");
 
                 return faqList;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error,  "FaqService - RefreshListFaq", ex.Message, 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - RefreshListFaq", ex.Message, 1, LoggerName, "");
                 return null;
             }
         }
@@ -140,19 +139,19 @@ namespace PBT.Data
                 string jsonString = await _cf.Retrieve(request, accessToken);
                 faq_info faq = JsonConvert.DeserializeObject<faq_info>(jsonString.ToString());
                 await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - GetIdFaq", "Papar maklumat terperinci soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
-                
+
                 return faq;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - GetIdFaq", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
-        }        
-                    
+        }
+
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<faq_info>> PostFaq([FromBody] string faqs="")
+        public async Task<ActionResult<faq_info>> PostFaq([FromBody] string faqs = "")
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -165,7 +164,7 @@ namespace PBT.Data
                 string jsonString = await _cf.AddNew(request, faqs, platformApiUrl + "/api/Faq/InsertFaq");
                 faq_info faq = JsonConvert.DeserializeObject<faq_info>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - PostFaq", "Tambah data baru untuk soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
-                
+
                 return faq;
             }
             catch (Exception ex)
@@ -213,7 +212,7 @@ namespace PBT.Data
                 var request = _cf.CheckRequestPut(platformApiUrl + "/api/Faq/UpdateFaq/" + id);
                 string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(faq), uri);
                 await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - PutFaq", "Berjaya kemaskini data untuk soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
-                
+
                 return faq;
             }
             catch (Exception ex)
