@@ -11,10 +11,8 @@ Additional Notes:
 Changes Logs:
 07/11/2024 - initial create
 */
-using DevExpress.DataAccess.Native.Sql;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using PBTPro.Shared.Models.CommonService;
+using PBTPro.DAL.Models.CommonServices;
 using System.Net.Http.Headers;
 using System.Text.Json;
 

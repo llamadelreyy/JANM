@@ -1,15 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
-using PBTPro.DAL.Models;
-using PBTPro.Shared.Models.CommonService;
+using PBTPro.DAL.Models.CommonServices;
 
 namespace PBTPro.Api.Controllers
 {
-    
+
     [Route("api/[controller]")]
     [ApiController]
     public class MessageBlasterController : IBaseController

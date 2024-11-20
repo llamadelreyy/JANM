@@ -38,7 +38,7 @@ namespace PBTPro.Api.Controllers
             _dbConn = configuration.GetValue<string>("ConnectionStrings");
             _dbContext = dbContext;
         }
-
+        /*
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PatrollingInfo>>> ListPatrolling()
@@ -135,5 +135,6 @@ namespace PBTPro.Api.Controllers
         {
             return (_dbContext.PatrollingInfos?.Any(e => e.PatrollingId == id)).GetValueOrDefault();
         }      
+        */
     }
 }

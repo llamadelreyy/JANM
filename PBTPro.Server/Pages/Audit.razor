@@ -39,8 +39,8 @@
 <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 <div class="item-container-x">
     <DxGrid @ref="Grid"
-        Data="@_lstAudits" 
-        KeyFieldName="AuditId"
+        Data="@_lstAudits"
+        KeyFieldName="audit_id"
         ShowGroupPanel="true"
         ShowFilterRow="true"
         FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
@@ -57,16 +57,16 @@
         CssClass="mv-1000">
 
         <Columns>
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.CreatedDate)" Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center" AllowGroup="false" />
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditUsername)" Caption="Nama Pengguna" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditType)" Caption="Jenis Maklumat" TextAlignment="GridTextAlignment.Center" AllowGroup="false" >
+            <DxGridDataColumn FieldName="@nameof(auditlog_info.created_date)" Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_username)" Caption="Nama Pengguna" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_type)" Caption="Jenis Maklumat" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
             <CellDisplayTemplate>
-                <div>@GetStatusAuditIconHtml(((AuditlogInfo)context.DataItem).AuditType)</div>
+                    <div>@GetStatusAuditIconHtml(((auditlog_info)context.DataItem).audit_type)</div>
             </CellDisplayTemplate>
         </DxGridDataColumn>
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditModuleName)" Caption="Nama Modul" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditMethod)" Caption="Method" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-        <DxGridDataColumn FieldName="@nameof(AuditlogInfo.AuditDescription)" Caption="Penerangan" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_module_name)" Caption="Nama Modul" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_method)" Caption="Method" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_description)" Caption="Penerangan" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
         </Columns>      
     </DxGrid>
     <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
@@ -78,7 +78,7 @@
 </div>
 @code {
 
-    private List<AuditlogInfo> _lstAudits = new List<AuditlogInfo>();
+    private List<auditlog_info> _lstAudits = new List<auditlog_info>();
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -87,7 +87,7 @@
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
     int intSelected { get; set; }
-    AuditlogInfo dtData { get; set; }
+    auditlog_info dtData { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);

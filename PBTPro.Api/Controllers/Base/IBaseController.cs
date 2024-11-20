@@ -6,8 +6,7 @@ using Newtonsoft.Json.Linq;
 using PBTPro.Api.Constants;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
-using PBTPro.DAL.Models.Common;
-using PBTPro.Shared.Models.CommonService;
+using PBTPro.DAL.Models.CommonServices;
 using System.Net.Http.Headers;
 
 namespace PBTPro.Api.Controllers.Base
@@ -180,38 +179,43 @@ namespace PBTPro.Api.Controllers.Base
             return result ?? "system";
         }
 
+        protected async Task<int> getDefRunUserId()
+        {
+            return 0;
+        }
+
         protected string SystemMesg(string features, string code, MessageTypeEnum type, string msg, List<string>? param = null)
         {
             var name = ".";
             code = "." + code.ToUpper().Replace(" ", "_");
 
-            AppSystemMessageModel model = new AppSystemMessageModel();
-            model.Feature = features.ToUpper();
+            config_system_message model = new config_system_message();
+            model.message_feature = features.ToUpper();
             switch (type) //S-Success, W-Warning, E-Error
             {
                 case MessageTypeEnum.Success:
-                    model.Type = "S";
+                    model.message_type = "S";
                     break;
                 case MessageTypeEnum.Warning:
-                    model.Type = "W";
+                    model.message_type = "W";
                     break;
                 case MessageTypeEnum.Error:
-                    model.Type = "E";
+                    model.message_type = "E";
                     break;
                 case MessageTypeEnum.Alert:
-                    model.Type = "A";
+                    model.message_type = "A";
                     break;
                 default:
-                    model.Type = "S";
+                    model.message_type = "S";
                     break;
             }
-            model.Code = model.Feature + name + model.Type + code;
-            model.Message = msg;
+            model.message_code = model.message_feature + name + model.message_type + code;
+            model.message_body = msg;
 
-            var retMsg = GetSysMesg(model.Code, model);
+            var retMsg = GetSysMesg(model.message_code, model);
             if (retMsg != null)
             {
-                msg = retMsg.Message;
+                msg = retMsg.message_body;
             }
 
             if (param != null && param.Count! > 0)
@@ -227,24 +231,24 @@ namespace PBTPro.Api.Controllers.Base
             return msg;
         }
 
-        private AppSystemMessage? GetSysMesg(string code, AppSystemMessageModel? model)
+        private config_system_message? GetSysMesg(string code, config_system_message? model)
         {
-            AppSystemMessage? appSystemMessage = null;
+            config_system_message? appSystemMessage = null;
             try
             {
-                appSystemMessage = _dbContext.AppSystemMessages.Where(m => m.Code == code).FirstOrDefault();
+                appSystemMessage = _dbContext.config_system_messages.Where(m => m.message_code == code).FirstOrDefault();
                 if (appSystemMessage == null && model != null)
                 {
-                    appSystemMessage = new AppSystemMessage
+                    appSystemMessage = new config_system_message
                     {
-                        Feature = model.Feature,
-                        Code = model.Code,
-                        Type = model.Type,
-                        Message = model.Message,
-                        CreatedBy = User?.Identity?.Name! ?? "anonymous",
-                        CreatedDtm = DateTime.Now
+                        message_feature = model.message_feature,
+                        message_code = model.message_code,
+                        message_type = model.message_type,
+                        message_body = model.message_body,
+                        //created_by = User?.Identity?.Name! ?? "anonymous",
+                        created_date = DateTime.Now
                     };
-                    _dbContext.AppSystemMessages.Add(appSystemMessage);
+                    _dbContext.config_system_messages.Add(appSystemMessage);
                     _dbContext.SaveChanges(false);
                 }
             }
@@ -269,6 +273,7 @@ namespace PBTPro.Api.Controllers.Base
 
             return accessToken;
         }
+
         protected async Task<ReturnViewModel> ProcessAPI(string RequestURL, [FromQuery] HttpMethod? RequestMethod = null, [FromBody] HttpContent? RequestContent = null)
         {
             ReturnViewModel result = new ReturnViewModel();

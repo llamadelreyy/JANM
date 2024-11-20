@@ -16,6 +16,7 @@ using PBT.Data;
 using PBT.Pages;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
+using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 
 namespace PBT.Data
@@ -46,7 +47,7 @@ namespace PBT.Data
             GC.SuppressFinalize(this);
         }
         public IConfiguration _configuration { get; }
-        private List<FaqInfo> _Faq { get; set; }
+        private List<faq_info> _Faq { get; set; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -75,7 +76,7 @@ namespace PBT.Data
         }
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<FaqInfo>> GetAllFaq()
+        public async Task<List<faq_info>> GetAllFaq()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -86,7 +87,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/ListFaq");
                 string jsonString = await _cf.List(request);
-                List<FaqInfo> faqList = JsonConvert.DeserializeObject<List<FaqInfo>>(jsonString);
+                List<faq_info> faqList = JsonConvert.DeserializeObject<List<faq_info>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - GetAllFaq", "Papar semua senarai soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
 
                 return faqList;
@@ -100,7 +101,7 @@ namespace PBT.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<FaqInfo>> RefreshListFaq()
+        public async Task<List<faq_info>> RefreshListFaq()
         {
             GetDefaultPermission();
             //var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -112,7 +113,7 @@ namespace PBT.Data
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/ListFaq");
                 string jsonString = await _cf.List(request);
 
-                List<FaqInfo> faqList = JsonConvert.DeserializeObject<List<FaqInfo>>(jsonString);
+                List<faq_info> faqList = JsonConvert.DeserializeObject<List<faq_info>>(jsonString);
                  await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - RefreshListFaq", "Papar semula senarai soalan lazim.", 1, LoggerName, "");
 
                 return faqList;
@@ -126,7 +127,7 @@ namespace PBT.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<FaqInfo> GetIdFaq(int id)
+        public async Task<faq_info> GetIdFaq(int id)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -137,7 +138,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/RetrieveFaq/" + id);
                 string jsonString = await _cf.Retrieve(request, accessToken);
-                FaqInfo faq = JsonConvert.DeserializeObject<FaqInfo>(jsonString.ToString());
+                faq_info faq = JsonConvert.DeserializeObject<faq_info>(jsonString.ToString());
                 await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - GetIdFaq", "Papar maklumat terperinci soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
                 
                 return faq;
@@ -151,7 +152,7 @@ namespace PBT.Data
                     
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<FaqInfo>> PostFaq([FromBody] string faqs="")
+        public async Task<ActionResult<faq_info>> PostFaq([FromBody] string faqs="")
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -162,7 +163,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/InsertFaq");
                 string jsonString = await _cf.AddNew(request, faqs, platformApiUrl + "/api/Faq/InsertFaq");
-                FaqInfo faq = JsonConvert.DeserializeObject<FaqInfo>(jsonString);
+                faq_info faq = JsonConvert.DeserializeObject<faq_info>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, "FaqService - PostFaq", "Tambah data baru untuk soalan lazim.", Convert.ToInt32(uID), LoggerName, "");
                 
                 return faq;
@@ -199,7 +200,7 @@ namespace PBT.Data
 
         [AllowAnonymous]
         [HttpPut]
-        public async Task<ActionResult<FaqInfo>> PutFaq(int id, FaqInfo faq)
+        public async Task<ActionResult<faq_info>> PutFaq(int id, faq_info faq)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -221,7 +222,7 @@ namespace PBT.Data
                 return null;
             }
         }
-        public Task<List<FaqInfo>> GetFAQAsync(CancellationToken ct = default)
+        public Task<List<faq_info>> GetFAQAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, "FaqService - GetFAQAsync", "Berjaya muat semula senarai untuk soalan lazim.", 1, LoggerName, "");
 

@@ -72,7 +72,7 @@ builder.Services.AddTransient<NoticeService>();
 //builder.Services.AddTransient<NoticeService>();
 
 builder.Services.AddTransient<FaqService>();
-builder.Services.AddTransient<ParamFormFieldService>();
+builder.Services.AddTransient<ConfigFormFieldService>();
 builder.Services.AddTransient<DepartmentService>();
 builder.Services.AddTransient<AuditService>();
 builder.Services.AddTransient<ArchiveAuditService>();

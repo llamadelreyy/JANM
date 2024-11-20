@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Npgsql;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
-using PBTPro.DAL.Models.Common;
+using PBTPro.DAL.Models.CommonServices;
 using System.Data;
 
 namespace PBTPro.Api.Controllers
@@ -20,7 +19,7 @@ namespace PBTPro.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly string _module = "Audit";
         private readonly PBTProDbContext _dbContext;
-        private List<AuditlogInfo> _Faq { get; set; }
+        private List<auditlog_info> _Faq { get; set; }
         public AuditController(PBTProDbContext dbContext, ILogger<AuditController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
         {
             _logger = logger;
@@ -31,17 +30,17 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AuditlogInfo>>> ListAuditwithParam(int skip, int? take, string? search)
+        public async Task<ActionResult<IEnumerable<auditlog_info>>> ListAuditwithParam(int skip, int? take, string? search)
         {
-            if (_dbContext.AuditlogInfos == null)
+            if (_dbContext.auditlog_infos == null)
             {
                 return NotFound();
             }
-            var audits = await _dbContext.AuditlogInfos
+            var audits = await _dbContext.auditlog_infos
                .Where(m =>
-               m.AuditDescription.Contains(search) ||
-               m.AuditUsername.Contains(search) ||
-               m.AuditMethod.Contains(search))
+               m.audit_description.Contains(search) ||
+               m.audit_username.Contains(search) ||
+               m.audit_method.Contains(search))
                .ToListAsync();
 
             int totalRecord = audits.Count();
@@ -66,24 +65,24 @@ namespace PBTPro.Api.Controllers
         }
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AuditlogInfo>>> ListAudit()
+        public async Task<ActionResult<IEnumerable<auditlog_info>>> ListAudit()
         {
-            if (_dbContext.AuditlogInfos == null)
+            if (_dbContext.auditlog_infos == null)
             {
                 return NotFound();
             }
-            return await _dbContext.AuditlogInfos.ToListAsync();           
+            return await _dbContext.auditlog_infos.ToListAsync();           
         }
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<ActionResult<AuditlogInfo>> RetrieveAudit(int id)
+        public async Task<ActionResult<auditlog_info>> RetrieveAudit(int id)
         {
-            if (_dbContext.AuditlogInfos == null)
+            if (_dbContext.auditlog_infos == null)
             {
                 return NotFound();
             }
-            var audit = await _dbContext.AuditlogInfos.FindAsync(id);
+            var audit = await _dbContext.auditlog_infos.FindAsync(id);
 
             if (audit == null)
             {
@@ -96,7 +95,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public Task<bool> InsertAudit(AuditlogInfo changed, int intCurrentUserId)
+        public Task<bool> InsertAudit(auditlog_info changed, int intCurrentUserId)
         {
             try
             {
@@ -105,13 +104,13 @@ namespace PBTPro.Api.Controllers
                     using (NpgsqlCommand? myCmd = new NpgsqlCommand("call audit.proc_insertaudit(:_audit_role_id, :_audit_module_name, :_audit_description, :_created_by, :_audit_type, :_audit_username, :_audit_method)", myConn))
                     {
                         myCmd.CommandType = CommandType.Text;
-                        myCmd.Parameters.AddWithValue("_audit_role_id", DbType.Int32).Value = changed.AuditRoleId;
-                        myCmd.Parameters.AddWithValue("_audit_module_name", DbType.String).Value = changed.AuditModuleName;                        
-                        myCmd.Parameters.AddWithValue("_audit_description", DbType.String).Value = changed.AuditDescription;
-                        myCmd.Parameters.AddWithValue("_created_by", DbType.Int32).Value = changed.CreatedBy;
-                        myCmd.Parameters.AddWithValue("_audit_type", DbType.Int32).Value = changed.AuditType;
-                        myCmd.Parameters.AddWithValue("_audit_username", DbType.String).Value = changed.AuditUsername;
-                        myCmd.Parameters.AddWithValue("_audit_method", DbType.String).Value = changed.AuditMethod;
+                        myCmd.Parameters.AddWithValue("_audit_role_id", DbType.Int32).Value = changed.audit_role_id;
+                        myCmd.Parameters.AddWithValue("_audit_module_name", DbType.String).Value = changed.audit_module_name;                        
+                        myCmd.Parameters.AddWithValue("_audit_description", DbType.String).Value = changed.audit_description;
+                        myCmd.Parameters.AddWithValue("_created_by", DbType.Int32).Value = changed.created_by;
+                        myCmd.Parameters.AddWithValue("_audit_type", DbType.Int32).Value = changed.audit_type;
+                        myCmd.Parameters.AddWithValue("_audit_username", DbType.String).Value = changed.audit_username;
+                        myCmd.Parameters.AddWithValue("_audit_method", DbType.String).Value = changed.audit_method;
 
                         myConn.Open();
                         myCmd.ExecuteNonQuery();
@@ -132,17 +131,17 @@ namespace PBTPro.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAudit(int id)
         {
-            if (_dbContext.AuditlogInfos == null)
+            if (_dbContext.auditlog_infos == null)
             {
                 return NotFound();
             }
-            var audit = await _dbContext.AuditlogInfos.FindAsync(id);
+            var audit = await _dbContext.auditlog_infos.FindAsync(id);
             if (audit == null)
             {
                 return NotFound();
             }
 
-            _dbContext.AuditlogInfos.Remove(audit);
+            _dbContext.auditlog_infos.Remove(audit);
             await _dbContext.SaveChangesAsync();
 
             return NoContent();
@@ -150,7 +149,7 @@ namespace PBTPro.Api.Controllers
 
         private bool AuditExists(int id)
         {
-            return (_dbContext.AuditlogInfos?.Any(e => e.AuditId == id)).GetValueOrDefault();
+            return (_dbContext.auditlog_infos?.Any(e => e.audit_id == id)).GetValueOrDefault();
         }
 
         #region Archived auditlog
