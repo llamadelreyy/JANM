@@ -105,7 +105,7 @@ namespace PBTPro.Api.Controllers
             {
                 string columnName = property.Name;
 
-                if (property.Name == "Geom")
+                if (property.Name == "geom")
                 {
                     selectBuilder.Append($"ST_Transform(geom, {crs}) AS geom, ");
                 }
