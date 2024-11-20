@@ -24,7 +24,6 @@ namespace PBTPro.Api.Controllers
 {
     [Route("api/[controller]/[Action]")]
     [ApiController]
-    [AllowAnonymous]
     public class ConfigFormFieldController : IBaseController
     {
         private readonly ILogger<ConfigFormFieldController> _logger;
