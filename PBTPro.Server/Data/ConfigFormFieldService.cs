@@ -16,7 +16,7 @@ using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using System.Text;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     public partial class ConfigFormFieldService : IDisposable
     {

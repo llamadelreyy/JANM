@@ -13,13 +13,13 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using PBT.Pages;
+using PBTPro.Pages;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     [AllowAnonymous]
     public partial class AuditService : IDisposable
@@ -140,7 +140,7 @@ namespace PBT.Data
                 await _cf.CreateAuditLog((int)AuditType.Information, "AuditService - GetIdAudit", "Papar maklumat terperinci c.", Convert.ToInt32(uID), LoggerName, "");
                 return audit;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "AuditService - GetIdAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
@@ -187,7 +187,7 @@ namespace PBT.Data
                 await _cf.CreateAuditLog((int)AuditType.Information, "AuditService - DeleteAudit", "Berjaya padam data untuk log audit.", Convert.ToInt32(uID), LoggerName, "");
                 return Ok(jsonString);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "AuditService - DeleteAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
@@ -225,6 +225,6 @@ namespace PBT.Data
                 await _cf.CreateAuditLog((int)AuditType.Error, "AuditService - ArchiveAuditLog", ex.Message, 1, LoggerName, "");
                 return null;
             }
-        }       
+        }
     }
 }

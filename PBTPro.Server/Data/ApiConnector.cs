@@ -16,7 +16,7 @@ using PBTPro.DAL.Models.CommonServices;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     public class ApiConnector
     {
@@ -49,7 +49,7 @@ namespace PBT.Data
             }
 
             return result;
-        } 
+        }
 
         public async Task<ReturnViewModel> ProcessLocalApi(string requestUrl, [FromQuery] HttpMethod? RequestMethod = null, [FromBody] HttpContent? RequestContent = null, string? accessToken = null)
         {
@@ -66,12 +66,12 @@ namespace PBT.Data
                 }
 
                 var request = new HttpRequestMessage(RequestMethod, requestUrl);
-                
+
                 if (!string.IsNullOrEmpty(accessToken))
                 {
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 }
-                
+
                 if (RequestContent != null)
                 {
                     request.Content = RequestContent;
@@ -158,7 +158,7 @@ namespace PBT.Data
                     }
                 }
             }
-            catch (System.Text.Json.JsonException jsonEx)
+            catch (JsonException jsonEx)
             {
                 result.ReturnCode = 500;
                 result.ReturnMessage = "Invalid JSON response: " + jsonEx.Message;
@@ -283,7 +283,7 @@ namespace PBT.Data
                     }
                 }
             }
-            catch (System.Text.Json.JsonException jsonEx)
+            catch (JsonException jsonEx)
             {
                 result.ReturnCode = 500;
                 result.ReturnMessage = "Invalid JSON response: " + jsonEx.Message;

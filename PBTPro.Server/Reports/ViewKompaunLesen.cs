@@ -4,7 +4,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Drawing;
 
-namespace PBT.Reports
+namespace PBTPro.Reports
 {
     public partial class ViewKompaunLesen : DevExpress.XtraReports.UI.XtraReport
     {

@@ -3,7 +3,7 @@ using DevExpress.DataAccess.ConnectionParameters;
 using DevExpress.DataAccess.Json;
 using DevExpress.DataAccess.Web;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     // ...
 
@@ -51,7 +51,7 @@ namespace PBT.Data
             //////{
             //////    return new MsSqlConnectionParameters("localhost", "Northwind", "", "", MsSqlAuthorizationType.Windows);
             //////}
-            throw new System.Exception("The connection string is undefined.");
+            throw new Exception("The connection string is undefined.");
         }
     }
 }

@@ -1,11 +1,15 @@
-﻿namespace PBT.Data {
-    public class FileUrlStorageService {
+﻿namespace PBTPro.Data
+{
+    public class FileUrlStorageService
+    {
         private Dictionary<Guid, string> FileUrlStorage = new Dictionary<Guid, string>();
-        public void Add(Guid fileGuid, string fileUrl) {
+        public void Add(Guid fileGuid, string fileUrl)
+        {
             if (!FileUrlStorage.ContainsKey(fileGuid))
                 FileUrlStorage.Add(fileGuid, fileUrl);
         }
-        public string? Get(Guid fileGuid) {
+        public string? Get(Guid fileGuid)
+        {
             return FileUrlStorage.GetValueOrDefault(fileGuid);
         }
     }
