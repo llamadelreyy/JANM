@@ -14,12 +14,12 @@ Changes Logs:
 @page "/setupborang"
 @attribute [AllowAnonymous]
 
-@inject Services.ParamFormFieldService _ParamFormField
+@inject ConfigFormFieldService _ConfigFormField
 @inject IToastNotificationService ToastService
 @using Newtonsoft.Json
 @using PBT.Data
-@using PBTPro.Shared.Models.CommonService
-@using PBTPro.Shared.Models.RequestPayLoad
+@using PBTPro.DAL.Models.CommonServices
+@using PBTPro.DAL.Models.PayLoads
 @using System.Text
 
 <div class="item-container-x">
@@ -52,52 +52,52 @@ Changes Logs:
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((SetupBorangListModel)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((config_form_field_view)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn FieldName="Name" Caption="Name"/>
-            <DxGridDataColumn FieldName="Label" Caption="Label"/>
-            <DxGridDataColumn FieldName="Type" Caption="Jenis"/>
-            <DxGridDataColumn FieldName="Orders" Caption="Susunan"/>
+            <DxGridDataColumn FieldName="field_name" Caption="Name" />
+            <DxGridDataColumn FieldName="field_label" Caption="Label" />
+            <DxGridDataColumn FieldName="field_type" Caption="Jenis" />
+            <DxGridDataColumn FieldName="field_orders" Caption="Susunan" />
         </Columns>
         <EditFormTemplate Context="EditFormContext">
             @{
-                var field = (SetupBorangListModel)EditFormContext.EditModel;
+                var field = (config_form_field_view)EditFormContext.EditModel;
                 var editContext = new EditContext(field);
             }
             <DxFormLayout EditContext="editContext" CssClass="w-100">
-                <DxFormLayoutItem Caption="RecId" ColSpanMd="6" Visible="false">
-                    <DxTextBox @bind-Value="@field.RecId" ReadOnly="true" />
+                <DxFormLayoutItem Caption="field_id" ColSpanMd="6" Visible="false">
+                    <DxTextBox @bind-Value="@field.field_id" ReadOnly="true" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="Nama:" ColSpanMd="6">
-                    <DxTextBox @bind-Text="@field.Name" ShowValidationIcon="true"/>
+                    <DxTextBox @bind-Text="@field.field_name" ShowValidationIcon="true" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="Label:" ColSpanMd="6">
-                    <DxTextBox @bind-Text="@field.Label" ShowValidationIcon="true"/>
+                    <DxTextBox @bind-Text="@field.field_label" ShowValidationIcon="true" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="Jenis:" ColSpanMd="6">
                     <DxComboBox Data="@fieldType"
                                 NullText="Pilih Jenis Medan.."
                                 FilteringMode="DataGridFilteringMode.Contains"
-                                @bind-Value="@field.Type"
+                                @bind-Value="@field.field_type"
                                 TextFieldName="Text"
                                 ValueFieldName="Value"
                                 ShowValidationIcon="true"/>
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="Pilihan:" ColSpanMd="6">
-                    <DxMemo @bind-Text="@field.Option" ShowValidationIcon="true"/>
+                    <DxMemo @bind-Text="@field.field_option" ShowValidationIcon="true" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="Diperlukan:" ColSpanMd="6">
-                    <DxCheckBox @bind-Checked="@field.Required" />
+                    <DxCheckBox @bind-Checked="@field.field_required" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="Susunan:" ColSpanMd="6">
-                    <DxSpinEdit @bind-Value="@field.Orders" ShowValidationIcon="true"/>
+                    <DxSpinEdit @bind-Value="@field.field_orders" ShowValidationIcon="true" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="Dari API:" ColSpanMd="6">
-                    <DxCheckBox @bind-Checked="@field.ApiSeeded"/>
+                    <DxCheckBox @bind-Checked="@field.field_api_seeded" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="URL Sumber:" ColSpanMd="6">
-                    <DxTextBox @bind-Text="@field.SourceUrl" ShowValidationIcon="true"/>
+                    <DxTextBox @bind-Text="@field.field_source_url" ShowValidationIcon="true" />
                 </DxFormLayoutItem>
             </DxFormLayout>
         </EditFormTemplate>
@@ -120,17 +120,17 @@ Changes Logs:
     bool ConfirmationShown { get; set; } = false;
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
-    IEnumerable<SetupBorangListModel> Data;
+    IEnumerable<config_form_field_view> Data;
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private string formType = "Notis";
-    private SetupBorangListModel itemToDelete; 
+    private config_form_field_view itemToDelete;
     private List<dynamic> fieldType;
     
     protected override async Task OnInitializedAsync()
     {
-        fieldType = _ParamFormField.fieldType;
+        fieldType = _ConfigFormField.fieldType;
         Data = await GetListDataAsync(formType);
         DataLoadedTcs.TrySetResult(true);
     }
@@ -162,9 +162,9 @@ Changes Logs:
         StateHasChanged();
     }
 
-    private async Task<IEnumerable<SetupBorangListModel>> GetListDataAsync(string? formType = "Compound")
+    private async Task<IEnumerable<config_form_field_view>> GetListDataAsync(string? formType = "Compound")
     {
-        IEnumerable<SetupBorangListModel> result = await _ParamFormField.ListByFormType(formType);
+        IEnumerable<config_form_field_view> result = await _ConfigFormField.ListByFormType(formType);
         return result;
     }
 
@@ -174,16 +174,16 @@ Changes Logs:
         try
         {            
             ReturnViewModel response = new ReturnViewModel();
-            var inputModel = e.EditModel as SetupBorangListModel;
-            inputModel.FormType = formType;
+            var inputModel = e.EditModel as config_form_field_view;
+            inputModel.field_form_type = formType;
 
             if (e.IsNew)
             {
-                response = await _ParamFormField.Create(inputModel);
+                response = await _ConfigFormField.Create(inputModel);
             }
             else
             {
-                response = await _ParamFormField.Update(inputModel.RecId, inputModel);
+                response = await _ConfigFormField.Update(inputModel.field_id, inputModel);
             }
 
             if (response.ReturnCode == 200)
@@ -206,7 +206,7 @@ Changes Logs:
     #endregion
 
     #region Delete
-    async Task Delete(SetupBorangListModel item)
+    async Task Delete(config_form_field_view item)
     {
         itemToDelete = item;
         ConfirmationShown = true;
@@ -217,7 +217,7 @@ Changes Logs:
         try
         {            
             ReturnViewModel response = new ReturnViewModel();
-            response = await _ParamFormField.Delete(itemToDelete.RecId);
+            response = await _ConfigFormField.Delete(itemToDelete.field_id);
 
             if (response.ReturnCode == 200)
             {

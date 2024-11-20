@@ -1,5 +1,4 @@
-﻿using PBTPro.DAL.Models.Common;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace PBTPro.Shared.Models.CommonService
 {

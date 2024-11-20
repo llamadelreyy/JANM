@@ -4,8 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
-using PBTPro.Shared.Models.CommonService;
-using System.Linq;
+using PBTPro.DAL.Models.CommonServices;
 using System.Reflection;
 using System.Text;
 
@@ -34,21 +33,21 @@ namespace PBTPro.Api.Controllers
                 {
                     crs = _defCRS;
                 }
-                //List<MstLot> mstLots = new List<MstLot>();
-                var query = BuildDynamicSelect<MstLot>(transformGeom: true, crs: crs);
+                //List<mst_lot> mst_lots = new List<mst_lot>();
+                var query = BuildDynamicSelect<mst_lot>(transformGeom: true, crs: crs);
                 //string query = $"SELECT Id, ST_Transform(geom, {crs}) AS geom, objectid, negeri, daerah, mukim, seksyen, lot, upi, s_area, m_area, g_area, unit, pa, refplan, apdate, cls, landusecod, landtitlec, entrymode, updated, guid, mi_prinx, shape_leng, shape_area FROM mst_lot";
                 //string query = $"SELECT *, ST_Transform(geom, {crs}) AS geom_transformed FROM mst_lot";
-                var mstLots = _dbContext.MstLots
+                var mst_lots = _dbContext.mst_lots
                     .FromSqlRaw(query)
                     .ToList();
 
-                if (mstLots.Count == 0)
+                if (mst_lots.Count == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
 
-                //mstLots = await _dbContext.MstLots.AsNoTracking().ToListAsync();
-                return Ok(mstLots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
+                //mst_lots = await _dbContext.mst_lots.AsNoTracking().ToListAsync();
+                return Ok(mst_lots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -67,19 +66,19 @@ namespace PBTPro.Api.Controllers
                 {
                     crs = _defCRS;
                 }
-                string query = BuildDynamicSelect<MstLot>(transformGeom: true, crs: crs);
+                string query = BuildDynamicSelect<mst_lot>(transformGeom: true, crs: crs);
                 query = $"{query} WHERE ST_Within(geom, ST_Transform(ST_MakeEnvelope({minLng}, {minLat}, {maxLng}, {maxLat}, {crs}),{_defCRS}))";
-                var mstLots = _dbContext.MstLots
+                var mst_lots = _dbContext.mst_lots
                     .FromSqlRaw(query)
                     .ToList();
 
-                if (mstLots.Count == 0)
+                if (mst_lots.Count == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
 
-                //mstLots = await _dbContext.MstLots.AsNoTracking().ToListAsync();
-                return Ok(mstLots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
+                //mst_lots = await _dbContext.mst_lots.AsNoTracking().ToListAsync();
+                return Ok(mst_lots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
             }
             catch (Exception ex)
             {

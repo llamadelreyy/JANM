@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
+using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 using System.Reflection;
 
@@ -46,7 +47,7 @@ namespace PBT.Data
             GC.SuppressFinalize(this);
         }
         public IConfiguration _configuration { get; }
-        private List<DepartmentInfo> _Department { get; set; }
+        private List<department_info> _Department { get; set; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -75,7 +76,7 @@ namespace PBT.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<DepartmentInfo>> GetAllDepartment()
+        public async Task<List<department_info>> GetAllDepartment()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -86,7 +87,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
                 string jsonString = await _cf.List(request);
-                List<DepartmentInfo> departmentList = JsonConvert.DeserializeObject<List<DepartmentInfo>>(jsonString);
+                List<department_info> departmentList = JsonConvert.DeserializeObject<List<department_info>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return departmentList;
@@ -100,7 +101,7 @@ namespace PBT.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<DepartmentInfo>> RefreshListDepartment()
+        public async Task<List<department_info>> RefreshListDepartment()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -111,7 +112,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
                 string jsonString = await _cf.List(request);
-                List<DepartmentInfo> departmentList = JsonConvert.DeserializeObject<List<DepartmentInfo>>(jsonString);
+                List<department_info> departmentList = JsonConvert.DeserializeObject<List<department_info>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return departmentList;
@@ -125,7 +126,7 @@ namespace PBT.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<DepartmentInfo> GetIdDepartment(int id)
+        public async Task<department_info> GetIdDepartment(int id)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -136,7 +137,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/RetrieveDepartment/" + id);
                 string jsonString = await _cf.Retrieve(request, accessToken);
-                DepartmentInfo departmentProp = JsonConvert.DeserializeObject<DepartmentInfo>(jsonString.ToString());
+                department_info departmentProp = JsonConvert.DeserializeObject<department_info>(jsonString.ToString());
                 await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return departmentProp;
@@ -150,7 +151,7 @@ namespace PBT.Data
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<DepartmentInfo>> PostDepartment([FromBody] string departments = "")
+        public async Task<ActionResult<department_info>> PostDepartment([FromBody] string departments = "")
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -161,7 +162,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/InsertDepartment");
                 string jsonString = await _cf.AddNew(request, departments, platformApiUrl + "/api/Department/InsertDepartment");
-                DepartmentInfo departmentProp = JsonConvert.DeserializeObject<DepartmentInfo>(jsonString);
+                department_info departmentProp = JsonConvert.DeserializeObject<department_info>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah data baru untuk jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return departmentProp;
@@ -198,7 +199,7 @@ namespace PBT.Data
 
         [AllowAnonymous]
         [HttpPut]
-        public async Task<ActionResult<DepartmentInfo>> PutDepartment(int id, DepartmentInfo department)
+        public async Task<ActionResult<department_info>> PutDepartment(int id, department_info department)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -221,7 +222,6 @@ namespace PBT.Data
                 return null;
             }
         }
-
         public Task<List<DepartmentInfo>> GetDepartmentAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk jabatan.", 1, LoggerName, "");

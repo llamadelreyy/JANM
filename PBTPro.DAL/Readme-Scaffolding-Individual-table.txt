@@ -1,1 +1,1 @@
-Scaffold-DbContext "server=localhost;port=5432;Username=postgres;password=Password1;database=pbtpro;" Npgsql.EntityFrameworkCore.PostgreSQL -OutputDir "Models" -Context "TempContext" -ContextDir "." -Tables "mst_lot" -Namespace "PBTPro.DAL.Models" -NoOnConfiguring -f -v
+Scaffold-DbContext "server=localhost;port=5432;Username=postgres;password=Password1;database=pbtpro;" Npgsql.EntityFrameworkCore.PostgreSQL -OutputDir "Models" -Context "TempContext" -ContextDir "." -Tables "mst_lot" -Namespace "PBTPro.DAL.Models" -NoOnConfiguring -f -v -UseDatabaseNames

@@ -13,7 +13,6 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -29,7 +28,7 @@ namespace PBTPro.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly string _module = "Faq";
         private readonly PBTProDbContext _dbContext;
-        private List<FaqInfo> _Faq { get; set; }
+        private List<faq_info> _Faq { get; set; }
 
         public FaqController(PBTProDbContext dbContext, ILogger<FaqController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
         {
@@ -41,24 +40,24 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<FaqInfo>>> ListFaq()
+        public async Task<ActionResult<IEnumerable<faq_info>>> ListFaq()
         {
-            if (_dbContext.FaqInfos == null)
+            if (_dbContext.faq_infos == null)
             {
                 return NotFound();
             }
-            return await _dbContext.FaqInfos.ToListAsync();
+            return await _dbContext.faq_infos.ToListAsync();
         }
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<ActionResult<FaqInfo>> RetrieveFaq(int id)
+        public async Task<ActionResult<faq_info>> RetrieveFaq(int id)
         {
-            if (_dbContext.FaqInfos == null)
+            if (_dbContext.faq_infos == null)
             {
                 return NotFound();
             }
-            var faq = await _dbContext.FaqInfos.FindAsync(id);
+            var faq = await _dbContext.faq_infos.FindAsync(id);
 
             if (faq == null)
             {
@@ -70,9 +69,9 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPut("{id}")]
-        public async Task<ActionResult<FaqInfo>> UpdateFaq(int id, FaqInfo faq)
+        public async Task<ActionResult<faq_info>> UpdateFaq(int id, faq_info faq)
         {
-            if (id != faq.FaqId)
+            if (id != faq.faq_id)
             {
                 return BadRequest();
             }
@@ -99,35 +98,35 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<FaqInfo>> InsertFaq([FromBody] FaqInfo faq)
+        public async Task<ActionResult<faq_info>> InsertFaq([FromBody] faq_info faq)
         {
             //FaqInfo faq = JsonConvert.DeserializeObject<FaqInfo>(faqs);
 
-            if (_dbContext.FaqInfos == null)
+            if (_dbContext.faq_infos == null)
             {
                 return Problem("Entity set 'ProPBTDbContext'  is null.");
             }
-            _dbContext.FaqInfos.Add(faq);
+            _dbContext.faq_infos.Add(faq);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction("InsertFaq", new { id = faq.FaqId }, faq);
+            return CreatedAtAction("InsertFaq", new { id = faq.faq_id }, faq);
         }
 
         [AllowAnonymous]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFaq(int id)
         {
-            if (_dbContext.FaqInfos == null)
+            if (_dbContext.faq_infos == null)
             {
                 return NotFound();
             }
-            var faq = await _dbContext.FaqInfos.FindAsync(id);
+            var faq = await _dbContext.faq_infos.FindAsync(id);
             if (faq == null)
             {
                 return NotFound();
             }
 
-            _dbContext.FaqInfos.Remove(faq);
+            _dbContext.faq_infos.Remove(faq);
             await _dbContext.SaveChangesAsync();
 
             return Ok();
@@ -135,7 +134,7 @@ namespace PBTPro.Api.Controllers
 
         private bool FaqExists(int id)
         {
-            return (_dbContext.FaqInfos?.Any(e => e.FaqId == id)).GetValueOrDefault();
+            return (_dbContext.faq_infos?.Any(e => e.faq_id == id)).GetValueOrDefault();
         }      
     }
 }
