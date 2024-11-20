@@ -222,7 +222,7 @@ namespace PBT.Data
                 return null;
             }
         }
-        public Task<List<DepartmentInfo>> GetDepartmentAsync(CancellationToken ct = default)
+        public Task<List<department_info>> GetDepartmentAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk jabatan.", 1, LoggerName, "");
             return Task.FromResult(_Department);
