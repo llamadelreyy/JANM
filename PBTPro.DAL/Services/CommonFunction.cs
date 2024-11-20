@@ -3,13 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PBTPro.DAL.Models;
 using Serilog;
 using System.Configuration;
 using System.Diagnostics;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -237,17 +235,17 @@ namespace PBTPro.DAL.Services
         [AllowAnonymous]
         public async Task<bool> CreateAuditLog(int intType, string strMethod, string strMessage, int userId, string uname, string moduleName, int roleid=0)
         {
-            //////try
-            //////{
-            //////    AuditlogInfo auditlog = new AuditlogInfo();
+            //try
+            //{
+            //    auditlog_info auditlog = new auditlog_info();
 
-            //////    auditlog.AuditRoleId = roleid;
-            //////    auditlog.AuditModuleName = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName;
-            //////    auditlog.AuditDescription = strMessage;
-            //////    auditlog.CreatedBy = userId;
-            //////    auditlog.AuditType = intType;                
-            //////    auditlog.AuditUsername = uname;                
-            //////    auditlog.AuditMethod = strMethod;
+            //    auditlog.audit_role_id = roleid;
+            //    auditlog.audit_module_name = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName;
+            //    auditlog.audit_description = strMessage;
+            //    auditlog.created_by = userId;
+            //    auditlog.audit_type = intType;
+            //    auditlog.audit_username = uname;
+            //    auditlog.audit_method = strMethod;
 
             //////    //Calling api to perform addnew audit transaction
             //////    var accessToken = CheckToken();

@@ -12,13 +12,13 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using PBT.Data;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
+using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 using System.Reflection;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     [AllowAnonymous]
     public partial class PatrollingService : IDisposable
@@ -88,13 +88,13 @@ namespace PBT.Data
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Patrolling/ListPatrolling");
                 string jsonString = await _cf.List(request);
                 List<PatrollingInfo> patrollingList = JsonConvert.DeserializeObject<List<PatrollingInfo>>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai jadual rondaan.", 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai jadual rondaan.", 1, LoggerName, "");
 
                 return patrollingList;
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
             }
         }
@@ -114,7 +114,7 @@ namespace PBT.Data
                 string jsonString = await _cf.List(request);
 
                 List<PatrollingInfo> patrollingList = JsonConvert.DeserializeObject<List<PatrollingInfo>>(jsonString);
-                 await _cf.CreateAuditLog((int)AuditType.Information, "PatrollingService - RefreshListPatrolling", "Papar semula senarai jadual rondaan.", 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, "PatrollingService - RefreshListPatrolling", "Papar semula senarai jadual rondaan.", 1, LoggerName, "");
 
                 return patrollingList;
             }
@@ -140,19 +140,19 @@ namespace PBT.Data
                 string jsonString = await _cf.Retrieve(request, accessToken);
                 PatrollingInfo patrolling = JsonConvert.DeserializeObject<PatrollingInfo>(jsonString.ToString());
                 await _cf.CreateAuditLog((int)AuditType.Information, "PatrollingService - GetIdPatrolling", "Papar maklumat terperinci jadual rondaan.", 1, LoggerName, "");
-                
+
                 return patrolling;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "PatrollingService - GetIdPatrolling", ex.Message, 1, LoggerName, "");
                 return null;
             }
-        }        
-                    
+        }
+
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<PatrollingInfo>> PostPatrolling([FromBody] string patrollings= "")
+        public async Task<ActionResult<PatrollingInfo>> PostPatrolling([FromBody] string patrollings = "")
         {
             GetDefaultPermission();
             //var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -165,7 +165,7 @@ namespace PBT.Data
                 string jsonString = await _cf.AddNew(request, patrollings, platformApiUrl + "/api/Patrolling/InsertPatrolling");
                 PatrollingInfo patrolling = JsonConvert.DeserializeObject<PatrollingInfo>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, "PatrollingService - PostPatrolling", "Tambah data baru untuk jadual rondaan.", 1, LoggerName, "");
-                
+
                 return patrolling;
             }
             catch (Exception ex)
@@ -213,7 +213,7 @@ namespace PBT.Data
                 var request = _cf.CheckRequestPut(platformApiUrl + "/api/Patrolling/UpdatePatrolling/" + id);
                 string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(patrolling), uri);
                 await _cf.CreateAuditLog((int)AuditType.Information, "PatrollingService - PutPatrolling", "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
-                
+
                 return patrolling;
             }
             catch (Exception ex)

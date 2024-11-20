@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -8,7 +7,8 @@ using PBTPro.Api.Controllers.Base;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
-using PBTPro.Shared.Models.CommonService;
+using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Services;
 
 namespace PBTPro.Api.Controllers
 {
@@ -20,6 +20,7 @@ namespace PBTPro.Api.Controllers
         private readonly PBTProBkgdSM _bkgdSM;
         private readonly IEmailSender _emailSender;
         private readonly string _feature = "EMAILER";
+        private readonly int _maxRetry = 5;
 
         public EmailerController(PBTProDbContext dbContext, ILogger<EmailerController> logger, IEmailSender emailSender, PBTProBkgdSM bkgdSM) : base(dbContext)
         {
@@ -35,28 +36,28 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                List<AppEmailQueue> QueueList = new List<AppEmailQueue>();
+                List<notification_email_queue> QueueList = new List<notification_email_queue>();
 
-                IQueryable<AppEmailQueue> InitQuery = _dbContext.AppEmailQueues;
+                IQueryable<notification_email_queue> InitQuery = _dbContext.notification_email_queues;
                 if (!string.IsNullOrWhiteSpace(ListType))
                 {
                     switch (ListType)
                     {
                         case "Failed":
-                            InitQuery = InitQuery.Where(x => x.Status == "Failed");
+                            InitQuery = InitQuery.Where(x => x.queue_status == "Failed");
                             break;
                         case "Success":
-                            InitQuery = InitQuery.Where(x => x.Status == "Success");
+                            InitQuery = InitQuery.Where(x => x.queue_status == "Success");
                             break;
                         case "InQueue":
-                            InitQuery = InitQuery.Where(x => x.Status == "New");
+                            InitQuery = InitQuery.Where(x => x.queue_status == "New");
                             break;
                         default:
                             return Error("", "List Type is not supported");
                     }
                 }
 
-                QueueList = await InitQuery.OrderByDescending(x => x.CreatedDtm).AsNoTracking().ToListAsync();
+                QueueList = await InitQuery.OrderByDescending(x => x.created_date).AsNoTracking().ToListAsync();
 
                 if (QueueList.Count > 0)
                 {
@@ -81,7 +82,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                EmailContent template = await _dbContext.AppEmailTemplates.Where(x => x.Code == Code).Select(x => new EmailContent { subject = x.Subject, body = x.Content }).AsNoTracking().FirstOrDefaultAsync();
+                EmailContent template = await _dbContext.config_email_templates.Where(x => x.template_code == Code).Select(x => new EmailContent { subject = x.template_subject, body = x.template_content }).AsNoTracking().FirstOrDefaultAsync();
 
                 if (template != null)
                 {
@@ -105,7 +106,8 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var userName = User?.Identity?.Name ?? "System";
+                var runUserID = await getDefRunUserId();
+                var runUser = await getDefRunUser();
                 string ServiceName = "EmailSender";
 
                 var isExists = _bkgdSM.GetBackgroundServiceQueue(ServiceName);
@@ -121,26 +123,39 @@ namespace PBTPro.Api.Controllers
                         {
                             using (PBTProDbContext _dbcontext = new PBTProDbContext((DbContextOptions<PBTProDbContext>)dbOptions))
                             {
-                                List<AppEmailQueue> QueueLists = await _dbcontext.AppEmailQueues.Where(x => x.Status != "Successful" && x.CntRetry <= 5).OrderBy(x => x.CreatedDtm).ToListAsync();
+                                List<notification_email_queue> QueueLists = await _dbcontext.notification_email_queues.Where(x => x.queue_status != "Successful" && x.queue_cnt_retry < _maxRetry).OrderBy(x => x.created_date).ToListAsync();
 
                                 if (QueueLists.Count > 0)
                                 {
                                     foreach (var queue in QueueLists)
                                     {
-                                        EmailSenderRs emailRs = await _emailSender.SendEmail(queue.Subject, queue.Content, queue.ToEmail);
+                                        EmailSenderRs emailRs = await _emailSender.SendEmail(queue.queue_subject, queue.queue_content, queue.queue_recipient);
 
-                                        queue.CntRetry = queue.CntRetry + 1;
-                                        queue.Status = emailRs.Status;
-                                        queue.Remark = emailRs.Remars;
-                                        queue.ModifiedDtm = DateTime.Now;
-                                        queue.ModifiedBy = userName;
+                                        queue.queue_cnt_retry = queue.queue_cnt_retry + 1;
+                                        queue.queue_status = emailRs.Status;
+                                        queue.queue_remark = emailRs.Remars;
+                                        queue.update_date = DateTime.Now;
+                                        queue.updated_by = runUserID;
 
                                         if (emailRs.isSuccess)
                                         {
-                                            queue.DateSent = DateTime.Now;
+                                            queue.queue_date_sent = DateTime.Now;
+                                            if (await ArchiveQueue(queue))
+                                            {
+                                                _dbcontext.notification_email_queues.Remove(queue);
+                                            }
                                         }
-
-                                        _dbcontext.AppEmailQueues.Update(queue);
+                                        else if(emailRs.isSuccess != true && queue.queue_cnt_retry >= _maxRetry)
+                                        {
+                                            if (await ArchiveQueue(queue))
+                                            {
+                                                _dbcontext.notification_email_queues.Remove(queue);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            _dbcontext.notification_email_queues.Update(queue);
+                                        }
                                         await _dbcontext.SaveChangesAsync();
                                         token.ThrowIfCancellationRequested();
                                     }
@@ -174,5 +189,44 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+
+
+        #region Private Logic
+        private async Task<bool> ArchiveQueue(notification_email_queue queue)
+        {
+            bool result = true;
+            try
+            {
+                using (PBTProDbContext tmpDBcontext = new PBTProDbContext())
+                {
+                    var history = new notification_email_history
+                    {
+                        history_recipient = queue.queue_recipient,
+                        history_subject = queue.queue_subject,
+                        history_content = queue.queue_content,
+                        history_status = queue.queue_status,
+                        history_remark = queue.queue_remark,
+                        history_date_sent = queue.queue_date_sent,
+                        history_cnt_retry = queue.queue_cnt_retry,
+                        active_flag = queue.active_flag,
+                        created_by = queue.created_by,
+                        created_date = queue.created_date,
+                        updated_by = queue.updated_by,
+                        update_date = queue.update_date
+                    };
+
+                    tmpDBcontext.notification_email_histories.Add(history);
+                    await tmpDBcontext.SaveChangesAsync(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                result = false;
+            }
+
+            return result;
+        }
+
+        #endregion
     }
 }

@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
-using PBTPro.Shared.Models.CommonService;
-using PBTPro.Shared.Models.RequestPayLoad;
+using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 using System.Data;
 using System.Security.Claims;
 
@@ -41,45 +41,45 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                UserProfileViewModel data = new UserProfileViewModel();
+                user_profile_view data = new user_profile_view();
                 
-                var UserProfile = await _dbContext.UserProfiles.Where(x => x.ProfileUserId == UserId).Select(x => new UserProfileViewModel
+                var UserProfile = await _dbContext.user_profiles.Where(x => x.profile_user_id == UserId).Select(x => new user_profile_view
                 {
-                    ProfileId = x.ProfileId,
-                    UserId = x.ProfileUserId,
-                    PhotoUrl = !string.IsNullOrWhiteSpace(x.ProfilePhotoName) ? "/api/Files/GetProfileImage?fn=" + x.ProfilePhotoName : null,
-                    Name = x.ProfileName,
-                    Dob = x.ProfileDob,
-                    Icno = x.ProfileIcno,
-                    NatId = x.ProfileNatId,
-                    RaceId = x.ProfileRaceId,
-                    AddrLine1 = x.ProfileAddress1,
-                    AddrLine2 = x.ProfileAddress2,
-                    PostCode = x.ProfilePostcode,
-                    CityId = x.ProfileCityId,
-                    DistrictId = x.ProfileDistrictId,
-                    StateId = x.ProfileStateId,
-                    CountryId = x.ProfileCountryId,
-                    AcceptTerms1 = x.ProfileAcceptTerm1,
-                    AcceptTerms2 = x.ProfileAcceptTerm2,
-                    Email = x.ProfileEmail,
-                    EmployeeNo = "ABC9090112",
-                    DepartmentView = "Penguatkuasa",
-                    SectionView = "Operasi",
-                    UnitView = "Operasi & Penguatkuasa"
+                    profile_id = x.profile_id,
+                    profile_user_id = x.profile_user_id,
+                    profile_photo_url = !string.IsNullOrWhiteSpace(x.profile_photo_name) ? "/api/Files/GetProfileImage?fn=" + x.profile_photo_name : null,
+                    profile_name = x.profile_name,
+                    profile_dob = x.profile_dob,
+                    profile_icno = x.profile_icno,
+                    profile_nat_id = x.profile_nat_id,
+                    profile_race_id = x.profile_race_id,
+                    profile_address1 = x.profile_address1,
+                    profile_address2 = x.profile_address2,
+                    profile_postcode = x.profile_postcode,
+                    profile_city_id = x.profile_city_id,
+                    profile_district_id = x.profile_district_id,
+                    profile_state_id = x.profile_state_id,
+                    profile_country_id = x.profile_country_id,
+                    profile_accept_term1 = x.profile_accept_term1,
+                    profile_accept_term2 = x.profile_accept_term2,
+                    profile_email = x.profile_email,
+                    profile_employee_no = "ABC9090112",
+                    profile_department_view = "Penguatkuasa",
+                    profile_section_view = "Operasi",
+                    profile_unit_view = "Operasi & Penguatkuasa"
                 }).AsNoTracking().FirstOrDefaultAsync();
 
                 if(UserProfile == null)
                 {
-                    UserProfile = await _dbContext.Users.Where(x => x.Id == UserId).Select(x => new UserProfileViewModel
+                    UserProfile = await _dbContext.Users.Where(x => x.Id == UserId).Select(x => new user_profile_view
                     {
-                        UserId = x.Id,
-                        Name = x.Name ?? x.UserName,
-                        Email = x.Email,
-                        EmployeeNo = "ABC9090112",
-                        DepartmentView = "Penguatkuasa",
-                        SectionView = "Operasi",
-                        UnitView = "Operasi & Penguatkuasa"
+                        profile_user_id = x.Id,
+                        profile_name = x.Name ?? x.UserName,
+                        profile_email = x.Email,
+                        profile_employee_no = "ABC9090112",
+                        profile_department_view = "Penguatkuasa",
+                        profile_section_view = "Operasi",
+                        profile_unit_view = "Operasi & Penguatkuasa"
                     }).AsNoTracking().FirstOrDefaultAsync();
                 }
 

@@ -1,4 +1,4 @@
-﻿using PBTPro.Shared.Models.CommonService;
+﻿using PBTPro.DAL.Models.CommonServices;
 using System.Net.Mail;
 
 namespace PBTPro.Api.Services

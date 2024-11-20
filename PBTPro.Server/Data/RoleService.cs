@@ -4,8 +4,9 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using System.Reflection;
 using PBTPro.DAL.Services;
+using PBTPro.DAL.Models.CommonServices;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     public class RoleService : IDisposable
     {
@@ -95,11 +96,11 @@ namespace PBT.Data
                         }
                  };
 
-                await _cf.CreateAuditLog((int)AuditType.Information, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai peranan sistem.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai peranan sistem.", Convert.ToInt32(uID), LoggerName, "");
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, this.GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
             }
             finally
             {

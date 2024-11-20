@@ -13,7 +13,6 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -29,7 +28,7 @@ namespace PBTPro.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly string _module = "Department";
         private readonly PBTProDbContext _dbContext;
-        private List<DepartmentInfo> _Department { get; set; }
+        private List<department_info> _Department { get; set; }
 
         public DepartmentController(PBTProDbContext dbContext, ILogger<DepartmentController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
         {
@@ -41,24 +40,24 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DepartmentInfo>>> ListDepartment()
+        public async Task<ActionResult<IEnumerable<department_info>>> ListDepartment()
         {
-            if (_dbContext.DepartmentInfos == null)
+            if (_dbContext.department_infos == null)
             {
                 return NotFound();
             }
-            return await _dbContext.DepartmentInfos.ToListAsync();
+            return await _dbContext.department_infos.ToListAsync();
         }
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<ActionResult<DepartmentInfo>> RetrieveDepartment(int id)
+        public async Task<ActionResult<department_info>> RetrieveDepartment(int id)
         {
-            if (_dbContext.DepartmentInfos == null)
+            if (_dbContext.department_infos == null)
             {
                 return NotFound();
             }
-            var Department = await _dbContext.DepartmentInfos.FindAsync(id);
+            var Department = await _dbContext.department_infos.FindAsync(id);
 
             if (Department == null)
             {
@@ -70,9 +69,9 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDepartment(int id, DepartmentInfo Department)
+        public async Task<IActionResult> UpdateDepartment(int id, department_info Department)
         {
-            if (id != Department.DeptId)
+            if (id != Department.dept_id)
             {
                 return BadRequest();
             }
@@ -99,32 +98,32 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<DepartmentInfo>> InsertDepartment([FromBody] DepartmentInfo Department)
+        public async Task<ActionResult<department_info>> InsertDepartment([FromBody] department_info Department)
         {         
-            if (_dbContext.DepartmentInfos == null)
+            if (_dbContext.department_infos == null)
             {
                 return Problem("Entity set 'ProPBTDbContext'  is null.");
             }
-            _dbContext.DepartmentInfos.Add(Department);
+            _dbContext.department_infos.Add(Department);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction("InsertDepartment", new { id = Department.DeptId }, Department);
+            return CreatedAtAction("InsertDepartment", new { id = Department.dept_id }, Department);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDepartment(int id)
         {
-            if (_dbContext.DepartmentInfos == null)
+            if (_dbContext.department_infos == null)
             {
                 return NotFound();
             }
-            var Department = await _dbContext.DepartmentInfos.FindAsync(id);
+            var Department = await _dbContext.department_infos.FindAsync(id);
             if (Department == null)
             {
                 return NotFound();
             }
 
-            _dbContext.DepartmentInfos.Remove(Department);
+            _dbContext.department_infos.Remove(Department);
             await _dbContext.SaveChangesAsync();
 
             return Ok();
@@ -132,7 +131,7 @@ namespace PBTPro.Api.Controllers
 
         private bool DepartmentExists(int id)
         {
-            return (_dbContext.DepartmentInfos?.Any(e => e.DeptId == id)).GetValueOrDefault();
+            return (_dbContext.department_infos?.Any(e => e.dept_id == id)).GetValueOrDefault();
         }      
     }
 }

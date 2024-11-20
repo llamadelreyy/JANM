@@ -1,7 +1,6 @@
-﻿
-using System.Globalization;
+﻿using System.Globalization;
 
-namespace PBT.Services
+namespace PBTPro.Services
 {
     public static class Jfunc
     {

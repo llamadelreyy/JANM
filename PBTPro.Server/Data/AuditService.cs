@@ -13,12 +13,13 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using PBT.Pages;
+using PBTPro.Pages;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
+using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 
-namespace PBT.Data
+namespace PBTPro.Data
 {
     [AllowAnonymous]
     public partial class AuditService : IDisposable
@@ -46,7 +47,7 @@ namespace PBT.Data
             GC.SuppressFinalize(this);
         }
         public IConfiguration _configuration { get; }
-        private List<AuditlogInfo> _Audit { get; set; }
+        private List<auditlog_info> _Audit { get; set; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -74,7 +75,7 @@ namespace PBT.Data
         }
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<AuditlogInfo>> GetAllAudit()
+        public async Task<List<auditlog_info>> GetAllAudit()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -85,7 +86,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Audit/ListAudit");
                 string jsonString = await _cf.List(request);
-                List<AuditlogInfo> auditList = JsonConvert.DeserializeObject<List<AuditlogInfo>>(jsonString);
+                List<auditlog_info> auditList = JsonConvert.DeserializeObject<List<auditlog_info>>(jsonString);
 
                 await _cf.CreateAuditLog((int)AuditType.Information, "AuditService - GetAllAudit", "Papar semua senarai log audit.", Convert.ToInt32(uID), LoggerName, "");
                 return auditList;
@@ -99,7 +100,7 @@ namespace PBT.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<AuditlogInfo>> RefreshListAudit()
+        public async Task<List<auditlog_info>> RefreshListAudit()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -110,7 +111,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Audit/ListAudit");
                 string jsonString = await _cf.List(request);
-                List<AuditlogInfo> auditList = JsonConvert.DeserializeObject<List<AuditlogInfo>>(jsonString);
+                List<auditlog_info> auditList = JsonConvert.DeserializeObject<List<auditlog_info>>(jsonString);
 
                 await _cf.CreateAuditLog((int)AuditType.Information, "AuditService - RefreshListAudit", "Papar semula semua senarai log audit.", Convert.ToInt32(uID), LoggerName, "");
                 return auditList;
@@ -123,7 +124,7 @@ namespace PBT.Data
         }
         [AllowAnonymous]
         [HttpGet]
-        public async Task<AuditlogInfo> GetIdAudit(int id)
+        public async Task<auditlog_info> GetIdAudit(int id)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -134,12 +135,12 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Audit/RetrieveAudit/" + id);
                 string jsonString = await _cf.Retrieve(request, accessToken);
-                AuditlogInfo audit = JsonConvert.DeserializeObject<AuditlogInfo>(jsonString.ToString());
+                auditlog_info audit = JsonConvert.DeserializeObject<auditlog_info>(jsonString.ToString());
 
                 await _cf.CreateAuditLog((int)AuditType.Information, "AuditService - GetIdAudit", "Papar maklumat terperinci c.", Convert.ToInt32(uID), LoggerName, "");
                 return audit;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "AuditService - GetIdAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
@@ -147,7 +148,7 @@ namespace PBT.Data
         }
 
         [HttpPost]
-        public async Task<AuditlogInfo> AddNewAudit(string strAudit)
+        public async Task<auditlog_info> AddNewAudit(string strAudit)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -158,7 +159,7 @@ namespace PBT.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Audit/InsertAudit");
                 string jsonString = await _cf.AddNew(request, strAudit, platformApiUrl + "/api/Audit/InsertAudit");
-                AuditlogInfo audit = JsonConvert.DeserializeObject<AuditlogInfo>(jsonString);
+                auditlog_info audit = JsonConvert.DeserializeObject<auditlog_info>(jsonString);
 
                 await _cf.CreateAuditLog((int)AuditType.Information, "AuditService - AddNewAudit", "Berjaya tambah data untuk log audit.", Convert.ToInt32(uID), LoggerName, "");
                 return audit;
@@ -186,7 +187,7 @@ namespace PBT.Data
                 await _cf.CreateAuditLog((int)AuditType.Information, "AuditService - DeleteAudit", "Berjaya padam data untuk log audit.", Convert.ToInt32(uID), LoggerName, "");
                 return Ok(jsonString);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, "AuditService - DeleteAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
                 return null;
@@ -197,7 +198,7 @@ namespace PBT.Data
         {
             throw new NotImplementedException();
         }
-        public Task<List<AuditlogInfo>> GetAuditAsync(CancellationToken ct = default)
+        public Task<List<auditlog_info>> GetAuditAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, "AuditService - GetAuditAsync", "Berjaya muat semula senarai untuk log audit.", 1, LoggerName, "");
             return Task.FromResult(_Audit);
@@ -224,6 +225,6 @@ namespace PBT.Data
                 await _cf.CreateAuditLog((int)AuditType.Error, "AuditService - ArchiveAuditLog", ex.Message, 1, LoggerName, "");
                 return null;
             }
-        }       
+        }
     }
 }
