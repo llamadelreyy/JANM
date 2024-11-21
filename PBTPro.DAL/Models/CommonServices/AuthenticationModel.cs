@@ -23,6 +23,7 @@ namespace PBTPro.DAL.Models.CommonServices
         public string Userid { get; set; } = null!;
         public string Username { get; set; } = null!;
         public string Token { get; set; } = null!;
+        public string Fullname { get; set; }
         public List<string?> Roles { get; set; }
     }
 
