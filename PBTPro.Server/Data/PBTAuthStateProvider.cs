@@ -72,7 +72,7 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
 
                     var user = new AuthenticatedUser
                     {
-                        Fullname = username,
+                        Fullname = data.Fullname,
                         Token = data.Token,
                         Userid = data.Userid,
                         Username = data.Username,

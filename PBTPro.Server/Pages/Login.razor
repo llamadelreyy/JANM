@@ -50,8 +50,7 @@
 
         if (response.ReturnCode == 200)
         {
-            HandleResponse(response.ReturnMessage);
-
+            //HandleResponse(response.ReturnMessage);
             if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
                 NavigationManager.NavigateTo("/", true);
             else
