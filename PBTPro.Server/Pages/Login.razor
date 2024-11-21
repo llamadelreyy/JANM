@@ -1,0 +1,92 @@
+﻿@page "/login"
+@attribute [AllowAnonymous]
+
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+@inject PBTAuthStateProvider PBTAuthStateProvider
+@inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastService
+
+<div class="item-container-x">
+    <EditForm Model="@LoginModel" OnValidSubmit="@HandleValidSubmit" Context="EditFormContext">
+        <DataAnnotationsValidator />
+        <DxFormLayout>
+            <DxFormLayoutItem Caption="Nama Pengguna:" ColSpanMd="12">
+                <DxTextBox @bind-Text="@LoginModel.Username"
+                            NullText="Nama Pengguna ..."
+                            ShowValidationIcon="true"
+                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem Caption="Kata Laluan:" ColSpanMd="12">
+                <DxTextBox @bind-Text="@LoginModel.Password"
+                            NullText="Kata Laluan ..."
+                            ShowValidationIcon="true" 
+                            Password="true" 
+                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem ColSpanMd="12">
+                <DxButton CssClass="w-100" Text="Log Masuk" style="height:40px;border-radius: 3px; border-color:transparent;background-color:green"
+                            RenderStyle="ButtonRenderStyle.Primary"
+                            Enabled="true"
+                            SubmitFormOnClick="true">
+                </DxButton>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    </EditForm>
+</div>
+}
+
+@code {
+    public LoginModel LoginModel = new LoginModel();
+
+    string FormSubmitResult = "";
+    public async Task HandleValidSubmit()
+    {
+        ReturnViewModel response = new ReturnViewModel();
+
+        response = await PBTAuthStateProvider.LoginAsync(LoginModel.Username, LoginModel.Password);
+
+        if (response.ReturnCode == 200)
+        {
+            //HandleResponse(response.ReturnMessage);
+            if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
+                NavigationManager.NavigateTo("/", true);
+            else
+                NavigationManager.NavigateTo("zon_eksekutif", true);
+        }
+        else
+        {
+            HandleResponse(response.ReturnMessage, "Error");
+        }
+    }
+
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
+
+}
