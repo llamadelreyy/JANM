@@ -134,7 +134,7 @@ namespace PBTPro.Api.Controllers
                     }
 
                     var token = _tokenService.GenerateJwtToken(authClaims, model.RememberMe);
-                    return Ok(new LoginResult { Token = token, Roles = roles.ToList() });;
+                    return Ok(new LoginResult {Fullname = user.Name, Userid = user.Id, Username = user.UserName, Token = token, Roles = roles.ToList() }, SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
                 }
                 else if (LoginResult.IsLockedOut)
                 {

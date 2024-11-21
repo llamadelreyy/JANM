@@ -1,0 +1,15 @@
+﻿@page "/logout"
+@using PBTPro.Data
+@inject PBTAuthStateProvider PBTAuthStateProvider
+@inject NavigationManager NavigationManager
+
+<h3>Logout</h3>
+<button type="button" class="btn btn-success" @onclick="LogoutAsync">Logout</button>
+
+@code {
+    public async Task LogoutAsync()
+    {
+        await PBTAuthStateProvider.LogoutAsync();
+        NavigationManager.NavigateTo("/", true);
+    }
+}

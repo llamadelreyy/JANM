@@ -11,6 +11,7 @@ Additional Notes:
 Changes Logs:
 13/11/2024 - initial create
 */
+using Microsoft.AspNetCore.Components.Authorization;
 using Newtonsoft.Json;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
@@ -22,6 +23,7 @@ namespace PBTPro.Data
     {
         public IConfiguration _configuration { get; }
         private readonly ApiConnector _apiConnector;
+        private readonly PBTAuthStateProvider _PBTAuthStateProvider;
         private string _baseReqURL = "/api/ConfigFormField";
         private bool disposed = false;
 
@@ -57,10 +59,12 @@ namespace PBTPro.Data
             new { Value = "checkbox", Text = "Check Box" }
         };
 
-        public ConfigFormFieldService(IConfiguration configuration, ApiConnector apiConnector)
+        public ConfigFormFieldService(IConfiguration configuration, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
+            _PBTAuthStateProvider = PBTAuthStateProvider;
             _apiConnector = apiConnector;
+            _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         }
 
         public async Task<List<config_form_field_view>> ListAll()
