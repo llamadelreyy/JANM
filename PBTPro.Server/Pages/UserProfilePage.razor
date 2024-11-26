@@ -65,7 +65,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>No Pekerja</div>
-                        <DxTextBox @bind-Text="@userInfo.ProfileStaffNo"
+                        <DxTextBox @bind-Text="@userInfo.profile_icno"
                                    NullText="No Pekerja ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -74,7 +74,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>No Telefon</div>
-                        <DxTextBox @bind-Text="@userInfo.ProfileTelNo"
+                        <DxTextBox @bind-Text="@userInfo.profile_tel_no"
                                    NullText="No Telefon ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    Enabled="true"
@@ -85,7 +85,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>ID Pengguna</div>
-                        <DxTextBox @bind-Text="@userInfo.ProfileUserName"
+                        <DxTextBox @bind-Text="@userInfo.profile_user_id"
                                    NullText="ID Pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -106,7 +106,7 @@
 
                     <DxFormLayoutItem ColSpanMd="12">
                         <div>Nama</div>
-                        <DxTextBox @bind-Text="@userInfo.ProfileName"
+                        <DxTextBox @bind-Text="@userInfo.profile_name"
                                    NullText="Nama Pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -115,7 +115,7 @@
 
                     <DxFormLayoutItem ColSpanMd="12">
                         <div>Emel</div>
-                        <DxTextBox @bind-Text="@userInfo.ProfileEmail"
+                        <DxTextBox @bind-Text="@userInfo.profile_email"
                                    NullText="Emel pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    Enabled="true"
@@ -192,7 +192,7 @@
 
 @code {
     [Inject] IToastNotificationService ToastService { get; set; }
-    public UserProfile userInfo = new UserProfile();
+    public user_profile userInfo = new user_profile();
 
     //Get current user id
     int intCurrentUserId { get; set; } = 0;
