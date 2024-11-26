@@ -82,28 +82,31 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtData = (UserRoleProp)EditFormContext.EditModel;
+                var dtUserRole = (UserRoleProp)EditFormContext.EditModel;
+                // // valueRole = GetUserRole(dtData);
 
                 //For edit need to get all the role belong to selected user
                 List<RoleProp> arrItem = new List<RoleProp>();
                 RoleProp _item;
-                
+
                 //Loop the main data to get all the role for selected user
                 @foreach (var item in dataSource)
                 {
-                    if (dtData.user_id == item.user_id)
+                    if (dtUserRole.user_id == item.user_id)
                     {
                         _item = new RoleProp();
                         _item.role_id = item.role_id;
                         _item.role_name = item.role_name;
                         _item.role_desc = item.role_desc;
+                        _item.role_select = true;
                         _item.created_date = item.created_date;
                         arrItem.Add(_item);
                     }
                 }
 
                 valueRole = arrItem;
-                //This is to check whether in add new @ edit mode
+
+                // This is to check whether in add new @ edit mode
                 boolLockDropDown = Grid.IsEditingNewRow();
             }
             <DxFormLayout CssClass="w-100">
@@ -123,7 +126,7 @@
                                             ValueFieldName="user_id"
                                             CssClass="combo-width"
                                             DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
-                                            @bind-Value="@dtData.user_id">
+                                            @bind-Value="@dtUserRole.user_id">
                                 </DxComboBox>
                             </td>
                             <td width="100px">&nbsp;</td>
@@ -135,15 +138,57 @@
                             <td nowrap>Peranan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-                                <DxListBox Data="@dataRole"
+@*                                  <DxListBox Data="@dataRole"
                                            TextFieldName="@nameof(RoleProp.Text)"
                                            ValueFieldName="@nameof(RoleProp.role_id)"
                                            SelectionMode="ListBoxSelectionMode.Multiple"
                                            ShowCheckboxes="true"
-                                           CssClass="w-auto mt-1 me-1 flex-grow-1 chi-220"
-                                           style="flex-basis: 240px"
+                                           Enabled="true"
                                            @bind-Values="@valueRole">
-                                </DxListBox>
+                                </DxListBox> *@
+
+                                <div class="multiselect">
+                                    <div id="checkboxes">
+                                        @{
+                                            foreach (var item in dataRole)
+                                            {
+                                                bool blnSelected = false;
+                                                foreach (var value in valueRole)
+                                                {
+                                                    if (item.role_id == value.role_id)
+                                                    {
+                                                        blnSelected = true;
+                                                        item.role_select = true;
+                                                    }
+                                                }
+
+                                                if (blnSelected)
+                                                {
+                                                    <div>
+                                                        <label class="multiselect-container" for="@item.role_id">
+                                                            @item.role_name (@item.role_desc)
+                                                            <input type="checkbox" class="check_role" id="@item.role_id" checked="checked" @onchange="@((e) => CheckboxChanged(e, item.role_id))" />                                                          
+                                                            <span class="checkmark"></span>
+                                                        </label>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div>
+                                                        <label class="multiselect-container" for="@item.role_id">
+                                                            @item.role_name (@item.role_desc)
+                                                            <input type="checkbox" class="check_role" id="@item.role_id" @onchange="@((e) => CheckboxChanged(e, item.role_id))" />                                                           
+                                                            <span class="checkmark"></span>
+                                                        </label>
+                                                    </div>
+                                                }
+
+                                            }
+                                        }
+                                    </div>
+                                </div>
+
+
                             </td>
                         </tr>
                     </table>
@@ -212,16 +257,47 @@
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-
     protected override async Task OnInitializedAsync()
     {
         //intCurrentUserId = _AllocationAuthenticationStateProvider.CurrentUser.userID;
         dataSource = await _UserRoleService.GetUserRoleAsync();
         dataUser = await _UserService.GetUserAsync();
         dataRole = await _RoleService.GetRoleAsync();
-        //valueRole = dataRole;
+        // // valueRole = dataRole;
         DataLoadedTcs.TrySetResult(true);
     }
+
+    protected void CheckboxChanged(ChangeEventArgs e, int key)
+    {
+        var i = dataRole.FirstOrDefault(i => i.role_id == key);
+        if (i != null)
+        {
+            i.role_select = (bool)e.Value;
+        }
+    }
+
+    // // IEnumerable<RoleProp> GetUserRole(UserRoleProp value)
+    // // {
+    // //     //For edit need to get all the role belong to selected user
+    // //     List<RoleProp> arrItem = new List<RoleProp>();
+    // //     RoleProp _item;
+
+    // //     //Loop the main data to get all the role for selected user
+    // //     @foreach (var item in dataSource)
+    // //     {
+    // //         if (value.user_id == item.user_id)
+    // //         {
+    // //             _item = new RoleProp();
+    // //             _item.role_id = item.role_id;
+    // //             _item.role_name = item.role_name;
+    // //             _item.role_desc = item.role_desc;
+    // //             _item.created_date = item.created_date;
+    // //             arrItem.Add(_item);
+    // //         }
+    // //     }
+
+    // //     return arrItem.AsEnumerable();
+    // // }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -244,6 +320,13 @@
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         bool blnSuccess = false;
+
+        //update selected user_id dgn selected role id
+        foreach (var item in dataRole)
+        {
+            
+        }
+
         if (e.IsNew)
             blnSuccess = true; //await _UserRoleService.InsertUserRoleAsync((UserRoleProp)e.EditModel, intCurrentUserId);
         else
