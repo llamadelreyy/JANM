@@ -5,6 +5,9 @@ using PBTPro.DAL.Models;
 using System.Reflection;
 using PBTPro.DAL.Services;
 using PBTPro.DAL.Models.CommonServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace PBTPro.Data
 {
@@ -113,7 +116,104 @@ namespace PBTPro.Data
         }
 
 
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<ActionResult<RoleProp>> InsertRole([FromBody] string strData = "")
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
 
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Role/InsertRole");
+                string jsonString = await _cf.AddNew(request, strData, platformApiUrl + "/api/Role/InsertRole");
+                RoleProp dtData = JsonConvert.DeserializeObject<RoleProp>(jsonString);
+
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah peranan baru.", Convert.ToInt32(uID), LoggerName, "");
+                return dtData;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
+        [HttpDelete]
+        public async Task<int> DeleteRole(int id)
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Role/DeleteRole/" + id);
+                string jsonString = await _cf.Delete(request);
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data peranan.", Convert.ToInt32(uID), LoggerName, "");
+
+                return id;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return 0;
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPut]
+        public async Task<ActionResult<RoleProp>> UpdateRole(int id, RoleProp dtData)
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var uri = platformApiUrl + "/api/Role/UpdateRole/" + id;
+                var request = _cf.CheckRequestPut(platformApiUrl + "/api/Role/UpdateRole/" + id);
+                string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(dtData), uri);
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk peranan.", Convert.ToInt32(uID), LoggerName, "");
+
+                return dtData;
+
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<List<RoleProp>> RefreshRoleAsync()
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/Role/ListRole");
+                string jsonString = await _cf.List(request);
+                List<RoleProp> dtData = JsonConvert.DeserializeObject<List<RoleProp>>(jsonString);
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai peranan.", Convert.ToInt32(uID), LoggerName, "");
+
+                return dtData;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
 
     }
 }

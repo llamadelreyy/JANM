@@ -4,29 +4,34 @@
 
 <div class="sidebar @StateCssClass">
     <!-- Sidebar Header-->
-    <div class="sidebar-header d-flex align-items-center pt-3 px-3 pb-3" style="border-bottom:solid 1px #ccc;">
-        <AuthorizeView>
-            <Authorized>
-                @*<img class="avatar shadow-0 img-fluid rounded-circle" src="https://d19m59y37dris4.cloudfront.net/admin/2-2-0/img/avatar-1.ce912d90.jpg" alt="...">*@
-                <a href="" class="avatar-text online"><span class="avatar-text-initial">R</span></a>
-                <div class="ms-3 title">
-                    <span class="loginuser mb-2">@PBTAuthStateProvider.CurrentUser.Fullname </span> [ <a href="user_profile" alt="ubah profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="#" alt="ubah profail"><i class="ri-lock-password-line ri-1x"></i></a> ]
-                    <p class="text-sm text-gray-500 fw-light mb-0 lh-1">
-                        <span class="loginusername">@string.Join(", ", PBTAuthStateProvider.CurrentUser.Roles)</span> [ <a alt="logout" href="/logout"><i class="ri-logout-box-r-line ri-1x"></i></a>]
-                    </p>
-                </div>
-            </Authorized>
-            <NotAuthorized>
-                <div class="ms-3 title">
-                    Pengguna Umum <a alt="login" href="/login"><i class="ri-login-box-line ri-1x"></i></a>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>        
-    </div>
-    <DxTreeView AllowSelectNodes="true" CssClass="app-sidebar" style="padding-top:5px;">
+    <AuthorizeView>
+        <Authorized>
+            <div class="sidebar-header d-flex align-items-center pt-3 px-3 pb-3" style="border-bottom:solid 1px #ccc;">
+        
+
+                        @*<img class="avatar shadow-0 img-fluid rounded-circle" src="https://d19m59y37dris4.cloudfront.net/admin/2-2-0/img/avatar-1.ce912d90.jpg" alt="...">*@
+                        <a href="" class="avatar-text online"><span class="avatar-text-initial">R</span></a>
+                        <div class="ms-3 title">
+                            <span class="loginuser mb-2">@PBTAuthStateProvider.CurrentUser.Fullname </span> [ <a href="user_profile" alt="ubah profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="#" alt="ubah profail"><i class="ri-lock-password-line ri-1x"></i></a> ]
+                            <p class="text-sm text-gray-500 fw-light mb-0 lh-1">
+                                <span class="loginusername">@string.Join(", ", PBTAuthStateProvider.CurrentUser.Roles)</span> [ <a alt="logout" href="/logout"><i class="ri-logout-box-r-line ri-1x"></i></a>]
+                            </p>
+                        </div>
+
+        @*             <NotAuthorized>
+                        <div class="ms-3 title">
+                            Pengguna Umum <a alt="login" href="/login"><i class="ri-login-box-line ri-1x"></i></a>
+                        </div>
+                    </NotAuthorized> *@
+               
+            </div>
+        </Authorized>
+    </AuthorizeView> 
+    <DxTreeView AllowSelectNodes="true" CssClass="app-sidebar" style="padding-top:15px;">
         <Nodes>
             <DxTreeViewNode NavigateUrl="./" Text="Utama" IconUrl="\lib\remixicon\png\home-3-fill.png" CssClass="singleNodesClass"></DxTreeViewNode>
-            <DxTreeViewNode NavigateUrl="login" Text="Notifikasi" IconUrl="\images\icons-small\bell.png" CssClass="singleNodesClass" BadgeText="0"></DxTreeViewNode>
+            <DxTreeViewNode NavigateUrl="/login" Text="Log Masuk" IconUrl="\images\icons-small\key.png" CssClass="singleNodesClass"></DxTreeViewNode>
+            <DxTreeViewNode NavigateUrl="./" Text="Notifikasi" IconUrl="\images\icons-small\bell.png" CssClass="singleNodesClass" BadgeText="0"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="carian_umum" Text="Carian Umum" IconUrl="\images\icons-small\magnifier-left.png" CssClass="singleNodesClass"></DxTreeViewNode>
 
             <DxTreeViewNode Text="Tetapan" IconUrl="" CssClass="@rootNodeCssClass">

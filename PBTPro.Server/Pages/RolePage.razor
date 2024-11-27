@@ -78,7 +78,7 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtData = (RoleProp)EditFormContext.EditModel;
+                var dtEdit = (RoleProp)EditFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
@@ -87,7 +87,7 @@
                             <td nowrap>Peranan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%">
-                                <DxTextBox @bind-Text="@dtData.role_name"
+                                <DxTextBox @bind-Text="@dtEdit.role_name"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                        BindValueMode="BindValueMode.OnInput"
                                        NullText="Peranan ..."
@@ -104,7 +104,7 @@
                             <td nowrap>Keterangan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-                                <DxTextBox @bind-Text="@dtData.role_desc"
+                                <DxTextBox @bind-Text="@dtEdit.role_desc"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                        BindValueMode="BindValueMode.OnInput"
                                        NullText="Keterangan peranan ..."
