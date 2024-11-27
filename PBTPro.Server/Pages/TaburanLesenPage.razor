@@ -11,15 +11,83 @@
 
 @* <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@AfterMapInit"></GoogleMap> *@
 <div class="topMapControl">
-    <button id="buttonTapis" @onclick="OpenFilter" class="buttonControlMap">Tapisan</button>
+    <button id="buttonTapis" @onclick="@(() => OpenFilter(0))" class="buttonControlMap">Tapisan</button>
+    <button id="buttonSearch" @onclick="@(() => OpenFilter(1))" class="buttonControlMap">Carian Premis</button>
     <button @onclick="AddLegend" class="buttonControlMap">Legend</button>
     <input type="text" @ref="this.searchBox" id="searchBox" class="searchMap" placeholder="Masukkan nama tempat untuk dicari..." />
     @* <button @onclick="Search" class="buttonControlMap">Cari Tempat</button> *@
 
 </div>
 
+<style>
+    .dxbl-grid {
+        height: 88vh;
+        max-height: 88vh;
+    }
+</style>
+
+<!-- Filter & Search Premise panel -->
 <div id="mySidenav" class="sidenav">
 
+    <div id="SearchPremisePanel">
+        <header class="searchPremis">
+            <h1>Carian Premis</h1>
+            <a style="text-underline-position:below; cursor:pointer" href="javascript:void(0)" class="closebtnpremis" @onclick="CloseFilter">&times;</a>
+        </header>
+        
+
+        <DxGrid @ref="Grid"
+                Data="NoticeData"
+                KeyFieldName="IdNotice"
+                ShowGroupPanel="false"
+                VirtualScrollingEnabled=true
+                ShowFilterRow="false"
+                TextWrapEnabled="true"
+                ShowSearchBox="true"
+                EditorRenderMode="GridEditorRenderMode.Integrated"
+                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                PageSize="100"
+                SearchBoxNullText="Masukkan kata carian..."
+                SearchTextParseMode="GridSearchTextParseMode.GroupWordsByAnd"
+                PageSizeSelectorVisible="false"
+                PageSizeSelectorAllRowsItemVisible="true"
+                PagerAutoHideNavButtons="true"
+                EditFormButtonsVisible="false"
+                AutoExpandAllGroupRows="false"
+                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                CustomizeElement="Grid_CustomizeElement"
+                KeyboardNavigationEnabled="true"
+                CssClass="mw-1000, grid-size">
+
+            <Columns>
+                <DxGridCommandColumn Width="40px">
+                    <HeaderTemplate>
+                        <img src="images/icons/marker.png" />
+                    </HeaderTemplate>
+                    <CellDisplayTemplate>
+                        <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan"><img src="images/icons-small/marker.png" /></a>
+                    </CellDisplayTemplate>
+                </DxGridCommandColumn>
+                <DxGridDataColumn Caption="No Lot" MinWidth="80" Width="8%" FieldName="NoLot" SortIndex="0" />
+                <DxGridDataColumn Caption="No Rujukan" MinWidth="80" Width="8%" FieldName="NoRujukan" />
+                <DxGridDataColumn Caption="No Lesen" MinWidth="130" Width="13%" FieldName="NoLesen" />
+                <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="100" Width="10%" FieldName="NoDaftarSyarikat" />
+                <DxGridDataColumn Caption="Nama Pemilik" MinWidth="160" Width="16%" FieldName="NamaPemilik" />
+                <DxGridDataColumn Caption="Nama Premis" MinWidth="160" Width="16%" FieldName="NamaPerniagaan" />
+                <DxGridDataColumn Caption="Alamat Premis" MinWidth="230" Width="33%" FieldName="AlamatPerniagaan" />
+@*                 <DxGridDataColumn FieldName="DateCreated" MinWidth="110" DisplayFormat="dd/MM/yyyy" Caption="Tarikh Masuk" Width="10%"
+                TextAlignment="GridTextAlignment.Center" SortOrder="GridColumnSortOrder.Descending" SortIndex="0" /> *@
+            </Columns>
+
+            @*This is to count the summary*@
+            <TotalSummary>
+                <DxGridSummaryItem FooterColumnName="NoLot"
+                                   Name="Custom"
+                                   SummaryType=GridSummaryItemType.Count />
+            </TotalSummary>
+        </DxGrid>
+    </div>
 
     <table class="tableTapis" id="tableTapis">
         <tr>
@@ -58,11 +126,12 @@
 
 </div>
 
+<!-- Map panel -->
 <div id="map1" class="map-container">
     <GoogleMap @ref="@map1" Id="map1" Options="@_mapOptions" OnAfterInit="async () => await OnAfterMapInit()" CssClass="mapPBTPro"></GoogleMap>
 </div>
 
-
+<!-- Legend panel -->
 <div id="legend" @ref="@LegendReference" style="display: none">
     <table class="tableMap" id="tableLegend">
         <tr>

@@ -1167,7 +1167,7 @@ label {
     font-weight: bold;
     letter-spacing: 0.05rem;
     text-transform: uppercase !important;
-    font-size: 0.8rem !important;
+    font-size: 0.75rem !important;
     line-height: 13px !important;
     padding: 5px 0px !important;
 }
@@ -1175,14 +1175,14 @@ label {
 .layout_edit td, .dxbl-fl-ctrl div {
     font-weight: bold;
     letter-spacing: 0.035rem;
-    font-size: 0.95rem !important;
+/*    font-size: 0.95rem !important;*/
 }
 
 .layout_edit .dxbl-text-edit, .dxbl-text-edit {
     border: 0.12rem solid #efeded !important;
     border-radius: 3px !important;
     background-color: #fbf9f9;
-    font-size: 0.95rem !important;
+/*    font-size: 0.95rem !important;*/
     font-weight: bold !important;
 }
 
@@ -1311,4 +1311,10 @@ label {
     -webkit-transform: rotate(45deg);
     -ms-transform: rotate(45deg);
     transform: rotate(45deg);
+}
+
+.loginPBTPro {
+    margin: auto;
+    width: 40%;
+    padding: 0px 10px;
 }

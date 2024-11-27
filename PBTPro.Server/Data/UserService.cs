@@ -7,6 +7,8 @@ using PBTPro.DAL.Services;
 using DevExpress.Map.Native;
 using Newtonsoft.Json;
 using PBTPro.DAL.Models.CommonServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace PBTPro.Data
 {
@@ -108,6 +110,107 @@ namespace PBTPro.Data
         {
             return Task.FromResult(_User);
         }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<ActionResult<UserProp>> InsertUser([FromBody] string strData = "")
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/User/InsertUser");
+                string jsonString = await _cf.AddNew(request, strData, platformApiUrl + "/api/User/InsertUser");
+                UserProp dtData = JsonConvert.DeserializeObject<UserProp>(jsonString);
+
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah pengguna baru.", Convert.ToInt32(uID), LoggerName, "");
+                return dtData;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
+        [HttpDelete]
+        public async Task<int> DeleteUser(int id)
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/User/DeleteUser/" + id);
+                string jsonString = await _cf.Delete(request);
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data pengguna.", Convert.ToInt32(uID), LoggerName, "");
+
+                return id;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return 0;
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPut]
+        public async Task<ActionResult<UserProp>> UpdateUser(int id, UserProp dtData)
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var uri = platformApiUrl + "/api/User/UpdateUser/" + id;
+                var request = _cf.CheckRequestPut(platformApiUrl + "/api/User/UpdateUser/" + id);
+                string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(dtData), uri);
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data pengguna.", Convert.ToInt32(uID), LoggerName, "");
+
+                return dtData;
+
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<List<UserProp>> RefreshUserAsync()
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/User/ListUser");
+                string jsonString = await _cf.List(request);
+                List<UserProp> dtData = JsonConvert.DeserializeObject<List<UserProp>>(jsonString);
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai pengguna.", Convert.ToInt32(uID), LoggerName, "");
+
+                return dtData;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
+
 
     }
 }
