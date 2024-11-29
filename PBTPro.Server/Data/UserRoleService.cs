@@ -36,7 +36,7 @@ namespace PBTPro.Data
             GC.SuppressFinalize(this);
         }
 
-        private List<UserRoleProp> _UserRole { get; set; }
+        private List<user_role> _UserRole { get; set; }
 
         public IConfiguration _configuration { get; }
         private readonly PBTProDbContext _dbContext;
@@ -79,11 +79,11 @@ namespace PBTPro.Data
                 //////string jsonString = await _cf.List(request);
 
                 ////////Open this when the API is completed
-                //////_UserRole = JsonConvert.DeserializeObject<List<UserRoleProp>>(jsonString);
+                //////_UserRole = JsonConvert.DeserializeObject<List<user_role>>(jsonString);
                 ///
 
-                _UserRole = new List<UserRoleProp> {
-                    new UserRoleProp {
+                _UserRole = new List<user_role> {
+                    new user_role {
                         table_id = 1,
                         user_id = 1,
                         role_id = 1,
@@ -93,7 +93,7 @@ namespace PBTPro.Data
                         user_full_name = "Azman Bin Alias",
                         created_date = DateTime.Parse("2024/01/05")
                     },
-                    new UserRoleProp {
+                    new user_role {
                         table_id = 2,
                         user_id = 2,
                         role_id = 1,
@@ -103,7 +103,7 @@ namespace PBTPro.Data
                         user_full_name = "Abu Bakar Bin Jamal",
                         created_date = DateTime.Parse("2023/03/10")
                     },
-                    new UserRoleProp {
+                    new user_role {
                         table_id = 3,
                         user_id = 2,
                         role_id = 2,
@@ -124,14 +124,14 @@ namespace PBTPro.Data
 
         }
 
-        public Task<List<UserRoleProp>> GetUserRoleAsync(CancellationToken ct = default)
+        public Task<List<user_role>> GetUserRoleAsync(CancellationToken ct = default)
         {
             return Task.FromResult(_UserRole);
         }
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<UserRoleProp>> InsertUserRole([FromBody] string strData = "")
+        public async Task<ActionResult<user_role>> InsertUserRole([FromBody] string strData = "")
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -142,7 +142,7 @@ namespace PBTPro.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/UserRole/InsertUserRole");
                 string jsonString = await _cf.AddNew(request, strData, platformApiUrl + "/api/UserRole/InsertUserRole");
-                UserRoleProp dtData = JsonConvert.DeserializeObject<UserRoleProp>(jsonString);
+                user_role dtData = JsonConvert.DeserializeObject<user_role>(jsonString);
 
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah peranan baru bagi pengguna.", Convert.ToInt32(uID), LoggerName, "");
                 return dtData;
@@ -179,7 +179,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpPut]
-        public async Task<ActionResult<UserRoleProp>> UpdateUserRole(int id, UserRoleProp dtData)
+        public async Task<ActionResult<user_role>> UpdateUserRole(int id, user_role dtData)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -188,8 +188,8 @@ namespace PBTPro.Data
                 var platformApiUrl = _configuration["PlatformAPI"];
                 var accessToken = _cf.CheckToken();
 
-                var uri = platformApiUrl + "/api/UserRole/UserRoleProp/" + id;
-                var request = _cf.CheckRequestPut(platformApiUrl + "/api/UserRole/UserRoleProp/" + id);
+                var uri = platformApiUrl + "/api/UserRole/UpdateUserRole/" + id;
+                var request = _cf.CheckRequestPut(platformApiUrl + "/api/UserRole/UpdateUserRole/" + id);
                 string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(dtData), uri);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini peranan untuk pengguna.", Convert.ToInt32(uID), LoggerName, "");
 
@@ -205,7 +205,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<UserRoleProp>> RefreshUserRoleAsync()
+        public async Task<List<user_role>> RefreshUserRoleAsync()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -216,7 +216,7 @@ namespace PBTPro.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/UserRole/ListUserRole");
                 string jsonString = await _cf.List(request);
-                List<UserRoleProp> dtData = JsonConvert.DeserializeObject<List<UserRoleProp>>(jsonString);
+                List<user_role> dtData = JsonConvert.DeserializeObject<List<user_role>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai pengguna dan peranan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return dtData;

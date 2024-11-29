@@ -71,18 +71,18 @@ public class EmailNotificationService : BackgroundService
         using var message = new MailMessage
         {
             To = { new MailAddress(emailData.ReceiverEmail, emailData.ReceiverName) },
-            From = new MailAddress(configData!.smtpEmail, configData.smtpSender),
+            From = new MailAddress(configData!.smtp_email, configData.smtp_sender),
             Subject = emailData.Subject,
             Body = emailData.Body,
             IsBodyHtml = true
         };
 
-        using var client = new SmtpClient(configData.smtpHost)
+        using var client = new SmtpClient(configData.smtp_host)
         {
             UseDefaultCredentials = false,
-            Port = int.Parse(configData.smtpPort),
-            Credentials = new NetworkCredential(configData.smtpUser, configData.smtpPassword),
-            EnableSsl = configData.smtpProtocol
+            Port = int.Parse(configData.smtp_port),
+            Credentials = new NetworkCredential(configData.smtp_user, configData.smtp_password),
+            EnableSsl = configData.smtp_protocol
         };
 
         try
@@ -100,11 +100,11 @@ public class EmailNotificationService : BackgroundService
         }
     }
 
-    private EmailProp GetConfiguration()
+    private email_config GetConfiguration()
     {
         //Get the default email setting
         string strSQL = "SELECT * FROM tbemail WHERE smtpDefault=1 AND rekStatus='A'";
-        var configData = new EmailProp();
+        var configData = new email_config();
 
         using (MySqlConnection? myConn = new MySqlConnection(Configuration.GetConnectionString("DefaultConnection")))
         {
@@ -115,13 +115,13 @@ public class EmailNotificationService : BackgroundService
                 {
                     while (myReaderEmail.Read())
                     {
-                        configData.smtpEmail = myReaderEmail.GetString("smtpEmail");
-                        configData.smtpSender = myReaderEmail.IsDBNull("smtpSender") ? "" : myReaderEmail.GetString("smtpSender");
-                        configData.smtpHost = myReaderEmail.GetString("smtpHost");
-                        configData.smtpPort = myReaderEmail.IsDBNull("smtpPort") ? "" : myReaderEmail.GetString("smtpPort");
-                        configData.smtpUser = myReaderEmail.GetString("smtpUser");
-                        configData.smtpPassword = myReaderEmail.GetString("smtpPassword");
-                        configData.smtpProtocol = myReaderEmail.IsDBNull("smtpProtocol") ? false : myReaderEmail.GetBoolean("smtpProtocol");
+                        configData.smtp_email = myReaderEmail.GetString("smtpEmail");
+                        configData.smtp_sender = myReaderEmail.IsDBNull("smtpSender") ? "" : myReaderEmail.GetString("smtpSender");
+                        configData.smtp_host = myReaderEmail.GetString("smtpHost");
+                        configData.smtp_port = myReaderEmail.IsDBNull("smtpPort") ? "" : myReaderEmail.GetString("smtpPort");
+                        configData.smtp_user = myReaderEmail.GetString("smtpUser");
+                        configData.smtp_password = myReaderEmail.GetString("smtpPassword");
+                        configData.smtp_protocol = myReaderEmail.IsDBNull("smtpProtocol") ? false : myReaderEmail.GetBoolean("smtpProtocol");
                     }
                 }
             }

@@ -17,13 +17,13 @@
 //////        _userService = userService;
 //////    }
 
-//////    public UserProp? LookupUserInDatabaseAsync(string username, string password)
+//////    public system_user? LookupUserInDatabaseAsync(string username, string password)
 //////    {
 //////        string? strUserName = _configuration["SuperUserName"] == null ? "superuser" : _configuration["SuperUserName"];
 //////        string? strPassword = _configuration["SuperPassword"] == null ? "bismiLLah" : _configuration["SuperPassword"];
 
 //////        //if login by super user
-//////        var usersFromDatabase = new List<UserProp>()
+//////        var usersFromDatabase = new List<system_user>()
 //////        {
 //////            new()
 //////            {
@@ -44,7 +44,7 @@
 //////        if ((username != strUserName) && (password != strPassword))
 //////            usersFromDatabase = _userService.GetLookupUserInDatabase();
 
-//////        //////var usersFromDatabase = new List<UserProp>()
+//////        //////var usersFromDatabase = new List<system_user>()
 //////        //////{
 //////        //////    new()
 //////        //////    {
@@ -103,13 +103,13 @@
 //////        return foundUser;
 //////    }
 
-//////    public async Task PersistUserToBrowserAsync(UserProp user)
+//////    public async Task PersistUserToBrowserAsync(system_user user)
 //////    {
 //////        string userJson = JsonConvert.SerializeObject(user);
 //////        await _protectedLocalStorage.SetAsync(_JainjStorageKey, userJson);
 //////    }
 
-//////    public async Task<UserProp?> FetchUserFromBrowserAsync()
+//////    public async Task<system_user?> FetchUserFromBrowserAsync()
 //////    {
 //////        try
 //////        {
@@ -117,7 +117,7 @@
 
 //////            if (storedUserResult.Success && !string.IsNullOrEmpty(storedUserResult.Value))
 //////            {
-//////                var user = JsonConvert.DeserializeObject<UserProp>(storedUserResult.Value);
+//////                var user = JsonConvert.DeserializeObject<system_user>(storedUserResult.Value);
 
 //////                return user;
 //////            }

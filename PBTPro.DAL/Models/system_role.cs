@@ -1,6 +1,6 @@
 ﻿namespace PBTPro.DAL.Models
 {
-    public class RoleProp
+    public class system_role
     {
         public int role_id { get; set; }
         public string role_name { get; set; }

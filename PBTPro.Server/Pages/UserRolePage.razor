@@ -58,7 +58,7 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((UserRoleProp)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((user_role)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Nama Pengguna" MinWidth="180" Width="28%" FieldName="user_name" />
@@ -82,19 +82,19 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtUserRole = (UserRoleProp)EditFormContext.EditModel;
+                var dtUserRole = (user_role)EditFormContext.EditModel;
                 // // valueRole = GetUserRole(dtData);
 
                 //For edit need to get all the role belong to selected user
-                List<RoleProp> arrItem = new List<RoleProp>();
-                RoleProp _item;
+                List<system_role> arrItem = new List<system_role>();
+                system_role _item;
 
                 //Loop the main data to get all the role for selected user
                 @foreach (var item in dataSource)
                 {
                     if (dtUserRole.user_id == item.user_id)
                     {
-                        _item = new RoleProp();
+                        _item = new system_role();
                         _item.role_id = item.role_id;
                         _item.role_name = item.role_name;
                         _item.role_desc = item.role_desc;
@@ -122,7 +122,7 @@
                                             SearchMode="ListSearchMode.AutoSearch"
                                             Enabled="@boolLockDropDown"
                                             ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                            TextFieldName="@nameof(UserProp.Text)"
+                                            TextFieldName="@nameof(system_user.Text)"
                                             ValueFieldName="user_id"
                                             CssClass="combo-width"
                                             DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
@@ -139,8 +139,8 @@
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
 @*                                  <DxListBox Data="@dataRole"
-                                           TextFieldName="@nameof(RoleProp.Text)"
-                                           ValueFieldName="@nameof(RoleProp.role_id)"
+                                           TextFieldName="@nameof(system_role.Text)"
+                                           ValueFieldName="@nameof(system_role.role_id)"
                                            SelectionMode="ListBoxSelectionMode.Multiple"
                                            ShowCheckboxes="true"
                                            Enabled="true"
@@ -239,10 +239,10 @@
 
 @code {
     [Inject] IToastNotificationService ToastService { get; set; }
-    IEnumerable<UserRoleProp> dataSource;
-    IEnumerable<UserProp> dataUser;
-    IEnumerable<RoleProp> dataRole;
-    IEnumerable<RoleProp> valueRole;
+    IEnumerable<user_role> dataSource;
+    IEnumerable<system_user> dataUser;
+    IEnumerable<system_role> dataRole;
+    IEnumerable<system_role> valueRole;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -253,7 +253,7 @@
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
 
-    UserRoleProp dtData { get; set; }
+    user_role dtData { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -276,18 +276,18 @@
         }
     }
 
-    // // IEnumerable<RoleProp> GetUserRole(UserRoleProp value)
+    // // IEnumerable<system_role> GetUserRole(user_role value)
     // // {
     // //     //For edit need to get all the role belong to selected user
-    // //     List<RoleProp> arrItem = new List<RoleProp>();
-    // //     RoleProp _item;
+    // //     List<system_role> arrItem = new List<system_role>();
+    // //     system_role _item;
 
     // //     //Loop the main data to get all the role for selected user
     // //     @foreach (var item in dataSource)
     // //     {
     // //         if (value.user_id == item.user_id)
     // //         {
-    // //             _item = new RoleProp();
+    // //             _item = new system_role();
     // //             _item.role_id = item.role_id;
     // //             _item.role_name = item.role_name;
     // //             _item.role_desc = item.role_desc;
@@ -310,7 +310,7 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (UserRoleProp)e.EditModel;
+        var _data = (user_role)e.EditModel;
         if (_data.role_desc == null || _data.role_desc.Trim() == "")
         {
             e.AddError(nameof(_data.role_desc), "!!!!!!. Medan perlu diisi.");
@@ -328,9 +328,9 @@
         }
 
         if (e.IsNew)
-            blnSuccess = true; //await _UserRoleService.InsertUserRoleAsync((UserRoleProp)e.EditModel, intCurrentUserId);
+            blnSuccess = true; //await _UserRoleService.InsertUserRoleAsync((user_role)e.EditModel, intCurrentUserId);
         else
-            blnSuccess = true; //await _UserRoleService.UpdateUserRoleAsync((UserRoleProp)e.EditModel, intCurrentUserId);
+            blnSuccess = true; //await _UserRoleService.UpdateUserRoleAsync((user_role)e.EditModel, intCurrentUserId);
 
         if (blnSuccess)
         {
@@ -359,7 +359,7 @@
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _UserRoleService.GetUserRoleAsync();
+        dataSource = await _UserRoleService.RefreshUserRoleAsync();
     }
 
     public void Dispose()
@@ -367,7 +367,7 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(UserRoleProp item)
+    async Task Delete(user_role item)
     {
         strSelected = item.role_name;
         dtData = item;
@@ -378,7 +378,7 @@
     {
         if (dtData != null)
         {
-            //await _UserRoleService.RemoveUserRoleAsync((UserRoleProp)dtData);
+            //await _UserRoleService.RemoveUserRoleAsync((user_role)dtData);
             //await UpdateDataAsync();
         }
         ConfirmationShown = false;
