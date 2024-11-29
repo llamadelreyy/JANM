@@ -37,7 +37,7 @@ namespace PBTPro.Data
         }
 
         public IConfiguration _configuration { get; }
-        private List<RoleProp> _Role { get; set; }
+        private List<system_role> _Role { get; set; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -81,17 +81,17 @@ namespace PBTPro.Data
                 //////string jsonString = await _cf.List(request);
 
                 ////////Open this when the API is completed
-                //////_Role = JsonConvert.DeserializeObject<List<RoleProp>>(jsonString);
+                //////_Role = JsonConvert.DeserializeObject<List<system_role>>(jsonString);
                 ///
 
-                _Role = new List<RoleProp> {
-                        new RoleProp {
+                _Role = new List<system_role> {
+                        new system_role {
                             role_id = 1,
                             role_name = "Administrator",
                             role_desc = "Admin of the system",
                             created_date = DateTime.Parse("2023/03/11")
                         },
-                        new RoleProp {
+                        new system_role {
                             role_id = 2,
                             role_name = "Head of Department",
                             role_desc = "Head of department for perlesenan",
@@ -110,7 +110,7 @@ namespace PBTPro.Data
             }
         }
 
-        public Task<List<RoleProp>> GetRoleAsync(CancellationToken ct = default)
+        public Task<List<system_role>> GetRoleAsync(CancellationToken ct = default)
         {
             return Task.FromResult(_Role);
         }
@@ -118,7 +118,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<RoleProp>> InsertRole([FromBody] string strData = "")
+        public async Task<ActionResult<system_role>> InsertRole([FromBody] string strData = "")
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -129,7 +129,7 @@ namespace PBTPro.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Role/InsertRole");
                 string jsonString = await _cf.AddNew(request, strData, platformApiUrl + "/api/Role/InsertRole");
-                RoleProp dtData = JsonConvert.DeserializeObject<RoleProp>(jsonString);
+                system_role dtData = JsonConvert.DeserializeObject<system_role>(jsonString);
 
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah peranan baru.", Convert.ToInt32(uID), LoggerName, "");
                 return dtData;
@@ -166,7 +166,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpPut]
-        public async Task<ActionResult<RoleProp>> UpdateRole(int id, RoleProp dtData)
+        public async Task<ActionResult<system_role>> UpdateRole(int id, system_role dtData)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -192,7 +192,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<RoleProp>> RefreshRoleAsync()
+        public async Task<List<system_role>> RefreshRoleAsync()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -203,7 +203,7 @@ namespace PBTPro.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Role/ListRole");
                 string jsonString = await _cf.List(request);
-                List<RoleProp> dtData = JsonConvert.DeserializeObject<List<RoleProp>>(jsonString);
+                List<system_role> dtData = JsonConvert.DeserializeObject<List<system_role>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai peranan.", Convert.ToInt32(uID), LoggerName, "");
 
                 return dtData;

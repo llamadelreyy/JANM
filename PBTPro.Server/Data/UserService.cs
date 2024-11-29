@@ -37,7 +37,7 @@ namespace PBTPro.Data
             GC.SuppressFinalize(this);
         }
 
-        private List<UserProp> _User { get; set; }
+        private List<system_user> _User { get; set; }
         public IConfiguration _configuration { get; }
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -80,16 +80,16 @@ namespace PBTPro.Data
                 //////string jsonString = await _cf.List(request);
 
                 ////////Open this when the API is completed
-                //////_User = JsonConvert.DeserializeObject<List<UserProp>>(jsonString);
+                //////_User = JsonConvert.DeserializeObject<List<system_user>>(jsonString);
 
-                _User = new List<UserProp> {
-                    new UserProp {
+                _User = new List<system_user> {
+                    new system_user {
                         user_id = 1,
                         user_name = "mbdk240015",
                         full_name = "Azman Bin Alias",
                         created_date = DateTime.Parse("2024/01/05")
                     },
-                    new UserProp {
+                    new system_user {
                         user_id = 2,
                         user_name = "mbdk230010",
                         full_name = "Abu Bakar Bin Jamal",
@@ -106,14 +106,14 @@ namespace PBTPro.Data
             }
         }
 
-        public Task<List<UserProp>> GetUserAsync(CancellationToken ct = default)
+        public Task<List<system_user>> GetUserAsync(CancellationToken ct = default)
         {
             return Task.FromResult(_User);
         }
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<UserProp>> InsertUser([FromBody] string strData = "")
+        public async Task<ActionResult<system_user>> InsertUser([FromBody] string strData = "")
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -124,7 +124,7 @@ namespace PBTPro.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/User/InsertUser");
                 string jsonString = await _cf.AddNew(request, strData, platformApiUrl + "/api/User/InsertUser");
-                UserProp dtData = JsonConvert.DeserializeObject<UserProp>(jsonString);
+                system_user dtData = JsonConvert.DeserializeObject<system_user>(jsonString);
 
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah pengguna baru.", Convert.ToInt32(uID), LoggerName, "");
                 return dtData;
@@ -161,7 +161,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpPut]
-        public async Task<ActionResult<UserProp>> UpdateUser(int id, UserProp dtData)
+        public async Task<ActionResult<system_user>> UpdateUser(int id, system_user dtData)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -187,7 +187,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<UserProp>> RefreshUserAsync()
+        public async Task<List<system_user>> RefreshUserAsync()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -198,7 +198,7 @@ namespace PBTPro.Data
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/User/ListUser");
                 string jsonString = await _cf.List(request);
-                List<UserProp> dtData = JsonConvert.DeserializeObject<List<UserProp>>(jsonString);
+                List<system_user> dtData = JsonConvert.DeserializeObject<List<system_user>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai pengguna.", Convert.ToInt32(uID), LoggerName, "");
 
                 return dtData;

@@ -84,13 +84,13 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<patrol_scheduler> patrol_schedulers { get; set; }
 
-    public virtual DbSet<user_menu> user_menus { get; set; }
+    public virtual DbSet<system_menu> user_menus { get; set; }
 
     public virtual DbSet<user_permission> user_permissions { get; set; }
 
     public virtual DbSet<user_profile> user_profiles { get; set; }
 
-    public virtual DbSet<user_role_menu> user_role_menus { get; set; }
+    public virtual DbSet<role_menu> user_role_menus { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -879,7 +879,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.updated_by).HasDefaultValue(0);
         });
 
-        modelBuilder.Entity<user_menu>(entity =>
+        modelBuilder.Entity<system_menu>(entity =>
         {
             entity.HasKey(e => e.menu_id).HasName("user_menu_pkey");
 
@@ -945,9 +945,9 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasColumnType("timestamp without time zone");
         });
 
-        modelBuilder.Entity<user_role_menu>(entity =>
+        modelBuilder.Entity<role_menu>(entity =>
         {
-            entity.HasKey(e => e.rolemenu_id).HasName("user_role_menu_pkey");
+            entity.HasKey(e => e.menu_id).HasName("user_role_menu_pkey");
 
             entity.ToTable("user_role_menu", "users");
 
@@ -955,7 +955,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.permission_status).HasMaxLength(30);
+            //entity.Property(e => e.permission_status).HasMaxLength(30);
             entity.Property(e => e.updated_by).HasDefaultValue(0);
             entity.Property(e => e.updated_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")

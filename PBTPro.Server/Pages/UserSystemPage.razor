@@ -57,7 +57,7 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((UserProp)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((system_user)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Pengguna" MinWidth="120" Width="20%" FieldName="user_name" />
@@ -79,7 +79,7 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtEdit = (UserProp)EditFormContext.EditModel;
+                var dtEdit = (system_user)EditFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
@@ -152,7 +152,7 @@
 
 @code {
     [Inject] IToastNotificationService ToastService { get; set; }
-    IEnumerable<UserProp> dataSource;
+    IEnumerable<system_user> dataSource;
 
 
     IGrid Grid { get; set; }
@@ -161,7 +161,7 @@
 
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
-    UserProp dtData { get; set; }
+    system_user dtData { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -182,7 +182,7 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (UserProp)e.EditModel;
+        var _data = (system_user)e.EditModel;
         if (_data.user_name == null || _data.user_name.Trim() == "")
         {
             e.AddError(nameof(_data.user_name), "!!!!!!. Medan perlu diisi.");
@@ -193,9 +193,9 @@
     {
         bool blnSuccess = false;
         if (e.IsNew)
-            blnSuccess = true; //await _UserService.InsertUserAsync((UserProp)e.EditModel, intCurrentUserId);
+            blnSuccess = true; //await _UserService.InsertUserAsync((system_user)e.EditModel, intCurrentUserId);
         else
-            blnSuccess = true; //await _UserService.UpdateUserAsync((UserProp)e.EditModel, intCurrentUserId);
+            blnSuccess = true; //await _UserService.UpdateUserAsync((system_user)e.EditModel, intCurrentUserId);
 
         if (blnSuccess)
         {
@@ -232,7 +232,7 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(UserProp item)
+    async Task Delete(system_user item)
     {
         strSelected = item.user_name;
         dtData = item;
@@ -243,7 +243,7 @@
     {
         if (dtData != null)
         {
-            //await _UserService.RemoveUserAsync((UserProp)dtData);
+            //await _UserService.RemoveUserAsync((system_user)dtData);
             //await UpdateDataAsync();
         }
         ConfirmationShown = false;

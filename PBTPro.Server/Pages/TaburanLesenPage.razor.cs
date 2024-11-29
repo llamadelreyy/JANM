@@ -489,7 +489,8 @@ namespace PBTPro.Pages
             });
 
             markerSearch.Push(marker);
-            await _bounds.Extend(premisePos);
+            await this.map1.InteropObject.SetCenter(premisePos);
+            await this.map1.InteropObject.SetZoom(21);
 
             //Set the animation
             if (!markerSearch.Any())

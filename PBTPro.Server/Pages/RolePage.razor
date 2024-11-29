@@ -56,7 +56,7 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((RoleProp)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((system_role)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" FieldName="role_name" />
@@ -78,7 +78,7 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtEdit = (RoleProp)EditFormContext.EditModel;
+                var dtEdit = (system_role)EditFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
@@ -151,7 +151,7 @@
 
 @code {
     [Inject] IToastNotificationService ToastService { get; set; }
-    IEnumerable<RoleProp> dataSource;
+    IEnumerable<system_role> dataSource;
 
 
     IGrid Grid { get; set; }
@@ -160,7 +160,7 @@
 
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
-    RoleProp dtData { get; set; }
+    system_role dtData { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -181,7 +181,7 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (RoleProp)e.EditModel;
+        var _data = (system_role)e.EditModel;
         if (_data.role_desc == null || _data.role_desc.Trim() == "")
         {
             e.AddError(nameof(_data.role_desc), "!!!!!!. Medan perlu diisi.");
@@ -192,9 +192,9 @@
     {
         bool blnSuccess = false;
         if (e.IsNew)
-            blnSuccess = true; //await _RoleService.InsertUserRoleAsync((RoleProp)e.EditModel, intCurrentUserId);
+            blnSuccess = true; //await _RoleService.InsertUserRoleAsync((system_role)e.EditModel, intCurrentUserId);
         else
-            blnSuccess = true; //await _RoleService.UpdateUserRoleAsync((RoleProp)e.EditModel, intCurrentUserId);
+            blnSuccess = true; //await _RoleService.UpdateUserRoleAsync((system_role)e.EditModel, intCurrentUserId);
 
         if (blnSuccess)
         {
@@ -223,7 +223,7 @@
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _RoleService.GetRoleAsync();
+        dataSource = await _RoleService.RefreshRoleAsync();
     }
 
     public void Dispose()
@@ -231,7 +231,7 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(RoleProp item)
+    async Task Delete(system_role item)
     {
         strSelected = item.role_name;
         dtData = item;
@@ -242,7 +242,7 @@
     {
         if (dtData != null)
         {
-            //await _RoleService.RemoveRoleAsync((RoleProp)dtData);
+            //await _RoleService.RemoveRoleAsync((system_role)dtData);
             //await UpdateDataAsync();
         }
         ConfirmationShown = false;
