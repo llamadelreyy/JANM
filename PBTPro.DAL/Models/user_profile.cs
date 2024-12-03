@@ -11,7 +11,7 @@ public partial class user_profile
 
     public string profile_name { get; set; } = null!;
 
-    public string? profile_photo_name { get; set; }
+    public string? profile_photo_filename { get; set; }
 
     public string profile_email { get; set; } = null!;
 
@@ -25,9 +25,9 @@ public partial class user_profile
 
     public int? profile_race_id { get; set; }
 
-    public string profile_address1 { get; set; } = null!;
+    public string? profile_address1 { get; set; }
 
-    public string profile_address2 { get; set; } = null!;
+    public string? profile_address2 { get; set; }
 
     public int? profile_city_id { get; set; }
 
@@ -45,7 +45,7 @@ public partial class user_profile
 
     public char? profile_accept_term3 { get; set; }
 
-    public string profile_status { get; set; } = null!;
+    public string? profile_status { get; set; }
 
     public DateTime? profile_last_login { get; set; }
 
@@ -62,4 +62,6 @@ public partial class user_profile
     public int? profile_section_id { get; set; }
 
     public int? profile_unit_id { get; set; }
+
+    public string? profile_signature_filename { get; set; }
 }
