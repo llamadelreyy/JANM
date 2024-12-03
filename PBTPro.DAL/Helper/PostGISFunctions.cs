@@ -31,6 +31,10 @@ public static class PostGISFunctions
     [DbFunction("st_buffer")]
     public static Geometry ST_Buffer(Geometry geometry, double distance) => throw new NotImplementedException();
 
+    // ST_Intersects: Checks if a geometry is intersect another geometry. i.e., even if just part of the polygon is within the range.
+    [DbFunction("st_intersects")]
+    public static bool ST_Intersects(Geometry geometry1, Geometry geometry2) => throw new NotImplementedException();
+
     public static JsonDocument ParseGeoJsonSafely(string geoJson)
     {
         if (string.IsNullOrEmpty(geoJson)) return null;

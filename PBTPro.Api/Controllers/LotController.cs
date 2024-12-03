@@ -88,12 +88,12 @@ namespace PBTPro.Api.Controllers
                 {
                     crs = _defCRS;
                     initQuery = initQuery
-                        .Where(x => PostGISFunctions.ST_Within(x.geom, PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value)));
+                        .Where(x => PostGISFunctions.ST_Intersects(x.geom, PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value)));
                 }
                 else
                 {
                     initQuery = initQuery
-                        .Where(x => PostGISFunctions.ST_Within(x.geom, PostGISFunctions.ST_Transform(PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value), _defCRS)))
+                        .Where(x => PostGISFunctions.ST_Intersects(x.geom, PostGISFunctions.ST_Transform(PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value), _defCRS)))
                         .Select(x => new mst_lot { gid = x.gid, objectid = x.objectid, lot = x.lot, geom = (NetTopologySuite.Geometries.MultiPolygon)PostGISFunctions.ST_Transform(x.geom, crs.Value) });
                 }
 

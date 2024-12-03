@@ -70,6 +70,10 @@ namespace PBTPro.DAL
                 .GetMethod(nameof(PostGISFunctions.ST_Buffer), new[] { typeof(Geometry), typeof(int) }))
                 .HasName("st_buffer");
 
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_Intersects), new[] { typeof(Geometry), typeof(Geometry) }))
+                .HasName("st_intersects");
+
             #endregion 
 
             modelBuilder.Entity("PBTPro.DAL.ApplicationUser", b =>
