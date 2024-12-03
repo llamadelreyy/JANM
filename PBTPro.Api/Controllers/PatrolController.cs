@@ -1,4 +1,4 @@
-﻿/*
+/*
 Project: PBT Pro
 Description: patrol api, to be used when mobile stop / start patrolling
 Author: ismail
@@ -337,7 +337,7 @@ namespace PBTPro.Api.Controllers
 
                 _dbContext.patrol_schedulers.Remove(formField);
                 await _dbContext.SaveChangesAsync();
-
+                
                 return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
             catch (Exception ex)
