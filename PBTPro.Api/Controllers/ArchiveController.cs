@@ -5,6 +5,7 @@ using Npgsql;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
+using PBTPro.DAL.Models.CommonServices;
 
 namespace PBTPro.Api.Controllers
 {
@@ -17,6 +18,8 @@ namespace PBTPro.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly string _module = "Archive";
         private readonly PBTProDbContext _dbContext;
+        private readonly string _feature = "ARCHIVE_AUDIT_LOG";
+
         private List<auditlog_archive_info> _Faq { get; set; }
         public ArchiveController(PBTProDbContext dbContext, ILogger<ArchiveController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
         {
@@ -26,16 +29,37 @@ namespace PBTPro.Api.Controllers
             _dbContext = dbContext;
         }
 
-       
+
+        //[AllowAnonymous]
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<auditlog_archive_info>>> ListAudit()
+        //{
+        //    if (_dbContext.auditlog_archive_infos == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    return await _dbContext.auditlog_archive_infos.ToListAsync();           
+        //}
+
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<auditlog_archive_info>>> ListAudit()
+        public async Task<IActionResult> ListAudit()
         {
-            if (_dbContext.auditlog_archive_infos == null)
+            try
             {
-                return NotFound();
+                var parFormfields = await _dbContext.auditlog_archive_infos.AsNoTracking().ToListAsync();
+
+                if (parFormfields.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                return Ok(parFormfields, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
-            return await _dbContext.auditlog_archive_infos.ToListAsync();           
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
         }
 
         [AllowAnonymous]

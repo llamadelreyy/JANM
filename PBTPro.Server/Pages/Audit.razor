@@ -1,13 +1,6 @@
 ﻿@page "/SenaraiAudit"
 @attribute [AllowAnonymous]
 
-@* @inject Services.AuditService _audit
-@using DevExpress.Blazor
-@implements IDisposable
-@using Newtonsoft.Json
-@using System.ComponentModel
-@using PBTPro.DAL.Models;
- *@
 
  @using System.Globalization
 @implements IDisposable
@@ -16,6 +9,10 @@
 @using System.ComponentModel
 @using PBTPro.DAL.Models;
 @using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+
+@inject PBTAuthStateProvider _PBTAuthStateProvider
+@inject IToastNotificationService ToastService
 @inject NavigationManager NavigationManager
 @inject AuditService _audit
 @inject IToastService toastService
@@ -114,6 +111,10 @@
             await DataLoadedTcs.Task;
             await Grid.CancelEditAsync();
         }
+    }
+    async Task UpdateDataAsync()
+    {
+        _lstAudits = await _audit.RefreshListAudit();
     }
 
     void Grid_CustomizeDataRowEditor(GridCustomizeDataRowEditorEventArgs e)

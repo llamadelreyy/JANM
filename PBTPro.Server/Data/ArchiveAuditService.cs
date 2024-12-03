@@ -18,15 +18,14 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
+using System.Reflection;
 
 namespace PBTPro.Data
 {
     [AllowAnonymous]
     public partial class ArchiveAuditService : IDisposable
     {
-
         private bool disposed = false;
-
         protected virtual void Dispose(bool disposing)
         {
             if (!disposed)
@@ -47,137 +46,144 @@ namespace PBTPro.Data
             GC.SuppressFinalize(this);
         }
         public IConfiguration _configuration { get; }
-        private List<auditlog_archive_info> _Audit { get; set; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         protected readonly CommonFunction _cf;
         protected readonly SharedFunction _sf;
         private readonly ILogger<ArchiveAuditService> _logger;
+        private readonly ApiConnector _apiConnector;
+        private readonly PBTAuthStateProvider _PBTAuthStateProvider;
+        private string _baseReqURL = "/api/Archive";
         private string LoggerName = "";
-        string _controllerName = "";
-        public ArchiveAuditService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<ArchiveAuditService> logger, PBTProDbContext dbContext)
+        private List<auditlog_archive_info> _Audit { get; set; }
+
+        public ArchiveAuditService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<ArchiveAuditService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
-            _dbContext = dbContext;
             _httpContextAccessor = httpContextAccessor;
             _cf = new CommonFunction(httpContextAccessor, configuration);
-            _sf = new SharedFunction(httpContextAccessor);
             _logger = logger;
-            _controllerName = (string)(_httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
-
+            _dbContext = dbContext;
+            _PBTAuthStateProvider = PBTAuthStateProvider;
+            _apiConnector = apiConnector;
+            _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         }
-        public void GetDefaultPermission()
+        public Task<List<auditlog_archive_info>> GetAuditAsync(CancellationToken ct = default)
         {
-            if (LoggerName != null || LoggerName != "")
-                LoggerName = "1";//User.Identity.Name;  // assign value to logger name
-            else LoggerName = null;
+            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk arkib log audit.", 1, LoggerName, "");
+            return Task.FromResult(_Audit);
         }
+
         [AllowAnonymous]
         [HttpGet]
         public async Task<List<auditlog_archive_info>> GetAllAudit()
-        {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+        {            
+            var result = new List<auditlog_archive_info>();
             try
             {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                //var accessToken = _cf.CheckToken();
+                string requestUrl = $"{_baseReqURL}/ListAudit";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
-                var request = _cf.CheckRequest(platformApiUrl + "/api/Archive/ListAudit");
-                string jsonString = await _cf.List(request);
-                List<auditlog_archive_info> auditList = JsonConvert.DeserializeObject<List<auditlog_archive_info>>(jsonString);
-
-                await _cf.CreateAuditLog((int)AuditType.Information, "ArchiveAuditService - GetAllAudit", "Papar semua senarai arkib log audit.", Convert.ToInt32(uID), LoggerName, "");
-                return auditList;
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<auditlog_archive_info>>(dataString);
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai arkib log audit.", 1, LoggerName, "");
+                    }
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response, 1, LoggerName, "");
+                }
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "ArchiveAuditService - GetAllAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<auditlog_archive_info>();
             }
+            return result;
         }
 
         [AllowAnonymous]
         [HttpGet]
         public async Task<List<auditlog_archive_info>> RefreshListAudit()
         {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            var result = new List<auditlog_archive_info>();
             try
             {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                //var accessToken = _cf.CheckToken();
+                string requestUrl = $"{_baseReqURL}/ListAudit";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
-                var request = _cf.CheckRequest(platformApiUrl + "/api/Archive/ListAudit");
-                string jsonString = await _cf.List(request);
-                List<auditlog_archive_info> auditList = JsonConvert.DeserializeObject<List<auditlog_archive_info>>(jsonString);
-
-                await _cf.CreateAuditLog((int)AuditType.Information, "ArchiveAuditService - RefreshListAudit", "Papar semula semua senarai arkib log audit.", Convert.ToInt32(uID), LoggerName, "");
-                return auditList;
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<auditlog_archive_info>>(dataString);
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai arkib log audit.", 1, LoggerName, "");
+                    }
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response, 1, LoggerName, "");
+                }
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "ArchiveAuditService - RefreshListAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<auditlog_archive_info>();
             }
+            return result;
         }
+
         [AllowAnonymous]
         [HttpGet]
-        public async Task<auditlog_archive_info> GetIdAudit(int id)
+        public async Task<auditlog_archive_info> ViewDetail(int id)
         {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            var result = new auditlog_archive_info();
             try
             {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
+                string requestquery = $"/{id}";
+                string requestUrl = $"{_baseReqURL}/RetrieveAudit{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
-                var request = _cf.CheckRequest(platformApiUrl + "/api/Archive/RetrieveAudit/" + id);
-                string jsonString = await _cf.Retrieve(request, accessToken);
-                auditlog_archive_info audit = JsonConvert.DeserializeObject<auditlog_archive_info>(jsonString.ToString());
-
-                await _cf.CreateAuditLog((int)AuditType.Information, "ArchiveAuditService - GetIdAudit", "Papar maklumat terperinci arkib audit log", Convert.ToInt32(uID), LoggerName, "");
-                return audit;
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<auditlog_archive_info>(dataString);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "ArchiveAuditService - GetIdAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                result = new auditlog_archive_info();
             }
+
+            return result;
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteAudit(int id)
+        public async Task<ReturnViewModel> DeleteAudit(int id)
         {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            var result = new ReturnViewModel();
             try
             {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
+                string requestUrl = $"{_baseReqURL}/DeleteAudit/{id}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
-                var request = _cf.CheckRequest(platformApiUrl + "/api/Archive/DeleteAudit/" + id);
-                string jsonString = await _cf.Delete(request);
-
-                await _cf.CreateAuditLog((int)AuditType.Information, "ArchiveAuditService - DeleteAudit", "Berjaya padam data untuk arkib log audit.", Convert.ToInt32(uID), LoggerName, "");
-                return Ok(jsonString);
+                result = response;
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk arkib log audit.", 1, LoggerName, "");
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, "ArchiveAuditService - DeleteAudit", ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                result = new ReturnViewModel();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
-        }
-
-        private IActionResult Ok(string jsonString)
-        {
-            throw new NotImplementedException();
-        }
-        public Task<List<auditlog_archive_info>> GetAuditAsync(CancellationToken ct = default)
-        {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, "ArchiveAuditService - GetAuditAsync", "Berjaya muat semula senarai untuk arkib log audit.", 1, LoggerName, "");
-            return Task.FromResult(_Audit);
-        }
+            return result;               
+        }               
     }
 }
