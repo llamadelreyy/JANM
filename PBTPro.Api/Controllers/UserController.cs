@@ -1,7 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿/*
+Project: PBT Pro
+Description: user api, to handle user related action
+Author: ismail
+Date: November 2024
+Version: 1.0
+Additional Notes:
+- 
+
+Changes Logs:
+15/11/2024 - initial create
+18/11/2024 - add field & logic for signature
+20/11/2024 - add field & logic for profile avatar
+03/12/2024 - change hardcoded upload path & url to refer param table 
+*/
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OneOf.Types;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
+using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using System.Data;
@@ -42,12 +59,16 @@ namespace PBTPro.Api.Controllers
             {
                 var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 user_profile_view data = new user_profile_view();
-                
+
+                var baseImageViewURL = await getImageViewUrl();
+                var AvatarViewURL = baseImageViewURL + "/profile";
+                var SignatureViewURL = baseImageViewURL + "/signature";
+
                 var UserProfile = await _dbContext.user_profiles.Where(x => x.profile_user_id == UserId).Select(x => new user_profile_view
                 {
                     profile_id = x.profile_id,
                     profile_user_id = x.profile_user_id,
-                    profile_photo_url = !string.IsNullOrWhiteSpace(x.profile_photo_name) ? "/api/Files/GetProfileImage?fn=" + x.profile_photo_name : null,
+                    profile_photo_url = !string.IsNullOrWhiteSpace(x.profile_photo_filename) ? AvatarViewURL + "/" + x.profile_photo_filename : AvatarViewURL + "/avatar-user-profile-icon.jpg",
                     profile_name = x.profile_name,
                     profile_dob = x.profile_dob,
                     profile_icno = x.profile_icno,
@@ -66,7 +87,8 @@ namespace PBTPro.Api.Controllers
                     profile_employee_no = "ABC9090112",
                     profile_department_view = "Penguatkuasa",
                     profile_section_view = "Operasi",
-                    profile_unit_view = "Operasi & Penguatkuasa"
+                    profile_unit_view = "Operasi & Penguatkuasa",
+                    profile_signature_url = !string.IsNullOrWhiteSpace(x.profile_signature_filename) ? SignatureViewURL + "/" + x.profile_signature_filename : null
                 }).AsNoTracking().FirstOrDefaultAsync();
 
                 if(UserProfile == null)
@@ -90,5 +112,206 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateSignature([FromForm] update_signature_input_model InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                bool isNew = false;
+                var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if(UserId != InputModel.user_id)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_USERID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.profile_user_id == UserId);
+
+                if(userProfile == null)
+                {
+                    isNew = true;
+                    userProfile = await _dbContext.Users.Where(x => x.Id == UserId).Select(x => new user_profile
+                    {
+                        profile_user_id = x.Id,
+                        profile_name = x.Name ?? x.UserName,
+                        profile_email = x.Email
+                    }).AsNoTracking().FirstOrDefaultAsync();
+                }
+                #endregion
+
+                string? FileName = userProfile.profile_signature_filename;
+                //D:\Workspace\Dotnet\New\PBTPro.Server\wwwroot\images\signature
+                if (InputModel.sign_image?.Length > 0)
+                {
+                    string ImageUploadExt = Path.GetExtension(InputModel.sign_image.FileName).ToString().ToLower();
+
+                    FileName = UserId + ImageUploadExt;
+                    var UploadPath = await getImageUploadPath("signature");
+                    var Fullpath = Path.Combine(UploadPath, FileName);
+                    using (var stream = new FileStream(Fullpath, FileMode.Create))
+                    {
+                        await InputModel.sign_image.CopyToAsync(stream);
+                    }
+
+                    userProfile.profile_signature_filename = FileName;
+                    
+                    if(isNew == true)
+                    {
+                        userProfile.created_by = runUserID;
+                        userProfile.created_date = DateTime.Now;
+                        _dbContext.user_profiles.Add(userProfile);
+                    }
+                    else
+                    {
+                        userProfile.updated_by = runUserID;
+                        userProfile.updated_date = DateTime.Now;
+                        _dbContext.user_profiles.Update(userProfile);
+                    }
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                return Ok("", SystemMesg(_feature, "UPDATE_SIGNATURE", MessageTypeEnum.Success, string.Format("Tandatangan berjaya disimpan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateAvatar([FromForm] update_avatar_input_model InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                bool isNew = false;
+                var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (UserId != InputModel.user_id)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_USERID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.profile_user_id == UserId);
+
+                if (userProfile == null)
+                {
+                    isNew = true;
+                    userProfile = await _dbContext.Users.Where(x => x.Id == UserId).Select(x => new user_profile
+                    {
+                        profile_user_id = x.Id,
+                        profile_name = x.Name ?? x.UserName,
+                        profile_email = x.Email
+                    }).AsNoTracking().FirstOrDefaultAsync();
+                }
+                #endregion
+
+                string? FileName = userProfile.profile_signature_filename;
+                //D:\Workspace\Dotnet\New\PBTPro.Server\wwwroot\images\signature
+                if (InputModel.avatar_image?.Length > 0)
+                {
+                    string ImageUploadExt = Path.GetExtension(InputModel.avatar_image.FileName).ToString().ToLower();
+
+                    FileName = UserId + ImageUploadExt;
+                    var UploadPath = await getImageUploadPath("profile");
+                    var Fullpath = Path.Combine(UploadPath, FileName);
+                    using (var stream = new FileStream(Fullpath, FileMode.Create))
+                    {
+                        await InputModel.avatar_image.CopyToAsync(stream);
+                    }
+
+                    userProfile.profile_photo_filename = FileName;
+
+                    if (isNew == true)
+                    {
+                        userProfile.created_by = runUserID;
+                        userProfile.created_date = DateTime.Now;
+                        _dbContext.user_profiles.Add(userProfile);
+                    }
+                    else
+                    {
+                        userProfile.updated_by = runUserID;
+                        userProfile.updated_date = DateTime.Now;
+                        _dbContext.user_profiles.Update(userProfile);
+                    }
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                return Ok("", SystemMesg(_feature, "UPDATE_SIGNATURE", MessageTypeEnum.Success, string.Format("Tandatangan berjaya disimpan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+
+        #region private logic
+        protected async Task<string?> getImageUploadPath(string? lv1 = null, string? lv2 = null, string? lv3 = null, string? lv4 = null)
+        {
+            string? result;
+
+            using (PBTProDbContext _iwkContext = new PBTProDbContext())
+            {
+                result = await _dbContext.config_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "BaseUploadPath").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
+                
+                if (!string.IsNullOrEmpty(lv1))
+                {
+                    result = Path.Combine(result, lv1);
+                    if (!string.IsNullOrEmpty(lv2))
+                    {
+                        result = Path.Combine(result, lv2);
+                        if (!string.IsNullOrEmpty(lv3))
+                        {
+                            result = Path.Combine(result, lv3);
+                            if (!string.IsNullOrEmpty(lv4))
+                            {
+                                result = Path.Combine(result, lv4);
+                            }
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(result) && !Directory.Exists(result)) { Directory.CreateDirectory(result); }
+            }
+            return result;
+        }
+        
+        protected async Task<string?> getImageViewUrl(string? lv1 = null, string? lv2 = null, string? lv3 = null, string? lv4 = null)
+        {
+            string? result;
+
+            using (PBTProDbContext _iwkContext = new PBTProDbContext())
+            {
+                result = await _dbContext.config_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "ImageViewUrl").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
+
+                if (!string.IsNullOrEmpty(lv1))
+                {
+                    result = result + "/" + lv1;
+                    if (!string.IsNullOrEmpty(lv2))
+                    {
+                        result = result + "/" + lv2;
+                        if (!string.IsNullOrEmpty(lv3))
+                        {
+                            result = result + "/" + lv3;
+                            if (!string.IsNullOrEmpty(lv4))
+                            {
+                                result = result + "/" + lv4;
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        #endregion
     }
 }
