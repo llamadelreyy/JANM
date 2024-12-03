@@ -81,6 +81,7 @@ builder.Services.AddSwaggerGen(swagger =>
 builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
+    //options.JsonSerializerOptions.MaxDepth = 64;
     //options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
     //options.JsonSerializerOptions.PropertyNamingPolicy = null; // prevent camel case
 

@@ -6,11 +6,9 @@ namespace PBTPro.DAL.Models;
 
 public partial class mst_lot
 {
-    public long id { get; set; }
+    public int gid { get; set; }
 
-    public MultiPolygon? geom { get; set; }
-
-    public decimal? objectid { get; set; }
+    public double? objectid { get; set; }
 
     public string? negeri { get; set; }
 
@@ -55,4 +53,6 @@ public partial class mst_lot
     public decimal? shape_leng { get; set; }
 
     public decimal? shape_area { get; set; }
+
+    public MultiPolygon? geom { get; set; }
 }

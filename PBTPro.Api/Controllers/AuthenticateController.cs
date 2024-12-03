@@ -35,7 +35,7 @@ namespace PBTPro.Api.Controllers
 
         [HttpPost]
         [Route("localregister")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Administrator, Admin")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
             #region validation
@@ -75,6 +75,7 @@ namespace PBTPro.Api.Controllers
                 user.NormalizedEmail = model.Email.ToUpper();
                 user.SecurityStamp = Guid.NewGuid().ToString();
                 user.UserName = model.Username.ToLower();
+                user.LoginKey = user.UserName;
                 user.NormalizedUserName = model.Username.ToUpper();
                 user.Name = model.Name;
                 user.Status = "A";

@@ -1,4 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿/*
+Project: PBT Pro
+Description: patrol api, to be used when mobile stop / start patrolling
+Author: ismail
+Date: November 2024
+Version: 1.0
+Additional Notes:
+- this API using 3rd party SignalR broadcast to sent message to user for updating patrolling status
+
+Changes Logs:
+06/11/2024 - initial create
+*/
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
