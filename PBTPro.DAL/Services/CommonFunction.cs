@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PBTPro.DAL.Models;
 using Serilog;
 using System.Configuration;
@@ -144,6 +145,34 @@ namespace PBTPro.DAL.Services
             return "";
         }
 
+
+        [HttpGet]
+        public async Task<string> ListJSON(HttpRequestMessage? RequestURL)
+        {
+            var client = new HttpClient();
+            var accessToken = CheckToken();
+
+            RequestURL.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CheckToken());
+            HttpResponseMessage response = await client.SendAsync(RequestURL);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                var apiString = await response.Content.ReadAsStringAsync();
+                
+                var jsonObject = JObject.Parse(apiString);
+
+                string returnMessage = jsonObject["data"]?.ToString() ?? "";
+                return returnMessage;
+                //var jsonArray = JArray.Parse(returnMessage);
+                //if (jsonArray.Count > 0)
+                //{
+                //    // Convert the first element to a JSON string (no array brackets)
+                //    string trimmedJsonString = jsonArray[0].ToString();
+                //    return trimmedJsonString;
+                //}                
+            }
+            return "";
+        }
+
         [HttpGet]
         public async Task<string> GetSingleDataString(HttpRequestMessage? RequestURL)
         {
@@ -235,51 +264,51 @@ namespace PBTPro.DAL.Services
         [AllowAnonymous]
         public async Task<bool> CreateAuditLog(int intType, string strMethod, string strMessage, int userId, string uname, string moduleName, int roleid=0)
         {
-            //try
-            //{
-            //    auditlog_info auditlog = new auditlog_info();
+            try
+            {
+                auditlog_info auditlog = new auditlog_info();
 
-            //    auditlog.audit_role_id = roleid;
-            //    auditlog.audit_module_name = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName;
-            //    auditlog.audit_description = strMessage;
-            //    auditlog.created_by = userId;
-            //    auditlog.audit_type = intType;
-            //    auditlog.audit_username = uname;
-            //    auditlog.audit_method = strMethod;
+                auditlog.audit_role_id = roleid;
+                auditlog.audit_module_name = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName;
+                auditlog.audit_description = strMessage;
+                auditlog.created_by = userId;
+                auditlog.audit_type = intType;
+                auditlog.audit_username = uname;
+                auditlog.audit_method = strMethod;
 
-            //////    //Calling api to perform addnew audit transaction
-            //////    var accessToken = CheckToken();
-            //////    var platformApiUrl = _configuration["PlatformAPI"];
-            //////    var request = CheckRequest("/api/Audit/InsertAudit");
+                //Calling api to perform addnew audit transaction
+                var accessToken = CheckToken();
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var request = CheckRequest("/api/Audit/InsertAudit");
 
-            //////    var client = new HttpClient();
-            //////    client.BaseAddress = new Uri(platformApiUrl);
-            //////    string value = JsonConvert.SerializeObject(auditlog);
-            //////    StringContent jsonContent = new(value, Encoding.UTF8, "application/json");
-            //////    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            //////    HttpResponseMessage response = await client.PostAsync("/api/Audit/InsertAudit", jsonContent).ConfigureAwait(false);
+                var client = new HttpClient();
+                client.BaseAddress = new Uri(platformApiUrl);
+                string value = JsonConvert.SerializeObject(auditlog);
+                StringContent jsonContent = new(value, Encoding.UTF8, "application/json");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                HttpResponseMessage response = await client.PostAsync("/api/Audit/InsertAudit", jsonContent).ConfigureAwait(false);
 
-            //////    if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            //////    {
-            //////        var results= await response.Content.ReadAsStringAsync();
-            //////        return true;
-            //////    }
-            //////    else
-            //////    {                   
-            //////        var errorContent = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    var results = await response.Content.ReadAsStringAsync();
+                    return true;
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
 
-            //////        throw new Exception($"API request failed with status code {response.StatusCode}: {errorContent}");
-            //////    }
-            //////}
-            //////catch (Exception ex)
-            //////{
-            //////    throw (ex);
-            //////}
+                    throw new Exception($"API request failed with status code {response.StatusCode}: {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw (ex);
+            }
             ///
 
             //skip for development - azmee
-            await Task.Delay(500); // Wait for 1/2 seconds
-            return true;
+            //await Task.Delay(500); // Wait for 1/2 seconds
+            //return true;
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
@@ -9,7 +10,7 @@ using PBTPro.DAL.Models.PayLoads;
 
 namespace PBTPro.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[Action]")]
     [ApiController]
     public class PatrolController : IBaseController
     {
@@ -22,6 +23,8 @@ namespace PBTPro.Api.Controllers
             _hubContext = hubContext;
         }
 
+        #region patrol_info
+        [AllowAnonymous]
         [HttpGet]
         [Route("GetList")]
         public async Task<IActionResult> GetList(string? crs = null)
@@ -196,6 +199,207 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        #endregion
 
+        #region scheduler
+        [AllowAnonymous]
+        [HttpGet]
+        //[Route("GetSchedulerList")]
+        public async Task<IActionResult> GetSchedulerList(string? crs = null)
+        {
+            try
+            {
+                var data = await _dbContext.patrol_schedulers.Where(x => x.active_flag == true).AsNoTracking().ToListAsync();
+                return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> PostScheduler([FromBody] PatrolSchedulerModel InputModel)
+        {
+            try
+            {
+                var runUserID = await getDefRunUserId();
+                var runUser = await getDefRunUser();
+                List<string> teamMembers = new List<string>();
+                teamMembers.Add(runUser);
+
+                #region store data
+                patrol_scheduler patrolscheduler = new patrol_scheduler
+                {
+                    scheduler_officer = InputModel.scheduler_officer,
+                    scheduler_date = InputModel.scheduler_date,
+                    scheduler_location = InputModel.scheduler_location,
+                    created_by = runUserID,
+                    created_date = DateTime.Now,
+                    active_flag = true,
+                };
+
+                _dbContext.patrol_schedulers.Add(patrolscheduler);
+                await _dbContext.SaveChangesAsync();
+               
+                #endregion
+
+                var result = new
+                {
+                    scheduler_officer = patrolscheduler.scheduler_officer,
+                    scheduler_date = patrolscheduler.scheduler_date,
+                    scheduler_id = patrolscheduler.scheduler_id                    
+                };
+
+                return Ok(result, SystemMesg(_feature, "CREATE_PATROL_SCHEDULER", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        [AllowAnonymous]
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> Update(int Id, [FromBody] patrol_scheduler InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                var formField = await _dbContext.patrol_schedulers.FirstOrDefaultAsync(x => x.scheduler_id == Id);
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }                
+
+                if (string.IsNullOrWhiteSpace(InputModel.scheduler_officer))
+                {
+                    return Error("", SystemMesg(_feature, "SCHEDULER_OFFICER_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Pegawai diperlukan")));
+                }
+                if (string.IsNullOrWhiteSpace(InputModel.scheduler_location))
+                {
+                    return Error("", SystemMesg(_feature, "SCHEDULER_LOCATION", MessageTypeEnum.Error, string.Format("Ruangan Lokasi Rondaan diperlukan")));
+                }
+                if (InputModel.scheduler_date < DateTime.Today)
+                {
+                    return Error("", SystemMesg(_feature, "SCHEDULER_DATE", MessageTypeEnum.Error, string.Format("Ruangan Tarikh Rondaan tidak boleh kurang daripada tarikh hari ini.")));
+                }
+
+                #endregion
+
+                formField.scheduler_officer = InputModel.scheduler_officer;
+                formField.scheduler_location = InputModel.scheduler_location;
+                formField.scheduler_date = InputModel.scheduler_date?.ToLocalTime();
+
+
+                formField.updated_by = runUserID;
+                formField.update_date = DateTime.Now;
+
+                _dbContext.patrol_schedulers.Update(formField);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(formField, SystemMesg(_feature, "Update", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        [AllowAnonymous]
+        [HttpDelete("{Id}")]
+        public async Task<IActionResult> Remove(int Id)
+        {
+            try
+            {
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                var formField = await _dbContext.patrol_schedulers.FirstOrDefaultAsync(x => x.scheduler_id == Id);
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                #endregion
+
+                _dbContext.patrol_schedulers.Remove(formField);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        #endregion
+
+        #region lookup data
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetOfficerName(string? crs = null)
+        {
+            ReturnViewModel response = new ReturnViewModel();
+
+            try
+            {
+                var data = await _dbContext.patrol_schedulers
+                        .Where(x => x.active_flag == true)
+                        //.Join(
+                        //    _dbContext.patrol_infos,
+                        //    scheduler => scheduler.scheduler_id, // assuming patrol_id is the common field
+                        //    info => info.scheduler_id,           // assuming patrol_id is the common field
+                        //    (scheduler, info) => new
+                        //    {
+                        //        Scheduler = scheduler,
+                        //        Info = info
+                        //    }
+                        //)
+                        .AsNoTracking()
+                        .ToListAsync();
+
+                var result = data.Select(x => new
+                {      
+                    x.scheduler_id,
+                    x.scheduler_officer,  
+                                    
+                }).ToList();
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        [AllowAnonymous]        
+        [HttpGet("{offName}")]
+        public async Task<IActionResult> GetPatrolLocation(string? crs = null, string offName="")
+        {
+            ReturnViewModel response = new ReturnViewModel();
+
+            try
+            {
+                var data = await _dbContext.patrol_schedulers
+                        .Where(x => x.active_flag == true && x.scheduler_officer == offName)                        
+                        .AsNoTracking()
+                        .ToListAsync();
+
+                var result = data.Select(x => new
+                {
+                    x.scheduler_id,
+                    x.scheduler_location,
+
+                }).ToList();
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        #endregion
     }
 }
