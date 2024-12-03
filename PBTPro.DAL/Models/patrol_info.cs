@@ -18,7 +18,7 @@ public partial class patrol_info
 
     public string patrol_status { get; set; } = null!;
 
-    public DateTime? patrol_start_dtm { get; set; }
+    public DateTime? patrol_start_dtm {   get; set; }
 
     public Point? patrol_start_location { get; set; }
 
@@ -35,4 +35,8 @@ public partial class patrol_info
     public int? updated_by { get; set; }
 
     public DateTime? update_date { get; set; }
+
+    public string patrol_officer_name { get; set; } = null!;
+
+    public string patrol_location { get; set; } = null!;
 }

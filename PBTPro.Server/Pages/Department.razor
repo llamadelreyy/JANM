@@ -2,15 +2,20 @@
 @attribute [AllowAnonymous]
 
 @inject DepartmentService _department
-@* @using System.Globalization *@
-@* @implements IDisposable *@
-@* @using Blazored.Toast.Services *@
+
+@using System.Globalization
+@implements IDisposable
+@using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
 @using PBTPro.DAL.Models;
 @using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+
 @inject NavigationManager NavigationManager
-@* @inject IToastService toastService *@
+@inject IToastService toastService
+@inject PBTAuthStateProvider _PBTAuthStateProvider
+@inject IToastNotificationService ToastService
 
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -37,6 +42,7 @@
             EditorRenderMode="GridEditorRenderMode.Integrated"
             FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
             PageSize="25"
+            CustomizeEditModel="Grid_CustomizeEditModel"
             @bind-PageIndex="@GridPageIndex"
             PagerPosition="GridPagerPosition.Bottom"
             PagerNavigationMode="PagerNavigationMode.InputBox"
@@ -173,7 +179,6 @@
 </div>
 
 @code {
-    [Inject] IToastNotificationService ToastService { get; set; }
     private List<department_info> _lstDepartment = new List<department_info>();
 
     IGrid Grid { get; set; }
@@ -235,51 +240,80 @@
     }
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
+        ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
         var editModel = e.EditModel as department_info;
-        var itmId = editModel.dept_id;
         try
         {
             if (e.IsNew)
             {
-                var jsonString = JsonConvert.SerializeObject(editModel);
-                await _department.PostDepartment(jsonString);
+                response = await _department.PostDepartment(editModel);
                 blnSuccess = true;
             }
             else
             {
-                var existingDept = await _department.GetIdDepartment(itmId);
-                await _department.PutDepartment(itmId, existingDept);
+                response = await _department.PutDepartment(editModel.dept_id, editModel);
                 blnSuccess = true;
             }
             if (blnSuccess)
             {
                 await UpdateDataAsync();
-                // toastService.ShowInfo("Proses kemaskini selesai.");
-                ToastService.ShowToast(new ToastOptions()
-                    {
-                        ProviderName = "Overview",
-                        ThemeMode = ToastThemeMode.Saturated,
-                        RenderStyle = ToastRenderStyle.Success,
-                        Title = "Proses kemaskini selesai."
-                    });
+                toastService.ShowInfo("Proses kemaskini selesai.");
             }
             else
             {
-                // toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
-                ToastService.ShowToast(new ToastOptions()
-                    {
-                        ProviderName = "Overview",
-                        ThemeMode = ToastThemeMode.Saturated,
-                        RenderStyle = ToastRenderStyle.Danger,
-                        Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
-                    });
+                toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
             }
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
+        // bool blnSuccess = false;
+        // var editModel = e.EditModel as department_info;
+        // var itmId = editModel.dept_id;
+        // try
+        // {
+        //     if (e.IsNew)
+        //     {
+        //         var jsonString = JsonConvert.SerializeObject(editModel);
+        //         await _department.PostDepartment(jsonString);
+        //         blnSuccess = true;
+        //     }
+        //     else
+        //     {
+        //         var existingDept = await _department.GetIdDepartment(itmId);
+        //         await _department.PutDepartment(itmId, existingDept);
+        //         blnSuccess = true;
+        //     }
+        //     if (blnSuccess)
+        //     {
+        //         await UpdateDataAsync();
+        //         // toastService.ShowInfo("Proses kemaskini selesai.");
+        //         ToastService.ShowToast(new ToastOptions()
+        //             {
+        //                 ProviderName = "Overview",
+        //                 ThemeMode = ToastThemeMode.Saturated,
+        //                 RenderStyle = ToastRenderStyle.Success,
+        //                 Title = "Proses kemaskini selesai."
+        //             });
+        //     }
+        //     else
+        //     {
+        //         // toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+        //         ToastService.ShowToast(new ToastOptions()
+        //             {
+        //                 ProviderName = "Overview",
+        //                 ThemeMode = ToastThemeMode.Saturated,
+        //                 RenderStyle = ToastRenderStyle.Danger,
+        //                 Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
+        //             });
+        //     }
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        // }
     }
     async Task UpdateDataAsync()
     {
@@ -301,27 +335,68 @@
 
     async void OnYesButtonClick()
     {
-        if (dtData != null)
+        try
         {
-            var deleteResult = await _department.DeleteDepartment(dtData.dept_id);
-            await UpdateDataAsync();
-        }
-        ConfirmationShown = false;
-        // toastService.ShowInfo("Proses hapus selesai.");
-        ToastService.ShowToast(new ToastOptions()
+            ReturnViewModel response = new ReturnViewModel();
+            response = await _department.DeleteDepartment(dtData.dept_id);
+
+            if (response.ReturnCode == 200)
             {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = ToastRenderStyle.Success,
-                Title = "Proses hapus selesai."
-            });
+                await UpdateDataAsync();
+                ConfirmationShown = false;
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                ConfirmationShown = false;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+        // if (dtData != null)
+        // {
+        //     var deleteResult = await _department.DeleteDepartment(dtData.dept_id);
+        //     await UpdateDataAsync();
+        // }
+        // ConfirmationShown = false;
+        // // toastService.ShowInfo("Proses hapus selesai.");
+        // ToastService.ShowToast(new ToastOptions()
+        //     {
+        //         ProviderName = "Overview",
+        //         ThemeMode = ToastThemeMode.Saturated,
+        //         RenderStyle = ToastRenderStyle.Success,
+        //         Title = "Proses hapus selesai."
+        //     });
     }
 
     void OnNoButtonClick()
     {
         ConfirmationShown = false;
     }
+    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        var dataItem = (department_info)e.DataItem;
+        var editModel = e.EditModel as department_info;
 
+        if (dataItem == null)
+            e.EditModel = new department_info
+            {
+            };
+        else
+        {
+            e.EditModel = new department_info
+                {
+                    dept_id = dataItem.dept_id,
+                    dept_code = dataItem.dept_code,
+                    dept_depart_name = dataItem.dept_depart_name,
+                    dept_description = dataItem.dept_description,
+                    dept_status = dataItem.dept_status
+                };
+        }
+    }
     void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
     {
         if (e.Item.Name == "Custom")
@@ -358,4 +433,29 @@
         "Aktif",
         "Tidak Aktif"
     };
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
 }
