@@ -17,6 +17,10 @@ using DevExpress.DashboardCommon;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PBTPro.Data;
+using System.Threading;
+using PBTPro.DAL.Models.PayLoads;
+using System.Collections.Concurrent;
+using DevExpress.DashboardExport.Map;
 
 
 namespace PBTPro.Pages
@@ -59,12 +63,16 @@ namespace PBTPro.Pages
 
         private LatLngBounds _bounds = null!;
         private MarkerClustering? _markerClustering;
-        private IEnumerable<AdvancedMarkerElement>? _clusteringMarkers;
+        private List<AdvancedMarkerElement>? _clusteringMarkers; // ismail changing to list - this list can be append when have new point from api
 
         // 07/11/2024 - to reduce API request frequency - ismail
         private DateTime _lastMoveTime;
-        private readonly TimeSpan _throttleTime = TimeSpan.FromMilliseconds(300);
-        private Dictionary<int, string> _drawnLots = new Dictionary<int, string>();
+        private readonly TimeSpan _throttleTime = TimeSpan.FromMilliseconds(300); 
+        private ConcurrentDictionary<int, bool> _processedLotGids = new ConcurrentDictionary<int, bool>(); // Thread-safe GID tracking
+        private ConcurrentDictionary<int, bool> _processedPremisGids = new ConcurrentDictionary<int, bool>(); // Thread-safe GID tracking
+        private readonly object _lockLot = new object(); 
+        private bool _isProcessing = false;  // Flag to track if tasks are processing
+        private Queue<Task> _pendingTasks = new Queue<Task>();
 
         //Legend
         protected ElementReference LegendReference { get; set; }
@@ -245,7 +253,7 @@ namespace PBTPro.Pages
             await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
         }
 
-        private async Task<IEnumerable<AdvancedMarkerElement>> populateMarker(int initStart)
+        private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart)
         {
             var result = new List<AdvancedMarkerElement>(NoticeData.Count());
             bool blnValidFilter = true;
@@ -448,6 +456,47 @@ namespace PBTPro.Pages
         Changes Logs:
         07/11/2024 - initial create
         */
+        private async Task DisableMapInteractivity()
+        {
+            try
+            {
+                var mapOptions = new MapOptions
+                {
+                    ZoomControl = false,
+                    Draggable = false,
+                    Scrollwheel = false
+                };
+                await this.map1.InteropObject.SetOptions(mapOptions);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disabling interactivity: {ex.Message}");
+            }
+        }
+        private async Task EnableMapInteractivity()
+        {
+            try
+            {
+                var mapOptions = new MapOptions
+                {
+                    ZoomControl = true,
+                    PanControl = true,
+                    Scrollwheel = true
+                };
+
+                await this.map1.InteropObject.SetOptions(mapOptions);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error enabling interactivity: {ex.Message}");
+            }
+        }
+
+        private Task GenerateMapDataTask()
+        {
+            return Task.Run(() => ProcessMapAPIData());
+        }
+
         private async Task ProcessMapAPIData()
         {
             try 
@@ -455,15 +504,34 @@ namespace PBTPro.Pages
                 if (DateTime.Now - _lastMoveTime < _throttleTime) return;
                 _lastMoveTime = DateTime.Now;
 
+                if (_isProcessing)  // If already processing, queue the new task
+                {
+                    _pendingTasks.Enqueue(GenerateMapDataTask());  // Enqueue the new task to process after current task
+                    return;
+                }
+
                 var bounds = await this.map1.InteropObject.GetBounds();
                 if (bounds != null)
                 {
+                    _isProcessing = true;
                     await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    _isProcessing = false;
+                }
+
+                if (_pendingTasks.Count > 0)
+                {
+                    var nextTask = _pendingTasks.Dequeue();
+                    await nextTask;  // Process the next task in the queue
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"ProcessMapAPIData error : {ex.Message}");
+            }
+            finally
+            {
+                //_isProcessing = false;  // Mark that processing is done
             }
         }
 
@@ -482,73 +550,205 @@ namespace PBTPro.Pages
                         var tasks = new List<Task>();
                         dynamic datas = JsonConvert.DeserializeObject(dataString);
 
-                        foreach (var data in datas)
+                        List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+                        var filteredDatas = dataList.Where(d =>
                         {
-                            int dataId = data.id.ToObject(typeof(int));
+                            int dataId = (int)d.gid;  // Convert gid to int (ensure it's valid)
+                            return !_processedLotGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
+                        }).ToList();
+
+                        var semaphore = new SemaphoreSlim(1000);
+
+                        foreach (var data in filteredDatas)
+                        {
+                            int dataId = data.gid.ToObject(typeof(int));
 
                             if (dataId == null)
                             {
                                 continue;
                             }
 
-                            if (_drawnLots != null && _drawnLots.ContainsKey(dataId))
+                            //bool skipProcessing = false;
+
+                            if (_processedLotGids.ContainsKey(dataId))
                             {
                                 continue;
                             }
 
-                            var geometry = data.geom[0];
-                            try
+                            var geometry = data.geom;
+                            tasks.Add(Task.Run(async () =>
                             {
-                                if (geometry.type == "Point")
+                                await semaphore.WaitAsync();
+                                try
                                 {
-                                    var coords = geometry.coordinates;
-                                    var latLng = new LatLngLiteral(coords[1], coords[0]);
-                                    tasks.Add(CreateMarker(latLng, data));
-                                    /* This is an original approach, commented out to try using task for performance testing.
-                                    await CreateMarker(latLng, data);
-                                    */
-                                }
-                                else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
-                                {
-                                    IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
-                                    //List<LatLngLiteral> latLngs = new List<LatLngLiteral>();
-
-                                    if (geometry.type == "Polygon")
+                                    if (_processedLotGids.ContainsKey(dataId))
                                     {
-                                        var polygonCoords = geometry.coordinates[0];
-                                        //latLngs.AddRange(ConvertGeoJsonToLatLng(polygonCoords));
-                                        latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+                                        return; // Skip if already processed
                                     }
-                                    else if (geometry.type == "MultiPolygon")
-                                    {
-                                        List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
 
-                                        foreach (var polygon in geometry.coordinates)
+                                    if (geometry.type == "Point")
+                                    {
+                                        var coords = geometry.coordinates;
+                                        var latLng = new LatLngLiteral(coords[1], coords[0]);
+                                        await CreateMarker(latLng, data); // Assuming CreateMarker is async
+                                    }
+                                    else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+                                    {
+                                        IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
+
+                                        if (geometry.type == "Polygon")
                                         {
-                                            // latLngs.AddRange(ConvertGeoJsonToLatLng(polygon[0]));
-                                            multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0])); // Each polygon's coordinates
+                                            var polygonCoords = geometry.coordinates[0];
+                                            latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+                                        }
+                                        else if (geometry.type == "MultiPolygon")
+                                        {
+                                            List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+                                            foreach (var polygon in geometry.coordinates)
+                                            {
+                                                multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+                                            }
+
+                                            latLngs = multiPolygonCoords;
                                         }
 
-                                        latLngs = multiPolygonCoords;
+                                        await CreatePolygon(latLngs, data); // Assuming CreatePolygon is async
                                     }
-                                    tasks.Add(CreatePolygon(latLngs, data));
-                                    /* This is an original approach, commented out to try using task for performance testing.
-                                    await CreatePolygon(latLngs, data)
-                                    */
-                                    ;
 
+                                    //_drawnLots[dataId] = geometry.type;
+                                    _processedLotGids[dataId] = true;
                                 }
-                                _drawnLots[dataId] = geometry.type;
-                            }
-                            catch (Exception geometryEx)
-                            {
-                                Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
-                            }
+                                catch (Exception geometryEx)
+                                {
+                                    Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+                                }
+                                finally
+                                {
+                                    semaphore.Release();
+                                }
+                            }));
+
                         }
 
                         if (tasks.Count > 0)
                         {
                             await Task.WhenAll(tasks);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"API request error: {ex.Message}");
+            }
+        }
+
+        private async Task GeneratePremisData(double southLat, double westLng, double northLat, double eastLng)
+        {
+            try
+            {
+                string requestUrl = $"/api/Premis/GetListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        var tasks = new List<Task>();
+                        dynamic datas = JsonConvert.DeserializeObject(dataString);
+
+                        List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+                        var filteredDatas = dataList.Where(d =>
+                        {
+                            int dataId = (int)d.gid;  // Convert gid to int (ensure it's valid)
+                            return !_processedPremisGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
+                        }).ToList();
+
+                        var semaphore = new SemaphoreSlim(1000);
+
+                        foreach (var data in filteredDatas)
+                        {
+                            int dataId = data.gid.ToObject(typeof(int));
+
+                            if (dataId == null)
+                            {
+                                continue;
+                            }
+
+                            //bool skipProcessing = false;
+
+                            if (_processedPremisGids.ContainsKey(dataId))
+                            {
+                                continue;
+                            }
+
+                            var geometry = data.geom;
+                            tasks.Add(Task.Run(async () =>
+                            {
+                                await semaphore.WaitAsync();
+                                try
+                                {
+                                    if (_processedPremisGids.ContainsKey(dataId))
+                                    {
+                                        return; // Skip if already processed
+                                    }
+
+                                    if (geometry.type == "Point")
+                                    {
+                                        var coords = geometry.coordinates;
+                                        double x = coords[1];
+                                        double y = coords[0];
+                                        var latLng = new LatLngLiteral(x, y);
+                                        await CreateMarker(latLng, data); // Assuming CreateMarker is async
+                                    }
+                                    else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+                                    {
+                                        IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
+
+                                        if (geometry.type == "Polygon")
+                                        {
+                                            var polygonCoords = geometry.coordinates[0];
+                                            latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+                                        }
+                                        else if (geometry.type == "MultiPolygon")
+                                        {
+                                            List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+                                            foreach (var polygon in geometry.coordinates)
+                                            {
+                                                multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+                                            }
+
+                                            latLngs = multiPolygonCoords;
+                                        }
+
+                                        await CreatePolygon(latLngs, data); 
+                                    }
+
+                                    _processedPremisGids[dataId] = true;
+                                }
+                                catch (Exception geometryEx)
+                                {
+                                    Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+                                }
+                                finally
+                                {
+                                    semaphore.Release();
+                                }
+                            }));
+
+                        }
+
+                        if (tasks.Count > 0)
+                        {
+                            await Task.WhenAll(tasks);
+
+                            _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+                            {
+                                ZoomOnClick = true,
+                            });
                         }
                     }
                 }
@@ -567,23 +767,39 @@ namespace PBTPro.Pages
 
         private async Task CreateMarker(LatLngLiteral position, dynamic data)
         {
-            var marker = await Marker.CreateAsync(this.map1.JsRuntime, new MarkerOptions
+            int dataId = data.gid.ToObject(typeof(int));
+            string title = data.lot;
+            //var marker = await Marker.CreateAsync(this.map1.JsRuntime, new MarkerOptions
+            //{
+            //    Position = position,
+            //    Map = this.map1.InteropObject,
+            //    Title = title
+            //});
+
+            var marker = await AdvancedMarkerElement.CreateAsync(this.map1.JsRuntime, new AdvancedMarkerElementOptions()
             {
                 Position = position,
                 Map = this.map1.InteropObject,
-                Title = data.NoLesen
+                Title = title,
+                // Content = index.ToString()
+                Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30"">
+                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(1) + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
             });
+
+            _clusteringMarkers.Add(marker);
 
             // Optionally, add a listener for the marker to show more information or interact with it
             await marker.AddListener<MouseEvent>("click", async (e) =>
             {
-                await OpenSideBar(data.NoLesen); // Replace with actual function to handle click
+                await OpenSideBar(title); // Replace with actual function to handle click
                 StateHasChanged();
             });
         }
 
         private async Task CreatePolygon(IEnumerable<IEnumerable<LatLngLiteral>> latLngs, dynamic data)
         {
+            int dataId = data.gid.ToObject(typeof(int));
+
             var polygonOptions = new PolygonOptions
             {
                 Paths = latLngs,
