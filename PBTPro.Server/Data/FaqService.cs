@@ -12,7 +12,6 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using PBTPro.Pages;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
@@ -51,8 +50,7 @@ namespace PBTPro.Data
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        protected readonly CommonFunction _cf;
-        protected readonly SharedFunction _sf;
+        protected readonly AuditLogger _cf;
         private readonly ILogger<FaqService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
@@ -65,7 +63,7 @@ namespace PBTPro.Data
         {
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
-            _cf = new CommonFunction(httpContextAccessor, configuration);
+            _cf = new AuditLogger(configuration, apiConnector);
             _logger = logger;
             _dbContext = dbContext;
             _PBTAuthStateProvider = PBTAuthStateProvider;
@@ -77,10 +75,11 @@ namespace PBTPro.Data
         public async Task<List<faq_info>> GetAllFaq()
         {
             var result = new List<faq_info>();
+            string requestUrl = $"{_baseReqURL}/ListFaq";
+            var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListFaq";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
                 {
@@ -92,8 +91,7 @@ namespace PBTPro.Data
                     }
                     else
                     {
-                        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response, 1, LoggerName, "");
-
+                        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
                     }
                 }
 
@@ -125,7 +123,7 @@ namespace PBTPro.Data
                     }
                     else
                     {
-                        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response, 1, LoggerName, "");
+                        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
 
                     }
                 }                
@@ -228,39 +226,16 @@ namespace PBTPro.Data
                     }
                     else
                     {
-                        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response, 1, LoggerName, "");
+                        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
                     }
                 }
             }
             catch (Exception ex)
             {
                 result = new faq_info(); 
-                await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - GetIdFaq", ex.Message, 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
-
             return result;
-        }
-
-        //[HttpGet]
-        //public async Task<faq_info> GetIdFaq(int id)
-        //{
-        //    try
-        //    {
-        //        var platformApiUrl = _configuration["PlatformAPI"];
-        //        var accessToken = _cf.CheckToken();
-
-        //        var request = _cf.CheckRequest(platformApiUrl + "/api/Faq/RetrieveFaq/" + id);
-        //        string jsonString = await _cf.Retrieve(request, accessToken);
-        //        faq_info faq = JsonConvert.DeserializeObject<faq_info>(jsonString.ToString());
-        //        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci soalan lazim.", 1, LoggerName, "");
-
-        //        return faq;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _cf.CreateAuditLog((int)AuditType.Error, "FaqService - GetIdFaq", ex.Message, 1, LoggerName, "");
-        //        return null;
-        //    }
-        //}            
+        }                  
     }
 }

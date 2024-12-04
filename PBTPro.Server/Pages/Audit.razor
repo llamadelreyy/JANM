@@ -10,7 +10,7 @@
 @using PBTPro.DAL.Models;
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
-
+@using PBTPro.DAL.Services
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 @inject NavigationManager NavigationManager
@@ -54,14 +54,19 @@
         CssClass="mv-1000">
 
         <Columns>
-            <DxGridDataColumn FieldName="@nameof(auditlog_info.created_date)" Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center" AllowGroup="false" />
+            <DxGridDataColumn 
+                FieldName="@nameof(auditlog_info.created_date)" 
+                Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center"
+                AllowGroup="false"
+                SortOrder="GridColumnSortOrder.Descending" 
+                DisplayFormat="dd/MM/yyyy HH:mm:ss" />
             <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_username)" Caption="Nama Pengguna" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_type)" Caption="Jenis Maklumat" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
             <CellDisplayTemplate>
                     <div>@GetStatusAuditIconHtml(((auditlog_info)context.DataItem).audit_type)</div>
             </CellDisplayTemplate>
         </DxGridDataColumn>
-            <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_module_name)" Caption="Nama Modul" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            @* <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_module_name)" Caption="Nama Modul" TextAlignment="GridTextAlignment.Left" AllowGroup="false" /> *@
             <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_method)" Caption="Method" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_description)" Caption="Penerangan" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
         </Columns>      

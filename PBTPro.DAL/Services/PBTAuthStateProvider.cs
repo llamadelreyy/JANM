@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using PBTPro.DAL.Models.CommonServices;
 using System.Security.Claims;
 
-namespace PBTPro.Data;
+namespace PBTPro.DAL.Services;
 
 public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
 {

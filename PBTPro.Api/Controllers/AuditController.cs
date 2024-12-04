@@ -8,7 +8,9 @@ using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Services;
 using System.Data;
+using System.Reflection;
 
 namespace PBTPro.Api.Controllers
 {
@@ -21,7 +23,11 @@ namespace PBTPro.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly PBTProDbContext _dbContext; 
         private readonly IHubContext<PushDataHub> _hubContext;
+        protected readonly CommonFunction _cf;
+        
+        private string LoggerName = "";
         private readonly string _feature = "AUDIT_LOG";
+
         private List<auditlog_info> _Faq { get; set; }
         public AuditController(PBTProDbContext dbContext, ILogger<AuditController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IHubContext<PushDataHub> hubContext) : base(dbContext)
         {
@@ -30,6 +36,7 @@ namespace PBTPro.Api.Controllers
             _dbConn = _configuration.GetConnectionString("DefaultConnection");
             _dbContext = dbContext;
             _hubContext = hubContext;
+            _cf = new CommonFunction(httpContextAccessor, configuration);
         }
 
         [AllowAnonymous]
@@ -42,13 +49,15 @@ namespace PBTPro.Api.Controllers
 
                 if (parFormfields.Count == 0)
                 {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tiada rekod untuk dipaparkan", 1, LoggerName, "");
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
-
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk paparan senarai log audit. ", 1, LoggerName, "");
                 return Ok(parFormfields, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }       
@@ -63,13 +72,15 @@ namespace PBTPro.Api.Controllers
 
                 if (parFormfield == null)
                 {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tiada data untuk dipaparkan", 1, LoggerName, "");
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk paparan maklumat terperinci log audit. ", 1, LoggerName, "");
                 return Ok(parFormfield, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -87,6 +98,7 @@ namespace PBTPro.Api.Controllers
                 var formField = await _dbContext.auditlog_infos.FirstOrDefaultAsync(x => x.audit_id == Id);
                 if (formField == null)
                 {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Rekod tidak sah", 1, LoggerName, "");
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
@@ -94,10 +106,12 @@ namespace PBTPro.Api.Controllers
                 _dbContext.auditlog_infos.Remove(formField);
                 await _dbContext.SaveChangesAsync();
 
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk padam maklumat log audit. ", 1, LoggerName, "");
                 return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
             catch (Exception ex)
             {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -110,8 +124,6 @@ namespace PBTPro.Api.Controllers
             {
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
-                List<string> teamMembers = new List<string>();
-                teamMembers.Add(runUser);
 
                 #region store data
                 auditlog_info auditlog_info = new auditlog_info
@@ -150,48 +162,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-
-        private bool AuditExists(int id)
-        {
-            return (_dbContext.auditlog_infos?.Any(e => e.audit_id == id)).GetValueOrDefault();
-        }
-
-        [AllowAnonymous]
-        [HttpPost]
-        public Task<bool> InsertAudits(auditlog_info changed, int intCurrentUserId)
-        {
-            try
-            {
-                using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
-                {
-                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("call audit.proc_insertaudit(:_audit_role_id, :_audit_module_name, :_audit_description, :_created_by, :_audit_type, :_audit_username, :_audit_method)", myConn))
-                    {
-                        myCmd.CommandType = CommandType.Text;
-                        myCmd.Parameters.AddWithValue("_audit_role_id", DbType.Int32).Value = changed.audit_role_id;
-                        myCmd.Parameters.AddWithValue("_audit_module_name", DbType.String).Value = changed.audit_module_name;                        
-                        myCmd.Parameters.AddWithValue("_audit_description", DbType.String).Value = changed.audit_description;
-                        myCmd.Parameters.AddWithValue("_created_by", DbType.Int32).Value = changed.created_by;
-                        myCmd.Parameters.AddWithValue("_audit_type", DbType.Int32).Value = changed.audit_type;
-                        myCmd.Parameters.AddWithValue("_audit_username", DbType.String).Value = changed.audit_username;
-                        myCmd.Parameters.AddWithValue("_audit_method", DbType.String).Value = changed.audit_method;
-
-                        myConn.Open();
-                        myCmd.ExecuteNonQuery();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Exception caught : InsertAudit - {0}", ex);
-                return Task.FromResult(false); ;
-            }
-            finally
-            {
-            }
-            return Task.FromResult(true);
-        }
-
-
+        
         #region Archived auditlog
         [AllowAnonymous]
         [HttpGet]
@@ -210,13 +181,14 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception caught : InsertArchiveAudit - {0}", ex);
-                return null;
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
             finally
             {                
             }
-            return Ok("", SystemMesg(_feature, "ARCHIVE_LOG_AUDIT", MessageTypeEnum.Success, string.Format("Berjaya arkib log audit baru.")));
+            await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk arkib log audit.", 1, LoggerName, "");
+            return Ok("", SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
         }
         #endregion
 
@@ -256,7 +228,43 @@ namespace PBTPro.Api.Controllers
             //return Ok(audits, "Sucess");
             //return await _dbContext.TbAuditlogs.ToListAsync();
         }
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> InsertAudits(auditlog_info changed, int intCurrentUserId)
+        {
+            try
+            {
+                var runUserID = await getDefRunUserId();
+                var runUser = await getDefRunUser();
 
+                using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
+                {
+                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("call audit.proc_insertaudit(:_audit_role_id, :_audit_module_name, :_audit_description, :_created_by, :_audit_type, :_audit_username, :_audit_method)", myConn))
+                    {
+                        myCmd.CommandType = CommandType.Text;
+                        myCmd.Parameters.AddWithValue("_audit_role_id", DbType.Int32).Value = changed.audit_role_id;
+                        myCmd.Parameters.AddWithValue("_audit_module_name", DbType.String).Value = changed.audit_module_name;
+                        myCmd.Parameters.AddWithValue("_audit_description", DbType.String).Value = changed.audit_description;
+                        myCmd.Parameters.AddWithValue("_created_by", DbType.Int32).Value = changed.created_by;
+                        myCmd.Parameters.AddWithValue("_audit_type", DbType.Int32).Value = changed.audit_type;
+                        myCmd.Parameters.AddWithValue("_audit_username", DbType.String).Value = changed.audit_username;
+                        myCmd.Parameters.AddWithValue("_audit_method", DbType.String).Value = changed.audit_method;
+
+                        myConn.Open();
+                        myCmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception caught : InsertAudit - {0}", ex);
+                return Ok("", SystemMesg(_feature, "INSERT_LOG_AUDIT", MessageTypeEnum.Success, string.Format("Berjaya tambah log audit baru.")));
+            }
+            finally
+            {
+            }
+            return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+        }
         #endregion
     }
 }

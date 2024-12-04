@@ -46,14 +46,13 @@ namespace PBTPro.Data
             GC.SuppressFinalize(this);
         }
         public IConfiguration _configuration { get; }
-
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        protected readonly CommonFunction _cf;
-        protected readonly SharedFunction _sf;
         private readonly ILogger<ArchiveAuditService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
+        protected readonly AuditLogger _cf;
+
         private string _baseReqURL = "/api/Archive";
         private string LoggerName = "";
         private List<auditlog_archive_info> _Audit { get; set; }
@@ -62,12 +61,12 @@ namespace PBTPro.Data
         {
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
-            _cf = new CommonFunction(httpContextAccessor, configuration);
             _logger = logger;
             _dbContext = dbContext;
             _PBTAuthStateProvider = PBTAuthStateProvider;
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+            _cf = new AuditLogger(configuration, apiConnector);
         }
         public Task<List<auditlog_archive_info>> GetAuditAsync(CancellationToken ct = default)
         {
@@ -96,7 +95,7 @@ namespace PBTPro.Data
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response.ReturnCode, 1, LoggerName, "");
                 }
             }
             catch (Exception ex)
@@ -128,7 +127,7 @@ namespace PBTPro.Data
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response.ReturnCode, 1, LoggerName, "");
                 }
             }
             catch (Exception ex)

@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using PBTPro.DAL.Models.CommonServices;
 using System.Text;
 
-namespace PBTPro.Data;
+namespace PBTPro.DAL.Services;
 
 public class PBTAuthUserService
 {

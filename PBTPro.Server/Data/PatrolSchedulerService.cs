@@ -49,7 +49,6 @@ namespace PBTPro.Data
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         protected readonly CommonFunction _cf;
-        protected readonly SharedFunction _sf; 
         private readonly ILogger<PatrolSchedulerService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
@@ -195,26 +194,26 @@ namespace PBTPro.Data
             return Task.FromResult(_Patrolling);
         }
 
-        [HttpGet]
-        public async Task<patrol_scheduler> GetIdScheduler(int id)
-        {
-            try
-            {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
+        //[HttpGet]
+        //public async Task<patrol_scheduler> GetIdScheduler(int id)
+        //{
+        //    try
+        //    {
+        //        var platformApiUrl = _configuration["PlatformAPI"];
+        //        var accessToken = _cf.CheckToken();
 
-                var request = _cf.CheckRequest(platformApiUrl + "/api/Patrol/GetIdScheduler/" + id);
-                string jsonString = await _cf.Retrieve(request, accessToken);
-                patrol_scheduler patrolling = JsonConvert.DeserializeObject<patrol_scheduler>(jsonString.ToString());
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci jadual rondaan.", 1, LoggerName, "");
+        //        var request = _cf.CheckRequest(platformApiUrl + "/api/Patrol/GetIdScheduler/" + id);
+        //        string jsonString = await _cf.Retrieve(request, accessToken);
+        //        patrol_scheduler patrolling = JsonConvert.DeserializeObject<patrol_scheduler>(jsonString.ToString());
+        //        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci jadual rondaan.", 1, LoggerName, "");
 
-                return patrolling;
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                return null;
-            }
-        }
+        //        return patrolling;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+        //        return null;
+        //    }
+        //}
     }
 }
