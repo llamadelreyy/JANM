@@ -1,10 +1,23 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿/*
+Project: PBT Pro
+Description: sample for lot polygon point 
+Author: ismail
+Date: November 2024
+Version: 1.0
+Additional Notes:
+- 
+Changes Logs:
+05/11/2024 - initial create
+24/11/2024 - change all hardcoded sql query to EF function
+*/
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 using System.Reflection;
 using System.Text;
 
@@ -16,7 +29,7 @@ namespace PBTPro.Api.Controllers
     {
         private readonly ILogger<LotController> _logger;
         private readonly string _feature = "LOT";
-        private readonly string _defCRS = "3375";
+        private readonly int _defCRS = 4326;
 
         public LotController(PBTProDbContext dbContext, ILogger<LotController> logger) : base(dbContext)
         {
@@ -25,21 +38,27 @@ namespace PBTPro.Api.Controllers
 
         [HttpGet]
         [Route("GetList")]
-        public async Task<IActionResult> GetList(string? crs = null)
+        public async Task<IActionResult> GetList(int? crs = null)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(crs))
+                IQueryable<mst_lot> initQuery = _dbContext.mst_lots.Where(x => PostGISFunctions.ST_IsValid(x.geom));
+
+                if (crs != null && crs == _defCRS)
                 {
-                    crs = _defCRS;
+                    initQuery = initQuery
+                        .Select(x => new mst_lot { gid = x.gid, objectid = x.objectid, lot = x.lot, geom = (NetTopologySuite.Geometries.MultiPolygon)PostGISFunctions.ST_Transform(x.geom, crs.Value) });
                 }
-                //List<mst_lot> mst_lots = new List<mst_lot>();
-                var query = BuildDynamicSelect<mst_lot>(transformGeom: true, crs: crs);
-                //string query = $"SELECT Id, ST_Transform(geom, {crs}) AS geom, objectid, negeri, daerah, mukim, seksyen, lot, upi, s_area, m_area, g_area, unit, pa, refplan, apdate, cls, landusecod, landtitlec, entrymode, updated, guid, mi_prinx, shape_leng, shape_area FROM mst_lot";
-                //string query = $"SELECT *, ST_Transform(geom, {crs}) AS geom_transformed FROM mst_lot";
-                var mst_lots = _dbContext.mst_lots
-                    .FromSqlRaw(query)
-                    .ToList();
+
+                var mst_lots = await initQuery
+                .Select(x => new LotPolygonViewModel
+                {
+                    gid = x.gid,
+                    objectid = x.objectid,
+                    lot = x.lot,
+                    geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.geom)),
+                })
+                .ToListAsync();
 
                 if (mst_lots.Count == 0)
                 {
@@ -58,19 +77,35 @@ namespace PBTPro.Api.Controllers
         [HttpGet]
         [Route("GetListByBound")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, string? crs = null)
+        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, int? crs = null)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(crs))
+                IQueryable<mst_lot> initQuery = _dbContext.mst_lots.Where(x => PostGISFunctions.ST_IsValid(x.geom));
+
+
+                if (crs == null || crs == _defCRS)
                 {
                     crs = _defCRS;
+                    initQuery = initQuery
+                        .Where(x => PostGISFunctions.ST_Intersects(x.geom, PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value)));
                 }
-                string query = BuildDynamicSelect<mst_lot>(transformGeom: true, crs: crs);
-                query = $"{query} WHERE ST_Within(geom, ST_Transform(ST_MakeEnvelope({minLng}, {minLat}, {maxLng}, {maxLat}, {crs}),{_defCRS}))";
-                var mst_lots = _dbContext.mst_lots
-                    .FromSqlRaw(query)
-                    .ToList();
+                else
+                {
+                    initQuery = initQuery
+                        .Where(x => PostGISFunctions.ST_Intersects(x.geom, PostGISFunctions.ST_Transform(PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value), _defCRS)))
+                        .Select(x => new mst_lot { gid = x.gid, objectid = x.objectid, lot = x.lot, geom = (NetTopologySuite.Geometries.MultiPolygon)PostGISFunctions.ST_Transform(x.geom, crs.Value) });
+                }
+
+                var mst_lots = await initQuery
+                .Select(x => new LotPolygonViewModel
+                {
+                    gid = x.gid,
+                    objectid = x.objectid,
+                    lot = x.lot,
+                    geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.geom)),
+                })
+                .ToListAsync();
 
                 if (mst_lots.Count == 0)
                 {
@@ -90,6 +125,32 @@ namespace PBTPro.Api.Controllers
 
 
         #region private logic
+        /*
+        private string BuildGeomSelect(bool transformGeom = false, string? crs = null)
+        {
+
+            if (string.IsNullOrWhiteSpace(crs))
+            {
+                crs = _defCRS;
+            }
+
+            var selectBuilder = new StringBuilder("SELECT gid, lot, ");
+
+            if (transformGeom)
+            {
+                selectBuilder.Append($"ST_Transform(geom, {crs}) AS geom, ");
+            }
+            else
+            {
+                selectBuilder.Append($"geom, ");
+            }
+
+            selectBuilder.Length -= 2;
+            selectBuilder.Append(" FROM mst_lot");
+
+            return selectBuilder.ToString();
+        }
+        
         private string BuildDynamicSelect<TEntity>(bool transformGeom = false, string? crs = null)
         {
 
@@ -107,7 +168,14 @@ namespace PBTPro.Api.Controllers
 
                 if (property.Name == "geom")
                 {
-                    selectBuilder.Append($"ST_Transform(geom, {crs}) AS geom, ");
+                    if (transformGeom)
+                    {
+                        selectBuilder.Append($"ST_Transform(geom, {crs}) AS geom, ");
+                    }
+                    else
+                    {
+                        selectBuilder.Append($"geom AS geom, ");
+                    }
                 }
                 else
                 {
@@ -127,6 +195,7 @@ namespace PBTPro.Api.Controllers
             return string.Concat(propertyName.Select((c, i) =>
                 i > 0 && char.IsUpper(c) ? "_" + c : c.ToString())).ToLower();
         }
+        */
         #endregion
     }
 }

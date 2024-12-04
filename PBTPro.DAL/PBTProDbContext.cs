@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.AccessControl;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 using PBTPro.DAL.Models;
 
 namespace PBTPro.DAL;
@@ -40,6 +41,8 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<config_system_message> config_system_messages { get; set; }
 
+    public virtual DbSet<config_system_param> config_system_params { get; set; }
+
     public virtual DbSet<confiscation_info> confiscation_infos { get; set; }
 
     public virtual DbSet<confiscation_medium> confiscation_media { get; set; }
@@ -73,6 +76,8 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
     public virtual DbSet<mst_lot> mst_lots { get; set; }
 
     public virtual DbSet<mst_mukim> mst_mukims { get; set; }
+
+    public virtual DbSet<mst_premis> mst_premis { get; set; }
 
     public virtual DbSet<notification_email_history> notification_email_histories { get; set; }
 
@@ -358,6 +363,27 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.message_code).HasMaxLength(255);
             entity.Property(e => e.message_feature).HasMaxLength(50);
             entity.Property(e => e.message_type).HasMaxLength(1);
+            entity.Property(e => e.update_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_by).HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<config_system_param>(entity =>
+        {
+            entity.HasKey(e => e.param_id).HasName("config_system_param_pkey");
+
+            entity.ToTable("config_system_param", "config");
+
+            entity.Property(e => e.active_flag).HasDefaultValue(true);
+            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.created_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.param_app_layer).HasMaxLength(10);
+            entity.Property(e => e.param_group).HasMaxLength(50);
+            entity.Property(e => e.param_name).HasMaxLength(50);
+            entity.Property(e => e.param_value).HasMaxLength(1000);
             entity.Property(e => e.update_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
@@ -707,18 +733,17 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<mst_lot>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("Sample_Lot_pkey");
+            entity.HasKey(e => e.gid).HasName("mst_lot_pkey");
 
             entity.ToTable("mst_lot");
 
-            entity.HasIndex(e => e.geom, "sidx_Sample_Lot_geom").HasMethod("gist");
+            entity.HasIndex(e => e.geom, "mst_lot_geom_idx").HasMethod("gist");
 
-            entity.Property(e => e.id).ValueGeneratedNever();
             entity.Property(e => e.apdate).HasMaxLength(8);
             entity.Property(e => e.cls).HasMaxLength(1);
             entity.Property(e => e.daerah).HasMaxLength(2);
             entity.Property(e => e.entrymode).HasMaxLength(1);
-            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,3375)");
+            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,4326)");
             entity.Property(e => e.guid).HasMaxLength(32);
             entity.Property(e => e.landtitlec).HasMaxLength(2);
             entity.Property(e => e.landusecod).HasMaxLength(2);
@@ -753,6 +778,24 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.kod_mukim).HasMaxLength(50);
             entity.Property(e => e.kod_negeri).HasMaxLength(50);
             entity.Property(e => e.nam).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<mst_premis>(entity =>
+        {
+            entity.HasKey(e => e.gid).HasName("mst_premis_pkey");
+
+            entity.HasIndex(e => e.geom, "mst_premis_geom_idx").HasMethod("gist");
+
+            entity.Property(e => e.daerah).HasMaxLength(2);
+            entity.Property(e => e.gambar1).HasMaxLength(10);
+            entity.Property(e => e.gambar2).HasMaxLength(10);
+            entity.Property(e => e.geom).HasColumnType("geometry(Point,4326)");
+            entity.Property(e => e.lesen).HasMaxLength(20);
+            entity.Property(e => e.lot).HasMaxLength(7);
+            entity.Property(e => e.mukim).HasMaxLength(2);
+            entity.Property(e => e.negeri).HasMaxLength(2);
+            entity.Property(e => e.no_akaun).HasMaxLength(20);
+            entity.Property(e => e.seksyen).HasMaxLength(3);
         });
 
         modelBuilder.Entity<notification_email_history>(entity =>
@@ -934,8 +977,9 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasDefaultValueSql("NULL::character varying");
             entity.Property(e => e.profile_last_login).HasColumnType("timestamp without time zone");
             entity.Property(e => e.profile_name).HasMaxLength(50);
-            entity.Property(e => e.profile_photo_name).HasColumnType("character varying");
+            entity.Property(e => e.profile_photo_filename).HasColumnType("character varying");
             entity.Property(e => e.profile_postcode).HasMaxLength(1);
+            entity.Property(e => e.profile_signature_filename).HasColumnType("character varying");
             entity.Property(e => e.profile_status).HasMaxLength(30);
             entity.Property(e => e.profile_tel_no).HasMaxLength(150);
             entity.Property(e => e.profile_user_id).HasMaxLength(50);

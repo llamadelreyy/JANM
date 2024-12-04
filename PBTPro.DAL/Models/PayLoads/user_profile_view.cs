@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -75,6 +76,21 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? profile_section_view { get; set; }
 
         public string? profile_unit_view { get; set; }
+
+        public string? profile_signature_url { get; set; }
+    }
+
+    public class update_signature_input_model
+    {
+        public string user_id { get; set; } = null!;
+        public IFormFile? sign_image { get; set; }
+
+    }
+
+    public class update_avatar_input_model
+    {
+        public string user_id { get; set; } = null!;
+        public IFormFile? avatar_image { get; set; }
 
     }
 }
