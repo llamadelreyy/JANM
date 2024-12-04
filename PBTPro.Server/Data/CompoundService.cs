@@ -43,44 +43,36 @@ namespace PBTPro.Data
         public IConfiguration _configuration { get; }
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        protected readonly CommonFunction _cf;
-        protected readonly SharedFunction _sf;
-        private readonly ILogger<CompoundService> _logger;
-        private string LoggerName = "";
-        string _controllerName = "";
+        private readonly ILogger<ArchiveAuditService> _logger;
+        private readonly ApiConnector _apiConnector;
+        private readonly PBTAuthStateProvider _PBTAuthStateProvider;
+        protected readonly AuditLogger _cf;
 
-        public CompoundService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<CompoundService> logger, PBTProDbContext dbContext)
+        private string _baseReqURL = "/api/License";
+        private string LoggerName = "";
+
+        public CompoundService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<ArchiveAuditService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
-            _dbContext = dbContext;
             _httpContextAccessor = httpContextAccessor;
-            _cf = new CommonFunction(httpContextAccessor, configuration);
-            _sf = new SharedFunction(httpContextAccessor);
             _logger = logger;
-            _controllerName = (string)(_httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
+            _dbContext = dbContext;
+            _PBTAuthStateProvider = PBTAuthStateProvider;
+            _apiConnector = apiConnector;
+            _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+            _cf = new AuditLogger(configuration, apiConnector);
             CreateLesen();
-        }
-
-        public void GetDefaultPermission()
-        {
-            if (LoggerName != null || LoggerName != "")
-                LoggerName = "1";//User.Identity.Name;  // assign value to logger name
-            else LoggerName = null;
-        }
-
+        }       
 
         public async void CreateLesen()
         {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-
             try
             {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
+                //var platformApiUrl = _configuration["PlatformAPI"];
+                //var accessToken = _cf.CheckToken();
 
-                var request = _cf.CheckRequest(platformApiUrl + "/api/License/ListLicense");
-                string jsonString = await _cf.List(request);
+                //var request = _cf.CheckRequest(platformApiUrl + "/api/License/ListLicense");
+                //string jsonString = await _cf.List(request);
 
                 //Open this when the API is completed
                 //dataSource = JsonConvert.DeserializeObject<List<LesenInfo>>(jsonString);
@@ -368,11 +360,11 @@ namespace PBTPro.Data
                     }
                  };
 
-                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai lesen.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai lesen.", 1, LoggerName, "");
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
         }
 
@@ -385,30 +377,60 @@ namespace PBTPro.Data
         }
 
 
+        //[AllowAnonymous]
+        //[HttpGet]
+        //public async Task<List<LesenInfo>> RefreshLesenAsyncs()
+        //{
+        //    List<LesenInfo> arrItem = new List<LesenInfo>();
+
+        //    try
+        //    {
+        //        var platformApiUrl = _configuration["PlatformAPI"];
+        //        var accessToken = _cf.CheckToken();
+
+        //        var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
+        //        string jsonString = await _cf.List(request);
+        //        arrItem = JsonConvert.DeserializeObject<List<LesenInfo>>(jsonString);
+        //        await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai lesen.", 1, LoggerName, "");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+        //    }
+
+        //    return arrItem;
+        //}
+
         [AllowAnonymous]
         [HttpGet]
         public async Task<List<LesenInfo>> RefreshLesenAsync()
         {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-            List<LesenInfo> arrItem = new List<LesenInfo>();
-
+            var result = new List<LesenInfo>();
             try
             {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
+                string requestUrl = $"{_baseReqURL}/ListLesen";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
-                var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
-                string jsonString = await _cf.List(request);
-                arrItem = JsonConvert.DeserializeObject<List<LesenInfo>>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai lesen.", Convert.ToInt32(uID), LoggerName, "");
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<LesenInfo>>(dataString);
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula dan papar senarai jabatan.", 1, LoggerName, "");
+                    }
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
+                }
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<LesenInfo>();
             }
-
-            return arrItem;
+            return result;
         }
 
     }

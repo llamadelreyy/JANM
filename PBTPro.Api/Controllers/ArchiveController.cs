@@ -6,6 +6,8 @@ using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Services;
+using System.Reflection;
 
 namespace PBTPro.Api.Controllers
 {
@@ -16,30 +18,21 @@ namespace PBTPro.Api.Controllers
         protected readonly string? _dbConn;
         private readonly ILogger<ArchiveController> _logger;
         private readonly IConfiguration _configuration;
-        private readonly string _module = "Archive";
         private readonly PBTProDbContext _dbContext;
+        protected readonly CommonFunction _cf;
+        
+        private string LoggerName = "";
         private readonly string _feature = "ARCHIVE_AUDIT_LOG";
 
-        private List<auditlog_archive_info> _Faq { get; set; }
+        private List<auditlog_archive_info> _Archive { get; set; }
         public ArchiveController(PBTProDbContext dbContext, ILogger<ArchiveController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(dbContext)
         {
             _logger = logger;
             _configuration = configuration;
-            _dbConn = _configuration.GetConnectionString("DefaultConnection");//configuration.GetValue<string>("ConnectionStrings");
+            _dbConn = _configuration.GetConnectionString("DefaultConnection");
             _dbContext = dbContext;
+            _cf = new CommonFunction(httpContextAccessor, configuration);
         }
-
-
-        //[AllowAnonymous]
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<auditlog_archive_info>>> ListAudit()
-        //{
-        //    if (_dbContext.auditlog_archive_infos == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return await _dbContext.auditlog_archive_infos.ToListAsync();           
-        //}
 
         [AllowAnonymous]
         [HttpGet]
@@ -51,60 +44,17 @@ namespace PBTPro.Api.Controllers
 
                 if (parFormfields.Count == 0)
                 {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tiada rekod untuk dipaparkan", 1, LoggerName, "");
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
-
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk paparan senarai arkib log audit. ", 1, LoggerName, "");
                 return Ok(parFormfields, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
-        }
-
-        [AllowAnonymous]
-        [HttpGet("{id}")]
-        public async Task<ActionResult<auditlog_archive_info>> RetrieveAudit(int id)
-        {
-            if (_dbContext.auditlog_archive_infos == null)
-            {
-                return NotFound();
-            }
-            var audit = await _dbContext.auditlog_archive_infos.FindAsync(id);
-
-            if (audit == null)
-            {
-                return NotFound();
-            }
-
-            return audit;
-        }
-      
-
-        
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAudit(int id)
-        {
-            if (_dbContext.auditlog_archive_infos == null)
-            {
-                return NotFound();
-            }
-            var audit = await _dbContext.auditlog_archive_infos.FindAsync(id);
-            if (audit == null)
-            {
-                return NotFound();
-            }
-
-            _dbContext.auditlog_archive_infos.Remove(audit);
-            await _dbContext.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool AuditExists(int id)
-        {
-            return (_dbContext.auditlog_archive_infos?.Any(e => e.archive_id == id)).GetValueOrDefault();
         }
 
         #region Archived auditlog
@@ -126,13 +76,14 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception caught : InsertArchiveAudit - {0}", ex);
-                return null;
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
             finally
-            {                
+            {
             }
-            return Ok();
+            await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk arkib log audit.", 1, LoggerName, "");
+            return Ok("", SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
         }
         #endregion
 

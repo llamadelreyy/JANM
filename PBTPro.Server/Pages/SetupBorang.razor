@@ -13,7 +13,7 @@ Changes Logs:
 *@
 @page "/setupborang"
 @attribute [Authorize(Roles = "Administrator")]
-
+@using PBTPro.DAL.Services
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject ConfigFormFieldService _ConfigFormField
 @inject IToastNotificationService ToastService

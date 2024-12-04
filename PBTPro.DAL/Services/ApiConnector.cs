@@ -12,11 +12,12 @@ Changes Logs:
 07/11/2024 - initial create
 */
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using PBTPro.DAL.Models.CommonServices;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-namespace PBTPro.Data
+namespace PBTPro.DAL.Services
 {
     public class ApiConnector
     {

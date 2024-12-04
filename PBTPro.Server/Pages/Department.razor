@@ -1,7 +1,6 @@
 ﻿@page "/SenaraiJabatan"
 @attribute [AllowAnonymous]
 
-@inject DepartmentService _department
 
 @using System.Globalization
 @implements IDisposable
@@ -11,12 +10,13 @@
 @using PBTPro.DAL.Models;
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
-
+@using PBTPro.DAL.Services
+@inject DepartmentService _department
 @inject NavigationManager NavigationManager
 @inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
-
+@using PBTPro.DAL.Services
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="/images/icons/information.png" />
@@ -35,7 +35,7 @@
 <div class="item-container-x">
     <DxGrid @ref="Grid"
             Data="@_lstDepartment"
-            KeyFieldName="DeptId"
+            KeyFieldName="dept_id"
             ShowGroupPanel="true"
             ShowFilterRow="true"
             CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"

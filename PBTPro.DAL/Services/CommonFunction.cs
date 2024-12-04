@@ -5,10 +5,12 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PBTPro.DAL.Models;
+using PBTPro.DAL.Models.CommonServices;
 using Serilog;
 using System.Configuration;
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -25,13 +27,15 @@ namespace PBTPro.DAL.Services
         private readonly ILogger? _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private ISession _session;
+
+        private string _baseReqURL = "/api/Audit";
         public IConfiguration _configuration { get; }
         public CommonFunction(IHttpContextAccessor contextAccessor, IConfiguration configuration)
         {
             _httpContextAccessor = contextAccessor;
-            //_session = contextAccessor.HttpContext.Session;
             _configuration = configuration;
             _dbConn = configuration.GetValue<string>("ConnectionStrings");
+            _apiBaseUrl = configuration.GetValue<string>("ApiBaseUrl:Local");
         }
         public void LogConsole(string message,
         [CallerLineNumber] int lineNumber = 0,
@@ -75,7 +79,7 @@ namespace PBTPro.DAL.Services
         {
             var client = new HttpClient();
             var accessToken = CheckToken();
-            var platformApiUrl = _configuration["PlatformAPI"];
+            var platformApiUrl = _apiBaseUrl; //_configuration["PlatformAPI"];
            
             client.BaseAddress = new Uri(platformApiUrl);
 
@@ -97,7 +101,7 @@ namespace PBTPro.DAL.Services
         {
             var client = new HttpClient();
             var accessToken = CheckToken(); 
-            var platformApiUrl = _configuration["PlatformAPI"];
+            var platformApiUrl = _apiBaseUrl; //_configuration["PlatformAPI"];
             client.BaseAddress = new Uri(platformApiUrl);
 
             // Create the request message
@@ -205,6 +209,7 @@ namespace PBTPro.DAL.Services
         }
         #endregion
 
+        #region Check Token
         public string ReadConfig(string strKey)
         {
             string absolutePath = new Uri(Assembly.GetExecutingAssembly().CodeBase).AbsolutePath;
@@ -257,15 +262,16 @@ namespace PBTPro.DAL.Services
             var request = new HttpRequestMessage(HttpMethod.Put, $"{_apiBaseUrl}" + RequestURL);
             return request;
         }
+        #endregion
 
         #region audit
-
         [HttpPost]
         [AllowAnonymous]
-        public async Task<bool> CreateAuditLog(int intType, string strMethod, string strMessage, int userId, string uname, string moduleName, int roleid=0)
+        public async Task<ReturnViewModel> CreateAuditLog(int intType, string strMethod, string strMessage, int userId, string uname, string moduleName, int roleid=0)
         {
             try
             {
+                var result = new ReturnViewModel();
                 auditlog_info auditlog = new auditlog_info();
 
                 auditlog.audit_role_id = roleid;
@@ -276,9 +282,8 @@ namespace PBTPro.DAL.Services
                 auditlog.audit_username = uname;
                 auditlog.audit_method = strMethod;
 
-                //Calling api to perform addnew audit transaction
                 var accessToken = CheckToken();
-                var platformApiUrl = _configuration["PlatformAPI"];
+                var platformApiUrl = _apiBaseUrl;//_configuration["PlatformAPI"];
                 var request = CheckRequest("/api/Audit/InsertAudit");
 
                 var client = new HttpClient();
@@ -291,21 +296,18 @@ namespace PBTPro.DAL.Services
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     var results = await response.Content.ReadAsStringAsync();
-                    return true;
+                    return result;
                 }
                 else
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-
                     throw new Exception($"API request failed with status code {response.StatusCode}: {errorContent}");
                 }
             }
             catch (Exception ex)
             {
                 throw (ex);
-            }
-            ///
-
+            }           
             //skip for development - azmee
             //await Task.Delay(500); // Wait for 1/2 seconds
             //return true;

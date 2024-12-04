@@ -39,7 +39,6 @@ namespace PBTPro.Data
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         protected readonly CommonFunction _cf;
-        protected readonly SharedFunction _sf;
         private readonly ILogger<RoleService> _logger;
         private string LoggerName = "";
         string _controllerName = "";
@@ -50,7 +49,6 @@ namespace PBTPro.Data
             _dbContext = dbContext;
             _httpContextAccessor = httpContextAccessor;
             _cf = new CommonFunction(httpContextAccessor, configuration);
-            _sf = new SharedFunction(httpContextAccessor);
             _logger = logger;
             _controllerName = (string)(_httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
             CreateRole();

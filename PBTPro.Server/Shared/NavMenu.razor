@@ -1,4 +1,5 @@
-﻿@using PBTPro.Data
+﻿@using PBTPro.DAL.Services
+@using PBTPro.Data
 @inject PBTAuthStateProvider PBTAuthStateProvider
 
 
@@ -85,13 +86,13 @@
                 <Nodes>
                     <DxTreeViewNode NavigateUrl="dashboardmode" Text="Report Center" IconUrl="\images\icons-small\system-monitor.png" />
                     <DxTreeViewNode NavigateUrl="systemuser" Text="Report a Problem" IconUrl="\lib\remixicon\png\chat-quote-line.png" />
-                    <DxTreeViewNode NavigateUrl="systemuser" Text="FAQ" IconUrl="\lib\remixicon\png\question-answer-line.png" />
+                    <DxTreeViewNode NavigateUrl="soalan_lazim" Text="FAQ" IconUrl="\lib\remixicon\png\question-answer-line.png" />
                 </Nodes>
             </DxTreeViewNode>
 
             <DxTreeViewNode NavigateUrl="SenaraiAudit" Text="Log Audit" IconUrl="\images\icons-small\wrench-screwdriver.png" CssClass="singleNodesClass"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="SenaraiArkibAudit" Text="Arkib Log Audit" IconUrl="\images\icons-small\wrench-screwdriver.png" CssClass="singleNodesClass"></DxTreeViewNode>
-            <DxTreeViewNode NavigateUrl="SenaraiFaq" Text="Maklum Balas" IconUrl="\lib\remixicon\png\feedback-fill.png" CssClass="singleNodesClass"></DxTreeViewNode>
+            <DxTreeViewNode NavigateUrl="login" Text="Maklum Balas" IconUrl="\lib\remixicon\png\feedback-fill.png" CssClass="singleNodesClass"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="login" Text="Hubungi Kami" IconUrl="\lib\remixicon\png\customer-service-2-line.png" CssClass="singleNodesClass"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="login" Text="Log Keluar" IconUrl="\lib\remixicon\png\logout-box-r-line.png" CssClass="singleNodesClass"></DxTreeViewNode>
 
