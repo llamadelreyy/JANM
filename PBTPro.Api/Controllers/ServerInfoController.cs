@@ -21,9 +21,9 @@ namespace PBTPro.Api.Controllers
     [AllowAnonymous]
     public class ServerInfoController : IBaseController
     {
-        private readonly ILogger<SystemVersionController> _logger;
+        private readonly ILogger<ServerInfoController> _logger;
 
-        public ServerInfoController(PBTProDbContext dbContext, ILogger<SystemVersionController> logger) : base(dbContext)
+        public ServerInfoController(PBTProDbContext dbContext, ILogger<ServerInfoController> logger) : base(dbContext)
         {
             _logger = logger;
         }
