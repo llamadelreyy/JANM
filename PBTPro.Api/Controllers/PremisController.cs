@@ -181,8 +181,16 @@ namespace PBTPro.Api.Controllers
                     status_nota_pemeriksaan = random.Next(0, 2) == 0 ? "Passed" : "Failed"
                 }).AsNoTracking().FirstOrDefaultAsync();
 
-                result.lesen = new List<premis_license_view>();
+                result.gambar_premis = new List<string>
+                {
+                    "https://theedgemalaysia.com/_next/image?url=https%3A%2F%2Fassets.theedgemarkets.com%2FPos%20Malaysia%20opens%20Pos%20Shop%2C%20its%20first%20convenience%20shop_20230508140716_pos%20malaysia.jpg&w=1920&q=75",
+                    "https://static.instaweb.my/uploads/wysiwyg/images/104707401665077/kedai-pc.png",
+                    "https://scontent-sin2-1.xx.fbcdn.net/v/t39.30808-6/301583885_428763489351387_8158376777441457793_n.jpg?stp=dst-jpg_s960x960_tt6&_nc_cat=102&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=AfSXStBry2gQ7kNvgG8WM7T&_nc_zt=23&_nc_ht=scontent-sin2-1.xx&_nc_gid=Az8uOLVFqJqFGT_W_I6yY4e&oh=00_AYAZ2a7uqCgVkoNpoGgqJZYaX_z02VlYTGx1_iy9647Crw&oe=674DD89E",
+                    "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhsQfRR0OfAPz-CmrgdmrIYLlme02bU1_ZLRiocjBs0HHNiGTlCXCtUf6e5YpTrGXaxHeO4V7pWJNqoBz4aWnHyKuQZTYelsv0MRxdNH8FqxAg3cDh_SHlFrkb8jtJdluK5Cz_UnxbQIY8/s1600/IMG_3094jk.jpg",
+                    "https://malaysiapropertysearch.net/wp-content/uploads/2019/09/288951-500x281.jpg",
+                };
 
+                result.lesen = new List<premis_license_view>();
                 result.lesen.Add(new premis_license_view
                 {
                     aras = "G",
