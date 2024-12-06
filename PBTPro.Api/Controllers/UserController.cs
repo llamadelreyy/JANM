@@ -245,7 +245,7 @@ namespace PBTPro.Api.Controllers
                     await _dbContext.SaveChangesAsync();
                 }
 
-                return Ok("", SystemMesg(_feature, "UPDATE_SIGNATURE", MessageTypeEnum.Success, string.Format("Tandatangan berjaya disimpan")));
+                return Ok("", SystemMesg(_feature, "UPDATE_AVATAR", MessageTypeEnum.Success, string.Format("Gambar profil berjaya disimpan")));
             }
             catch (Exception ex)
             {
