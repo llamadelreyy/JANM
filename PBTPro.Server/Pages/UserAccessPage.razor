@@ -56,13 +56,18 @@
                     <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
                 </HeaderTemplate>
                 <CellDisplayTemplate>
-                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((role_menu)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    @{
+                        boolMarkOnce = false;
+                        boolPopulateOnce = false;
+                        strSelectedMenu = "";
+                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        <a @onclick="@(() => Delete((role_menu)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    }
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn Caption="Peranan" MinWidth="100" Width="10%" FieldName="role_name" />
-            <DxGridDataColumn Caption="Kategori" MinWidth="150" Width="15%" FieldName="menu_name" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn Caption="Menu" MinWidth="150" Width="15%" FieldName="submenu_name" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Peranan" MinWidth="100" Width="10%" GroupIndex="0" FieldName="role_name" />
+            <DxGridDataColumn Caption="Kategori" MinWidth="200" Width="20%" GroupIndex="1" FieldName="menu_name" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Menu" MinWidth="220" Width="22%" FieldName="submenu_name" TextAlignment="GridTextAlignment.Left" />
             <DxGridDataColumn Caption="Papar" MinWidth="80" Width="8%" FieldName="bln_read" TextAlignment="GridTextAlignment.Center" />
             <DxGridDataColumn Caption="Tambah" MinWidth="80" Width="8%" FieldName="bln_create" TextAlignment="GridTextAlignment.Center" />
             <DxGridDataColumn Caption="Ubah" MinWidth="80" Width="8%" FieldName="bln_update" TextAlignment="GridTextAlignment.Center" />
@@ -73,7 +78,7 @@
                               DisplayFormat="dd/MM/yyyy"
                               Caption="Tarikh Data"
                               MinWidth="100"
-                              Width="12%"
+                              Width="10%"
                               TextAlignment="GridTextAlignment.Center"
                               SortOrder="GridColumnSortOrder.Ascending"
                               SortIndex="0">
@@ -86,6 +91,120 @@
         <EditFormTemplate Context="EditFormContext">
             @{
                 var dtEdit = (role_menu)EditFormContext.EditModel;
+                var MenuContent = FileMenu.Content;
+
+                // This is to check whether in add new @ edit mode
+                boolEditMode = Grid.IsEditingNewRow();
+
+                int intRoleId = dtEdit.role_id;
+
+                // This is to check whether in add new @ edit mode
+                if ((!boolEditMode) && (!boolPopulateOnce))
+                {
+                    //Filter only the role
+                    var lstMenu = dataSource.Where(c => c.role_id == intRoleId);
+
+                    foreach (var item in MenuContent)
+                    {
+                        if (item.IsMenu)
+                        {
+                            foreach (var menu2 in item.Content)
+                            {
+                                if (menu2.IsMenu)
+                                {
+                                    foreach (var menu3 in menu2.Content)
+                                    {
+                                        foreach (var _dt in lstMenu)
+                                        {
+                                            //Papar
+                                            if ((_dt.menu_id.ToString() == menu3.ParentId) && (menu3.MenuId.ToString() == (_dt.bln_read ? "1" : "0")))
+                                            {
+                                                strSelectedMenu = menu3.ParentId + "-" + menu3.MenuId + "; " + strSelectedMenu;
+                                            }
+
+                                            //Tambah
+                                            if ((_dt.menu_id.ToString() == menu3.ParentId) && (menu3.MenuId.ToString() == (_dt.bln_create ? "2" : "0")))
+                                            {
+                                                strSelectedMenu = menu3.ParentId + "-" + menu3.MenuId + "; " + strSelectedMenu;
+                                            }
+
+                                            //Ubah
+                                            if ((_dt.menu_id.ToString() == menu3.ParentId) && (menu3.MenuId.ToString() == (_dt.bln_update ? "3" : "0")))
+                                            {
+                                                strSelectedMenu = menu3.ParentId + "-" + menu3.MenuId + "; " + strSelectedMenu;
+                                            }
+
+                                            //Hapus
+                                            if ((_dt.menu_id.ToString() == menu3.ParentId) && (menu3.MenuId.ToString() == (_dt.bln_delete ? "4" : "0")))
+                                            {
+                                                strSelectedMenu = menu3.ParentId + "-" + menu3.MenuId + "; " + strSelectedMenu;
+                                            }
+
+                                            //Cetak
+                                            if ((_dt.menu_id.ToString() == menu3.ParentId) && (menu3.MenuId.ToString() == (_dt.bln_print ? "5" : "0")))
+                                            {
+                                                strSelectedMenu = menu3.ParentId + "-" + menu3.MenuId + "; " + strSelectedMenu;
+                                            }
+                                        }
+
+                                        // if ((menu3.ParentId == "301") && (menu3.MenuId == "2"))
+                                        // {
+                                        //     //menu3.Selected = true;
+                                        //     strSelectedMenu = " - [" + menu3.ParentId + " - " + menu3.MenuId + "]; " + strSelectedMenu;
+                                        // }
+                                    }
+                                }
+                                else
+                                {
+
+                                    foreach (var _dt in lstMenu)
+                                    {
+                                        //Papar
+                                        if ((_dt.menu_id.ToString() == menu2.ParentId) && (menu2.MenuId.ToString() == (_dt.bln_read ? "1" : "0")))
+                                        {
+                                            strSelectedMenu = menu2.ParentId + "-" + menu2.MenuId + "; " + strSelectedMenu;
+                                        }
+
+                                        //Tambah
+                                        if ((_dt.menu_id.ToString() == menu2.ParentId) && (menu2.MenuId.ToString() == (_dt.bln_create ? "2" : "0")))
+                                        {
+                                            strSelectedMenu = menu2.ParentId + "-" + menu2.MenuId + "; " + strSelectedMenu;
+                                        }
+
+                                        //Ubah
+                                        if ((_dt.menu_id.ToString() == menu2.ParentId) && (menu2.MenuId.ToString() == (_dt.bln_update ? "3" : "0")))
+                                        {
+                                            strSelectedMenu = menu2.ParentId + "-" + menu2.MenuId + "; " + strSelectedMenu;
+                                        }
+
+                                        //Hapus
+                                        if ((_dt.menu_id.ToString() == menu2.ParentId) && (menu2.MenuId.ToString() == (_dt.bln_delete ? "4" : "0")))
+                                        {
+                                            strSelectedMenu = menu2.ParentId + "-" + menu2.MenuId + "; " + strSelectedMenu;
+                                        }
+
+                                        //Cetak
+                                        if ((_dt.menu_id.ToString() == menu2.ParentId) && (menu2.MenuId.ToString() == (_dt.bln_print ? "5" : "0")))
+                                        {
+                                            strSelectedMenu = menu2.ParentId + "-" + menu2.MenuId + "; " + strSelectedMenu;
+                                        }
+                                    }
+
+                                    // if ((menu2.ParentId == "400") && (menu2.MenuId == "2"))
+                                    // {
+
+                                    //     //menu2.Selected = true;
+                                    //     strSelectedMenu = " - [" + menu2.ParentId + " - " + menu2.MenuId + "]; " + strSelectedMenu;
+                                    // }
+                                }
+                            }
+                        }
+                    }
+
+                    // This is to marked that tree view is already populate
+                    boolPopulateOnce = true;
+                }
+
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
@@ -96,7 +215,8 @@
                             <td width="50%">
                                 <DxComboBox Data="@dataRole"
                                             NullText="Pilih Peranan ..."
-                                            FilteringMode="DataGridFilteringMode.Contains"
+                                            Enabled="@boolEditMode"
+                                            SearchFilterCondition="ListSearchFilterCondition.Contains"
                                             ShowValidationIcon="true"
                                             TextFieldName="role_name"
                                             ValueFieldName="role_id"
@@ -109,11 +229,29 @@
                             <td width="50%"></td>
                         </tr>
                         <tr>
-                            <td nowrap>Keterangan</td>
+                            <td nowrap>Menu</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
 
-
+                                <div class="cw-320" id="menuAccess" style="height:280px;overflow-x:hidden;border:1px solid #ccc;">
+                                    <DxTreeView Data="@MenuContent"
+                                                @ref="@MyTreeView"
+                                                CheckMode="TreeViewCheckMode.Recursive"
+                                                CheckAllVisible="true"
+                                                CheckedChanged="CheckedChanged"
+                                                AllowSelectNodes="true"
+                                                AnimationType="LayoutAnimationType.Slide"
+                                                CssClass="h-300">
+                                        <DataMappings>
+                                            <DxTreeViewDataMapping Children="Content"
+                                                                   Text="Name"
+                                                                   IconUrl="IconUrl"
+                                                                   CssClass="cssClass"
+                                                                   Checked="Selected"
+                                                                   IconCssClass="IconCssClass" />
+                                        </DataMappings>
+                                    </DxTreeView>
+                                </div>
                             </td>
                         </tr>
                     </table>
@@ -156,10 +294,19 @@
     [Inject] IToastNotificationService ToastService { get; set; }
     IEnumerable<role_menu> dataSource;
     IEnumerable<system_role> dataRole;
+    List<role_menu> _RoleMenu { get; set; }
+
+    DxTreeView MyTreeView;
+    IReadOnlyList<ITreeViewNodeInfo> checkedMenus;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
+
+    // This is to check whether in add new @ edit mode
+    bool boolEditMode { get; set; } = false;
+    bool boolPopulateOnce { get; set; } = false;
+    bool boolMarkOnce { get; set; } = false;
 
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
@@ -167,10 +314,34 @@
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+    int count = 0;
+    string strSelectedMenu { get; set; } = "";
+    void CheckedChanged(TreeViewCheckedChangedEventArgs e)
+    {
+        count = e.CheckedItems.Count;
+        if (e.CheckedItems != null)
+        {
+            checkedMenus = e.CheckedItems;
+        }
+
+        if (count > 0)
+        {
+            var dataItem = (FileMenuObject)checkedMenus[count - 1].DataItem;
+
+            //Check if user check Tambah, Ubah, Hapus and Print - make the Papar automatically checked
+            if ((dataItem.MenuId == "2") || (dataItem.MenuId == "3") || (dataItem.MenuId == "4") || (dataItem.MenuId == "5"))
+            {
+                MyTreeView.SetNodesChecked(n => (n.DataItem as FileMenuObject).ParentId == dataItem.ParentId && (n.DataItem as FileMenuObject).MenuId == "1", true);
+            }
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         dataSource = await _RoleMenuService.GetRoleMenuAsync();
         dataRole = await _RoleService.GetRoleAsync();
+        checkedMenus = new List<ITreeViewNodeInfo>();
+
         DataLoadedTcs.TrySetResult(true);
     }
 
@@ -180,6 +351,30 @@
         {
             await DataLoadedTcs.Task;
             await Grid.CancelEditAsync(); //.StartEditRowAsync(0);
+        }
+        else
+        {
+            if (!boolEditMode)
+            {
+                // Checked back all the item based on selected role
+                if ((!boolMarkOnce) && (strSelectedMenu.Trim() != ""))
+                {
+                    string[] arrMenuId = strSelectedMenu.Split(";");
+
+                    foreach (var item in arrMenuId)
+                    {
+                        string[] _idMenu = item.Split("-");
+                        MyTreeView.SetNodesChecked(n => (n.DataItem as FileMenuObject).ParentId == _idMenu[0].Trim() && (n.DataItem as FileMenuObject).MenuId == _idMenu[1].Trim(), true);
+                    }
+
+                    //MyTreeView.ExpandAll();
+                    // MyTreeView.SetNodesChecked(n => (n.DataItem as FileMenuObject).ParentId == "301" && (n.DataItem as FileMenuObject).MenuId == "2", true);
+                    // MyTreeView.SetNodesChecked(n => (n.DataItem as FileMenuObject).ParentId == "400" && (n.DataItem as FileMenuObject).MenuId == "2", true);
+
+                    // This is to marked that tree view is already populate
+                    boolMarkOnce = true;
+                }
+            }
         }
     }
 
@@ -194,6 +389,37 @@
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
+        string strParentId, strParentId2;
+        string strMenuId, strMenuId2;
+
+        for (var i = 0; i < count; i++)
+        {
+
+            strParentId = "";
+            strMenuId = "";
+            strParentId2 = "";
+            strMenuId2 = "";
+
+            var item = (FileMenuObject)checkedMenus[i].DataItem;
+
+            if (item.ParentId != "0")
+            {
+                var itemParent = (FileMenuObject)checkedMenus[i].Parent.DataItem;
+                strParentId2 = itemParent.ParentId;
+                strMenuId2 = itemParent.MenuId;
+
+                if (itemParent.ParentId != "0")
+                {
+                    var itemParent1 = (FileMenuObject)checkedMenus[i].Parent.Parent.DataItem;
+                    strParentId = itemParent1.ParentId;
+                    strMenuId = itemParent1.MenuId;
+                }
+            }
+
+            strSelectedMenu = strMenuId + "-" + strParentId + " - " + strMenuId2 + " - " + strParentId2 + " = [" + item.ParentId + " - " + item.MenuId + "]; " + strSelectedMenu;
+        }
+
+
         bool blnSuccess = false;
         if (e.IsNew)
             blnSuccess = true; //await _RoleMenuService.InsertUserRoleAsync((system_role)e.EditModel, intCurrentUserId);

@@ -40,7 +40,7 @@
                     <DxTreeViewNode NavigateUrl="role" Text="Peranan Sistem" IconUrl="\images\icons-small\toolbox.png" />
                     <DxTreeViewNode NavigateUrl="user_role" Text="Pengguna & Peranan" IconUrl="\images\icons-small\xfn-friend.png" />
                     <DxTreeViewNode NavigateUrl="user_access" Text="Akses Peranan" IconUrl="\images\icons-small\blue-document-tree.png" />
-                    <DxTreeViewNode NavigateUrl="SenaraiJabatan" Text="Jabatan" IconUrl="\images\icons-small\hard-hat.png" />
+                    <DxTreeViewNode NavigateUrl="senarai_jabatan" Text="Jabatan" IconUrl="\images\icons-small\hard-hat.png" />
                     <DxTreeViewNode NavigateUrl="unit" Text="Unit" IconUrl="\images\icons-small\hard-hat--arrow.png" />
                     <DxTreeViewNode NavigateUrl="./" Text="Negeri" IconUrl="\images\icons-small\direction.png" />
                     <DxTreeViewNode NavigateUrl="./" Text="Daerah" IconUrl="\images\icons-small\marker.png" />
@@ -91,13 +91,18 @@
                     <DxTreeViewNode NavigateUrl="dashboardmode" Text="Report Center" IconUrl="\images\icons-small\system-monitor.png" />
                     <DxTreeViewNode NavigateUrl="systemuser" Text="Report a Problem" IconUrl="\lib\remixicon\png\chat-quote-line.png" />
                     <DxTreeViewNode NavigateUrl="systemuser" Text="FAQ" IconUrl="\lib\remixicon\png\question-answer-line.png" />
+                    <DxTreeViewNode NavigateUrl="SenaraiFaq" Text="Maklum Balas" IconUrl="\lib\remixicon\png\feedback-fill.png" />
+                    <DxTreeViewNode NavigateUrl="login" Text="Hubungi Kami" IconUrl="\lib\remixicon\png\customer-service-2-line.png" />
                 </Nodes>
             </DxTreeViewNode>
 
-            <DxTreeViewNode NavigateUrl="SenaraiAudit" Text="Log Audit" IconUrl="\images\icons-small\wrench-screwdriver.png" CssClass="singleNodesClass"></DxTreeViewNode>
-            <DxTreeViewNode NavigateUrl="SenaraiArkibAudit" Text="Arkib Log Audit" IconUrl="\images\icons-small\wrench-screwdriver.png" CssClass="singleNodesClass"></DxTreeViewNode>
-            <DxTreeViewNode NavigateUrl="SenaraiFaq" Text="Maklum Balas" IconUrl="\lib\remixicon\png\feedback-fill.png" CssClass="singleNodesClass"></DxTreeViewNode>
-            <DxTreeViewNode NavigateUrl="login" Text="Hubungi Kami" IconUrl="\lib\remixicon\png\customer-service-2-line.png" CssClass="singleNodesClass"></DxTreeViewNode>
+            <DxTreeViewNode Text="Audit" IconUrl="" CssClass="@rootNodeCssClass">
+                <Nodes>
+                    <DxTreeViewNode NavigateUrl="SenaraiAudit" Text="Log Audit" IconUrl="\images\icons-small\wrench-screwdriver.png" />
+                    <DxTreeViewNode NavigateUrl="SenaraiArkibAudit" Text="Arkib Log Audit" IconUrl="\images\icons-small\wrench-screwdriver.png" />
+                </Nodes>
+            </DxTreeViewNode>
+
             <DxTreeViewNode NavigateUrl="login" Text="Log Keluar" IconUrl="\lib\remixicon\png\logout-box-r-line.png" CssClass="singleNodesClass"></DxTreeViewNode>
 
         </Nodes>
