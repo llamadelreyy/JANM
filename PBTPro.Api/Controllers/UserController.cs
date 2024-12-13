@@ -13,6 +13,7 @@ Changes Logs:
 20/11/2024 - add field & logic for profile avatar
 03/12/2024 - change hardcoded upload path & url to refer param table 
 */
+using DevExpress.Xpo.DB.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,9 @@ namespace PBTPro.Api.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IdentityOptions _identityOptions;
         private readonly string _feature = "USER";
+        private readonly long _maxFileSize = 5 * 1024 * 1024;
+        private readonly List<string> _imageFileExt = new List<string> {".jpg", ".jpeg", ".png"};
+
         public UserController(PBTProDbContext dbContext, ILogger<UserController> logger, UserManager<ApplicationUser> userManager, IOptions<IdentityOptions> identityOptions) : base(dbContext)
         {
             _logger = logger;
@@ -136,6 +140,19 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_USERID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
 
+                if (!IsFileExtensionAllowed(InputModel.sign_image, _imageFileExt))
+                {
+                    var imageFileExtString = String.Join(", ", _imageFileExt.ToList());
+                    List<string> param = new List<string> { imageFileExtString };
+                    return Error("", SystemMesg(_feature, "INVALID_FILE_EXT", MessageTypeEnum.Error, string.Format("Sambungan fail tidak disokong. Jenis yang disokong [0]."), param));
+                }
+
+                if (!IsFileSizeWithinLimit(InputModel.sign_image, _maxFileSize))
+                {
+                    List<string> param = new List<string> { FormatFileSize(_maxFileSize) };
+                    return Error("", SystemMesg(_feature, "INVALID_FILE_SIZE", MessageTypeEnum.Error, string.Format("saiz fail melebihi had yang dibenarkan, saiz fail maksimum yang dibenarkan ialah [0]."), param));
+                }
+
                 user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.profile_user_id == UserId);
 
                 if(userProfile == null)
@@ -204,6 +221,19 @@ namespace PBTPro.Api.Controllers
                 if (UserId != InputModel.user_id)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_USERID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                if (!IsFileExtensionAllowed(InputModel.avatar_image, _imageFileExt))
+                {
+                    var imageFileExtString = String.Join(", ", _imageFileExt.ToList());
+                    List<string> param = new List<string> { imageFileExtString };
+                    return Error("", SystemMesg(_feature, "INVALID_FILE_EXT", MessageTypeEnum.Error, string.Format("Sambungan fail tidak disokong. Jenis yang disokong ([0])."), param));
+                }
+
+                if(!IsFileSizeWithinLimit(InputModel.avatar_image, _maxFileSize))
+                {
+                    List<string> param = new List<string> { FormatFileSize(_maxFileSize) };                    
+                    return Error("", SystemMesg(_feature, "INVALID_FILE_SIZE", MessageTypeEnum.Error, string.Format("saiz fail melebihi had yang dibenarkan, saiz fail maksimum yang dibenarkan ialah [0]."), param));
                 }
 
                 user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.profile_user_id == UserId);

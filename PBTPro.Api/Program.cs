@@ -229,6 +229,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 //sseClientId remover for signalr server event protocol supports
 app.UseMiddleware<MiddlewareRemoveSseClientId>();
+app.UseMiddleware<MiddlewareErrorHandling>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
