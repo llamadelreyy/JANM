@@ -50,7 +50,7 @@ namespace PBTPro.Data
         public IConfiguration _configuration { get; }
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        protected readonly CommonFunction _cf;
+        protected readonly AuditLogger _cf;
         private readonly ILogger<PatrolService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
@@ -62,22 +62,18 @@ namespace PBTPro.Data
         public PatrolService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<PatrolService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
-            _httpContextAccessor = httpContextAccessor;
-            _cf = new CommonFunction(httpContextAccessor, configuration);
-            _logger = logger;
-            _dbContext = dbContext;
             _PBTAuthStateProvider = PBTAuthStateProvider;
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
 
-        [HttpGet]
         public async Task<List<patrol_info>> GetAllPatrolling()
         {            
             var result = new List<patrol_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/GetList";
+                string requestUrl = $"{_baseReqURL}/ListPatrol";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -108,7 +104,7 @@ namespace PBTPro.Data
             var result = new List<patrol_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/GetList";
+                string requestUrl = $"{_baseReqURL}/ListPatrol";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -141,7 +137,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/PostPatrolling";
+                string requestUrl = $"{_baseReqURL}/PostPatrol";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;
@@ -170,7 +166,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/UpdatePatrolling/{id}";
+                string requestUrl = $"{_baseReqURL}/UpdatePatrol/{id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;

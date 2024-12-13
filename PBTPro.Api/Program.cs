@@ -8,6 +8,7 @@ using PBTPro.Api.Constants;
 using PBTPro.Api.Controllers;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
+using PBTPro.DAL.Services;
 using PBTPro.Shared.Models.CommonService;
 using Prometheus;
 using System.Reflection;
@@ -225,6 +226,12 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<JWTTokenService>();
 builder.Services.AddAuthorization();
 #endregion
+
+// 07/11/2024 - ismail adding for API call services
+builder.Services.AddHttpClient<ApiConnector>(client =>
+{
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 
 var app = builder.Build();
 //sseClientId remover for signalr server event protocol supports

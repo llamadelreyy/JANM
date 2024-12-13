@@ -72,29 +72,46 @@
                     <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
                 </HeaderTemplate>
                 <CellDisplayTemplate>
-                    @if (dtData.patrol_status == "Baru")
-                    {
-                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        <a @onclick="@(() => Delete((patrol_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                    }
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((patrol_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
 
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_start_location)" Caption="Lokasi Rondaan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_start_dtm)" Caption="Masa Mula Rondaan" DisplayFormat="dd/MM/yyyy"
+            <DxGridDataColumn FieldName="@nameof(patrol_info.created_date)" Caption="Tarikh"
+                              MinWidth="120"
+                              Width="20%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0"
+                              DisplayFormat="dd/MM/yyyy" />
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_location)" Caption="Lokasi Rondaan" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_start_dtm)" Caption="Tarikh Mula Rondaan"
+                              MinWidth="120"
+                              Width="20%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0"
+                              DisplayFormat="dd/MM/yyyy" />
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_start_dtm)" Caption="Masa Mula Rondaan"
+                              MinWidth="120"
+                              Width="20%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0"
+                              DisplayFormat="HH:mm" />
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_end_dtm)" Caption="Masa Tamat Rondaan"
+                              DisplayFormat="HH:mm"
                               MinWidth="120"
                               Width="20%"
                               TextAlignment="GridTextAlignment.Center"
                               SortOrder="GridColumnSortOrder.Ascending"
                               SortIndex="0" />
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_end_dtm)" Caption="Masa Tamat Rondaan" DisplayFormat="dd/MM/yyyy"
-                              MinWidth="120"
-                              Width="20%"
-                              TextAlignment="GridTextAlignment.Center"
-                              SortOrder="GridColumnSortOrder.Ascending"
-                              SortIndex="0" />
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_status)" Caption="Status Rondaan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_status)" Caption="Status Rondaan" Width="20%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                <CellDisplayTemplate>
+                    <div>@GetStatusRondaanIconHtml(((patrol_info)context.DataItem).patrol_status)</div>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
 
         </Columns>
 
@@ -109,27 +126,39 @@
                         <tr>
                             <td nowrap>Nama Pegawai</td>
                             <td>&nbsp;:&nbsp;</td>
-                            <td width="50%" colspan="7">                                 
-                               <DxComboBox Data="@dtOfficerName" 
-                                    @bind-Value="@ValueOfficerName" 
-                                    NullText="Pilih Nama Pegawai..."
-                                    TextFieldName="@nameof(patrol_scheduler.scheduler_officer)"                                   
-                                    ShowValidationIcon="true"
-                                    onchange="OnOfficerNameChanged">
-                                </DxComboBox> 
-                               
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@namapegawai"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Nama Pegawai..."
+                                            @bind-Value="@dtData.patrol_officer_name"
+                                            @bind-Text="@dtData.patrol_officer_name">
+                                </DxComboBox>
+                                @* <DxComboBox Data="@dtOfficerName"
+                                @bind-Value="@ValueOfficerName"
+                                NullText="Pilih Nama Pegawai..."
+                                TextFieldName="@nameof(patrol_scheduler.scheduler_officer)"
+                                ShowValidationIcon="true"
+                                onchange="OnOfficerNameChanged">
+                                </DxComboBox>  *@
+
                             </td>
                         </tr>
                         <tr>
                             <td nowrap>Lokasi Rondaan</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxComboBox Data="@dtLocation"
-                                            @bind-Value="@ValueLocation"
+                                <DxComboBox Data="@lokasirondaan"
+                                            ShowValidationIcon="true"
                                             NullText="Pilih Lokasi Rondaan..."
-                                            TextFieldName="@nameof(patrol_scheduler.scheduler_location)"
-                                            ShowValidationIcon="true">
-                                </DxComboBox>                                
+                                            @bind-Value="@dtData.patrol_location"
+                                            @bind-Text="@dtData.patrol_location">
+                                </DxComboBox>
+                                @* <DxComboBox Data="@dtLocation"
+                                @bind-Value="@ValueLocation"
+                                NullText="Pilih Lokasi Rondaan..."
+                                TextFieldName="@nameof(patrol_scheduler.scheduler_location)"
+                                ShowValidationIcon="true">
+                                </DxComboBox> *@
                             </td>
                         </tr>
                         <tr>
@@ -216,7 +245,7 @@
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
     int intSelected { get; set; }
-    patrol_info dtData { get; set; }
+    patrol_info dtDatas { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -224,27 +253,19 @@
     private DateTime? patrolStartDtm = DateTime.Now;
     private DateTime? patrolEndDtm = DateTime.Now;
 
-    IEnumerable<patrol_scheduler> dtOfficerName { get; set; }
-    IEnumerable<patrol_scheduler> dtLocation { get; set; }
-
-    string ValueOfficerName { get; set; } = null;
-    string ValueLocation { get; set; }
     protected override async Task OnInitializedAsync()
-    {
-        _lstPatrollings = await _patrolling.GetPatrollingAsync();
-        DataLoadedTcs.TrySetResult(true);
-
+    {        
         try
         {
+            _lstPatrollings = await _patrolling.GetPatrollingAsync();
+            DataLoadedTcs.TrySetResult(true);
             _lstPatrollings = await _patrolling.GetAllPatrolling();
-            dtOfficerName = await _patrolling.GetOfficerName();
-            dtLocation = await _patrolling.GetPatrolLocation(ValueOfficerName);
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error loading actions: {ex.Message}");
         }
-    }        
+    }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -260,6 +281,10 @@
         if (_data.patrol_officer_name == null || _data.patrol_officer_name.Trim() == "")
         {
             e.AddError(nameof(_data.patrol_officer_name), "Nama pegawai rondaan tidak sah. Medan perlu diisi.");
+        }
+        if (_data.patrol_location == null || _data.patrol_location.Trim() == "")
+        {
+            e.AddError(nameof(_data.patrol_officer_name), "Lokasi rondaan tidak sah. Medan perlu diisi.");
         }
     }
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
@@ -307,7 +332,7 @@
     {
         strSelected = item.patrol_status;
         intSelected = item.patrol_id;
-        dtData = item;
+        dtDatas = item;
         ConfirmationShown = true;
     }
     async void OnYesButtonClick()
@@ -315,7 +340,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _patrolling.DeletePatrolling(dtData.patrol_id);
+            response = await _patrolling.DeletePatrolling(dtDatas.patrol_id);
 
             if (response.ReturnCode == 200)
             {
@@ -333,7 +358,7 @@
         catch (Exception ex)
         {
         }
-        dtData = null;
+        dtDatas = null;
     }
     void OnNoButtonClick()
     {
@@ -344,37 +369,6 @@
         if (e.Item.Name == "Custom")
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
-    public MarkupString GetStatusPatrollingIconHtml(string status)
-    {
-        string priorytyClass = "";
-        string title = "";
-
-        if (status == "Aktif")
-        {
-            priorytyClass = "info";
-            title = " AKTIF ";
-        }
-        else if (status == "Tidak Aktif")
-        {
-            priorytyClass = "danger";
-            title = " TIDAK AKTIF ";
-        }
-
-        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
-        title);
-        return new MarkupString(html);
-    }
-    public MarkupString CombineText(string strStatus, string strNama)
-    {
-        string html = string.Format("{0} <br/> {1}", strStatus, strNama.ToUpper());
-        return new MarkupString(html);
-    }
-    private List<string> patrollingStatusOptions = new List<string>
-    {
-        "Baru",
-        "Dalam Rondaan",
-        "Selesai"
-    };    
     void OnActiveTabIndexChanged(int index)
     {
         ActiveTabIndex = index;
@@ -428,8 +422,48 @@
                 Title = message
             });
     }
-    async Task OnOfficerNameChanged()
+    private List<string> namapegawai = new List<string>
     {
-        dtLocation = await _patrolling.GetPatrolLocation(ValueOfficerName);
+        "Mohd Zaki",
+        "Siti Aminah",
+        "Mohd Ali"
+    };
+    private List<string> lokasirondaan = new List<string>
+    {
+        "Telok Gong",
+        "Bukit Raja",
+        "Bukit Jalil",
+        "Puchong Jaya",
+        "Sri Petaling",
+    };
+    private List<string> patrollingStatusOptions = new List<string>
+    {
+        "Belum Mula",
+        "Rondaan",
+        "Selesai"
+    };
+    public MarkupString GetStatusRondaanIconHtml(string status)
+    {
+        string priorytyClass = "";
+        string title = "";
+
+        if (status == "Belum Mula")
+        {
+            priorytyClass = "danger";
+            title = " Belum Mula ";
+        }
+        else if (status == "Rondaan")
+        {
+            priorytyClass = "Info";
+            title = " Rondaan ";
+        }
+        else
+        {
+            priorytyClass = "success";
+            title = " Selesai ";
+        }
+
+        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
+        return new MarkupString(html);
     }
 }

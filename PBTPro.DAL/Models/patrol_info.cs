@@ -34,7 +34,7 @@ public partial class patrol_info
 
     public int? updated_by { get; set; }
 
-    public DateTime? update_date { get; set; }
+    public DateTime? updated_date { get; set; }
 
     public string patrol_officer_name { get; set; } = null!;
 

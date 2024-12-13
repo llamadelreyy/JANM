@@ -509,7 +509,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.ToTable("license_history", "license", tb => tb.HasComment("TABLE SEJARAH LESEN"));
 
             entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.last_updated).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
             entity.Property(e => e.license_hist_account).HasMaxLength(20);
             entity.Property(e => e.license_hist_addr1).HasMaxLength(100);
             entity.Property(e => e.license_hist_addr2).HasMaxLength(150);
@@ -518,6 +518,11 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.license_hist_holder).HasMaxLength(20);
             entity.Property(e => e.license_hist_pcode).HasPrecision(5);
             entity.Property(e => e.license_hist_state).HasMaxLength(30);
+
+            entity.HasOne(d => d.hist_id_license).WithMany(p => p.license_history)
+               .HasForeignKey(d => d.hist_id_info)
+               .OnDelete(DeleteBehavior.Restrict)
+               .HasConstraintName("hist_id_info");
         });
 
         modelBuilder.Entity<license_holder>(entity =>
@@ -861,7 +866,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.update_date)
+            entity.Property(e => e.updated_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.patrol_cnt_compound).HasDefaultValue(0);

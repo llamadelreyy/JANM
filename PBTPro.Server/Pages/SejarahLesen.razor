@@ -1,0 +1,308 @@
+﻿@page "/sejarah_lesen"
+@attribute [AllowAnonymous]
+
+@using System.Globalization
+@implements IDisposable
+@using Blazored.Toast.Services
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+@using PBTPro.DAL.Services
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+
+@inject NavigationManager NavigationManager
+@inject LicenseService _license
+@inject IToastService toastService
+@inject PBTAuthStateProvider _PBTAuthStateProvider
+@inject IToastNotificationService ToastService
+
+<div class="d-lg-flex border-bottom mb-2">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="/images/icons/information.png" />
+        <div class="textTitle">Lesen - Senarai Sejarah Lesen</div>
+    </div>
+</div>
+
+<style>
+    .dxbl-grid {
+        height: 79vh;
+        max-height: 79vh;
+    }
+</style>
+
+<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+<div class="item-container-x">
+    <DxGrid @ref="Grid"
+            Data="@_lstlicenseHistory"
+            KeyFieldName="license_hist_id"
+            ShowGroupPanel="true"
+            ShowFilterRow="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            PageSize="25"
+            CustomizeEditModel="Grid_CustomizeEditModel"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="@ColumnResizeMode"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
+
+        <Columns>
+
+            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
+                <HeaderTemplate>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((license_history)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                </CellDisplayTemplate>
+            </DxGridCommandColumn>
+
+
+            <DxGridDataColumn FieldName="@nameof(license_history.license_hist_account)" Caption="No Akaun" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(license_history.license_hist_holder)" Caption="Soalan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName=@nameof(license_history.license_hist_startd)
+                              DisplayFormat="dd/MM/yyyy"
+                              Caption="Tarikh Cipta"
+                              MinWidth="120"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0" />
+            <DxGridDataColumn FieldName=@nameof(license_history.license_hist_endd)
+                              DisplayFormat="dd/MM/yyyy"
+                              Caption="Tarikh Cipta"
+                              MinWidth="120"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0" />
+            <DxGridDataColumn FieldName=@nameof(license_history.created_date)
+                              DisplayFormat="dd/MM/yyyy"
+                              Caption="Tarikh Cipta"
+                              MinWidth="120"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0" />
+        </Columns>       
+    </DxGrid>
+
+
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+            <br />Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
+</div>
+
+@code {
+    private List<license_history> _lstlicenseHistory = new List<license_history>();
+
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
+    bool ConfirmationShown { get; set; } = false;
+    string strSelected { get; set; }
+    int intSelected { get; set; }
+    license_history dtData { get; set; }
+
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _lstlicenseHistory = await _license.GetHistoryLicenseAsync();
+        DataLoadedTcs.TrySetResult(true);
+        try
+        {
+            _lstlicenseHistory = await _license.GetAllLicenseHistory();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+            await Grid.CancelEditAsync();
+        }
+    }
+   
+     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+     {
+        // ReturnViewModel response = new ReturnViewModel();
+        // bool blnSuccess = false;
+        // var editModel = e.EditModel as license_history;
+        // try
+        // {
+        //     if (e.IsNew)
+        //     {
+        //         response = await _license.PostLicenseHistory(editModel);
+        //         blnSuccess = true;
+        //     }
+        //     else
+        //     {
+        //         response = await _license.PutLicenseHistory(editModel.faq_id, editModel);
+        //         blnSuccess = true;
+        //     }
+        //     if (blnSuccess)
+        //     {
+        //         await UpdateDataAsync();
+        //         toastService.ShowInfo("Proses kemaskini selesai.");
+        //     }
+        //     else
+        //     {
+        //         toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+        //     }
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        // }
+     }
+
+    async Task UpdateDataAsync()
+    {
+        _lstlicenseHistory = await _license.RefreshListLicenseHistory();
+    }
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+    async Task Delete(license_history item)
+    {
+        strSelected = item.license_hist_account;
+        //intSelected = item.license_hist_id;
+        dtData = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        // try
+        // {
+        //     ReturnViewModel response = new ReturnViewModel();
+        //     response = await _license.DeleteFaq(dtData.license_hist_id);
+
+        //     if (response.ReturnCode == 200)
+        //     {
+        //         await UpdateDataAsync();
+        //         ConfirmationShown = false;
+        //         StateHasChanged();
+        //         HandleResponse(response.ReturnMessage);
+        //     }
+        //     else
+        //     {
+        //         ConfirmationShown = false;
+        //         HandleResponse(response.ReturnMessage, "Error");
+        //     }
+        // }
+        // catch (Exception ex)
+        // {
+        // }
+    }
+
+    void OnNoButtonClick()
+    {
+        ConfirmationShown = false;
+    }
+    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        // var dataItem = (license_history)e.DataItem;
+        // var editModel = e.EditModel as license_history;
+
+        // if (dataItem == null)
+        //     e.EditModel = new license_history
+        //     {
+        //         // scheduler_date = DateTime.Now,
+        //     };
+        // else
+        // {
+        //     e.EditModel = new license_history
+        //         {
+        //             faq_id = dataItem.faq_id,
+        //             faq_category = dataItem.faq_category,
+        //             faq_question = dataItem.faq_question,
+        //             faq_answer = dataItem.faq_answer,
+        //             faq_status = dataItem.faq_status
+        //         };
+        // }
+    }
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    public MarkupString GetStatusFAQIconHtml(string status)
+    {
+        string priorytyClass = "";
+        string title = "";
+
+        if (status == "Aktif")
+        {
+            priorytyClass = "info";
+            title = " AKTIF ";
+        }
+        else if (status == "Tidak Aktif")
+        {
+            priorytyClass = "danger";
+            title = " TIDAK AKTIF ";
+        }
+
+        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+        title);
+        return new MarkupString(html);
+    }
+    public MarkupString CombineText(string strStatus, string strNama)
+    {
+        string html = string.Format("{0} <br/> {1}", strStatus, strNama.ToUpper());
+        return new MarkupString(html);
+    }
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
+}

@@ -41,9 +41,6 @@ namespace PBTPro.Data
 
         const string className = "CompoundService";
         public IConfiguration _configuration { get; }
-        private readonly PBTProDbContext _dbContext;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<ArchiveAuditService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
         protected readonly AuditLogger _cf;
@@ -51,16 +48,13 @@ namespace PBTPro.Data
         private string _baseReqURL = "/api/License";
         private string LoggerName = "";
 
-        public CompoundService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<ArchiveAuditService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
+        public CompoundService(IConfiguration configuration, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-            _dbContext = dbContext;
             _PBTAuthStateProvider = PBTAuthStateProvider;
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
-            _cf = new AuditLogger(configuration, apiConnector);
+            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
             CreateLesen();
         }       
 

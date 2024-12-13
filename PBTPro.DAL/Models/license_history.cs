@@ -9,7 +9,7 @@ namespace PBTPro.DAL.Models;
 public partial class license_history
 {
     public long license_hist_id { get; set; }
-
+    public long hist_id_info { get; set; }
     public string license_hist_account { get; set; } = null!;
 
     public string? license_hist_holder { get; set; }
@@ -32,5 +32,7 @@ public partial class license_history
 
     public DateTime? created_date { get; set; }
 
-    public DateTime? last_updated { get; set; }
+    public DateTime? updated_date { get; set; }
+    public virtual license_information hist_id_license { get; set; } = null!;
+
 }

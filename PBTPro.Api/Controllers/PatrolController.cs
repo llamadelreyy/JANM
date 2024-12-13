@@ -28,39 +28,60 @@ namespace PBTPro.Api.Controllers
     [ApiController]
     public class PatrolController : IBaseController
     {
-        private readonly ILogger<PatrolController> _logger;
+        //private readonly ILogger<PatrolController> _logger;
+        //private readonly IConfiguration _configuration;
+        //private readonly PBTProDbContext _dbContext;
+        //private readonly IHubContext<PushDataHub> _hubContext;
+        //protected readonly CommonFunction _cf;
+
+        //private string LoggerName = "";
+        //private readonly string _feature = "PATROL";
+
+        //public PatrolController(PBTProDbContext dbContext, ILogger<PatrolController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IHubContext<PushDataHub> hubContext) : base(dbContext)
+        //{
+        //    _logger = logger;
+        //    _configuration = configuration;
+        //    _dbContext = dbContext;
+        //    _hubContext = hubContext;
+        //    _cf = new CommonFunction(httpContextAccessor, configuration);
+        //}
+
+        protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
-        private readonly PBTProDbContext _dbContext;
         private readonly IHubContext<PushDataHub> _hubContext;
-        protected readonly CommonFunction _cf;
-        
-        private string LoggerName = "";
+        //private readonly ApiConnector _apiConnector;
+        //private readonly PBTAuthStateProvider _PBTAuthStateProvider;
+        //protected readonly AuditLogger _cf;
+
+        private string LoggerName = "administrator";
         private readonly string _feature = "PATROL";
 
-        public PatrolController(PBTProDbContext dbContext, ILogger<PatrolController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IHubContext<PushDataHub> hubContext) : base(dbContext)
+        public PatrolController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<PatrolController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
         {
-            _logger = logger;
+            _dbConn = configuration.GetConnectionString("DefaultConnection");
+            //_cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
+
             _configuration = configuration;
-            _dbContext = dbContext;
             _hubContext = hubContext;
-            _cf = new CommonFunction(httpContextAccessor, configuration);
+            //_PBTAuthStateProvider = PBTAuthStateProvider;
+            //_apiConnector = apiConnector;
+            //_apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         }
 
         #region patrol_info
         [AllowAnonymous]
         [HttpGet]
-        [Route("GetList")]
         public async Task<IActionResult> GetList(string? crs = null)
         {
             try
             {               
                 var data = await _dbContext.patrol_infos.Where(x => x.active_flag == true).AsNoTracking().ToListAsync();
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk senarai rondaan. ", 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk senarai rondaan. ", 1, LoggerName, "");
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -88,7 +109,7 @@ namespace PBTPro.Api.Controllers
 
                 if (isActivePatrolling)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "beberapa ahli pasukan telah tersenarai di dalam kumpulan rondaan aktif lain", 1, LoggerName, "");
+                    //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "beberapa ahli pasukan telah tersenarai di dalam kumpulan rondaan aktif lain", 1, LoggerName, "");
                     return Error("", SystemMesg(_feature, "MEMBERS_ACTIVEPATROL", MessageTypeEnum.Error, string.Format("beberapa ahli pasukan telah tersenarai di dalam kumpulan rondaan aktif lain")));
                 }
                 #endregion
@@ -158,12 +179,12 @@ namespace PBTPro.Api.Controllers
                     Isleader = true,
                     Members = memberDets.Where(x => x.Username != runUser).ToList()
                 };
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk mula rondaan. ", 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk mula rondaan. ", 1, LoggerName, "");
                 return Ok(result, SystemMesg(_feature, "START_PATROL", MessageTypeEnum.Success, string.Format("Berjaya memulakan rondaan")));
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -182,7 +203,7 @@ namespace PBTPro.Api.Controllers
 
                 if (patrol == null)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Rondaan tidak dijumpai", 1, LoggerName, "");
+                    //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Rondaan tidak dijumpai", 1, LoggerName, "");
                     return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
                 }
                 #endregion
@@ -191,7 +212,7 @@ namespace PBTPro.Api.Controllers
                 patrol.patrol_end_dtm = DateTime.Now;
                 patrol.patrol_status = "Completed";
                 patrol.updated_by = runUserID;
-                patrol.update_date = DateTime.Now;
+                patrol.updated_date = DateTime.Now;
 
                 _dbContext.patrol_infos.Update(patrol);
                 await _dbContext.SaveChangesAsync();
@@ -218,12 +239,128 @@ namespace PBTPro.Api.Controllers
                     PatrolId = patrol.patrol_id,
                     Isleader = true
                 };
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk berhenti rondaan. ", 1, LoggerName, "");
                 return Ok(result, SystemMesg(_feature, "STOP_PATROL", MessageTypeEnum.Success, string.Format("Berjaya menghentikan rondaan")));
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<patrol_info>>> ListPatrol()
+        {
+            try
+            {
+                var data = await _dbContext.patrol_infos.AsNoTracking().ToListAsync();
+                return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> PostPatrol([FromBody] patrol_info InputModel)
+        {
+            try
+            {
+                var runUserID = await getDefRunUserId();
+                var runUser = await getDefRunUser();
+
+                #region Validation
+                var formField = await _dbContext.patrol_infos.FirstOrDefaultAsync();
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                if (string.IsNullOrWhiteSpace(InputModel.patrol_officer_name))
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_OFFICER_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Pegawai diperlukan")));
+                }
+
+                #endregion
+
+                #region store data
+                patrol_info patrolinfo = new patrol_info
+                {
+                    patrol_officer_name = InputModel.patrol_officer_name,
+                    patrol_location = InputModel.patrol_location,
+                    patrol_status = "Belum Mula",
+                    patrol_start_dtm = InputModel.patrol_start_dtm, 
+                    patrol_end_dtm = InputModel.patrol_end_dtm,
+                    created_by = runUserID,
+                    created_date = DateTime.Now,
+                    active_flag = true,
+                };
+
+                _dbContext.patrol_infos.Add(patrolinfo);
+                await _dbContext.SaveChangesAsync();
+
+                #endregion               
+                return Ok(patrolinfo, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya tambah jadual rondaan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> UpdatePatrol(int Id, [FromBody] patrol_info InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                var formField = await _dbContext.patrol_infos.FirstOrDefaultAsync(x => x.patrol_id == Id);
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                if (string.IsNullOrWhiteSpace(InputModel.patrol_officer_name))
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_OFFICER_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Pegawai diperlukan")));
+                }
+                if (string.IsNullOrWhiteSpace(InputModel.patrol_location))
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_LOCATION", MessageTypeEnum.Error, string.Format("Ruangan Lokasi Rondaan diperlukan")));
+                }
+                //check nama pegawai sama dan status masih dlm rondaan
+                if (formField.patrol_officer_name == InputModel.patrol_officer_name && (formField.patrol_status == "Rondaan"))
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_SCHEDULE", MessageTypeEnum.Error, string.Format("Pegawai masih belum selesai membuat rondaan. Sila pilih pegawai lain")));
+                }
+                //var relatedPatrols = await _dbContext.patrol_infos
+                //                    .Where(x => x.patrol_officer_name == InputModel.patrol_officer_name)
+                //                    .ToListAsync();
+
+                if (formField.patrol_start_dtm == InputModel.patrol_start_dtm && formField.patrol_officer_name == InputModel.patrol_officer_name && formField.patrol_location == InputModel.patrol_location)
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_SCHEDULE", MessageTypeEnum.Error, string.Format("Pegawai yang ditugaskan tidak available.")));
+                }
+                
+                #endregion
+
+                formField.patrol_officer_name = InputModel.patrol_officer_name;
+                formField.patrol_location = InputModel.patrol_location;
+                formField.patrol_start_dtm = InputModel.patrol_start_dtm;
+                formField.patrol_end_dtm = InputModel.patrol_end_dtm;
+                formField.updated_by = runUserID;
+                formField.updated_date = DateTime.Now;
+
+                _dbContext.patrol_infos.Update(formField);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
+            }
+            catch (Exception ex)
+            {
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -240,12 +377,10 @@ namespace PBTPro.Api.Controllers
             {
                 var data = await _dbContext.patrol_schedulers.Where(x => x.active_flag == true).AsNoTracking().ToListAsync();
 
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk senarai jadual rondaan. ", 1, LoggerName, "");
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -257,8 +392,6 @@ namespace PBTPro.Api.Controllers
             {
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
-                List<string> teamMembers = new List<string>();
-                teamMembers.Add(runUser);
 
                 #region store data
                 patrol_scheduler patrolscheduler = new patrol_scheduler
@@ -283,12 +416,12 @@ namespace PBTPro.Api.Controllers
                     scheduler_id = patrolscheduler.scheduler_id                    
                 };
 
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk tambah jadual rondaan. ", 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk tambah jadual rondaan. ", 1, LoggerName, "");
                 return Ok(result, SystemMesg(_feature, "CREATE_PATROL_SCHEDULER", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -334,12 +467,12 @@ namespace PBTPro.Api.Controllers
                 _dbContext.patrol_schedulers.Update(formField);
                 await _dbContext.SaveChangesAsync();
 
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk kemaskini jadual rondaan. ", 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk kemaskini jadual rondaan. ", 1, LoggerName, "");
                 return Ok(formField, SystemMesg(_feature, "Update", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -362,12 +495,12 @@ namespace PBTPro.Api.Controllers
                 _dbContext.patrol_schedulers.Remove(formField);
                 await _dbContext.SaveChangesAsync();
 
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk padam jadual rondaan. ", 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk padam jadual rondaan. ", 1, LoggerName, "");
                 return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+               // await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -408,7 +541,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -436,7 +569,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }

@@ -65,7 +65,7 @@ namespace PBTPro.Data
         {
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
-            _cf = new AuditLogger(configuration, apiConnector);
+            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
             _logger = logger;
             _dbContext = dbContext;
             _PBTAuthStateProvider = PBTAuthStateProvider;

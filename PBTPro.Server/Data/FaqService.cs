@@ -62,15 +62,12 @@ namespace PBTPro.Data
         public FaqService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<FaqService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
-            _httpContextAccessor = httpContextAccessor;
-            _cf = new AuditLogger(configuration, apiConnector);
-            _logger = logger;
-            _dbContext = dbContext;
             _PBTAuthStateProvider = PBTAuthStateProvider;
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
-        
+
         [HttpGet]
         public async Task<List<faq_info>> GetAllFaq()
         {
@@ -80,7 +77,6 @@ namespace PBTPro.Data
 
             try
             {
-
                 if (response.ReturnCode == 200)
                 {
                     string? dataString = response?.Data?.ToString();
@@ -88,13 +84,9 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<faq_info>>(dataString);
                         await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
-                    }
-                    else
-                    {
-                        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
-                    }
+                    }                    
                 }
-
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
             }
             catch (Exception ex)
             {
