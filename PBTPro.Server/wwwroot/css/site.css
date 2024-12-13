@@ -1318,3 +1318,46 @@ label {
     width: 40%;
     padding: 0px 10px;
 }
+
+.treeview-icon {
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    background-position: center center;
+}
+
+.treeview-icon-folder {
+    background-image: url("images/icons/folder-color.svg");
+}
+
+.treeview-icon-image {
+    background-image: url("images/icons/image-colors.svg");
+}
+
+.treeview-icon-video {
+    background-image: url("images/icons/video-colors.svg");
+}
+
+.treeview-icon-music {
+    background-image: url("images/icons/music-colors.svg");
+}
+
+.treeview-icon-document {
+    background-image: url("images/icons/document-color.svg");
+}
+
+#menuAccess .dxbl-treeview-item-content {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    margin: 0 !important;
+    font-weight: normal;
+}
+
+/*main tree view gap*/
+.dxbl-treeview-item-content {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    margin: 0 !important;
+}
