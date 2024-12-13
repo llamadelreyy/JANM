@@ -127,7 +127,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15); 
-        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.MaxFailedAccessAttempts = 3;
         options.Lockout.AllowedForNewUsers = true;
     })
     .AddEntityFrameworkStores<PBTProDbContext>()

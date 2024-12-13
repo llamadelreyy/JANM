@@ -1,11 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using PBTPro.Api.Constants;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
 using PBTPro.DAL.Models.CommonServices;
 using System.Security.Claims;
+using System.Text;
 
 namespace PBTPro.Api.Controllers
 {
@@ -16,13 +21,14 @@ namespace PBTPro.Api.Controllers
         private readonly ILogger<AuthenticateController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IdentityOptions _identityOptions;
         private readonly IConfiguration _configuration;
         private readonly JWTTokenService _tokenService;
         private readonly IEmailSender _emailSender;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly string _feature = "AUTH";
 
-        public AuthenticateController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, PBTProDbContext dbContext, ILogger<AuthenticateController> logger, JWTTokenService tokenService, IEmailSender emailSender) : base(dbContext)
+        public AuthenticateController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IOptions<IdentityOptions> identityOptions, RoleManager<IdentityRole> roleManager, IConfiguration configuration, PBTProDbContext dbContext, ILogger<AuthenticateController> logger, JWTTokenService tokenService, IEmailSender emailSender) : base(dbContext)
         {
             _logger = logger;
             _userManager = userManager;
@@ -31,6 +37,7 @@ namespace PBTPro.Api.Controllers
             _tokenService = tokenService;
             _emailSender = emailSender;
             _roleManager = roleManager;
+            _identityOptions = identityOptions.Value;
         }
 
         [HttpPost]
@@ -96,7 +103,7 @@ namespace PBTPro.Api.Controllers
                     await SendEmailSelfRegisterMember(user.Email, user.UserName, model.Password, model.Name);
                 }
 
-                return Error("", SystemMesg(_feature, "REGISTER", MessageTypeEnum.Success, string.Format("Pengguna berjaya dicipta.")));
+                return Ok("", SystemMesg(_feature, "REGISTER", MessageTypeEnum.Success, string.Format("Pengguna berjaya dicipta.")));
 
             }
             catch (Exception ex)
@@ -175,9 +182,9 @@ namespace PBTPro.Api.Controllers
                 }
                 else
                 {
-                    if (user.AccessFailedCount < 4)
+                    if (user.AccessFailedCount < 2)
                     {
-                        var attempLeft = (5 - user.AccessFailedCount);
+                        var attempLeft = (3 - user.AccessFailedCount);
                         List<string> param = new List<string> { attempLeft.ToString() };
                         return Error("", SystemMesg(_feature, "INCORRECT_LOGIN", MessageTypeEnum.Error, string.Format("Kata laluan tidak sah. [0] cubaan tinggal."), param));
                     }
@@ -193,7 +200,161 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword(string Username)
+        {
+            try
+            {
+                var user = await _userManager.FindByNameAsync(Username);
+                if (user == null)
+                {
+                    return Error("", SystemMesg(_feature, "USER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pengguna tidak sah.")));
+                }
+
+                string UIPublicUrl = await getBaseUIPublicURL();
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                token = Convert.ToBase64String(Encoding.UTF8.GetBytes(token));
+                var endpoint = new Uri(new Uri(UIPublicUrl), "/reset_password").ToString();
+
+                var resetPasswordUrl = endpoint + "?token=" + token;
+                await SendEmailForgotPassword(user.Email, user.UserName, resetPasswordUrl);
+                
+                return Ok("", SystemMesg(_feature, "FORGOT_PASSWORD", MessageTypeEnum.Success, string.Format("Berjaya menjana pautan terlupa kata laluan.")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("ResetPassword")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordInput model)
+        {
+            try
+            {
+                #region Validation
+                if (string.IsNullOrWhiteSpace(model.new_password))
+                {
+                    return Error("", SystemMesg(_feature, "NEW_PASSWORD_ISNULL", MessageTypeEnum.Error, string.Format("Kata Laluan baharu diperlukan")));
+                }
+
+                if (string.IsNullOrWhiteSpace(model.valid_new_password))
+                {
+                    return Error("", SystemMesg(_feature, "VALID_NEW_PASS_ISNULL", MessageTypeEnum.Error, string.Format("Sahkan Kata Laluan diperlukan")));
+                }
+
+                if (model.new_password != model.valid_new_password)
+                {
+                    return Error("", SystemMesg(_feature, "NEW_PASS_MISSMATCH", MessageTypeEnum.Error, string.Format("Kata Laluan baharu tidak sepadan")));
+                }
+
+                var user = await _userManager.FindByNameAsync(model.username);
+                if (user == null)
+                {
+                    return Error("", SystemMesg(_feature, "USER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pengguna tidak sah.")));
+                }
+
+                byte[] tokenData = Convert.FromBase64String(model.reset_token);
+                string decodedToken = System.Text.Encoding.UTF8.GetString(tokenData);
+                if (!await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", decodedToken))
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RESET_PASSWORD_TOKEN", MessageTypeEnum.Error, string.Format("Token tidak sah.")));
+                }
+
+                List<string> passwordErrors = new List<string>();
+                var validators = _userManager.PasswordValidators;
+                foreach (var validator in validators)
+                {
+                    var result = await validator.ValidateAsync(_userManager, null, model.new_password);
+                    if (!result.Succeeded)
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            if (error.Code.ToLower() == "passwordtooshort")
+                            {
+                                var requiredPasswordLength = _identityOptions.Password.RequiredLength;
+                                List<string> param = new List<string> { requiredPasswordLength.ToString() };
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_TOO_SHORT", MessageTypeEnum.Error, string.Format("Kata laluan mestilah sekurang-kurangnya [0] aksara."), param));
+                                continue;
+                            }
+
+                            if (error.Code.ToLower() == "passwordrequiresdigit")
+                            {
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_DIGIT", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu digit ('0'-'9').")));
+                                continue;
+                            }
+
+                            if (error.Code.ToLower() == "passwordrequiresnonalphanumeric")
+                            {
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_NONALPHA", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu aksara bukan abjad angka.")));
+                                continue;
+                            }
+
+                            if (error.Code.ToLower() == "passwordrequiresuniquechars")
+                            {
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_UNIQUE", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu aksara unik.")));
+                                continue;
+                            }
+
+                            if (error.Code.ToLower() == "passwordrequireslower")
+                            {
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_LOWER", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu huruf kecil ('a'-'z').")));
+                                continue;
+                            }
+
+                            if (error.Code.ToLower() == "passwordrequiresupper")
+                            {
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_UPPER", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu huruf besar ('A'-'Z').")));
+                                continue;
+                            }
+                        }
+                    }
+                }
+                if (passwordErrors.Count > 0)
+                {
+                    var ValidationErr = String.Join("\r\n- ", passwordErrors.ToList());
+                    List<string> param = new List<string> { "- " + ValidationErr };
+                    return Error("", SystemMesg(_feature, "INVALID_PASS_COMBINATION", MessageTypeEnum.Error, string.Format("Kombinasi katalaluan tidak diterima :\r\n[0]"), param));
+                }
+                #endregion
+
+                var resultd = await _userManager.ResetPasswordAsync(user, decodedToken, model.new_password);
+                if (resultd.Succeeded)
+                {
+                    return Ok("", SystemMesg(_feature, "RESET_PASSWORD", MessageTypeEnum.Success, string.Format("Berjaya menetap semula kata laluan")));
+                }
+                else
+                {
+                    return Error("", SystemMesg(_feature, "RESET_PASSWORD", MessageTypeEnum.Error, string.Format("Gagal menetap semula kata laluan")));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
         #region Private Logic
+        private async Task<string?> getBaseUIPublicURL()
+        {
+            string? result = null;
+
+            try
+            {
+                result = await _dbContext.config_system_params.Where(x => x.param_group == "Core" && x.param_name == "BaseUIPublicUrl").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                //do nothing
+            }
+            return result;
+        }
+
         private async Task<bool> SendEmailSelfRegisterMember(string recipient, string username, string password, string name)
         {
             try
@@ -216,6 +377,35 @@ namespace PBTPro.Api.Controllers
                 var emailRs = await emailHelper.QueueEmail(emailContent.subject, emailContent.body, recipient);
                 var sentRs = await emailHelper.ForceProcessQueue(emailRs);
                 
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> SendEmailForgotPassword(string recipient, string username, string resetPasswordUrl)
+        {
+            try
+            {
+                //Default Email Template
+                EmailContent defaultContent = new EmailContent
+                {
+                    subject = "Set semula kata laluan",
+                    body = "Hai [0], Anda telah mohon set semula kata laluan.<br/><br/>" +
+                    "Untuk set semula kata laluan anda sila klik pada pautan berikut: <a href=\"[1]\">Set Semula Kata Laluan</a><br/><br/>" +
+                    "Jika anda tidak memohon set semula kata laluan, sila abaikan emel ini.<br/><br/>" +
+                    "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir MasjidKita<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
+                };
+
+                string[] param = { username, resetPasswordUrl };
+
+                var emailHelper = new EmailHelper(_dbContext, _emailSender);
+                EmailContent emailContent = await emailHelper.getEmailContent("FORGOT_PASSWORD", param, defaultContent);
+
+                var emailRs = await emailHelper.QueueEmail(emailContent.subject, emailContent.body, recipient);
+                var sentRs = await emailHelper.ForceProcessQueue(emailRs);     
                 return true;
             }
             catch (Exception ex)
