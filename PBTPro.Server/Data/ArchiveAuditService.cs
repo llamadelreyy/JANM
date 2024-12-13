@@ -66,7 +66,7 @@ namespace PBTPro.Data
             _PBTAuthStateProvider = PBTAuthStateProvider;
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
-            _cf = new AuditLogger(configuration, apiConnector);
+            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
         public Task<List<auditlog_archive_info>> GetAuditAsync(CancellationToken ct = default)
         {

@@ -46,35 +46,27 @@ namespace PBTPro.Data
         }
 
         public IConfiguration _configuration { get; }
-        private readonly PBTProDbContext _dbContext;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        protected readonly AuditLogger _cf;
-        private readonly ILogger<AuditService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
-
+        protected readonly AuditLogger _cf;
         private string _baseReqURL = "/api/Audit";
-        private string LoggerName = "";
-
+        private string LoggerName = "administrator";
         private List<auditlog_info> _Audit { get; set; }
-        public AuditService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<AuditService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
+
+        public AuditService(IConfiguration configuration, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
-            _httpContextAccessor = httpContextAccessor;
-            _cf = new AuditLogger(configuration, apiConnector);
-            _logger = logger;
-            _dbContext = dbContext;
             _PBTAuthStateProvider = PBTAuthStateProvider;
             _apiConnector = apiConnector;
-            _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+            _apiConnector.accessToken = _PBTAuthStateProvider.accessToken; 
+            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
         public Task<List<auditlog_info>> GetAuditAsync(CancellationToken ct = default)
         {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk log audit.", 1, "", LoggerName);
+            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk log audit.", 1, LoggerName, "");
             return Task.FromResult(_Audit);
         }
 
-        [HttpGet]
         public async Task<List<auditlog_info>> GetAllAudit()
         {            
             var result = new List<auditlog_info>();
@@ -89,7 +81,7 @@ namespace PBTPro.Data
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
                         result = JsonConvert.DeserializeObject<List<auditlog_info>>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai log audit. " + response.ReturnCode, 1, LoggerName, "");
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai log audit. ", 1, LoggerName, "");
                     }
                 }
                 else {

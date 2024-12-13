@@ -45,11 +45,13 @@ namespace PBTPro.DAL.Services
         private List<auditlog_info> _Audit { get; set; }
         public IConfiguration Configuration { get; }
 
-        public AuditLogger(IConfiguration configuration, ApiConnector apiConnector)
+        public AuditLogger(IConfiguration configuration, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
             _dbConn = configuration.GetValue<string>("ConnectionStrings");            
             _apiConnector = apiConnector;
+            _PBTAuthStateProvider = PBTAuthStateProvider;
+            _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         }
         public async Task<ReturnViewModel> CreateAuditLog(int intType, string strMethod, string strMessage, int userId, string uname, string moduleName, int roleid = 0)
         {

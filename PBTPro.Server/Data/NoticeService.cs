@@ -1,5 +1,10 @@
-﻿using GoogleMapsComponents.Maps;
+﻿using DevExpress.Xpo.Logger;
+using GoogleMapsComponents.Maps;
+using PBTPro.DAL;
 using PBTPro.DAL.Models;
+using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Services;
+using System.Reflection;
 
 
 namespace PBTPro.Data
@@ -31,21 +36,39 @@ namespace PBTPro.Data
         }
 
         private List<NoticeProp> _Notice { get; set; }
-
+        const string className = "NoticeService";
         public IConfiguration Configuration { get; }
-        public NoticeService(IConfiguration configuration)
+        private readonly ApiConnector _apiConnector;
+        private readonly PBTAuthStateProvider _PBTAuthStateProvider;
+        protected readonly AuditLogger _cf;
+
+        private string _baseReqURL = "/api/License";
+        private string LoggerName = "";
+
+        public NoticeService(IConfiguration configuration, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             Configuration = configuration;
-            _Notice = CreateNotice();
+            _PBTAuthStateProvider = PBTAuthStateProvider;
+            _apiConnector = apiConnector;
+            _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
+            CreateNotice();
         }
 
-        public List<NoticeProp> CreateNotice()
+        //public NoticeService(IConfiguration configuration)
+        //{
+        //    Configuration = configuration;
+        //    CreateNotice();
+        //}
+
+        //public List<NoticeProp> CreateNotice()
+        public async void CreateNotice()
         {
             List<NoticeProp> dataSource = new List<NoticeProp>();
 
             try
             {
-                dataSource = new List<NoticeProp> {
+                _Notice = new List<NoticeProp> {
                     new NoticeProp {
                         IdNotice = 1,
                         Bil = 1,
@@ -380,21 +403,20 @@ namespace PBTPro.Data
                         DateCreated = DateTime.Parse("2023/03/11")
                     }
                  };
+                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai notis.", 1, LoggerName, "");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception caught : CreateNotice - {0}", ex);
-                return dataSource;
+                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             finally
             {
             }
-
-            return dataSource;
         }
 
         public Task<List<NoticeProp>> GetNoticeAsync(CancellationToken ct = default)
         {
+            var result = _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai notis.", 1, LoggerName, "");
             return Task.FromResult(_Notice);
         }
 

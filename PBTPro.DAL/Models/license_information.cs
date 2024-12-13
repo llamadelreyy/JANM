@@ -75,4 +75,6 @@ public partial class license_information
     public virtual ICollection<license_tax> license_taxes { get; set; } = new List<license_tax>();
 
     public virtual ICollection<license_transaction> license_transactions { get; set; } = new List<license_transaction>();
+
+    public virtual ICollection<license_history> license_history { get; set; } = new List<license_history>();
 }
