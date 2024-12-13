@@ -356,5 +356,57 @@ namespace PBTPro.Api.Controllers.Base
             }
             return result;
         }
+
+        #region file upload
+        public static bool IsFileExtensionAllowed(IFormFile file, List<string> allowedExtensions)
+        {
+            var extension = Path.GetExtension(file.FileName).ToLower();
+            return allowedExtensions.Contains(extension);
+        }
+        
+        public static bool IsFileSizeWithinLimit(IFormFile file, long maxSizeInBytes)
+        {
+            return file.Length <= maxSizeInBytes;
+        }
+
+        public static bool FileWithSameNameExists(IFormFile file, string directory)
+        {
+            var Fullpath = Path.Combine(directory, file.FileName);
+            if (System.IO.File.Exists(Fullpath))
+            {
+                return true;
+            }
+            return false;
+        }
+        
+        public static string FormatFileSize(long bytes)
+        {
+            const long KB = 1024;
+            const long MB = 1024 * KB;
+            const long GB = 1024 * MB;
+            const long TB = 1024 * GB;
+
+            if (bytes >= TB)
+            {
+                return $"{bytes / (double)TB:F2} TB";
+            }
+            else if (bytes >= GB)
+            {
+                return $"{bytes / (double)GB:F2} GB";
+            }
+            else if (bytes >= MB)
+            {
+                return $"{bytes / (double)MB:F2} MB";
+            }
+            else if (bytes >= KB)
+            {
+                return $"{bytes / (double)KB:F2} KB";
+            }
+            else
+            {
+                return $"{bytes} bytes";
+            }
+        }
+        #endregion
     }
 }
