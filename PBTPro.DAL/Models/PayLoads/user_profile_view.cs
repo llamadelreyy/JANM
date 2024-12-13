@@ -93,4 +93,11 @@ namespace PBTPro.DAL.Models.PayLoads
         public IFormFile? avatar_image { get; set; }
 
     }
+
+    public class update_password_input_model
+    {
+        public string? new_password { get; set; }
+        public string? valid_new_password { get; set; }
+
+    }
 }

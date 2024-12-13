@@ -37,6 +37,14 @@ namespace PBTPro.DAL.Models.CommonServices
         public bool RememberMe { get; set; }
     }
 
+    public class ResetPasswordInput
+    {
+        public string username { get; set; }
+        public string new_password { get; set; }
+        public string valid_new_password { get; set; }
+        public string reset_token { get; set; }
+    }
+
     public class AuthenticatedUser
     {
         public string Userid { get; set; } = "";
