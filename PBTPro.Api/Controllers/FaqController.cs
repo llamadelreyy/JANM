@@ -26,51 +26,18 @@ namespace PBTPro.Api.Controllers
     [Route("api/[controller]/[Action]")]
     [ApiController]
     public class FaqController : IBaseController
-    {
-        //private readonly ILogger<FaqController> _logger;
-        //private readonly IConfiguration _configuration;
-        //private readonly PBTProDbContext _dbContext;
-        //private readonly IHubContext<PushDataHub> _hubContext;
-        //protected readonly AuditLogger _cf;
-        //private readonly ApiConnector _apiConnector;
-        //private readonly PBTAuthStateProvider _PBTAuthStateProvider;
-
-
-        //private string LoggerName = "";
-        //private readonly string _feature = "SOALAN_LAZIM";
-
-        //private List<faq_info> _Faq { get; set; }
-
-        //public FaqController(PBTProDbContext dbContext, ILogger<FaqController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IHubContext<PushDataHub> hubContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider) : base(dbContext)
-        //{
-        //    _logger = logger;
-        //    _configuration = configuration;
-        //    _dbContext = dbContext;
-        //    _hubContext = hubContext;
-        //    _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
-        //    _PBTAuthStateProvider = PBTAuthStateProvider;
-        //    _apiConnector = apiConnector;
-        //    _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
-        //}
-
-        //private readonly ApiConnector _apiConnector;
-        //private readonly PBTAuthStateProvider _PBTAuthStateProvider;
-        //protected readonly AuditLogger _cf;
+    {        
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
         private string LoggerName = "administrator";
         private readonly string _feature = "SOALAN_LAZIM";
-        private List<faq_info> _Faq { get; set; }
+
         public FaqController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<FaqController> logger) : base(dbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
-            //_cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
-
             _configuration = configuration;
-            //_PBTAuthStateProvider = PBTAuthStateProvider;
-            //_apiConnector = apiConnector;
-            //_apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         }
+
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<faq_info>>> ListFaq()
@@ -78,12 +45,10 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var data = await _dbContext.faq_infos.AsNoTracking().ToListAsync();
-                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk senarai soalan lazim. ", 1, LoggerName, "");
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
-                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -98,15 +63,12 @@ namespace PBTPro.Api.Controllers
 
                 if (parFormfield == null)
                 {
-                    //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Rekod tidak sah", 1, LoggerName, "");
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk senarai soalan lazim. ", 1, LoggerName, "");
                 return Ok(parFormfield, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
-                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -119,6 +81,30 @@ namespace PBTPro.Api.Controllers
             {
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
+
+                #region Validation
+                var formField = await _dbContext.faq_infos.FirstOrDefaultAsync();
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                if (string.IsNullOrWhiteSpace(InputModel.faq_category))
+                {
+                    return Error("", SystemMesg(_feature, "DEPT_CODE", MessageTypeEnum.Error, string.Format("Ruangan Kod Jabatan diperlukan")));
+                }
+                if (string.IsNullOrWhiteSpace(InputModel.faq_question))
+                {
+                    return Error("", SystemMesg(_feature, "DEPT_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Jabatan diperlukan")));
+                }
+                if (string.IsNullOrWhiteSpace(InputModel.faq_answer))
+                {
+                    return Error("", SystemMesg(_feature, "DEPT_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Jabatan diperlukan")));
+                }
+                if (string.IsNullOrWhiteSpace(InputModel.faq_status))
+                {
+                    return Error("", SystemMesg(_feature, "DEPT_STATUS", MessageTypeEnum.Error, string.Format("Ruangan Status Jabatan diperlukan")));
+                }
+                #endregion
 
                 #region store data
                 faq_info faq_info = new faq_info
@@ -135,21 +121,11 @@ namespace PBTPro.Api.Controllers
                 await _dbContext.SaveChangesAsync();
 
                 #endregion
-
-                var result = new
-                {
-                    faq_category = faq_info.faq_category,
-                    faq_status = faq_info.faq_status,
-                    faq_answer = faq_info.faq_answer,
-                    faq_question = faq_info.faq_question,
-                    created_date = faq_info.created_date
-                };
-                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk tambah soalan lazim. ", 1, LoggerName, "");
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
+               
+                return Ok(faq_info, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
             }
             catch (Exception ex)
             {
-                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -167,10 +143,8 @@ namespace PBTPro.Api.Controllers
                 var formField = await _dbContext.faq_infos.FirstOrDefaultAsync(x => x.faq_id == Id);
                 if (formField == null)
                 {
-                    //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Rekod tidak sah", 1, LoggerName, "");
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-
                 if (string.IsNullOrWhiteSpace(InputModel.faq_category))
                 {
                     return Error("", SystemMesg(_feature, "DEPT_CODE", MessageTypeEnum.Error, string.Format("Ruangan Kod Jabatan diperlukan")));
@@ -200,12 +174,10 @@ namespace PBTPro.Api.Controllers
                 _dbContext.faq_infos.Update(formField);
                 await _dbContext.SaveChangesAsync();
 
-                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk kemaskini soalan lazim. ", 1, LoggerName, "");
                 return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
             catch (Exception ex)
             {
-                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -229,12 +201,10 @@ namespace PBTPro.Api.Controllers
                 _dbContext.faq_infos.Remove(formField);
                 await _dbContext.SaveChangesAsync();
                 
-                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk padam soalan lazim. ", 1, LoggerName, "");
                 return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
             catch (Exception ex)
             {
-                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -243,101 +213,5 @@ namespace PBTPro.Api.Controllers
         {
             return (_dbContext.faq_infos?.Any(e => e.faq_id == id)).GetValueOrDefault();
         }
-
-        #region unused
-        //[AllowAnonymous]
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<faq_info>>> ListFaq()
-        //{
-        //    if (_dbContext.faq_infos == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return await _dbContext.faq_infos.ToListAsync();
-        //}
-
-        //[AllowAnonymous]
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<faq_info>> RetrieveFaq(int id)
-        //{
-        //    if (_dbContext.faq_infos == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var faq = await _dbContext.faq_infos.FindAsync(id);
-
-        //    if (faq == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return faq;
-        //}
-
-        //[AllowAnonymous]
-        //[HttpPut("{id}")]
-        //public async Task<ActionResult<faq_info>> UpdateFaq(int id, faq_info faq)
-        //{
-        //    if (id != faq.faq_id)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    _dbContext.Entry(faq).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        await _dbContext.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!FaqExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-        //    return Ok();
-        //}
-
-        //[AllowAnonymous]
-        //[HttpPost]
-        //public async Task<ActionResult<faq_info>> InsertFaq([FromBody] faq_info faq)
-        //{
-        //    //FaqInfo faq = JsonConvert.DeserializeObject<FaqInfo>(faqs);
-
-        //    if (_dbContext.faq_infos == null)
-        //    {
-        //        return Problem("Entity set 'ProPBTDbContext'  is null.");
-        //    }
-        //    _dbContext.faq_infos.Add(faq);
-        //    await _dbContext.SaveChangesAsync();
-
-        //    return CreatedAtAction("InsertFaq", new { id = faq.faq_id }, faq);
-        //}
-
-        //[AllowAnonymous]
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteFaq(int id)
-        //{
-        //    if (_dbContext.faq_infos == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var faq = await _dbContext.faq_infos.FindAsync(id);
-        //    if (faq == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _dbContext.faq_infos.Remove(faq);
-        //    await _dbContext.SaveChangesAsync();
-
-        //    return Ok();
-        //}
-        #endregion
     }
 }

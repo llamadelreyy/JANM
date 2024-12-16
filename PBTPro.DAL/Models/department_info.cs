@@ -22,4 +22,6 @@ public partial class department_info
     public int? updated_by { get; set; }
 
     public string dept_status { get; set; } = null!;
+
+    public virtual ICollection<patrol_info> patrol_info_id { get; set; } = new List<patrol_info>();
 }

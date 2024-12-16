@@ -1,4 +1,4 @@
-﻿@page "/soalan_lazim"
+﻿@page "/setupSoalanLazim"
 @attribute [AllowAnonymous]
 
 @using System.Globalization
@@ -114,13 +114,12 @@
                             <td nowrap>Kategori Soalan Lazim</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.faq_category"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Kategori Soalan Lazim..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:370px;" />
+                                <DxComboBox Data="@faqCategory"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Kategori..."
+                                            @bind-Value="@dtData.faq_category"
+                                            @bind-Text="@dtData.faq_category">
+                                </DxComboBox>                              
                             </td>
                         </tr>
                         <tr>
@@ -365,6 +364,13 @@
     {
         "Aktif",
         "Tidak Aktif"
+    };
+
+    private List<string> faqCategory = new List<string>
+    {
+        "Umum",
+        "PBT Mobile",
+        "PBT Web"
     };
     private void HandleResponse(string message, string? status = "Success")
     {
