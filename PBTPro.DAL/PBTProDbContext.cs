@@ -881,11 +881,12 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasMaxLength(30)
                 .HasDefaultValueSql("'New'::character varying");
             entity.Property(e => e.updated_by).HasDefaultValue(0);
+            entity.Property(e => e.patrol_dept_name).HasDefaultValue(0);
 
-            entity.HasOne(d => d.department_id_info).WithMany(p => p.patrol_info_id)
-                .HasForeignKey(d => d.patrol_dept_id)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("patrol_dept_id");
+            //entity.HasOne(d => d.department_id_info).WithMany(p => p.patrol_info_id)
+            //    .HasForeignKey(d => d.patrol_dept_id)
+            //    .OnDelete(DeleteBehavior.Restrict)
+            //    .HasConstraintName("patrol_dept_id");
         });
 
         modelBuilder.Entity<patrol_member>(entity =>
