@@ -97,22 +97,35 @@
     string FormSubmitResult = "";
     public async Task HandleValidSubmit()
     {
-        ReturnViewModel response = new ReturnViewModel();
+        // ReturnViewModel response = new ReturnViewModel();
+        // response = await PBTAuthStateProvider.LoginAsync(LoginModel.Username, LoginModel.Password);
 
+        // if (response.ReturnCode == 200)
+        // {
+        //     //HandleResponse(response.ReturnMessage);
+        //     if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
+        //         NavigationManager.NavigateTo("/", true);
+        //     else
+        //         NavigationManager.NavigateTo("zon_eksekutif", true);
+        // }
+        // else
+        // {
+        //     HandleResponse(response.ReturnMessage, "Error");
+        // }
+
+        //============ FOR TESTING PURPOSE ==============
+        ReturnViewModel response = new ReturnViewModel();
         response = await PBTAuthStateProvider.LoginAsync(LoginModel.Username, LoginModel.Password);
 
-        if (response.ReturnCode == 200)
-        {
-            //HandleResponse(response.ReturnMessage);
-            if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
-                NavigationManager.NavigateTo("/", true);
-            else
-                NavigationManager.NavigateTo("zon_eksekutif", true);
-        }
+        //HandleResponse(response.ReturnMessage);
+        if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
+            NavigationManager.NavigateTo("/", true);
         else
-        {
-            HandleResponse(response.ReturnMessage, "Error");
-        }
+            NavigationManager.NavigateTo("zon_eksekutif", true);
+
+        //===============================================
+
+
     }
 
 

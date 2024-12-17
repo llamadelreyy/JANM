@@ -9,7 +9,7 @@ public partial class department_info
 
     public string dept_code { get; set; } = null!;
 
-    public string dept_depart_name { get; set; } = null!;
+    public string dept_name { get; set; } = null!;
 
     public string? dept_description { get; set; }
 

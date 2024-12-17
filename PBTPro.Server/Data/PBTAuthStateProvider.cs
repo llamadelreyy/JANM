@@ -59,33 +59,54 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
         var result = new ReturnViewModel();
         try
         {
+            //var principal = new ClaimsPrincipal();
+            //var response = await _PBTAuthUserService.LookupUserFromAPIAsync(username, password);
+            //result = response;
+
+            //if (response.ReturnCode == 200)
+            //{
+            //    string? dataString = response?.Data?.ToString();
+            //    if (!string.IsNullOrWhiteSpace(dataString))
+            //    {
+            //        var data = JsonConvert.DeserializeObject<LoginResult>(dataString);
+
+            //        var user = new AuthenticatedUser
+            //        {
+            //            Fullname = data.Fullname,
+            //            Token = data.Token,
+            //            Userid = data.Userid,
+            //            Username = data.Username,
+            //            Roles = data.Roles,
+            //            Password = password
+            //        };
+
+            //        strUserFullNameNRole = user.Fullname + " (" + user.Roles + ")";
+            //        accessToken = user.Token ?? string.Empty;
+            //        await _PBTAuthUserService.PersistUserToBrowserAsync(user);
+            //        principal = user.ToClaimsPrincipal();
+            //    }
+            //}
+
+            // ================= For Testing purpose ======================
             var principal = new ClaimsPrincipal();
             var response = await _PBTAuthUserService.LookupUserFromAPIAsync(username, password);
             result = response;
 
-            if (response.ReturnCode == 200)
+            var user = new AuthenticatedUser
             {
-                string? dataString = response?.Data?.ToString();
-                if (!string.IsNullOrWhiteSpace(dataString))
-                {
-                    var data = JsonConvert.DeserializeObject<LoginResult>(dataString);
+                Fullname = "Administrator",
+                Token = "12345",
+                Userid = "1",
+                Username = "administrator",
+                Roles = new() { "Pengguna" },
+                Password = "1qazXSW@"
+            };
 
-                    var user = new AuthenticatedUser
-                    {
-                        Fullname = data.Fullname,
-                        Token = data.Token,
-                        Userid = data.Userid,
-                        Username = data.Username,
-                        Roles = data.Roles,
-                        Password = password
-                    };
-
-                    strUserFullNameNRole = user.Fullname + " (" + user.Roles + ")";
-                    accessToken = user.Token ?? string.Empty;
-                    await _PBTAuthUserService.PersistUserToBrowserAsync(user);
-                    principal = user.ToClaimsPrincipal();
-                }
-            }
+            strUserFullNameNRole = user.Fullname + " (" + user.Roles + ")";
+            accessToken = user.Token ?? string.Empty;
+            await _PBTAuthUserService.PersistUserToBrowserAsync(user);
+            principal = user.ToClaimsPrincipal();
+            // =================================================================
 
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(principal)));
         }

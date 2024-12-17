@@ -5,6 +5,13 @@
 @using PBTPro.DAL.Models
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components
+@inject UserProfileService _UserProfileService
+@inject DepartmentService _DepartmentService
+@inject SectionService _SectionService
+@inject UnitService _UnitService
+@inject UserRoleService _UserRoleService
+@inject PBTAuthStateProvider _PBTAuthStateProvider
+
 @* @inject AllocationAuthenticationStateProvider AllocationAuthenticationStateProvider *@
 @inject NavigationManager NavigationManager
 
@@ -44,22 +51,47 @@
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>Jabatan</div>
-                        <DxComboBox Data="@Jabatan"
-                                    NullText="Pilih Jabatan ..."
-                                    @bind-Value="@Value"
-                                    @bind-Text="@Text"
-                                    CssClass="cw-480"
-                                    InputId="cbUserInput" />
+                        <DxComboBox Data="@dtDepartment"
+                                NullText="Pilih Jabatan ..."
+                                ShowValidationIcon="true"
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                @bind-Value="@userInfo.profile_department_id"
+                                TextFieldName="dept_name"
+                                ValueFieldName="dept_id">
+                        </DxComboBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="8"></DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Section</div>
+                        @{
+                                var intDepartmentID = dtDepartment.Where(c => c.dept_id == userInfo.profile_department_id).FirstOrDefault().dept_id;
+                                var SectionData = dtSection.Where(x => x.section_id == intDepartmentID);
+                        }
+                        <DxComboBox Data="@SectionData"
+                                NullText="Pilih Seksyen ..."
+                                ShowValidationIcon="true"
+                                FilteringMode="DataGridFilteringMode.Contains"s
+                                @bind-Value="@userInfo.profile_section_id"
+                                TextFieldName="section_name"
+                                ValueFieldName="section_id">
+                        </DxComboBox>
                     </DxFormLayoutItem>
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>Unit</div>
-                        <DxComboBox Data="@Unit"
-                                    NullText="Pilih Unit ..."
-                                    @bind-Value="@Value"
-                                    @bind-Text="@Text"
-                                    CssClass="cw-480"
-                                    InputId="cbUserInput" />
+                        @{
+                            var intSectionID = dtSection.Where(d => d.section_id == userInfo.profile_section_id && d.dept_id == userInfo.profile_department_id).FirstOrDefault()?.section_id;
+                            var UnitData = dtUnit.Where(x => x.section_id == intSectionID && x.dept_id == userInfo.profile_department_id);
+                        }
+                        <DxComboBox Data="@UnitData"
+                                NullText="Pilih Unit ..."
+                                ShowValidationIcon="true"
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                @bind-Value="@userInfo.profile_unit_id"
+                                TextFieldName="unit_name"
+                                ValueFieldName="unit_id">
+                        </DxComboBox>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="4"></DxFormLayoutItem>
 
@@ -94,17 +126,19 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>Peranan</div>
-                        <DxComboBox Data="@Roles"
-                                    NullText="Pilih Peranan ..."
-                                    @bind-Value="@Value"
-                                    @bind-Text="@Text"
-                                    CssClass="cw-480"
-                                    InputId="cbUserInput" />
+                        <DxComboBox Data="@dtRoles"
+                                NullText="Pilih Peranan ..."
+                                ShowValidationIcon="true"
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                @bind-Value="@userInfo.profile_role_id"
+                                TextFieldName="role_name"
+                                ValueFieldName="role_id">
+                        </DxComboBox>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="4"></DxFormLayoutItem>
 
 
-                    <DxFormLayoutItem ColSpanMd="12">
+                    <DxFormLayoutItem ColSpanMd="8">
                         <div>Nama</div>
                         <DxTextBox @bind-Text="@userInfo.profile_name"
                                    NullText="Nama Pengguna ..."
@@ -113,7 +147,7 @@
                                    Enabled="true" />
                     </DxFormLayoutItem>
 
-                    <DxFormLayoutItem ColSpanMd="12">
+                    <DxFormLayoutItem ColSpanMd="8">
                         <div>Emel</div>
                         <DxTextBox @bind-Text="@userInfo.profile_email"
                                    NullText="Emel pengguna ..."
@@ -158,7 +192,7 @@
                                    ShowValidationIcon="true" />
                     </DxFormLayoutItem>
  *@                <div>&nbsp;<br /></div>
-                    <DxFormLayoutItem ColSpanMd="12">
+                    <DxFormLayoutItem ColSpanMd="10">
 @*                         <ul style="margin-top:-20px;">
                             <li>Min Kata Laluan mestilah 8 atau lebih aksara campuran huruf dan abjad.</li>
                             <li>Mesti mengandungi sekurang-kurangnya 1 huruf kecil dan 1 huruf besar abjad.</li>
@@ -192,16 +226,25 @@
 
 @code {
     [Inject] IToastNotificationService ToastService { get; set; }
-    public user_profile userInfo = new user_profile();
+    user_profile userInfo = new user_profile();
+
+    IEnumerable<user_profile> dataSource;
+    IEnumerable<department_info> dtDepartment;
+    IEnumerable<section_info> dtSection;
+    IEnumerable<unit_info> dtUnit;
+    IEnumerable<user_role> dtRoles;
 
     //Get current user id
     int intCurrentUserId { get; set; } = 0;
     string FormValidationState = @"Sila tekan butang ""Simpan"" untuk sahkan data.";
     string Text { get; set; } = "";
     string Value { get; set; }
-    IEnumerable<string> Jabatan = new List<string>() { "Jabatan Perlesenan", "Jabatan Penilaian", "Jabatan Undang-Undang", "Jabatan Kesihatan", };
-    IEnumerable<string> Unit = new List<string>() { "Unit Hasil", };
-    IEnumerable<string> Roles = new List<string>() { "System Admin", };
+
+    // // IEnumerable<string> Jabatan = new List<string>() { "Jabatan Perlesenan", "Jabatan Penilaian", "Jabatan Undang-Undang", "Jabatan Kesihatan", };
+    // // IEnumerable<string> Unit = new List<string>() { "Unit Hasil", };
+    // // IEnumerable<string> Roles = new List<string>() { "System Admin", };
+
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     //============== Upload file ===============//
     int SelectedFilesCount { get; set; }
@@ -210,6 +253,7 @@
         SelectedFilesCount = files.ToList().Count;
         InvokeAsync(StateHasChanged);
     }
+
     protected string GetUploadUrl(string url)
     {
         return NavigationManager.ToAbsoluteUri(url).AbsoluteUri;
@@ -218,7 +262,21 @@
 
     protected override async Task OnInitializedAsync()
     {
+        dataSource = await _UserProfileService.Retrieve(_PBTAuthStateProvider.CurrentUser.Userid);
+        dtDepartment = await _DepartmentService.GetAllDepartment();
+        dtSection = await _SectionService.GetAllSection();
+        dtUnit = await _UnitService.GetAllUnit();
+        dtRoles = await _UserRoleService.GetRolesByUserAsync(_PBTAuthStateProvider.CurrentUser.Userid);
 
+        DataLoadedTcs.TrySetResult(true);
+    }
+        
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+        }
     }
 
     public async Task HandleValidSubmit()

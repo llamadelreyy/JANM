@@ -228,6 +228,31 @@ namespace PBTPro.Data
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<List<user_role>> GetRolesByUserAsync(string strUserId)
+        {
+            GetDefaultPermission();
+            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            try
+            {
+                var platformApiUrl = _configuration["PlatformAPI"];
+                var accessToken = _cf.CheckToken();
+
+                var request = _cf.CheckRequest(platformApiUrl + "/api/UserRole/GetUserRole/" + strUserId);
+                string jsonString = await _cf.List(request);
+                List<user_role> dtData = JsonConvert.DeserializeObject<List<user_role>>(jsonString);
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar peranan pengguna sistem.", Convert.ToInt32(uID), LoggerName, "");
+
+                return dtData;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                return null;
+            }
+        }
+
 
     }
 }
