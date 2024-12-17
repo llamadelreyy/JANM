@@ -39,9 +39,14 @@ namespace PBTPro.DAL.Models.CommonServices
 
     public class ResetPasswordInput
     {
-        public string username { get; set; }
-        public string new_password { get; set; }
-        public string valid_new_password { get; set; }
+        [Required(ErrorMessage = "Nama Pengguna diperlukan.")]
+        public string username { get; set; } = null!;
+
+        [Required(ErrorMessage = "Password Baru diperlukan.")]
+        public string new_password { get; set; } = null!;
+
+        [Required(ErrorMessage = "Sahkan Password diperlukan.")]
+        public string valid_new_password { get; set; } = null!;
         public string reset_token { get; set; }
     }
 

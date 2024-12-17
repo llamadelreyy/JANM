@@ -248,6 +248,11 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "VALID_NEW_PASS_ISNULL", MessageTypeEnum.Error, string.Format("Sahkan Kata Laluan diperlukan")));
                 }
 
+                if (string.IsNullOrWhiteSpace(model.reset_token))
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RESET_PASSWORD_TOKEN", MessageTypeEnum.Error, string.Format("Token tidak sah.")));
+                }
+
                 if (model.new_password != model.valid_new_password)
                 {
                     return Error("", SystemMesg(_feature, "NEW_PASS_MISSMATCH", MessageTypeEnum.Error, string.Format("Kata Laluan baharu tidak sepadan")));
