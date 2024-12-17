@@ -35,6 +35,14 @@ public static class PostGISFunctions
     [DbFunction("st_intersects")]
     public static bool ST_Intersects(Geometry geometry1, Geometry geometry2) => throw new NotImplementedException();
 
+    // st_union: Combine multiple geometries into one.
+    [DbFunction("st_union")]
+    public static Geometry ST_Union(Geometry geometry) => throw new NotImplementedException();
+
+    // st_collect: Aggregate multiple geometries into a single geometry.
+    [DbFunction("st_collect")]
+    public static Geometry ST_Collect(Geometry geometry) => throw new NotImplementedException();
+
     public static JsonDocument ParseGeoJsonSafely(string geoJson)
     {
         if (string.IsNullOrEmpty(geoJson)) return null;

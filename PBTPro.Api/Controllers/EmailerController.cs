@@ -137,7 +137,7 @@ namespace PBTPro.Api.Controllers
                                         queue.update_date = DateTime.Now;
                                         queue.updated_by = runUserID;
 
-                                        if (emailRs.isSuccess)
+                                        if (emailRs.isSuccess == true)
                                         {
                                             queue.queue_date_sent = DateTime.Now;
                                             if (await ArchiveQueue(queue))

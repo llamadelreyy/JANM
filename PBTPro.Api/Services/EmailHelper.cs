@@ -108,11 +108,11 @@ namespace PBTPro.Api.Services
             }
         }
 
-        public async Task<notification_email_queue> ForceProcessQueue(notification_email_queue queue)
+        public async Task<EmailSenderRs> ForceProcessQueue(notification_email_queue queue)
         {
             queue.queue_cnt_retry = queue.queue_cnt_retry + 1;
 
-            notification_email_queue result = new notification_email_queue();
+            EmailSenderRs result = new EmailSenderRs();
             try
             {
                 var createdBy = await getDefRunUser();
@@ -124,10 +124,29 @@ namespace PBTPro.Api.Services
                 queue.update_date= DateTime.Now;
                 queue.updated_by = createdBy;
 
-                _dbcontext.notification_email_queues.Update(queue);
+                if (emailRs.isSuccess)
+                {
+                    queue.queue_date_sent = DateTime.Now;
+                    if (await ArchiveQueue(queue))
+                    {
+                        _dbcontext.notification_email_queues.Remove(queue);
+                    }
+                }
+                else if (emailRs.isSuccess != true && queue.queue_cnt_retry >= _maxRetry)
+                {
+                    if (await ArchiveQueue(queue))
+                    {
+                        _dbcontext.notification_email_queues.Remove(queue);
+                    }
+                }
+                else
+                {
+                    _dbcontext.notification_email_queues.Update(queue);
+                }
+
                 await _dbcontext.SaveChangesAsync();
 
-                result = queue;
+                result = emailRs;
                 return result;
             }
             catch (Exception ex)
@@ -150,6 +169,41 @@ namespace PBTPro.Api.Services
                 result = "System";
             }
             */
+            return result;
+        }
+
+        private async Task<bool> ArchiveQueue(notification_email_queue queue)
+        {
+            bool result = true;
+            try
+            {
+                using (PBTProDbContext tmpDBcontext = new PBTProDbContext())
+                {
+                    var history = new notification_email_history
+                    {
+                        history_recipient = queue.queue_recipient,
+                        history_subject = queue.queue_subject,
+                        history_content = queue.queue_content,
+                        history_status = queue.queue_status,
+                        history_remark = queue.queue_remark,
+                        history_date_sent = queue.queue_date_sent,
+                        history_cnt_retry = queue.queue_cnt_retry,
+                        active_flag = queue.active_flag,
+                        created_by = queue.created_by,
+                        created_date = queue.created_date,
+                        updated_by = queue.updated_by,
+                        update_date = queue.update_date
+                    };
+
+                    tmpDBcontext.notification_email_histories.Add(history);
+                    await tmpDBcontext.SaveChangesAsync(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                result = false;
+            }
+
             return result;
         }
         #endregion
