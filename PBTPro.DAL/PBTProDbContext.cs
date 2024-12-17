@@ -419,7 +419,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.dept_code).HasMaxLength(50);
-            entity.Property(e => e.dept_depart_name).HasMaxLength(100);
+            entity.Property(e => e.dept_name).HasMaxLength(100);
             entity.Property(e => e.dept_description)
                 .HasMaxLength(255)
                 .HasDefaultValueSql("NULL::character varying");

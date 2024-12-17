@@ -1,7 +1,6 @@
 ﻿@using PBTPro.Data
 @inject PBTAuthStateProvider PBTAuthStateProvider
 
-
 <div class="sidebar @StateCssClass">
     <!-- Sidebar Header-->
     <AuthorizeView>
@@ -32,6 +31,7 @@
             <DxTreeViewNode NavigateUrl="./" Text="Utama" IconUrl="\lib\remixicon\png\home-3-fill.png" CssClass="singleNodesClass"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="/login" Text="Log Masuk" IconUrl="\images\icons-small\key.png" CssClass="singleNodesClass"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="./" Text="Notifikasi" IconUrl="\images\icons-small\bell.png" CssClass="singleNodesClass" BadgeText="0"></DxTreeViewNode>
+            <DxTreeViewNode NavigateUrl="user_profile" Text="My Profile" IconUrl="\images\icons-small\blue-document--pencil.png" CssClass="singleNodesClass"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="carian_umum" Text="Carian Umum" IconUrl="\images\icons-small\magnifier-left.png" CssClass="singleNodesClass"></DxTreeViewNode>
 
             <DxTreeViewNode Text="Tetapan" IconUrl="" CssClass="@rootNodeCssClass">
@@ -41,6 +41,7 @@
                     <DxTreeViewNode NavigateUrl="user_role" Text="Pengguna & Peranan" IconUrl="\images\icons-small\xfn-friend.png" />
                     <DxTreeViewNode NavigateUrl="user_access" Text="Akses Peranan" IconUrl="\images\icons-small\blue-document-tree.png" />
                     <DxTreeViewNode NavigateUrl="senarai_jabatan" Text="Jabatan" IconUrl="\images\icons-small\hard-hat.png" />
+                    <DxTreeViewNode NavigateUrl="section" Text="Seksyen" IconUrl="\images\icons-small\hard-hat--plus.png" />
                     <DxTreeViewNode NavigateUrl="unit" Text="Unit" IconUrl="\images\icons-small\hard-hat--arrow.png" />
                     <DxTreeViewNode NavigateUrl="./" Text="Negeri" IconUrl="\images\icons-small\direction.png" />
                     <DxTreeViewNode NavigateUrl="./" Text="Daerah" IconUrl="\images\icons-small\marker.png" />
@@ -72,7 +73,7 @@
 
             <DxTreeViewNode NavigateUrl="./" Text="Nota Pemeriksaan" IconUrl="\images\icons-small\blog--pencil.png" CssClass="singleNodesClass"></DxTreeViewNode>
 
-            <DxTreeViewNode Text="Pelaporan" IconUrl="" CssClass="@rootNodeCssClass" BadgeText="12">
+            <DxTreeViewNode Text="Pelaporan" IconUrl="" CssClass="@rootNodeCssClass">
                 <Nodes>
                     <DxTreeViewNode NavigateUrl="kompaun_lesen" Text="Laporan Kompaun" IconUrl="\images\icons-small\document-template.png" />
                     <DxTreeViewNode NavigateUrl="lapor_notis" Text="Laporan Notis" IconUrl="\images\icons-small\document-template.png" />

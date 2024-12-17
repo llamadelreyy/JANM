@@ -57,9 +57,10 @@ public partial class user_profile
 
     public int? updated_by { get; set; }
 
-    public int? profile_department_id { get; set; }
+    public int profile_department_id { get; set; }
 
-    public int? profile_section_id { get; set; }
+    public int profile_section_id { get; set; }
 
-    public int? profile_unit_id { get; set; }
+    public int profile_unit_id { get; set; }
+    public int profile_role_id { get; set; }
 }
