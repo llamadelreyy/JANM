@@ -19,8 +19,6 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
-using PBTPro.DAL.Services;
-using System.Reflection;
 
 namespace PBTPro.Api.Controllers
 {
@@ -50,12 +48,10 @@ namespace PBTPro.Api.Controllers
             try
             {               
                 var data = await _dbContext.patrol_infos.Where(x => x.active_flag == true).AsNoTracking().ToListAsync();
-                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk senarai rondaan. ", 1, LoggerName, "");
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
-                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -256,10 +252,10 @@ namespace PBTPro.Api.Controllers
                 #region store data
                 patrol_info patrolinfo = new patrol_info
                 {
-                    patrol_dept_id = InputModel.patrol_dept_id,
+                    patrol_dept_name = InputModel.patrol_dept_name,
                     patrol_officer_name = InputModel.patrol_officer_name,
                     patrol_location = InputModel.patrol_location,
-                    patrol_status = "Belum Mula",
+                    patrol_status = InputModel.patrol_status,
                     patrol_start_dtm = InputModel.patrol_start_dtm, 
                     patrol_end_dtm = InputModel.patrol_end_dtm,
                     created_by = runUserID,
@@ -317,7 +313,7 @@ namespace PBTPro.Api.Controllers
                 //}
 
                 #endregion
-                formField.patrol_dept_id = InputModel.patrol_dept_id;
+                formField.patrol_dept_name = InputModel.patrol_dept_name;
                 formField.patrol_officer_name = InputModel.patrol_officer_name;
                 formField.patrol_location = InputModel.patrol_location;
                 formField.patrol_start_dtm = InputModel.patrol_start_dtm;

@@ -77,25 +77,21 @@
                     <a @onclick="@(() => Delete((patrol_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_location)" Caption="Lokasi Rondaan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn Caption="Tarikh Mula dan Tamat Rondaan" MinWidth="200" Width="20%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
                 <CellDisplayTemplate>
                     <div>
-                        @CombineText(Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm))
+                        @CombineTextPegawai(((patrol_info)context.DataItem).patrol_officer_name, ((patrol_info)context.DataItem).patrol_dept_name)
                     </div>
                 </CellDisplayTemplate>
             </DxGridDataColumn>
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_start_dtm)" Caption="Masa Mula Rondaan"
-                              MinWidth="120"
-                              Width="20%"
-                              TextAlignment="GridTextAlignment.Left"
-                              DisplayFormat="HH:mm tt" />
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_end_dtm)" Caption="Masa Tamat Rondaan"
-                              DisplayFormat="HH:mm tt"
-                              MinWidth="120"
-                              Width="20%"
-                              TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_location)" Caption="Lokasi Rondaan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn Caption="Tarikh & Masa Mula dan Tamat Rondaan" MinWidth="200" Width="40%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                <CellDisplayTemplate>
+                    <div>
+                        @CombineText(Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm))
+                    </div>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>         
             <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_status)" Caption="Status Rondaan" Width="20%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                 <CellDisplayTemplate>
                     <div>@GetStatusRondaanIconHtml(((patrol_info)context.DataItem).patrol_status)</div>
@@ -115,18 +111,17 @@
                         <tr>
                             <td nowrap>Jabatan</td>
                             <td>&nbsp;:&nbsp;</td>
-                            <td width="50%" colspan="7">
-                               @*  <DxComboBox Data="@jabatan"
-                                            ShowValidationIcon="true"
-                                            NullText="Pilih Jabatan..."
-                                            @bind-Value="@selectedJabatanId"
-                                            @bind-Text="@selectedJabatanName">
-                                </DxComboBox> *@
-                                <DxComboBox Data="@Data"
+                            <td width="50%" colspan="7">                              
+                               @*  <DxComboBox Data="@Data"
                                 ShowValidationIcon="true"
                                 NullText="Pilih Jabatan..."
                                 TextFieldName="@nameof(department_info.dept_depart_name)"
-                                @bind-Value="@SelectedEmployee" />
+                                @bind-Value="@SelectedEmployee" /> *@
+                                <DxComboBox Data="@Data"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Jabatan..."
+                                            @bind-Value="@SelectedEmployee"
+                                            TextFieldName="@nameof(department_info.dept_depart_name)" />
                             </td>
                         </tr>
                         <tr>
@@ -146,7 +141,6 @@
                                 ShowValidationIcon="true"
                                 onchange="OnOfficerNameChanged">
                                 </DxComboBox>  *@
-
                             </td>
                         </tr>
                         <tr>
@@ -258,6 +252,8 @@
     //cth
     IEnumerable<department_info> Data { get; set; }
     department_info SelectedEmployee { get; set; }
+    string Text { get; set; }
+    string Value { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -310,7 +306,8 @@
         {
             if (e.IsNew)
             {
-                editModel.patrol_dept_id = Convert.ToInt32(SelectedEmployee.dept_id);
+                //editModel.patrol_dept_id = Convert.ToInt32(SelectedEmployee.dept_id);
+                editModel.patrol_dept_name = SelectedEmployee.dept_depart_name;
                 editModel.created_date = DateTime.Now;
 
                 response = await _patrolling.PostPatrolling(editModel);
@@ -318,7 +315,8 @@
             }
             else
             {
-                editModel.patrol_dept_id = Convert.ToInt32(SelectedEmployee.dept_id);
+                //editModel.patrol_dept_id = Convert.ToInt32(SelectedEmployee.dept_id);
+                editModel.patrol_dept_name = SelectedEmployee.dept_depart_name;
                 editModel.updated_date = DateTime.Now;
 
                 response = await _patrolling.PutPatrolling(editModel.patrol_id, editModel);
@@ -412,7 +410,7 @@
                     patrol_start_dtm = dataItem.patrol_start_dtm,
                     patrol_end_dtm = dataItem.patrol_end_dtm,
                     patrol_status = dataItem.patrol_status,
-                    patrol_dept_id = dataItem.patrol_dept_id
+                    patrol_dept_name = dataItem.patrol_dept_name
                 };
         }
     }
@@ -441,17 +439,18 @@
                 Title = message
             });
     }
-    private List<department_info> jabatan = new List<department_info>
+    private List<string> jabatan = new List<string>
     {
-        new department_info { dept_id = 1, dept_depart_name = "Jabatan Perlesenan" },
-        new department_info { dept_id = 2, dept_depart_name = "Jabatan Kesihatan" },
-        new department_info { dept_id = 2, dept_depart_name = "Jabatan Penguatkuasaan" },
+        "Jabatan Perlesenan",
+        "Jabatan Kesihatan",
+        "Jabatan Penguatkuasaan"
     };
     private List<string> namapegawai = new List<string>
     {
         "Mohd Zaki",
         "Siti Aminah",
-        "Mohd Ali"
+        "Mohd Ali", 
+        "AZIZUL HASNI AWANG"
     };
     private List<string> lokasirondaan = new List<string>
     {
@@ -491,9 +490,14 @@
         string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
         return new MarkupString(html);
     }
-    public MarkupString CombineText(DateTime startDtm, DateTime EndDtm)
+    public MarkupString CombineText(DateTime startDtm, DateTime EndDtm, DateTime startTm, DateTime EndTm)
     {
-        string html = string.Format("{0} - {1}", startDtm.ToString("dd/MM/yyyy"), EndDtm.ToString("dd/MM/yyyy"));
+        string html = string.Format("<b>TARIKH:</b> {0} - {1} <br/> <b>MASA:</b> {2} - {3} ", startDtm.ToString("dd/MM/yyyy"), EndDtm.ToString("dd/MM/yyyy"), startTm.ToString("HH:mm tt"), EndTm.ToString("HH:mm tt"));
+        return new MarkupString(html);
+    }
+    public MarkupString CombineTextPegawai(string strNama, string strjabatan)
+    {
+        string html = string.Format("{0} <br/> {1}", strNama.ToUpper(), strjabatan.ToUpper());
         return new MarkupString(html);
     }
 }
