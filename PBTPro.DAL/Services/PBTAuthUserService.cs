@@ -43,6 +43,29 @@ public class PBTAuthUserService
 
         return result;
     }
+    
+    public async Task<ReturnViewModel> ResetPasswordAsync(ResetPasswordInput InputModel)
+    {
+        var result = new ReturnViewModel();
+        try
+        {
+            var reqData = JsonConvert.SerializeObject(InputModel);
+            var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
+
+            string requestUrl = $"/api/Authenticate/ResetPassword";
+            var response = await _ApiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
+
+            result = response;
+        }
+        catch (Exception ex)
+        {
+            result = new ReturnViewModel();
+            result.ReturnMessage = ex.Message;
+            result.ReturnCode = 500;
+        }
+
+        return result;
+    }
 
     public async Task PersistUserToBrowserAsync(AuthenticatedUser user)
     {
