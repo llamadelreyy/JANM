@@ -76,7 +76,7 @@
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
                     <a @onclick="@(() => Delete((patrol_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
-            </DxGridCommandColumn>           
+            </DxGridCommandColumn>
             <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_location)" Caption="Lokasi Rondaan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn Caption="Tarikh Mula dan Tamat Rondaan" MinWidth="200" Width="20%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
@@ -85,7 +85,7 @@
                         @CombineText(Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm))
                     </div>
                 </CellDisplayTemplate>
-            </DxGridDataColumn>         
+            </DxGridDataColumn>
             <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_start_dtm)" Caption="Masa Mula Rondaan"
                               MinWidth="120"
                               Width="20%"
@@ -116,12 +116,17 @@
                             <td nowrap>Jabatan</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxComboBox Data="@jabatan"
+                               @*  <DxComboBox Data="@jabatan"
                                             ShowValidationIcon="true"
                                             NullText="Pilih Jabatan..."
                                             @bind-Value="@selectedJabatanId"
                                             @bind-Text="@selectedJabatanName">
-                                </DxComboBox>                              
+                                </DxComboBox> *@
+                                <DxComboBox Data="@Data"
+                                ShowValidationIcon="true"
+                                NullText="Pilih Jabatan..."
+                                TextFieldName="@nameof(department_info.dept_depart_name)"
+                                @bind-Value="@SelectedEmployee" />
                             </td>
                         </tr>
                         <tr>
@@ -238,9 +243,6 @@
 
     private List<patrol_info> _lstPatrollings = new List<patrol_info>();
     patrol_info dtDatas { get; set; }
-    private List<string> jabatan = new List<string>();
-    //private List<dynamic> jabatan;
-
 
     int ActiveTabIndex;
     IGrid Grid { get; set; }
@@ -253,17 +255,21 @@
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    private int selectedJabatanId;
-    private string selectedJabatanName;
+    //cth
+    IEnumerable<department_info> Data { get; set; }
+    department_info SelectedEmployee { get; set; }
 
     protected override async Task OnInitializedAsync()
-    {        
+    {
         try
         {
             _lstPatrollings = await _patrolling.GetPatrollingAsync();
             DataLoadedTcs.TrySetResult(true);
             _lstPatrollings = await _patrolling.GetAllPatrolling();
-            await LoadJabatanAsync();
+
+            //lookup
+            Data = await _department.GetAllDepartment();
+            SelectedEmployee = Data.FirstOrDefault();
         }
         catch (Exception ex)
         {
@@ -278,17 +284,7 @@
             await Grid.CancelEditAsync();
         }
     }
-    public async Task LoadJabatanAsync()
-    {
-        List<department_info> _lstjab = await _department.GetAllDepartment();
-        jabatan = _lstjab.Select(d => 
-            // new
-            // {
-            d.dept_depart_name
-            //d.dept_id
-       //}
-        ).ToList();
-    }
+
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
         var _data = (patrol_info)e.EditModel;
@@ -307,15 +303,24 @@
         ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
         var editModel = e.EditModel as patrol_info;
+
+        editModel.active_flag = true;
+
         try
         {
             if (e.IsNew)
             {
+                editModel.patrol_dept_id = Convert.ToInt32(SelectedEmployee.dept_id);
+                editModel.created_date = DateTime.Now;
+
                 response = await _patrolling.PostPatrolling(editModel);
                 blnSuccess = true;
             }
             else
             {
+                editModel.patrol_dept_id = Convert.ToInt32(SelectedEmployee.dept_id);
+                editModel.updated_date = DateTime.Now;
+
                 response = await _patrolling.PutPatrolling(editModel.patrol_id, editModel);
                 blnSuccess = true;
             }
@@ -395,8 +400,8 @@
 
         if (dataItem == null)
             e.EditModel = new patrol_info
-                {
-                };
+            {
+            };
         else
         {
             e.EditModel = new patrol_info
@@ -436,6 +441,12 @@
                 Title = message
             });
     }
+    private List<department_info> jabatan = new List<department_info>
+    {
+        new department_info { dept_id = 1, dept_depart_name = "Jabatan Perlesenan" },
+        new department_info { dept_id = 2, dept_depart_name = "Jabatan Kesihatan" },
+        new department_info { dept_id = 2, dept_depart_name = "Jabatan Penguatkuasaan" },
+    };
     private List<string> namapegawai = new List<string>
     {
         "Mohd Zaki",
@@ -455,12 +466,12 @@
         "Belum Mula",
         "Rondaan",
         "Selesai"
-    };   
+    };
     public MarkupString GetStatusRondaanIconHtml(string status)
     {
         string priorytyClass = "";
         string title = "";
-       
+
         if (status == "Selesai")
         {
             priorytyClass = "info";
