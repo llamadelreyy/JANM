@@ -28,44 +28,19 @@ namespace PBTPro.Api.Controllers
     [ApiController]
     public class DepartmentController : IBaseController
     {
-        //private readonly ILogger<DepartmentController> _logger;
-        //private readonly IConfiguration _configuration;
-        //private readonly PBTProDbContext _dbContext; 
-        //private readonly IHubContext<PushDataHub> _hubContext;
-        //protected readonly CommonFunction _cf;
-
-        //private string LoggerName = "";
-        //private readonly string _feature = "JABATAN";
-
-        //private List<department_info> _Department { get; set; }
-
-        //public DepartmentController(PBTProDbContext dbContext, ILogger<DepartmentController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IHubContext<PushDataHub> hubContext) : base(dbContext)
-        //{
-        //    _logger = logger;
-        //    _configuration = configuration;
-        //    _dbContext = dbContext;
-        //    _hubContext = hubContext;
-        //    _cf = new CommonFunction(httpContextAccessor, configuration);
-        //}
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
-        //private readonly ApiConnector _apiConnector;
-        //private readonly PBTAuthStateProvider _PBTAuthStateProvider;
-        //protected readonly AuditLogger _cf;
-
+        private readonly IHubContext<PushDataHub> _hubContext;
         private string LoggerName = "administrator";
         private readonly string _feature = "JABATAN";
 
-        public DepartmentController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<DepartmentController> logger) : base(dbContext)
+        public DepartmentController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<DepartmentController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
-            //_cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
-
             _configuration = configuration;
-            //_PBTAuthStateProvider = PBTAuthStateProvider;
-            //_apiConnector = apiConnector;
-            //_apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+            _hubContext = hubContext;
         }
+
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<department_info>>> ListDepartment()
@@ -73,12 +48,10 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var data = await _dbContext.department_infos.AsNoTracking().ToListAsync();
-                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk senarai jabatan. ", 1, LoggerName, "");
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
-                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }

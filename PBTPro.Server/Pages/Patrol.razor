@@ -1,4 +1,4 @@
-﻿@page "/senarai_rondaan"
+﻿@page "/setupRondaan"
 @attribute [AllowAnonymous]
 
 
@@ -17,6 +17,7 @@
 @inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
+@inject DepartmentService _department
 
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -76,37 +77,25 @@
                     <a @onclick="@(() => Delete((patrol_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-
-            <DxGridDataColumn FieldName="@nameof(patrol_info.created_date)" Caption="Tarikh"
-                              MinWidth="120"
-                              Width="20%"
-                              TextAlignment="GridTextAlignment.Center"
-                              SortOrder="GridColumnSortOrder.Ascending"
-                              SortIndex="0"
-                              DisplayFormat="dd/MM/yyyy" />
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_location)" Caption="Lokasi Rondaan" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_start_dtm)" Caption="Tarikh Mula Rondaan"
-                              MinWidth="120"
-                              Width="20%"
-                              TextAlignment="GridTextAlignment.Center"
-                              SortOrder="GridColumnSortOrder.Ascending"
-                              SortIndex="0"
-                              DisplayFormat="dd/MM/yyyy" />
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_location)" Caption="Lokasi Rondaan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn Caption="Tarikh Mula dan Tamat Rondaan" MinWidth="200" Width="20%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                <CellDisplayTemplate>
+                    <div>
+                        @CombineText(Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm))
+                    </div>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
             <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_start_dtm)" Caption="Masa Mula Rondaan"
                               MinWidth="120"
                               Width="20%"
-                              TextAlignment="GridTextAlignment.Center"
-                              SortOrder="GridColumnSortOrder.Ascending"
-                              SortIndex="0"
-                              DisplayFormat="HH:mm" />
+                              TextAlignment="GridTextAlignment.Left"
+                              DisplayFormat="HH:mm tt" />
             <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_end_dtm)" Caption="Masa Tamat Rondaan"
-                              DisplayFormat="HH:mm"
+                              DisplayFormat="HH:mm tt"
                               MinWidth="120"
                               Width="20%"
-                              TextAlignment="GridTextAlignment.Center"
-                              SortOrder="GridColumnSortOrder.Ascending"
-                              SortIndex="0" />
+                              TextAlignment="GridTextAlignment.Left" />
             <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_status)" Caption="Status Rondaan" Width="20%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                 <CellDisplayTemplate>
                     <div>@GetStatusRondaanIconHtml(((patrol_info)context.DataItem).patrol_status)</div>
@@ -123,6 +112,23 @@
 
                 <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
                     <table class="">
+                        <tr>
+                            <td nowrap>Jabatan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                               @*  <DxComboBox Data="@jabatan"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Jabatan..."
+                                            @bind-Value="@selectedJabatanId"
+                                            @bind-Text="@selectedJabatanName">
+                                </DxComboBox> *@
+                                <DxComboBox Data="@Data"
+                                ShowValidationIcon="true"
+                                NullText="Pilih Jabatan..."
+                                TextFieldName="@nameof(department_info.dept_depart_name)"
+                                @bind-Value="@SelectedEmployee" />
+                            </td>
+                        </tr>
                         <tr>
                             <td nowrap>Nama Pegawai</td>
                             <td>&nbsp;:&nbsp;</td>
@@ -165,7 +171,7 @@
                             <td nowrap>Masa Mula Rondaan</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%">
-                                <DxDateEdit @bind-Date="@patrolStartDtm"
+                                <DxDateEdit @bind-Date="@dtData.patrol_start_dtm"
                                             TimeSectionVisible="true"
                                             CssClass="cw-320"
                                             InputId="deStartTimeSection" />
@@ -179,7 +185,7 @@
                             <td nowrap>Masa Tamat Rondaan</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%">
-                                <DxDateEdit @bind-Date="@patrolEndDtm"
+                                <DxDateEdit @bind-Date="@dtData.patrol_end_dtm"
                                             TimeSectionVisible="true"
                                             CssClass="cw-320"
                                             InputId="deEndTimeSection" />
@@ -236,30 +242,34 @@
 @code {
 
     private List<patrol_info> _lstPatrollings = new List<patrol_info>();
-    int ActiveTabIndex;
+    patrol_info dtDatas { get; set; }
 
+    int ActiveTabIndex;
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
-
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
     int intSelected { get; set; }
-    patrol_info dtDatas { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    private DateTime? patrolStartDtm = DateTime.Now;
-    private DateTime? patrolEndDtm = DateTime.Now;
+    //cth
+    IEnumerable<department_info> Data { get; set; }
+    department_info SelectedEmployee { get; set; }
 
     protected override async Task OnInitializedAsync()
-    {        
+    {
         try
         {
             _lstPatrollings = await _patrolling.GetPatrollingAsync();
             DataLoadedTcs.TrySetResult(true);
             _lstPatrollings = await _patrolling.GetAllPatrolling();
+
+            //lookup
+            Data = await _department.GetAllDepartment();
+            SelectedEmployee = Data.FirstOrDefault();
         }
         catch (Exception ex)
         {
@@ -274,6 +284,7 @@
             await Grid.CancelEditAsync();
         }
     }
+
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
         var _data = (patrol_info)e.EditModel;
@@ -292,15 +303,24 @@
         ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
         var editModel = e.EditModel as patrol_info;
+
+        editModel.active_flag = true;
+
         try
         {
             if (e.IsNew)
             {
+                editModel.patrol_dept_id = Convert.ToInt32(SelectedEmployee.dept_id);
+                editModel.created_date = DateTime.Now;
+
                 response = await _patrolling.PostPatrolling(editModel);
                 blnSuccess = true;
             }
             else
             {
+                editModel.patrol_dept_id = Convert.ToInt32(SelectedEmployee.dept_id);
+                editModel.updated_date = DateTime.Now;
+
                 response = await _patrolling.PutPatrolling(editModel.patrol_id, editModel);
                 blnSuccess = true;
             }
@@ -380,10 +400,8 @@
 
         if (dataItem == null)
             e.EditModel = new patrol_info
-                {
-                    patrol_start_dtm = DateTime.Now,
-                    patrol_end_dtm = DateTime.Now,
-                };
+            {
+            };
         else
         {
             e.EditModel = new patrol_info
@@ -394,6 +412,7 @@
                     patrol_start_dtm = dataItem.patrol_start_dtm,
                     patrol_end_dtm = dataItem.patrol_end_dtm,
                     patrol_status = dataItem.patrol_status,
+                    patrol_dept_id = dataItem.patrol_dept_id
                 };
         }
     }
@@ -422,6 +441,12 @@
                 Title = message
             });
     }
+    private List<department_info> jabatan = new List<department_info>
+    {
+        new department_info { dept_id = 1, dept_depart_name = "Jabatan Perlesenan" },
+        new department_info { dept_id = 2, dept_depart_name = "Jabatan Kesihatan" },
+        new department_info { dept_id = 2, dept_depart_name = "Jabatan Penguatkuasaan" },
+    };
     private List<string> namapegawai = new List<string>
     {
         "Mohd Zaki",
@@ -447,23 +472,28 @@
         string priorytyClass = "";
         string title = "";
 
-        if (status == "Belum Mula")
+        if (status == "Selesai")
         {
-            priorytyClass = "danger";
-            title = " Belum Mula ";
+            priorytyClass = "info";
+            title = " SELESAI ";
         }
         else if (status == "Rondaan")
         {
-            priorytyClass = "Info";
-            title = " Rondaan ";
+            priorytyClass = "warning";
+            title = " RONDAAN ";
         }
         else
         {
-            priorytyClass = "success";
-            title = " Selesai ";
+            priorytyClass = "danger";
+            title = " BELUM MULA ";
         }
 
         string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
+        return new MarkupString(html);
+    }
+    public MarkupString CombineText(DateTime startDtm, DateTime EndDtm)
+    {
+        string html = string.Format("{0} - {1}", startDtm.ToString("dd/MM/yyyy"), EndDtm.ToString("dd/MM/yyyy"));
         return new MarkupString(html);
     }
 }

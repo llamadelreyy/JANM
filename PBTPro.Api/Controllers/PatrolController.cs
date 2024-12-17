@@ -27,31 +27,10 @@ namespace PBTPro.Api.Controllers
     [Route("api/[controller]/[Action]")]
     [ApiController]
     public class PatrolController : IBaseController
-    {
-        //private readonly ILogger<PatrolController> _logger;
-        //private readonly IConfiguration _configuration;
-        //private readonly PBTProDbContext _dbContext;
-        //private readonly IHubContext<PushDataHub> _hubContext;
-        //protected readonly CommonFunction _cf;
-
-        //private string LoggerName = "";
-        //private readonly string _feature = "PATROL";
-
-        //public PatrolController(PBTProDbContext dbContext, ILogger<PatrolController> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IHubContext<PushDataHub> hubContext) : base(dbContext)
-        //{
-        //    _logger = logger;
-        //    _configuration = configuration;
-        //    _dbContext = dbContext;
-        //    _hubContext = hubContext;
-        //    _cf = new CommonFunction(httpContextAccessor, configuration);
-        //}
-
+    {        
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
         private readonly IHubContext<PushDataHub> _hubContext;
-        //private readonly ApiConnector _apiConnector;
-        //private readonly PBTAuthStateProvider _PBTAuthStateProvider;
-        //protected readonly AuditLogger _cf;
 
         private string LoggerName = "administrator";
         private readonly string _feature = "PATROL";
@@ -59,13 +38,8 @@ namespace PBTPro.Api.Controllers
         public PatrolController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<PatrolController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
-            //_cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
-
             _configuration = configuration;
-            _hubContext = hubContext;
-            //_PBTAuthStateProvider = PBTAuthStateProvider;
-            //_apiConnector = apiConnector;
-            //_apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+            _hubContext = hubContext;           
         }
 
         #region patrol_info
@@ -109,7 +83,6 @@ namespace PBTPro.Api.Controllers
 
                 if (isActivePatrolling)
                 {
-                    //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "beberapa ahli pasukan telah tersenarai di dalam kumpulan rondaan aktif lain", 1, LoggerName, "");
                     return Error("", SystemMesg(_feature, "MEMBERS_ACTIVEPATROL", MessageTypeEnum.Error, string.Format("beberapa ahli pasukan telah tersenarai di dalam kumpulan rondaan aktif lain")));
                 }
                 #endregion
@@ -179,12 +152,10 @@ namespace PBTPro.Api.Controllers
                     Isleader = true,
                     Members = memberDets.Where(x => x.Username != runUser).ToList()
                 };
-                //await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Pangkalan API untuk mula rondaan. ", 1, LoggerName, "");
                 return Ok(result, SystemMesg(_feature, "START_PATROL", MessageTypeEnum.Success, string.Format("Berjaya memulakan rondaan")));
             }
             catch (Exception ex)
             {
-                //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -203,7 +174,6 @@ namespace PBTPro.Api.Controllers
 
                 if (patrol == null)
                 {
-                    //await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Rondaan tidak dijumpai", 1, LoggerName, "");
                     return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
                 }
                 #endregion
@@ -286,6 +256,7 @@ namespace PBTPro.Api.Controllers
                 #region store data
                 patrol_info patrolinfo = new patrol_info
                 {
+                    patrol_dept_id = InputModel.patrol_dept_id,
                     patrol_officer_name = InputModel.patrol_officer_name,
                     patrol_location = InputModel.patrol_location,
                     patrol_status = "Belum Mula",
@@ -332,25 +303,26 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "PATROL_LOCATION", MessageTypeEnum.Error, string.Format("Ruangan Lokasi Rondaan diperlukan")));
                 }
                 //check nama pegawai sama dan status masih dlm rondaan
-                if (formField.patrol_officer_name == InputModel.patrol_officer_name && (formField.patrol_status == "Rondaan"))
-                {
-                    return Error("", SystemMesg(_feature, "PATROL_SCHEDULE", MessageTypeEnum.Error, string.Format("Pegawai masih belum selesai membuat rondaan. Sila pilih pegawai lain")));
-                }
+                //if (formField.patrol_officer_name == InputModel.patrol_officer_name && (formField.patrol_status == "Rondaan"))
+                //{
+                //    return Error("", SystemMesg(_feature, "PATROL_SCHEDULE", MessageTypeEnum.Error, string.Format("Pegawai masih belum selesai membuat rondaan. Sila pilih pegawai lain")));
+                //}
                 //var relatedPatrols = await _dbContext.patrol_infos
                 //                    .Where(x => x.patrol_officer_name == InputModel.patrol_officer_name)
                 //                    .ToListAsync();
 
-                if (formField.patrol_start_dtm == InputModel.patrol_start_dtm && formField.patrol_officer_name == InputModel.patrol_officer_name && formField.patrol_location == InputModel.patrol_location)
-                {
-                    return Error("", SystemMesg(_feature, "PATROL_SCHEDULE", MessageTypeEnum.Error, string.Format("Pegawai yang ditugaskan tidak available.")));
-                }
-                
-                #endregion
+                //if (formField.patrol_start_dtm == InputModel.patrol_start_dtm && formField.patrol_officer_name == InputModel.patrol_officer_name && formField.patrol_location == InputModel.patrol_location)
+                //{
+                //    return Error("", SystemMesg(_feature, "PATROL_SCHEDULE", MessageTypeEnum.Error, string.Format("Pegawai yang ditugaskan tidak available.")));
+                //}
 
+                #endregion
+                formField.patrol_dept_id = InputModel.patrol_dept_id;
                 formField.patrol_officer_name = InputModel.patrol_officer_name;
                 formField.patrol_location = InputModel.patrol_location;
                 formField.patrol_start_dtm = InputModel.patrol_start_dtm;
                 formField.patrol_end_dtm = InputModel.patrol_end_dtm;
+                formField.patrol_status = InputModel.patrol_status;
                 formField.updated_by = runUserID;
                 formField.updated_date = DateTime.Now;
 

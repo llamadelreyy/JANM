@@ -9,15 +9,12 @@ Additional Notes:
 Changes Logs:
 14/11/2024 - initial create
 */
-using DevExpress.DataAccess.Native.Web;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
-using PBTPro.DAL.Models.PayLoads;
 using PBTPro.DAL.Services;
 using System.Reflection;
 using System.Text;
@@ -56,7 +53,7 @@ namespace PBTPro.Data
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
 
         private string _baseReqURL = "/api/Patrol";
-        private string LoggerName = "";
+        private string LoggerName = "administrator";
         private List<patrol_info> _Patrolling { get; set; }
 
         public PatrolService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<PatrolService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
@@ -312,7 +309,7 @@ namespace PBTPro.Data
 
             return result;
         }
-
+        
         //[HttpGet]
         //public async Task<patrol_info> GetIdPatrolling(int id)
         //{
