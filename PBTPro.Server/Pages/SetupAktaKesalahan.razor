@@ -1,17 +1,17 @@
 ﻿@*
 Project: PBT Pro
-Description: Page of Borang Configuration
+Description: Page of Akta & Kesalahan Configuration
 Author: Ismail
-Date: November 2024
+Date: December 2024
 Version: 1.0
 
 Additional Notes:
 - setup field to be loaded to Mobile Apps Data Collection
 
 Changes Logs:
-11/11/2024 - initial create
+17/12/2024 - initial create
 *@
-@page "/setupborang"
+@page "/setup_akta_kesalahan"
 @attribute [Authorize(Roles = "Administrator")]
 @using PBTPro.DAL.Services
 @inject PBTAuthStateProvider _PBTAuthStateProvider
@@ -26,37 +26,37 @@ Changes Logs:
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="/images/icons/information.png" />
-        <div class="textTitle">Setup Borang - Senarai Medan Borang</div>
+        <div class="textTitle">Setup Akta Kesalahan - Senarai Akta & Kesalahan</div>
     </div>
 </div>
 
 <div class="item-container-x">
-    <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
-        <DxTab Text="Notis"></DxTab>
-        <DxTab Text="Kompaun"></DxTab>
-        <DxTab Text="Sitaan"></DxTab>
-        <DxTab Text="Nota Pemeriksaan"></DxTab>
+    <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+        <DxTab Text="Akta"></DxTab>
+        <DxTab Text="Seksyen"></DxTab>
+        <DxTab Text="Undang-Undang Kecil (UUK)"></DxTab>
+        <DxTab Text="Kesalahan"></DxTab>
     </DxTabs>
 
     <DxGrid @ref="Grid" Data="@Data"
-        EditorRenderMode="GridEditorRenderMode.Integrated"
-        PageSize="25"
-        @bind-PageIndex="@GridPageIndex"
-        PagerPosition="GridPagerPosition.Bottom"
-        PagerNavigationMode="PagerNavigationMode.InputBox"
-        EditModelSaving="Grid_EditModelSaving"
-        EditFormButtonsVisible="true"
-        PageSizeSelectorVisible="true"
-        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-        PageSizeSelectorAllRowsItemVisible="true"
-        PagerAutoHideNavButtons="false"
-        ColumnResizeMode="@ColumnResizeMode"
-        HighlightRowOnHover="true"
-        CssClass="mv-1000">
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="true"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="@ColumnResizeMode"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
         <Columns>
             <DxGridCommandColumn Width="120px">
                 <HeaderTemplate>
-                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png"/></a>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
@@ -90,7 +90,7 @@ Changes Logs:
                                 @bind-Value="@field.field_type"
                                 TextFieldName="Text"
                                 ValueFieldName="Value"
-                                ShowValidationIcon="true"/>
+                                ShowValidationIcon="true" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="Pilihan:" ColSpanMd="6">
                     <DxMemo @bind-Text="@field.field_option" ShowValidationIcon="true" />
@@ -135,7 +135,7 @@ Changes Logs:
     private string formType = "Notis";
     private config_form_field_view itemToDelete;
     private List<dynamic> fieldType;
-    
+
     protected override async Task OnInitializedAsync()
     {
         fieldType = _ConfigFormField.fieldType;
@@ -180,7 +180,7 @@ Changes Logs:
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         try
-        {            
+        {
             ReturnViewModel response = new ReturnViewModel();
             var inputModel = e.EditModel as config_form_field_view;
             inputModel.field_form_type = formType;
@@ -206,7 +206,7 @@ Changes Logs:
                 HandleResponse(response.ReturnMessage, "Error");
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
 
         }
@@ -219,11 +219,11 @@ Changes Logs:
         itemToDelete = item;
         ConfirmationShown = true;
     }
-    
+
     async void OnYesButtonClick()
     {
         try
-        {            
+        {
             ReturnViewModel response = new ReturnViewModel();
             response = await _ConfigFormField.Delete(itemToDelete.field_id);
 
@@ -238,7 +238,7 @@ Changes Logs:
                 HandleResponse(response.ReturnMessage, "Error");
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
 
         }
@@ -258,24 +258,25 @@ Changes Logs:
     {
         var RenderStyle = ToastRenderStyle.Success;
 
-        if(status == "Error")
+        if (status == "Error")
         {
             RenderStyle = ToastRenderStyle.Danger;
         }
-        else if(status == "Info")
+        else if (status == "Info")
         {
             RenderStyle = ToastRenderStyle.Info;
-        }else if(status == "Warning")
+        }
+        else if (status == "Warning")
         {
             RenderStyle = ToastRenderStyle.Warning;
         }
 
         ToastService.ShowToast(new ToastOptions()
-        {
-            ProviderName = "Overview",
-            ThemeMode = ToastThemeMode.Saturated,
-            RenderStyle = RenderStyle,
-            Title = message
-        });
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
     }
 }

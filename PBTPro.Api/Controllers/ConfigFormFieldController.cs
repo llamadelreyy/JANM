@@ -71,7 +71,8 @@ namespace PBTPro.Api.Controllers
                                         field_source_url = x.field_source_url,
                                         field_required = x.field_required,
                                         field_api_seeded = x.field_api_seeded,
-                                        field_orders = x.field_orders
+                                        field_orders = x.field_orders,
+                                        field_type = x.field_type
                                     })
                                     .AsNoTracking().ToListAsync();
 
@@ -111,7 +112,7 @@ namespace PBTPro.Api.Controllers
 
         [HttpPost]
         //[Route("Create")]
-        public async Task<IActionResult> Create([FromBody] config_form_field_view InputModel)
+        public async Task<IActionResult> Add([FromBody] config_form_field_view InputModel)
         {
             try
             {
