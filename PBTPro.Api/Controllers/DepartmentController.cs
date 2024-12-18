@@ -43,7 +43,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<department_info>>> ListDepartment()
+        public async Task<ActionResult<IEnumerable<department_info>>> ListAll()
         {            
             try
             {
@@ -58,7 +58,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> RetrieveDepartment(int Id)
+        public async Task<IActionResult> ViewDetail(int Id)
         {
             try
             {
@@ -78,7 +78,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> InsertDepartment([FromBody] department_info InputModel)
+        public async Task<IActionResult> Add([FromBody] department_info InputModel)
         {
             try
             {
@@ -109,7 +109,7 @@ namespace PBTPro.Api.Controllers
                     dept_status = department_infos.dept_status,
                     created_date = department_infos.created_date
                 };
-                return Ok(result, SystemMesg(_feature, "CREATE_PATROL_SCHEDULER", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
+                return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
             }
             catch (Exception ex)
             {
@@ -119,7 +119,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPut("{Id}")]
-        public async Task<IActionResult> PutDepartment(int Id, [FromBody] department_info InputModel)
+        public async Task<IActionResult> Update(int Id, [FromBody] department_info InputModel)
         {
             try
             {
@@ -158,7 +158,7 @@ namespace PBTPro.Api.Controllers
                 _dbContext.department_infos.Update(formField);
                 await _dbContext.SaveChangesAsync();
                 
-                return Ok(formField, SystemMesg(_feature, "Update", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
+                return Ok(formField, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
             catch (Exception ex)
             {
@@ -168,7 +168,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpDelete("{Id}")]
-        public async Task<IActionResult> DeleteDepartment(int Id)
+        public async Task<IActionResult> Delete(int Id)
         {
             try
             {
@@ -196,78 +196,6 @@ namespace PBTPro.Api.Controllers
         private bool DepartmentExists(int id)
         {
             return (_dbContext.department_infos?.Any(e => e.dept_id == id)).GetValueOrDefault();
-        }
-
-        #region unused
-        //[AllowAnonymous]
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<department_info>> RetrieveDepartment(int id)
-        //{
-        //    if (_dbContext.department_infos == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var Department = await _dbContext.department_infos.FindAsync(id);
-
-        //    if (Department == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Department;
-        //}
-
-        //[AllowAnonymous]
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> UpdateDepartment(int id, department_info Department)
-        //{
-        //    if (id != Department.dept_id)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    _dbContext.Entry(Department).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        await _dbContext.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!DepartmentExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-        //    return Ok();
-        //}
-
-
-
-
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteDepartment(int id)
-        //{
-        //    if (_dbContext.department_infos == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var Department = await _dbContext.department_infos.FindAsync(id);
-        //    if (Department == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _dbContext.department_infos.Remove(Department);
-        //    await _dbContext.SaveChangesAsync();
-
-        //    return Ok();
-        //}
-
-        #endregion
+        }       
     }
 }

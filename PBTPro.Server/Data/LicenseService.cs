@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 using PBTPro.DAL.Services;
 using System.Reflection;
 
@@ -36,7 +37,7 @@ namespace PBTPro.Data
         private string _baseReqURL = "/api/License";
         private string LoggerName = "administrator";
         private List<license_history> _licensehistory { get; set; }
-
+        private List<license_view> _license_view { get; set; }
         public LicenseService(IConfiguration configuration, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
@@ -45,18 +46,18 @@ namespace PBTPro.Data
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
-        public Task<List<license_history>> GetHistoryLicenseAsync(CancellationToken ct = default)
+        public Task<List<license_view>> GetHistoryLicenseAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai sejarah lesen premis.", 1, LoggerName, "");
-            return Task.FromResult(_licensehistory);
+            return Task.FromResult(_license_view);
         }
 
-        public async Task<List<license_history>> GetAllLicenseHistory()
+        public async Task<List<license_view>> ListAll()
         {
-            var result = new List<license_history>();
+            var result = new List<license_view>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListLicenseHistory";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -64,7 +65,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<license_history>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<license_view>>(dataString);
                         await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua sejarah lesen premis.", 1, LoggerName, "");
                     }
                 }
@@ -76,17 +77,17 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<license_history>();
+                result = new List<license_view>();
             }
             return result;
         }
 
-        public async Task<List<license_history>> RefreshListLicenseHistory()
+        public async Task<List<license_view>> Refresh()
         {
-            var result = new List<license_history>();
+            var result = new List<license_view>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListLicenseHistory";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -94,7 +95,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<license_history>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<license_view>>(dataString);
                         await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua sejarah lesen premis.", 1, LoggerName, "");
                     }
                 }
@@ -106,7 +107,7 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<license_history>();
+                result = new List<license_view>();
             }
             return result;
         }

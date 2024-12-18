@@ -76,12 +76,12 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<auditlog_archive_info>> GetAllAudit()
+        public async Task<List<auditlog_archive_info>> ListAll()
         {            
             var result = new List<auditlog_archive_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListAudit";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -108,12 +108,12 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<auditlog_archive_info>> RefreshListAudit()
+        public async Task<List<auditlog_archive_info>> Refresh()
         {
             var result = new List<auditlog_archive_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListAudit";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -146,7 +146,7 @@ namespace PBTPro.Data
             try
             {
                 string requestquery = $"/{id}";
-                string requestUrl = $"{_baseReqURL}/RetrieveAudit{requestquery}";
+                string requestUrl = $"{_baseReqURL}/ViewDetail{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -166,12 +166,12 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> DeleteAudit(int id)
+        public async Task<ReturnViewModel> Delete(int id)
         {
             var result = new ReturnViewModel();
             try
             {
-                string requestUrl = $"{_baseReqURL}/DeleteAudit/{id}";
+                string requestUrl = $"{_baseReqURL}/Delete/{id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
                 result = response;

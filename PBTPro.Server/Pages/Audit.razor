@@ -101,7 +101,7 @@
 
         try
         {
-            _lstAudits = await _audit.GetAllAudit();
+            _lstAudits = await _audit.ListAll();
         }
         catch (Exception ex)
         {
@@ -118,7 +118,7 @@
     }
     async Task UpdateDataAsync()
     {
-        _lstAudits = await _audit.RefreshListAudit();
+        _lstAudits = await _audit.Refresh();
     }
 
     void Grid_CustomizeDataRowEditor(GridCustomizeDataRowEditorEventArgs e)
@@ -167,6 +167,6 @@
     }
     async Task InsertArchiveAudit_Click()
     {
-        await _audit.InsertArchiveAudit();
+        await _audit.Archive();
     }
 }

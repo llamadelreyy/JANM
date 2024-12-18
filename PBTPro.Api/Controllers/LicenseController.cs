@@ -18,6 +18,7 @@ using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 
 namespace PBTPro.Api.Controllers
 {
@@ -29,7 +30,6 @@ namespace PBTPro.Api.Controllers
         private readonly IConfiguration _configuration;
         private string LoggerName = "administrator";
         private readonly string _feature = "LESEN";
-        private List<license_history> _licensehistory { get; set; }
         public LicenseController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<LicenseController> logger) : base(dbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
@@ -38,7 +38,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<license_history>>> ListLicenseHistory()
+        public async Task<ActionResult<IEnumerable<license_view>>> ListAll()
         {
             try
             {

@@ -60,7 +60,6 @@ namespace PBTPro.Data
 
         private List<department_info> _Department { get; set; }
 
-
         public DepartmentService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<DepartmentService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
@@ -80,12 +79,12 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<department_info>> GetAllDepartment()
+        public async Task<List<department_info>> ListAll()
         {
             var result = new List<department_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListDepartment";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -111,12 +110,12 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<department_info>> RefreshListDepartment()
+        public async Task<List<department_info>> Refresh()
         {
             var result = new List<department_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListDepartment";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -147,7 +146,7 @@ namespace PBTPro.Data
             try
             {
                 string requestquery = $"/{id}";
-                string requestUrl = $"{_baseReqURL}/RetrieveDepartment{requestquery}";
+                string requestUrl = $"{_baseReqURL}/ViewDetail{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -172,7 +171,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> PostDepartment(department_info inputModel)
+        public async Task<ReturnViewModel> Add(department_info inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -180,7 +179,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/InsertDepartment";
+                string requestUrl = $"{_baseReqURL}/Add";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;
@@ -201,12 +200,12 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> DeleteDepartment(int id)
+        public async Task<ReturnViewModel> Delete(int id)
         {
             var result = new ReturnViewModel();
             try
             {
-                string requestUrl = $"{_baseReqURL}/DeleteDepartment/{id}";
+                string requestUrl = $"{_baseReqURL}/Delete/{id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
                 result = response;
@@ -227,7 +226,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> PutDepartment(int id, department_info inputModel)
+        public async Task<ReturnViewModel> Update(int id, department_info inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -235,7 +234,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/PutDepartment/{id}";
+                string requestUrl = $"{_baseReqURL}/Update/{inputModel.dept_id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
@@ -255,96 +254,5 @@ namespace PBTPro.Data
             }
             return result;
         }
-
-        //[AllowAnonymous]
-        //[HttpGet]
-        //public async Task<department_info> GetIdDepartment(int id)
-        //{
-        //    try
-        //    {
-        //        var platformApiUrl = _configuration["PlatformAPI"];
-        //        var accessToken = _cf.CheckToken();
-
-        //        var request = _cf.CheckRequest(platformApiUrl + "/api/Department/RetrieveDepartment/" + id);
-        //        string jsonString = await _cf.Retrieve(request, accessToken);
-        //        department_info departmentProp = JsonConvert.DeserializeObject<department_info>(jsonString.ToString());
-        //        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci jabatan.", 1, LoggerName, "");
-
-        //        return departmentProp;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-        //        return null;
-        //    }
-        //}
-
-        //[AllowAnonymous]
-        //[HttpPost]
-        //public async Task<ActionResult<department_info>> PostDepartment([FromBody] string departments = "")
-        //{
-        //    try
-        //    {
-        //        var platformApiUrl = _configuration["PlatformAPI"];
-        //        var accessToken = _cf.CheckToken();
-
-        //        var request = _cf.CheckRequest(platformApiUrl + "/api/Department/InsertDepartment");
-        //        string jsonString = await _cf.AddNew(request, departments, platformApiUrl + "/api/Department/InsertDepartment");
-        //        department_info departmentProp = JsonConvert.DeserializeObject<department_info>(jsonString);
-        //        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah data baru untuk jabatan.", 1, LoggerName, "");
-
-        //        return departmentProp;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-        //        return null;
-        //    }
-        //}
-
-        //[HttpDelete]
-        //public async Task<int> DeleteDepartment(int id)
-        //{
-        //    try
-        //    {
-        //        var platformApiUrl = _configuration["PlatformAPI"];
-        //        var accessToken = _cf.CheckToken();
-
-        //        var request = _cf.CheckRequest(platformApiUrl + "/api/Department/DeleteDepartment/" + id);
-        //        string jsonString = await _cf.Delete(request);
-        //        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk jabatan.", 1, LoggerName, "");
-
-        //        return id;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-        //        return 0;
-        //    }
-        //}
-
-        //[AllowAnonymous]
-        //[HttpPut]
-        //public async Task<ActionResult<department_info>> PutDepartment(int id, department_info department)
-        //{
-        //    try
-        //    {
-        //        var platformApiUrl = _configuration["PlatformAPI"];
-        //        var accessToken = _cf.CheckToken();
-
-        //        var uri = platformApiUrl + "/api/Department/UpdateDepartment/" + id;
-        //        var request = _cf.CheckRequestPut(platformApiUrl + "/api/Department/UpdateDepartment/" + id);
-        //        string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(department), uri);
-        //        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jabatan.", 1, LoggerName, "");
-
-        //        return department;
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-        //        return null;
-        //    }
-        //}
     }
 }

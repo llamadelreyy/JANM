@@ -199,7 +199,7 @@
         DataLoadedTcs.TrySetResult(true);
         try
         {
-            _lstDepartment = await _department.GetAllDepartment();
+            _lstDepartment = await _department.ListAll();
         }
         catch (Exception ex)
         {
@@ -247,12 +247,12 @@
         {
             if (e.IsNew)
             {
-                response = await _department.PostDepartment(editModel);
+                response = await _department.Add(editModel);
                 blnSuccess = true;
             }
             else
             {
-                response = await _department.PutDepartment(editModel.dept_id, editModel);
+                response = await _department.Update(editModel.dept_id, editModel);
                 blnSuccess = true;
             }
             if (blnSuccess)
@@ -317,7 +317,7 @@
     }
     async Task UpdateDataAsync()
     {
-        _lstDepartment = await _department.RefreshListDepartment();
+        _lstDepartment = await _department.Refresh();
     }
 
     public void Dispose()
@@ -338,7 +338,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _department.DeleteDepartment(dtData.dept_id);
+            response = await _department.Delete(dtData.dept_id);
 
             if (response.ReturnCode == 200)
             {
@@ -355,21 +355,7 @@
         }
         catch (Exception ex)
         {
-        }
-        // if (dtData != null)
-        // {
-        //     var deleteResult = await _department.DeleteDepartment(dtData.dept_id);
-        //     await UpdateDataAsync();
-        // }
-        // ConfirmationShown = false;
-        // // toastService.ShowInfo("Proses hapus selesai.");
-        // ToastService.ShowToast(new ToastOptions()
-        //     {
-        //         ProviderName = "Overview",
-        //         ThemeMode = ToastThemeMode.Saturated,
-        //         RenderStyle = ToastRenderStyle.Success,
-        //         Title = "Proses hapus selesai."
-        //     });
+        }       
     }
 
     void OnNoButtonClick()
