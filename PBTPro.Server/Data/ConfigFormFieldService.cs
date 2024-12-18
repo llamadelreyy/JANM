@@ -144,7 +144,8 @@ namespace PBTPro.Data
 
             return result;
         }
-        public async Task<ReturnViewModel> Create(config_form_field_view inputModel)
+        
+        public async Task<ReturnViewModel> Add(config_form_field_view inputModel)
         {
 
             var result = new ReturnViewModel();
@@ -153,7 +154,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/Create";
+                string requestUrl = $"{_baseReqURL}/Add";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;
@@ -166,12 +167,12 @@ namespace PBTPro.Data
             return result;
         }
 
-
-        public async Task<ReturnViewModel> Update(int id, config_form_field_view inputModel)
+        public async Task<ReturnViewModel> Update(config_form_field_view inputModel)
         {
             var result = new ReturnViewModel();
             try
             {
+                int id = inputModel.field_id;
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
