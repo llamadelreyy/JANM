@@ -22,4 +22,7 @@ public partial class faq_info
     public DateTime? updated_date { get; set; }
 
     public int? updated_by { get; set; }
+    //public string IconCssClass { get; set; }
+    //public string BadgeCssClass { get; set; }
+    //public List<faq_info> Items { get; set; }
 }

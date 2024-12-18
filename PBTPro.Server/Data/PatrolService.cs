@@ -65,12 +65,12 @@ namespace PBTPro.Data
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
 
-        public async Task<List<patrol_info>> GetAllPatrolling()
+        public async Task<List<patrol_info>> ListAll()
         {            
             var result = new List<patrol_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListPatrol";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -96,12 +96,12 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<patrol_info>> RefreshListPatrolling()
+        public async Task<List<patrol_info>> Refresh()
         {
             var result = new List<patrol_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListPatrol";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -126,7 +126,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> PostPatrolling(patrol_info inputModel)
+        public async Task<ReturnViewModel> Add(patrol_info inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -134,7 +134,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/PostPatrol";
+                string requestUrl = $"{_baseReqURL}/Add";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;
@@ -155,7 +155,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> PutPatrolling(int id, patrol_info inputModel)
+        public async Task<ReturnViewModel> Update(int id, patrol_info inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -163,7 +163,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/UpdatePatrol/{id}";
+                string requestUrl = $"{_baseReqURL}/Update/{id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
@@ -184,12 +184,12 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> DeletePatrolling(int id)
+        public async Task<ReturnViewModel> Delete(int id)
         {
             var result = new ReturnViewModel();
             try
             {
-                string requestUrl = $"{_baseReqURL}/DeletePatrolling/{id}";
+                string requestUrl = $"{_baseReqURL}/Delete/{id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
                 result = response;
@@ -284,7 +284,7 @@ namespace PBTPro.Data
             try
             {
                 string requestquery = $"/{id}";
-                string requestUrl = $"{_baseReqURL}/RetrievePatrolling{requestquery}";
+                string requestUrl = $"{_baseReqURL}/ViewDetail{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)

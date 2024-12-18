@@ -76,7 +76,6 @@ builder.Services.AddTransient<DepartmentService>();
 builder.Services.AddTransient<AuditService>();
 builder.Services.AddTransient<ArchiveAuditService>();
 builder.Services.AddTransient<PatrolService>();
-builder.Services.AddTransient<PatrolSchedulerService>();
 builder.Services.AddTransient<PBTAuthStateProvider>();
 
 builder.Services.AddSingleton<FileUrlStorageService>();

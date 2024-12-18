@@ -227,7 +227,6 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpDelete("{Id}")]
-        //[Route("Remove")]
         public async Task<IActionResult> Remove(int Id)
         {
             try

@@ -23,5 +23,5 @@ public partial class department_info
 
     public string dept_status { get; set; } = null!;
 
-    public virtual ICollection<patrol_info> patrol_info_id { get; set; } = new List<patrol_info>();
+   // public virtual ICollection<patrol_info> patrol_info_id { get; set; } = new List<patrol_info>();
 }

@@ -10,6 +10,7 @@
 @using PBTPro.DAL.Services
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
+@using PBTPro.DAL.Models.PayLoads
 
 @inject NavigationManager NavigationManager
 @inject LicenseService _license
@@ -34,7 +35,7 @@
 <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 <div class="item-container-x">
     <DxGrid @ref="Grid"
-            Data="@_lstlicenseHistory"
+            Data="@_lstlicense"
             KeyFieldName="license_hist_id"
             ShowGroupPanel="true"
             ShowFilterRow="true"
@@ -57,41 +58,30 @@
             CssClass="mv-1000">
 
         <Columns>
-
             <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
                 <HeaderTemplate>
                     <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((license_history)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((license_view)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-
-
-            <DxGridDataColumn FieldName="@nameof(license_history.license_hist_account)" Caption="No Akaun" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(license_history.license_hist_holder)" Caption="Soalan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName=@nameof(license_history.license_hist_startd)
+            <DxGridDataColumn FieldName="@nameof(license_view.license_hist_holder)" Caption="Nama Penyewa" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(license_view.license_hist_account)" Caption="No Akaun" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(license_view.license_status)" Caption="Status Lesen" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn Caption="Tarikh & Mula dan Tamat Lesen" MinWidth="200" Width="20%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                <CellDisplayTemplate>
+                    <div>
+                        @CombineText(Convert.ToDateTime(((license_view)context.DataItem).license_hist_startd), Convert.ToDateTime(((license_view)context.DataItem).license_hist_endd))
+                    </div>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>           
+            <DxGridDataColumn FieldName=@nameof(license_view.created_date)
                               DisplayFormat="dd/MM/yyyy"
-                              Caption="Tarikh Cipta"
+                              Caption="Tarikh Pembaharuan Lesen"
                               MinWidth="120"
-                              Width="12%"
-                              TextAlignment="GridTextAlignment.Center"
-                              SortOrder="GridColumnSortOrder.Ascending"
-                              SortIndex="0" />
-            <DxGridDataColumn FieldName=@nameof(license_history.license_hist_endd)
-                              DisplayFormat="dd/MM/yyyy"
-                              Caption="Tarikh Cipta"
-                              MinWidth="120"
-                              Width="12%"
-                              TextAlignment="GridTextAlignment.Center"
-                              SortOrder="GridColumnSortOrder.Ascending"
-                              SortIndex="0" />
-            <DxGridDataColumn FieldName=@nameof(license_history.created_date)
-                              DisplayFormat="dd/MM/yyyy"
-                              Caption="Tarikh Cipta"
-                              MinWidth="120"
-                              Width="12%"
+                              Width="20%"
                               TextAlignment="GridTextAlignment.Center"
                               SortOrder="GridColumnSortOrder.Ascending"
                               SortIndex="0" />
@@ -114,6 +104,7 @@
 
 @code {
     private List<license_history> _lstlicenseHistory = new List<license_history>();
+    private List<license_view> _lstlicense = new List<license_view>();
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -123,17 +114,18 @@
     string strSelected { get; set; }
     int intSelected { get; set; }
     license_history dtData { get; set; }
+    license_view _dtData { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
-        _lstlicenseHistory = await _license.GetHistoryLicenseAsync();
+        _lstlicense = await _license.GetHistoryLicenseAsync();
         DataLoadedTcs.TrySetResult(true);
         try
         {
-            _lstlicenseHistory = await _license.GetAllLicenseHistory();
+            _lstlicense = await _license.ListAll();
         }
         catch (Exception ex)
         {
@@ -184,17 +176,17 @@
 
     async Task UpdateDataAsync()
     {
-        _lstlicenseHistory = await _license.RefreshListLicenseHistory();
+        _lstlicense = await _license.Refresh();
     }
     public void Dispose()
     {
         DataLoadedTcs.TrySetCanceled();
     }
-    async Task Delete(license_history item)
+    async Task Delete(license_view item)
     {
         strSelected = item.license_hist_account;
         //intSelected = item.license_hist_id;
-        dtData = item;
+        _dtData = item;
         ConfirmationShown = true;
     }
 
@@ -304,5 +296,10 @@
                 RenderStyle = RenderStyle,
                 Title = message
             });
+    }
+    public MarkupString CombineText(DateTime startDtm, DateTime EndDtm)
+    {
+        string html = string.Format("<b>TARIKH:</b> {0} - {1} ", startDtm.ToString("dd/MM/yyyy"), EndDtm.ToString("dd/MM/yyyy"));
+        return new MarkupString(html);
     }
 }
