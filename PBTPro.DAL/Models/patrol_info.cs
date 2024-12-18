@@ -40,8 +40,10 @@ public partial class patrol_info
 
     public string patrol_location { get; set; } = null!;
 
-    public int? patrol_dept_id { get; set; }
+    //public int? patrol_dept_id { get; set; }
 
-    public virtual department_info department_id_info { get; set; } = null!;
+    public string patrol_dept_name { get; set; } = null;
+
+    //public virtual department_info department_id_info { get; set; } = null!;
 
 }

@@ -40,7 +40,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<faq_info>>> ListFaq()
+        public async Task<ActionResult<IEnumerable<faq_info>>> ListAll()
         {
             try
             {
@@ -55,7 +55,7 @@ namespace PBTPro.Api.Controllers
         
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> RetrieveFaq(int Id)
+        public async Task<IActionResult> ViewDetail(int Id)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> InsertFaq([FromBody] faq_info InputModel)
+        public async Task<IActionResult> Add([FromBody] faq_info InputModel)
         {
             try
             {
@@ -132,7 +132,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPut("{Id}")]
-        public async Task<IActionResult> UpdateFaq(int Id, [FromBody] faq_info InputModel)
+        public async Task<IActionResult> Update(int Id, [FromBody] faq_info InputModel)
         {
             try
             {
@@ -184,7 +184,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpDelete("{Id}")]
-        public async Task<IActionResult> DeleteFaq(int Id)
+        public async Task<IActionResult> Delete(int Id)
         {
             try
             {
