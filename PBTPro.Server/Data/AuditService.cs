@@ -67,12 +67,12 @@ namespace PBTPro.Data
             return Task.FromResult(_Audit);
         }
 
-        public async Task<List<auditlog_info>> GetAllAudit()
+        public async Task<List<auditlog_info>> ListAll()
         {            
             var result = new List<auditlog_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListAudit";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -97,12 +97,12 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<auditlog_info>> RefreshListAudit()
+        public async Task<List<auditlog_info>> Refresh()
         {
             var result = new List<auditlog_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListAudit";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -133,7 +133,7 @@ namespace PBTPro.Data
             try
             {
                 string requestquery = $"/{id}";
-                string requestUrl = $"{_baseReqURL}/RetrieveAudit{requestquery}";
+                string requestUrl = $"{_baseReqURL}/ViewDetail{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -153,12 +153,12 @@ namespace PBTPro.Data
             return result;
         }
  
-        public async Task<ReturnViewModel> DeleteAudit(int id)
+        public async Task<ReturnViewModel> Delete(int id)
         {
             var result = new ReturnViewModel();
             try
             {
-                string requestUrl = $"{_baseReqURL}/DeleteAudit/{id}";
+                string requestUrl = $"{_baseReqURL}/Delete/{id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
                 result = response;
@@ -173,12 +173,12 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<auditlog_info>> InsertArchiveAudit()
+        public async Task<List<auditlog_info>> Archive()
         {
             var result = new List<auditlog_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/InsertArchiveAudit";
+                string requestUrl = $"{_baseReqURL}/Archive";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)

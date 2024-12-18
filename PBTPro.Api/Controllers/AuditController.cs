@@ -29,7 +29,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> ListAudit()
+        public async Task<IActionResult> ListAll()
         {
             try
             {
@@ -49,7 +49,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet("{Id}")]
-        public async Task<ActionResult<auditlog_info>> RetrieveAudit(int Id)
+        public async Task<ActionResult<auditlog_info>> ViewDetail(int Id)
         {            
             try
             {
@@ -70,7 +70,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpDelete("{Id}")]
-        public async Task<IActionResult> DeleteAudit(int Id)
+        public async Task<IActionResult> Delete(int Id)
         {
             try
             {
@@ -97,7 +97,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> InsertAudit([FromBody] auditlog_info InputModel)
+        public async Task<IActionResult> Add([FromBody] auditlog_info InputModel)
         {
             try
             {
@@ -145,7 +145,7 @@ namespace PBTPro.Api.Controllers
         #region Archived auditlog
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> InsertArchiveAudit()
+        public async Task<IActionResult> Archive()
         {
             try
             {

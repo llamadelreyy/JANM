@@ -24,7 +24,7 @@ namespace PBTPro.Api.Controllers
         }
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> ListAudit()
+        public async Task<IActionResult> ListAll()
         {
             try
             {
@@ -45,7 +45,7 @@ namespace PBTPro.Api.Controllers
         #region Archived auditlog
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> InsertArchiveAudit()
+        public async Task<IActionResult> Archive()
         {
             try
             {

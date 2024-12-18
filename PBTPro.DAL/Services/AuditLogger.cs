@@ -72,7 +72,7 @@ namespace PBTPro.DAL.Services
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/InsertAudit";
+                string requestUrl = $"{_baseReqURL}/Add";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;

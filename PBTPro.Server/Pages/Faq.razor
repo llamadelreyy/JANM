@@ -194,7 +194,7 @@
         DataLoadedTcs.TrySetResult(true);
         try
         {
-            _lstFaqs = await _faq.GetAllFaq();
+            _lstFaqs = await _faq.ListAll();
         }
         catch (Exception ex)
         {
@@ -237,12 +237,12 @@
         {
             if (e.IsNew)
             {
-                response = await _faq.PostFaq(editModel);
+                response = await _faq.Add(editModel);
                 blnSuccess = true;
             }
             else
             {
-                response = await _faq.PutFaq(editModel.faq_id, editModel);
+                response = await _faq.Update(editModel.faq_id, editModel);
                 blnSuccess = true;
             }
             if (blnSuccess)
@@ -262,7 +262,7 @@
     }
     async Task UpdateDataAsync()
     {
-        _lstFaqs = await _faq.RefreshListFaq();
+        _lstFaqs = await _faq.Refresh();
     }
 
     public void Dispose()
@@ -283,7 +283,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _faq.DeleteFaq(dtData.faq_id);
+            response = await _faq.Delete(dtData.faq_id);
 
             if (response.ReturnCode == 200)
             {

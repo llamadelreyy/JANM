@@ -69,10 +69,10 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<faq_info>> GetAllFaq()
+        public async Task<List<faq_info>> ListAll()
         {
             var result = new List<faq_info>();
-            string requestUrl = $"{_baseReqURL}/ListFaq";
+            string requestUrl = $"{_baseReqURL}/ListAll";
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
             try
@@ -100,12 +100,12 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<faq_info>> RefreshListFaq()
+        public async Task<List<faq_info>> Refresh()
         {
             var result = new List<faq_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListFaq";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -131,7 +131,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> PostFaq(faq_info inputModel)
+        public async Task<ReturnViewModel> Add(faq_info inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -139,7 +139,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/InsertFaq";
+                string requestUrl = $"{_baseReqURL}/Add";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;
@@ -153,7 +153,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> PutFaq(int id, faq_info inputModel)
+        public async Task<ReturnViewModel> Update(int id, faq_info inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -161,7 +161,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/UpdateFaq/{id}";
+                string requestUrl = $"{_baseReqURL}/Update/{inputModel.faq_id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
@@ -176,12 +176,12 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> DeleteFaq(int id)
+        public async Task<ReturnViewModel> Delete(int id)
         {
             var result = new ReturnViewModel();
             try
             {
-                string requestUrl = $"{_baseReqURL}/DeleteFaq/{id}";
+                string requestUrl = $"{_baseReqURL}/Delete/{id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
                 result = response;
@@ -201,13 +201,13 @@ namespace PBTPro.Data
             return Task.FromResult(_Faq);
         }
 
-        public async Task<faq_info> GetIdFaq(int id)
+        public async Task<faq_info> ViewDetail(int id)
         {
             var result = new faq_info();
             try
             {
                 string requestquery = $"/{id}";
-                string requestUrl = $"{_baseReqURL}/RetrieveFaq{requestquery}";
+                string requestUrl = $"{_baseReqURL}/ViewDetail{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)

@@ -261,10 +261,10 @@
         {
             _lstPatrollings = await _patrolling.GetPatrollingAsync();
             DataLoadedTcs.TrySetResult(true);
-            _lstPatrollings = await _patrolling.GetAllPatrolling();
+            _lstPatrollings = await _patrolling.ListAll();
 
             //lookup
-            Data = await _department.GetAllDepartment();
+            Data = await _department.ListAll();
             SelectedEmployee = Data.FirstOrDefault();
         }
         catch (Exception ex)
@@ -310,7 +310,7 @@
                 editModel.patrol_dept_name = SelectedEmployee.dept_depart_name;
                 editModel.created_date = DateTime.Now;
 
-                response = await _patrolling.PostPatrolling(editModel);
+                response = await _patrolling.Add(editModel);
                 blnSuccess = true;
             }
             else
@@ -319,7 +319,7 @@
                 editModel.patrol_dept_name = SelectedEmployee.dept_depart_name;
                 editModel.updated_date = DateTime.Now;
 
-                response = await _patrolling.PutPatrolling(editModel.patrol_id, editModel);
+                response = await _patrolling.Update(editModel.patrol_id, editModel);
                 blnSuccess = true;
             }
 
@@ -340,7 +340,7 @@
     }
     async Task UpdateDataAsync()
     {
-        _lstPatrollings = await _patrolling.RefreshListPatrolling();
+        _lstPatrollings = await _patrolling.Refresh();
     }
     public void Dispose()
     {
@@ -358,7 +358,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _patrolling.DeletePatrolling(dtDatas.patrol_id);
+            response = await _patrolling.Delete(dtDatas.patrol_id);
 
             if (response.ReturnCode == 200)
             {
