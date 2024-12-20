@@ -1,4 +1,4 @@
-﻿@page "/setupJabatan"
+﻿@page "/senarai_jabatan"
 @attribute [AllowAnonymous]
 
 
@@ -269,51 +269,6 @@
         {
             Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
-        // bool blnSuccess = false;
-        // var editModel = e.EditModel as department_info;
-        // var itmId = editModel.dept_id;
-        // try
-        // {
-        //     if (e.IsNew)
-        //     {
-        //         var jsonString = JsonConvert.SerializeObject(editModel);
-        //         await _department.PostDepartment(jsonString);
-        //         blnSuccess = true;
-        //     }
-        //     else
-        //     {
-        //         var existingDept = await _department.GetIdDepartment(itmId);
-        //         await _department.PutDepartment(itmId, existingDept);
-        //         blnSuccess = true;
-        //     }
-        //     if (blnSuccess)
-        //     {
-        //         await UpdateDataAsync();
-        //         // toastService.ShowInfo("Proses kemaskini selesai.");
-        //         ToastService.ShowToast(new ToastOptions()
-        //             {
-        //                 ProviderName = "Overview",
-        //                 ThemeMode = ToastThemeMode.Saturated,
-        //                 RenderStyle = ToastRenderStyle.Success,
-        //                 Title = "Proses kemaskini selesai."
-        //             });
-        //     }
-        //     else
-        //     {
-        //         // toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
-        //         ToastService.ShowToast(new ToastOptions()
-        //             {
-        //                 ProviderName = "Overview",
-        //                 ThemeMode = ToastThemeMode.Saturated,
-        //                 RenderStyle = ToastRenderStyle.Danger,
-        //                 Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
-        //             });
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        //     Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
-        // }
     }
     async Task UpdateDataAsync()
     {

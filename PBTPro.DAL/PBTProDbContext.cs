@@ -853,7 +853,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
                 .HasDefaultValueSql("'New'::character varying");
             entity.Property(e => e.queue_subject).HasMaxLength(255);
             entity.Property(e => e.updated_by).HasDefaultValue(0);
-        });
+        });        
 
         modelBuilder.Entity<patrol_info>(entity =>
         {
@@ -861,32 +861,63 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
             entity.ToTable("patrol_info", "patrol");
 
-            entity.Property(e => e.active_flag).HasDefaultValue(true);
-            entity.Property(e => e.created_by).HasDefaultValue(0);
+            entity.Property(e => e.patrol_id)
+                .ValueGeneratedNever()
+                .HasColumnName("patrol_id");
+            entity.Property(e => e.active_flag)
+                .HasDefaultValue(true)
+                .HasColumnName("active_flag");
+            entity.Property(e => e.created_by)
+                .HasDefaultValue(0)
+                .HasColumnName("created_by");
             entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.patrol_cnt_compound).HasDefaultValue(0);
-            entity.Property(e => e.patrol_cnt_notes).HasDefaultValue(0);
-            entity.Property(e => e.patrol_cnt_notice).HasDefaultValue(0);
-            entity.Property(e => e.patrol_cnt_seizure).HasDefaultValue(0);
-            entity.Property(e => e.patrol_end_dtm).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.patrol_end_location).HasColumnType("geometry(Point,3375)");
-            entity.Property(e => e.patrol_start_dtm).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.patrol_start_location).HasColumnType("geometry(Point,3375)");
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_date");
+            entity.Property(e => e.patrol_cnt_compound)
+                .HasDefaultValue(0)
+                .HasColumnName("patrol_cnt_compound");
+            entity.Property(e => e.patrol_cnt_notes)
+                .HasDefaultValue(0)
+                .HasColumnName("patrol_cnt_notes");
+            entity.Property(e => e.patrol_cnt_notice)
+                .HasDefaultValue(0)
+                .HasColumnName("patrol_cnt_notice");
+            entity.Property(e => e.patrol_cnt_seizure)
+                .HasDefaultValue(0)
+                .HasColumnName("patrol_cnt_seizure");
+            entity.Property(e => e.patrol_dept_name)
+                .HasColumnType("character varying")
+                .HasColumnName("patrol_dept_name");
+            entity.Property(e => e.patrol_end_dtm)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("patrol_end_dtm");
+            entity.Property(e => e.patrol_end_location)
+                .HasColumnType("geometry(Point,3375)")
+                .HasColumnName("patrol_end_location");
+            entity.Property(e => e.patrol_location)
+                .HasColumnType("character varying")
+                .HasColumnName("patrol_location");
+            entity.Property(e => e.patrol_officer_name)
+                .HasColumnType("character varying")
+                .HasColumnName("patrol_officer_name");
+            entity.Property(e => e.patrol_start_dtm)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("patrol_start_dtm");
+            entity.Property(e => e.patrol_start_location)
+                .HasColumnType("geometry(Point,3375)")
+                .HasColumnName("patrol_start_location");
             entity.Property(e => e.patrol_status)
                 .HasMaxLength(30)
-                .HasDefaultValueSql("'New'::character varying");
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-            entity.Property(e => e.patrol_dept_name).HasDefaultValue(0);
-
-            //entity.HasOne(d => d.department_id_info).WithMany(p => p.patrol_info_id)
-            //    .HasForeignKey(d => d.patrol_dept_id)
-            //    .OnDelete(DeleteBehavior.Restrict)
-            //    .HasConstraintName("patrol_dept_id");
+                .HasDefaultValueSql("'New'::character varying")
+                .HasColumnName("patrol_status");
+            entity.Property(e => e.updated_by)
+                .HasDefaultValue(0)
+                .HasColumnName("updated_by");
+            entity.Property(e => e.updated_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_date");
         });
 
         modelBuilder.Entity<patrol_member>(entity =>

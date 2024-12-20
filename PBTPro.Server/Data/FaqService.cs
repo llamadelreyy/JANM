@@ -230,6 +230,6 @@ namespace PBTPro.Data
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;
-        }                  
+        }
     }
 }
