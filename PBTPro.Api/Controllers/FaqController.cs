@@ -10,6 +10,7 @@ Changes Logs:
 14/11/2024 - initial create
 */
 
+using DevExpress.Data.ODataLinq.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -212,6 +213,6 @@ namespace PBTPro.Api.Controllers
         private bool FaqExists(int id)
         {
             return (_dbContext.faq_infos?.Any(e => e.faq_id == id)).GetValueOrDefault();
-        }
+        }       
     }
 }

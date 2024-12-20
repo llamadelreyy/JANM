@@ -25,7 +25,7 @@ namespace PBTPro.Api.Controllers
     [Route("api/[controller]/[Action]")]
     [ApiController]
     public class PatrolController : IBaseController
-    {        
+    {
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
         private readonly IHubContext<PushDataHub> _hubContext;
@@ -37,7 +37,7 @@ namespace PBTPro.Api.Controllers
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
             _configuration = configuration;
-            _hubContext = hubContext;           
+            _hubContext = hubContext;
         }
 
         #region patrol_info
@@ -46,7 +46,7 @@ namespace PBTPro.Api.Controllers
         public async Task<IActionResult> GetList(string? crs = null)
         {
             try
-            {               
+            {
                 var data = await _dbContext.patrol_infos.Where(x => x.active_flag == true).AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
@@ -84,7 +84,8 @@ namespace PBTPro.Api.Controllers
                 #endregion
 
                 #region store data
-                patrol_info patrol = new patrol_info {
+                patrol_info patrol = new patrol_info
+                {
                     patrol_status = "IN-PROGRESS",
                     patrol_start_dtm = DateTime.Now,
                     patrol_start_location = InputModel.CurrentLocation,
@@ -96,8 +97,8 @@ namespace PBTPro.Api.Controllers
                 await _dbContext.SaveChangesAsync();
 
                 List<patrol_member> patrolDets = new List<patrol_member>();
-                
-                foreach(var member in teamMembers)
+
+                foreach (var member in teamMembers)
                 {
                     bool isLeader = member == runUser;
                     patrol_member patrolDet = new patrol_member
@@ -111,14 +112,15 @@ namespace PBTPro.Api.Controllers
 
                     patrolDets.Add(patrolDet);
                 }
-                
+
                 _dbContext.patrol_members.AddRange(patrolDets);
                 await _dbContext.SaveChangesAsync();
                 #endregion
 
                 #region push data
                 var memberDets = patrolDets.Join(_dbContext.Users, patrolDet => patrolDet.member_username, user => user.UserName,
-                    (patrolDet, user) => new {
+                    (patrolDet, user) => new
+                    {
                         Username = patrolDet.member_username,
                         Isleader = patrolDet.member_leader_flag,
                         Name = user.Name
@@ -236,28 +238,28 @@ namespace PBTPro.Api.Controllers
                 var runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.patrol_infos.FirstOrDefaultAsync();
-                if (formField == null)
-                {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
+                var isPatrolDup = await _dbContext.patrol_infos
+                                        .AnyAsync(y => y.patrol_officer_name == InputModel.patrol_officer_name && 
+                                        (y.patrol_start_dtm < DateTime.Now || y.patrol_start_dtm == InputModel.patrol_start_dtm) &&
+                                        (y.patrol_end_dtm < DateTime.Now || y.patrol_end_dtm == InputModel.patrol_end_dtm) &&
+                                        y.patrol_location == InputModel.patrol_location);
 
-                if (string.IsNullOrWhiteSpace(InputModel.patrol_officer_name))
+                if (isPatrolDup)
                 {
-                    return Error("", SystemMesg(_feature, "PATROL_OFFICER_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Pegawai diperlukan")));
+                    return Error("", SystemMesg(_feature, "MEMBERS_ACTIVEPATROL", MessageTypeEnum.Error, string.Format("pegawai sedang dalam rondaan")));
                 }
-
                 #endregion
 
                 #region store data
                 patrol_info patrolinfo = new patrol_info
                 {
+                    patrol_id = InputModel.patrol_id,
                     patrol_dept_name = InputModel.patrol_dept_name,
                     patrol_officer_name = InputModel.patrol_officer_name,
                     patrol_location = InputModel.patrol_location,
-                    patrol_status = InputModel.patrol_status,
-                    patrol_start_dtm = InputModel.patrol_start_dtm, 
+                    patrol_start_dtm = InputModel.patrol_start_dtm,
                     patrol_end_dtm = InputModel.patrol_end_dtm,
+                    patrol_status = InputModel.patrol_status,
                     created_by = runUserID,
                     created_date = DateTime.Now,
                     active_flag = true,

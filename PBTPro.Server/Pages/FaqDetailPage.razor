@@ -1,0 +1,42 @@
+﻿@using System.Globalization
+@using Blazored.Toast.Services
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+@using PBTPro.DAL.Services
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+
+<div class="e-card">
+    @if (Detailed)
+    {
+        @if (CustomDetails)
+        {
+            <div class="e-details">@RenderDetailsItem(FaqInfo.faq_answer)</div>
+        }
+        else
+        {
+            <DxFormLayout CssClass="e-details">
+                <DxFormLayoutItem>
+                    @RenderDetailsItem(FaqInfo.faq_answer)
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public faq_info FaqInfo { get; set; }
+    [Parameter] public bool Detailed { get; set; } = true;
+    [Parameter] public bool CustomDetails { get; set; }
+    RenderFragment RenderDetailsItem(string value)
+    {
+        return   
+    @<div class="d-flex align-items-center">
+                
+                <div class="text-container flex-grow-1 ms-2">
+                    <div>@value</div>
+                </div>
+            </div>;
+    }
+}

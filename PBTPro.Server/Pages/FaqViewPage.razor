@@ -1,0 +1,107 @@
+﻿@page "/faq"
+@attribute [AllowAnonymous]
+
+@using System.Globalization
+@implements IDisposable
+@using Blazored.Toast.Services
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+@using PBTPro.DAL.Services
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+@using PBTPro.DAL.Models.PayLoads
+
+@inject NavigationManager NavigationManager
+@inject FaqService _faq
+@inject PBTAuthStateProvider _PBTAuthStateProvider
+@inject IToastNotificationService ToastService
+
+<div class="d-lg-flex border-bottom mb-2">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="/images/icons/information.png" />
+        <div class="textTitle">Soalan Lazim</div>
+    </div>
+</div>
+
+<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+<div class="item-container-x">
+    <DxFormLayout>
+        <DxFormLayoutTabPages @bind-ActiveTabIndex="@ActiveTabIndex">
+            @{
+                @if (DataSource != null && DataSource.Any())
+                {
+                    var groupedItems = DataSource.GroupBy(item => item.faq_category);
+                    foreach (var group in groupedItems)
+                    {
+                        <DxFormLayoutTabPage Caption="@group.Key">
+                            <DxAccordion ExpandMode="ExpandMode"
+                                         ExpandCollapseAction="ExpandCollapseAction"
+                                         AnimationType="LayoutAnimationType.Slide">
+                                <Items>
+                                    @foreach (var item in group)
+                                    {
+                                        <DxAccordionItem Text=@($"{item.faq_question}") Expanded="@(group.First() == item)">
+                                            <ContentTemplate>
+                                                <div class="py-3 px-3" tabindex="0">
+                                                    <FaqDetailPage FaqInfo="@item" />
+                                                </div>
+                                            </ContentTemplate>
+                                        </DxAccordionItem>
+                                    }
+                                </Items>
+                            </DxAccordion>
+                        </DxFormLayoutTabPage>
+                    }
+                }
+            }
+        </DxFormLayoutTabPages>
+    </DxFormLayout>
+</div>
+
+@code {
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    IEnumerable<faq_info> DataSource;
+    public List<(faq_info, int)> Items { get; set; } = new List<(faq_info, int)>();
+    int ActiveTabIndex { get; set; } = 1;
+    AccordionExpandMode ExpandMode { get; set; } = AccordionExpandMode.SingleOrNone;
+    AccordionExpandCollapseAction ExpandCollapseAction { get; set; } = AccordionExpandCollapseAction.HeaderClick;
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            DataSource = await _faq.ListAll();
+
+            if (DataSource != null && DataSource.Any())
+            {
+                Items = DataSource.Select((item, index) => (item, index)).ToList();
+            }
+            else
+            {
+                Items = new List<(faq_info, int)>();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
+        }
+        DataLoadedTcs.TrySetResult(true);
+        await base.OnInitializedAsync();
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+        }
+    }
+}
