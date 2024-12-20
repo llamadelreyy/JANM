@@ -90,6 +90,19 @@ namespace PBTPro.Data
                 List<department_info> departmentList = JsonConvert.DeserializeObject<List<department_info>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
+                //==== FOR TESTING ====
+                departmentList = new List<department_info> {
+                    new department_info {
+                        dept_id = 1,
+                        dept_code = "001",
+                        dept_name = "Jabatan Penilaian",
+                        dept_description = "",
+                        dept_status = "true",
+                        created_date = DateTime.Parse("2024/01/05")
+                    }
+                 };
+                //====================
+
                 return departmentList;
             }
             catch (Exception ex)

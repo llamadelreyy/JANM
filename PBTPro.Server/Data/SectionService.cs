@@ -78,6 +78,21 @@ namespace PBTPro.Data
                 List<section_info> sectionList = JsonConvert.DeserializeObject<List<section_info>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai seksyen.", Convert.ToInt32(uID), LoggerName, "");
 
+                //FOR TESTING PURPOSE ===============
+                sectionList = new List<section_info> {
+                    new section_info {
+                        section_id = 1,
+                        dept_id = 1,
+                        dept_code = "001",
+                        dept_name = "Jabatan Penilaian",
+                        section_code = "001",
+                        section_name = "Harta dan Pusaka",
+                        section_desc = "Penilaian Harta dan pusaka",
+                        created_date = DateTime.Parse("2024/01/05")
+                    }
+                 };
+                //====================================
+
                 return sectionList;
             }
             catch (Exception ex)
@@ -89,7 +104,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<section_info>> RefreshListSection()
+        public async Task<List<section_info>> RefreshSection()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -115,7 +130,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<section_info>> AddSection([FromBody] string sections = "")
+        public async Task<int> AddSection([FromBody] string sections = "")
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -129,17 +144,17 @@ namespace PBTPro.Data
                 section_info sectionList = JsonConvert.DeserializeObject<section_info>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah data baru untuk section.", Convert.ToInt32(uID), LoggerName, "");
 
-                return sectionList;
+                return sectionList.section_id;
             }
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                return 0;
             }
         }
 
         [HttpDelete]
-        public async Task<int> DeleteSection(int id)
+        public async Task<bool> DeleteSection(int id)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -152,18 +167,18 @@ namespace PBTPro.Data
                 string jsonString = await _cf.Delete(request);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk seksyen.", Convert.ToInt32(uID), LoggerName, "");
 
-                return id;
+                return true;
             }
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return 0;
+                return false;
             }
         }
 
         [AllowAnonymous]
         [HttpPut]
-        public async Task<ActionResult<section_info>> UpdateSection(int id, section_info section)
+        public async Task<int> UpdateSection(section_info section)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -172,18 +187,18 @@ namespace PBTPro.Data
                 var platformApiUrl = _configuration["PlatformAPI"];
                 var accessToken = _cf.CheckToken();
 
-                var uri = platformApiUrl + "/api/Section/UpdateSection/" + id;
-                var request = _cf.CheckRequestPut(platformApiUrl + "/api/Section/UpdateSection/" + id);
+                var uri = platformApiUrl + "/api/Section/UpdateSection/" + section.section_id;
+                var request = _cf.CheckRequestPut(platformApiUrl + "/api/Section/UpdateSection/" + section.section_id);
                 string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(section), uri);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk seksyen.", Convert.ToInt32(uID), LoggerName, "");
 
-                return section;
+                return section.section_id;
 
             }
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                return 0;
             }
         }
     }

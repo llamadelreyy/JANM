@@ -10,8 +10,17 @@ namespace PBTPro.DAL.Models
     {
         public int user_id { get; set; }
         public string user_name { get; set; }
+        public string ic_no { get; set; }
+        public string mobile_no { get; set; }
         public string full_name { get; set; }
+        public string user_email { get; set; }
         public string Text => $"{user_name} ({full_name})";
+        public int dept_id { get; set; }
+        public string dept_name { get; set; }
+        public int section_id { get; set; }
+        public string section_name { get; set; }
+        public int unit_id { get; set; }
+        public string unit_name { get; set; }
         public DateTime? created_date { get; set; }
         public DateTime? updated_date { get; set; }
         public string created_by { get; set; }
