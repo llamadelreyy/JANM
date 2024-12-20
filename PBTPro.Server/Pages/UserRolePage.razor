@@ -276,29 +276,6 @@
         }
     }
 
-    // // IEnumerable<system_role> GetUserRole(user_role value)
-    // // {
-    // //     //For edit need to get all the role belong to selected user
-    // //     List<system_role> arrItem = new List<system_role>();
-    // //     system_role _item;
-
-    // //     //Loop the main data to get all the role for selected user
-    // //     @foreach (var item in dataSource)
-    // //     {
-    // //         if (value.user_id == item.user_id)
-    // //         {
-    // //             _item = new system_role();
-    // //             _item.role_id = item.role_id;
-    // //             _item.role_name = item.role_name;
-    // //             _item.role_desc = item.role_desc;
-    // //             _item.created_date = item.created_date;
-    // //             arrItem.Add(_item);
-    // //         }
-    // //     }
-
-    // //     return arrItem.AsEnumerable();
-    // // }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -320,40 +297,29 @@
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         bool blnSuccess = false;
-
+        string strMessage = "";
         //update selected user_id dgn selected role id
         foreach (var item in dataRole)
         {
-            
+
         }
 
         if (e.IsNew)
-            blnSuccess = true; //await _UserRoleService.InsertUserRoleAsync((user_role)e.EditModel, intCurrentUserId);
+        {
+            // var jsonString = JsonConvert.SerializeObject((section_info)e.EditModel);
+            // blnSuccess = await _SectionService.AddSection(jsonString) > 0 ? true : false;
+            // strMessage = "Proses tambah rekod selesai.";
+        }
         else
-            blnSuccess = true; //await _UserRoleService.UpdateUserRoleAsync((user_role)e.EditModel, intCurrentUserId);
+        {
+            // blnSuccess = await _SectionService.UpdateSection((section_info)e.EditModel) > 0 ? true : false;
+            // strMessage = "Proses kemaskini selesai.";
+        }
 
         if (blnSuccess)
-        {
             await UpdateDataAsync();
 
-            ToastService.ShowToast(new ToastOptions()
-            {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = ToastRenderStyle.Success,
-                Title = "Proses kemaskini selesai."
-            });
-        }
-        else
-        {
-            ToastService.ShowToast(new ToastOptions()
-            {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = ToastRenderStyle.Danger,
-                Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
-            });
-        }
+        ShowToast(blnSuccess, blnSuccess ? strMessage : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
     }
 
     async Task UpdateDataAsync()
@@ -376,19 +342,14 @@
 
     async void OnYesButtonClick()
     {
+        bool blnSuccess = false;
         if (dtData != null)
         {
-            //await _UserRoleService.RemoveUserRoleAsync((user_role)dtData);
-            //await UpdateDataAsync();
+            //blnSuccess = await _UserRoleService.RemoveUserRoleAsync((user_role)dtData);
+            //if (blnSuccess) await UpdateDataAsync();
         }
         ConfirmationShown = false;
-        ToastService.ShowToast(new ToastOptions()
-        {
-            ProviderName = "Overview",
-            ThemeMode = ToastThemeMode.Saturated,
-            RenderStyle = ToastRenderStyle.Success,
-            Title = "Proses hapus selesai."
-        });
+        ShowToast(blnSuccess, blnSuccess ? "Proses hapus selesai" : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
     }
 
     void OnNoButtonClick()
@@ -400,5 +361,16 @@
     {
         if (e.Item.Name == "Custom")
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    void ShowToast(bool blnStatus, string strMessage)
+    {
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = blnStatus ? ToastRenderStyle.Success : ToastRenderStyle.Danger,
+                Title = strMessage
+            });
     }
 }

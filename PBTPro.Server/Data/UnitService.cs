@@ -78,6 +78,22 @@ namespace PBTPro.Data
                 List<unit_info> unitList = JsonConvert.DeserializeObject<List<unit_info>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai unit.", Convert.ToInt32(uID), LoggerName, "");
 
+                //FOR TESTING PURPOSE ===============
+                unitList = new List<unit_info> {
+                    new unit_info {
+                        unit_id = 1,
+                        dept_id = 1,
+                        section_id = 1,
+                        dept_code = "001",
+                        dept_name = "Jabatan Penilaian",
+                        section_code = "001",
+                        section_name = "Harta dan Pusaka",
+                        unit_code = "001",
+                        unit_name = "Unit 001",
+                        unit_desc = "Unit pengurusan harta pusaka",
+                        created_date = DateTime.Parse("2024/01/05")
+                    }
+                 };
                 return unitList;
             }
             catch (Exception ex)
@@ -89,7 +105,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<List<unit_info>> RefreshListUnit()
+        public async Task<List<unit_info>> RefreshUnit()
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -115,7 +131,7 @@ namespace PBTPro.Data
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<unit_info>> AddUnit([FromBody] string units = "")
+        public async Task<int> AddUnit([FromBody] string units = "")
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -129,17 +145,17 @@ namespace PBTPro.Data
                 unit_info unitList = JsonConvert.DeserializeObject<unit_info>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah data baru untuk unit.", Convert.ToInt32(uID), LoggerName, "");
 
-                return unitList;
+                return unitList.dept_id;
             }
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                return 0;
             }
         }
 
         [HttpDelete]
-        public async Task<int> DeleteUnit(int id)
+        public async Task<bool> DeleteUnit(int id)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -152,18 +168,18 @@ namespace PBTPro.Data
                 string jsonString = await _cf.Delete(request);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk unit.", Convert.ToInt32(uID), LoggerName, "");
 
-                return id;
+                return true;
             }
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return 0;
+                return false;
             }
         }
 
         [AllowAnonymous]
         [HttpPut]
-        public async Task<ActionResult<unit_info>> UpdateUnit(int id, unit_info unit)
+        public async Task<int> UpdateUnit(unit_info unit)
         {
             GetDefaultPermission();
             var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
@@ -172,18 +188,18 @@ namespace PBTPro.Data
                 var platformApiUrl = _configuration["PlatformAPI"];
                 var accessToken = _cf.CheckToken();
 
-                var uri = platformApiUrl + "/api/Unit/UpdateUnit/" + id;
-                var request = _cf.CheckRequestPut(platformApiUrl + "/api/Unit/UpdateUnit/" + id);
+                var uri = platformApiUrl + "/api/Unit/UpdateUnit/" + unit.unit_id;
+                var request = _cf.CheckRequestPut(platformApiUrl + "/api/Unit/UpdateUnit/" + unit.unit_id);
                 string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(unit), uri);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk unit.", Convert.ToInt32(uID), LoggerName, "");
 
-                return unit;
+                return unit.unit_id;
 
             }
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                return 0;
             }
         }
     }

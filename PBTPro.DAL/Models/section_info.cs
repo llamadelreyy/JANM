@@ -4,6 +4,8 @@
     {
         public int section_id { get; set; }
         public int dept_id { get; set; }
+        public string dept_code { get; set; }
+        public string dept_name { get; set; }
         public string section_code { get; set; }
         public string section_name { get; set; }
         public string section_desc { get; set; }
