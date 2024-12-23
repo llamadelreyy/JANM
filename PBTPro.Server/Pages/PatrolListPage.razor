@@ -40,11 +40,12 @@
         <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
             @if (_lstPatrollings != null && _lstPatrollings.Any())
             {
-                var groupedItems = _lstPatrollings.GroupBy(item => item.patrol_status).ToList();
-
+                var groupedItems = _lstPatrollings.GroupBy(item => item.patrol_status).ToList();               
+               
                 @foreach (var group in groupedItems)
                 {
-                    <DxTab Text="@group.Key"></DxTab>
+                    var combine = @group.Key + " (" + @group.Count() + ")";
+                    <DxTab Text="@combine"></DxTab>
                 }
             }
         </DxTabs>

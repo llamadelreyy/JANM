@@ -34,7 +34,8 @@
                     var groupedItems = DataSource.GroupBy(item => item.faq_category);
                     foreach (var group in groupedItems)
                     {
-                        <DxFormLayoutTabPage Caption="@group.Key">
+                        var combine = @group.Key + " (" + @group.Count() + ")";
+                        <DxFormLayoutTabPage Caption="@combine">
                             <DxAccordion ExpandMode="ExpandMode"
                                          ExpandCollapseAction="ExpandCollapseAction"
                                          AnimationType="LayoutAnimationType.Slide">
