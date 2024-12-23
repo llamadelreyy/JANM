@@ -73,7 +73,7 @@ namespace PBTPro.Api.Controllers
                                         .AnyAsync(x => teamMembers.Contains(x.member_username) &&
                                            _dbContext.patrol_infos.Any(y =>
                                                y.patrol_id == x.member_patrol_id &&
-                                               y.patrol_status.ToUpper() == "IN-PROGRESS"
+                                               y.patrol_status.ToUpper() == "RONDAAN"
                                            )
                                         );
 
@@ -246,7 +246,7 @@ namespace PBTPro.Api.Controllers
 
                 if (isPatrolDup)
                 {
-                    return Error("", SystemMesg(_feature, "MEMBERS_ACTIVEPATROL", MessageTypeEnum.Error, string.Format("pegawai sedang dalam rondaan")));
+                    return Error("", SystemMesg(_feature, "MEMBERS_ASSIGNED", MessageTypeEnum.Error, string.Format("pegawai sedang dalam rondaan")));
                 }
                 #endregion
 
