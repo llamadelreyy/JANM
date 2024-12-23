@@ -68,7 +68,7 @@ namespace PBTPro.Api.Controllers
             {
                 var parFormfield = await (from license_hist in _dbContext.license_histories
                                 join license_info in _dbContext.license_informations
-                                on license_hist.license_hist_id equals license_info.license_id
+                                on license_hist.hist_id_info equals license_info.license_id
                                 group new { license_hist, license_info } by license_hist.hist_id_info into g
                                 select new
                                 {
