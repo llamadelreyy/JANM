@@ -85,7 +85,7 @@ namespace PBTPro.Api.Controllers
         }
         
         [HttpGet]
-        [Route("GetDetail")]
+        //[Route("GetDetail")]
         public async Task<IActionResult> GetDetail(int Id)
         {
             try
@@ -139,7 +139,7 @@ namespace PBTPro.Api.Controllers
         }
         
         [HttpPost]
-        [Route("StartPatrol")]
+        //[Route("StartPatrol")]
         public async Task<IActionResult> StartPatrol([FromBody] StartPatrolModel InputModel)
         {
             try
@@ -276,7 +276,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPost]
-        [Route("StopPatrol")]
+        //[Route("StopPatrol")]
         public async Task<IActionResult> StopPatrol([FromBody] StopPatrolModel InputModel)
         {
             try
@@ -348,7 +348,7 @@ namespace PBTPro.Api.Controllers
         }
         
         [HttpPost]
-        [Route("AddMember")]
+        //[Route("AddMember")]
         public async Task<IActionResult> AddMember([FromBody] PatrolInputMemberModel InputModel)
         {
             try
@@ -422,7 +422,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPost]
-        [Route("RemoveMember")]
+        //[Route("RemoveMember")]
         public async Task<IActionResult> RemoveMember([FromBody] PatrolInputMemberModel InputModel)
         {
             try
