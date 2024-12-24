@@ -30,4 +30,8 @@ public partial class patrol_member
     public int? updated_by { get; set; }
 
     public DateTime? update_date { get; set; }
+
+    public DateTime? member_start_dtm { get; set; }
+
+    public DateTime? member_end_dtm { get; set; }
 }
