@@ -214,6 +214,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+        
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<patrol_info>>> ListAll()
@@ -228,6 +229,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] patrol_info InputModel)
@@ -239,7 +241,7 @@ namespace PBTPro.Api.Controllers
 
                 #region Validation
                 var isPatrolDup = await _dbContext.patrol_infos
-                                        .AnyAsync(y => y.patrol_officer_name == InputModel.patrol_officer_name && 
+                                        .AnyAsync(y => y.patrol_officer_name == InputModel.patrol_officer_name &&
                                         (y.patrol_start_dtm < DateTime.Now || y.patrol_start_dtm == InputModel.patrol_start_dtm) &&
                                         (y.patrol_end_dtm < DateTime.Now || y.patrol_end_dtm == InputModel.patrol_end_dtm) &&
                                         y.patrol_location == InputModel.patrol_location);
@@ -287,7 +289,8 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.patrol_infos.FirstOrDefaultAsync(x => x.patrol_id == Id);
+                var formField = await _dbContext.patrol_infos
+                                .FirstOrDefaultAsync(x => x.patrol_id == InputModel.patrol_id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
@@ -300,20 +303,6 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "PATROL_LOCATION", MessageTypeEnum.Error, string.Format("Ruangan Lokasi Rondaan diperlukan")));
                 }
-                //check nama pegawai sama dan status masih dlm rondaan
-                //if (formField.patrol_officer_name == InputModel.patrol_officer_name && (formField.patrol_status == "Rondaan"))
-                //{
-                //    return Error("", SystemMesg(_feature, "PATROL_SCHEDULE", MessageTypeEnum.Error, string.Format("Pegawai masih belum selesai membuat rondaan. Sila pilih pegawai lain")));
-                //}
-                //var relatedPatrols = await _dbContext.patrol_infos
-                //                    .Where(x => x.patrol_officer_name == InputModel.patrol_officer_name)
-                //                    .ToListAsync();
-
-                //if (formField.patrol_start_dtm == InputModel.patrol_start_dtm && formField.patrol_officer_name == InputModel.patrol_officer_name && formField.patrol_location == InputModel.patrol_location)
-                //{
-                //    return Error("", SystemMesg(_feature, "PATROL_SCHEDULE", MessageTypeEnum.Error, string.Format("Pegawai yang ditugaskan tidak available.")));
-                //}
-
                 #endregion
                 formField.patrol_dept_name = InputModel.patrol_dept_name;
                 formField.patrol_officer_name = InputModel.patrol_officer_name;
@@ -335,6 +324,55 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpDelete("{Id}")]
+        public async Task<IActionResult> Delete(int Id)
+        {
+            try
+            {
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                var formField = await _dbContext.patrol_infos.Where(x => x.patrol_status == "Belum Mula").FirstOrDefaultAsync(x => x.patrol_id == Id);
+
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                #endregion
+
+                _dbContext.patrol_infos.Remove(formField);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetListByTabType(string tabType)
+        {
+            try
+            {
+                var parFormfields = await _dbContext.patrol_infos.Where(x => x.active_flag == true && x.patrol_status == tabType)
+                                    .AsNoTracking().ToListAsync();
+
+                if (parFormfields.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                return Ok(parFormfields, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
         #endregion
     }
 }

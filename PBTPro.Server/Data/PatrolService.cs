@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 using PBTPro.DAL.Services;
 using System.Reflection;
 using System.Text;
@@ -155,11 +156,12 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, patrol_info inputModel)
+        public async Task<ReturnViewModel> Update(patrol_info inputModel)
         {
             var result = new ReturnViewModel();
             try
             {
+                int id = inputModel.patrol_id;
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
@@ -217,66 +219,8 @@ namespace PBTPro.Data
             return Task.FromResult(_Patrolling);
         }
         
-        [HttpGet]
-        public async Task<List<patrol_scheduler>> GetOfficerName()
-        {
-            var result = new List<patrol_scheduler>();
-            try
-            {
-                string requestUrl = $"{_baseReqURL}/GetOfficerName";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl);
-
-                if (response.ReturnCode == 200)
-                {
-                    string? dataString = response?.Data?.ToString();
-                    if (!string.IsNullOrWhiteSpace(dataString))
-                    {
-                        result = JsonConvert.DeserializeObject<List<patrol_scheduler>>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai nama pegawai.", 1, LoggerName, "");
-                    }
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status kod:" + response.ReturnCode, 1, LoggerName, "");
-                }
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<patrol_scheduler>();
-            }
-            return result;
-        }
-        [HttpGet]
-        public async Task<List<patrol_scheduler>> GetPatrolLocation(string offName="")
-        {
-            var result = new List<patrol_scheduler>();
-            try
-            {
-                string requestUrl = $"{_baseReqURL}/GetPatrolLocation?offName=" + offName;
-                var response = await _apiConnector.ProcessLocalApi(requestUrl);
-
-                if (response.ReturnCode == 200)
-                {
-                    string? dataString = response?.Data?.ToString();
-                    if (!string.IsNullOrWhiteSpace(dataString))
-                    {
-                        result = JsonConvert.DeserializeObject<List<patrol_scheduler>>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai lokasi rondaaan berdasarkan nama pegawai.", 1, LoggerName, "");
-                    }
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status kod:" + response.ReturnCode, 1, LoggerName, "");
-                }
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<patrol_scheduler>();
-            }
-            return result;
-        }
+        
+        
 
         public async Task<patrol_scheduler> ViewDetail(int id)
         {
@@ -309,28 +253,31 @@ namespace PBTPro.Data
 
             return result;
         }
-        
-        //[HttpGet]
-        //public async Task<patrol_info> GetIdPatrolling(int id)
-        //{
-        //    try
-        //    {
-        //        var platformApiUrl = _configuration["PlatformAPI"];
-        //        var accessToken = _cf.CheckToken();
 
-        //        var request = _cf.CheckRequest(platformApiUrl + "/api/Patrol/RetrievePatrolling/" + id);
-        //        string jsonString = await _cf.Retrieve(request, accessToken);
-        //        patrol_info patrolling = JsonConvert.DeserializeObject<patrol_info>(jsonString.ToString());
-        //        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci jadual rondaan.", 1, LoggerName, "");
+        public async Task<List<patrol_info>> ListByTabType(string tabType)
+        {
+            var result = new List<patrol_info>();
+            try
+            {
+                string requestquery = $"?tabType={tabType}";
+                string requestUrl = $"{_baseReqURL}/GetListByTabType{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
-        //        return patrolling;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-        //        return null;
-        //    }
-        //}
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<patrol_info>>(dataString);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result = new List<patrol_info>();
+            }
 
+            return result;
+        }      
     }
 }

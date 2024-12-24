@@ -1,8 +1,9 @@
 ﻿@page "/faq"
-@attribute [AllowAnonymous]
+@attribute [Authorize(Roles = "Administrator")]
+
+@implements IDisposable
 
 @using System.Globalization
-@implements IDisposable
 @using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
@@ -12,8 +13,8 @@
 @using PBTPro.DAL.Models.CommonServices
 @using PBTPro.DAL.Models.PayLoads
 
-@inject NavigationManager NavigationManager
 @inject FaqService _faq
+@inject NavigationManager NavigationManager
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 
@@ -61,8 +62,8 @@
 </div>
 
 @code {
-    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     IEnumerable<faq_info> DataSource;
     public List<(faq_info, int)> Items { get; set; } = new List<(faq_info, int)>();
     int ActiveTabIndex { get; set; } = 1;

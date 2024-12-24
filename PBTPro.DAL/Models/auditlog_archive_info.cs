@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace PBTPro.DAL.Models;
 
 public partial class auditlog_archive_info
 {
+    [Key]
     public int archive_id { get; set; }
 
     public int archive_role_id { get; set; }
@@ -24,4 +26,7 @@ public partial class auditlog_archive_info
     public string? archive_method { get; set; }
 
     public bool? archive_isarchived { get; set; }
+
+    public int archive_audit_id { get; set; }
+
 }

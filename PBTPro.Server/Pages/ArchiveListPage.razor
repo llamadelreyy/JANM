@@ -1,9 +1,9 @@
 ﻿@page "/senarai_arkib"
-@attribute [AllowAnonymous]
+@attribute [Authorize(Roles = "Administrator")]
 
-
- @using System.Globalization
 @implements IDisposable
+
+@using System.Globalization
 @using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
@@ -11,10 +11,11 @@
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
 @using PBTPro.DAL.Services
+
+@inject ArchiveAuditService _audit
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 @inject NavigationManager NavigationManager
-@inject ArchiveAuditService _audit
 @inject IToastService toastService
 
 
@@ -67,42 +68,32 @@
         </Columns>      
     </DxGrid>
     <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
-@*     <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
-    <DxButton Text="Export XLS" Click="ExportXls_Click" />
-    <DxButton Text="Export CSV" Click="ExportCsv_Click" />
- *@<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 </div>
+
 @code {
-
     private List<auditlog_archive_info> _lstAudits = new List<auditlog_archive_info>();
-
+    auditlog_archive_info dtData { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
-    string GridSearchText = "";
-
-    bool ConfirmationShown { get; set; } = false;
-    string strSelected { get; set; }
-    int intSelected { get; set; }
-    auditlog_archive_info dtData { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-
+    #region list
     protected override async Task OnInitializedAsync()
     {
         _lstAudits = await _audit.GetAuditAsync();
-        DataLoadedTcs.TrySetResult(true);
-
         try
         {
             _lstAudits = await _audit.ListAll();
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
         }
-    }  
+        DataLoadedTcs.TrySetResult(true);
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -111,16 +102,9 @@
             await Grid.CancelEditAsync();
         }
     }
+    #endregion
 
-    void Grid_CustomizeDataRowEditor(GridCustomizeDataRowEditorEventArgs e)
-    {
-        if (e.EditSettings is ITextEditSettings settings)
-            settings.ShowValidationIcon = true;
-    }
-    public void Dispose()
-    {
-        DataLoadedTcs.TrySetCanceled();
-    }
+    #region lookup
     public MarkupString GetStatusAuditIconHtml(int? status)
     {
         string priorytyClass = "";
@@ -141,4 +125,11 @@
         title);
         return new MarkupString(html);
     }
+    #endregion
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
 }

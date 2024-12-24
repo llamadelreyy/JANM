@@ -19,6 +19,7 @@ using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 using System.Reflection;
+using static DevExpress.Utils.Filtering.ExcelFilterOptions;
 
 namespace PBTPro.Data
 {
@@ -183,6 +184,37 @@ namespace PBTPro.Data
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;               
-        }               
+        }
+
+        public async Task<List<auditlog_info>> ArchiveByMonth(int dtm)
+        {
+            var result = new List<auditlog_info>();
+            try
+            {
+                string requestquery = $"?dtm={dtm}";
+                string requestUrl = $"{_baseReqURL}/ArchiveByMonth{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<auditlog_info>>(dataString);
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya arkib data untuk log audit.", 1, LoggerName, "");
+                    }
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response.ReturnCode, 1, LoggerName, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<auditlog_info>();
+            }
+            return result;
+        }
     }
 }
