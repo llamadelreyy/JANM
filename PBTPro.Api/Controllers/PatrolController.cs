@@ -49,7 +49,33 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var data = await _dbContext.patrol_infos.Where(x => x.active_flag == true).AsNoTracking().ToListAsync();
+                var data = await _dbContext.patrol_infos.Where(x => x.active_flag == true).Select(x => new 
+                            {
+                                patrol_id = x.patrol_id,
+                                patrol_cnt_notice = x.patrol_cnt_notice,
+                                patrol_cnt_compound = x.patrol_cnt_compound,
+                                patrol_cnt_notes = x.patrol_cnt_notes,
+                                patrol_cnt_seizure = x.patrol_cnt_seizure,
+                                patrol_status = x.patrol_status,
+                                patrol_start_dtm = x.patrol_start_dtm,
+                                patrol_end_dtm = x.patrol_end_dtm,
+                                active_flag = x.active_flag,
+                                created_by = x.created_by,
+                                created_date = x.created_date,
+                                updated_by = x.updated_by,
+                                patrol_officer_name = x.patrol_officer_name,
+                                patrol_location = x.patrol_location,
+                                updated_date = x.updated_date,
+                                patrol_dept_name = x.patrol_dept_name,
+                                patrol_scheduled = x.patrol_scheduled,
+                                patrol_start_location = x.patrol_start_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_start_location))
+                                    : null,
+
+                                patrol_end_location = x.patrol_end_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_end_location))
+                                    : null
+                            }).AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -57,7 +83,61 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+        
+        [HttpGet]
+        [Route("GetDetail")]
+        public async Task<IActionResult> GetDetail(int Id)
+        {
+            try
+            {
+                var patrol = await _dbContext.patrol_infos.Where(x => x.patrol_id == Id).Select(x => new 
+                            {
+                                patrol_id = x.patrol_id,
+                                patrol_cnt_notice = x.patrol_cnt_notice,
+                                patrol_cnt_compound = x.patrol_cnt_compound,
+                                patrol_cnt_notes = x.patrol_cnt_notes,
+                                patrol_cnt_seizure = x.patrol_cnt_seizure,
+                                patrol_status = x.patrol_status,
+                                patrol_start_dtm = x.patrol_start_dtm,
+                                patrol_end_dtm = x.patrol_end_dtm,
+                                active_flag = x.active_flag,
+                                created_by = x.created_by,
+                                created_date = x.created_date,
+                                updated_by = x.updated_by,
+                                patrol_officer_name = x.patrol_officer_name,
+                                patrol_location = x.patrol_location,
+                                updated_date = x.updated_date,
+                                patrol_dept_name = x.patrol_dept_name,
+                                patrol_scheduled = x.patrol_scheduled,
+                                patrol_start_location = x.patrol_start_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_start_location))
+                                    : null,
 
+                                patrol_end_location = x.patrol_end_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_end_location))
+                                    : null
+                            }).FirstOrDefaultAsync();
+                
+                if(patrol == null)
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
+                }
+
+                var members = await _dbContext.patrol_members.Where(x=> x.member_patrol_id == patrol.patrol_id).AsNoTracking().ToListAsync();
+
+                var result = new {
+                  info = patrol,
+                  members = members
+                };
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        
         [HttpPost]
         [Route("StartPatrol")]
         public async Task<IActionResult> StartPatrol([FromBody] StartPatrolModel InputModel)
@@ -229,7 +309,7 @@ namespace PBTPro.Api.Controllers
                 await _dbContext.SaveChangesAsync();
 
                 List<patrol_member>? patrolDets = await _dbContext.patrol_members.Where(x => x.member_patrol_id == InputModel.patrol_id).ToListAsync();
-                foreach (var patrolDet in patrolDets.Where(x => x.member_leader_flag != true))
+                foreach (var patrolDet in patrolDets)
                 {
                     patrolDet.member_end_dtm = patrol.patrol_end_dtm;
                     patrolDet.updated_by = runUserID;
@@ -268,6 +348,7 @@ namespace PBTPro.Api.Controllers
         }
         
         [HttpPost]
+        [Route("AddMember")]
         public async Task<IActionResult> AddMember([FromBody] PatrolInputMemberModel InputModel)
         {
             try
@@ -341,6 +422,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPost]
+        [Route("RemoveMember")]
         public async Task<IActionResult> RemoveMember([FromBody] PatrolInputMemberModel InputModel)
         {
             try
@@ -397,9 +479,9 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+
         [AllowAnonymous]
         [HttpGet]
-        
         public async Task<ActionResult<IEnumerable<patrol_info>>> ListAll()
         {
             try
