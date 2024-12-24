@@ -123,7 +123,30 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
                 }
 
-                var members = await _dbContext.patrol_members.Where(x=> x.member_patrol_id == patrol.patrol_id).AsNoTracking().ToListAsync();
+                var members = await (from pm in _dbContext.patrol_members
+                                    join u in _dbContext.Users on pm.member_username equals u.UserName
+                                    where pm.member_patrol_id == patrol.patrol_id
+                                    select new
+                                    {
+                                        pm.member_id,
+                                        pm.member_patrol_id,
+                                        pm.member_username,
+                                        pm.member_cnt_notice,
+                                        pm.member_cnt_compound,
+                                        pm.member_cnt_notes,
+                                        pm.member_cnt_seizure,
+                                        pm.member_leader_flag,
+                                        pm.active_flag,
+                                        pm.created_by,
+                                        pm.created_date,
+                                        pm.updated_by,
+                                        pm.update_date,
+                                        pm.member_start_dtm,
+                                        pm.member_end_dtm,
+                                        member_fullname = u.Name
+                                    })
+                                    .AsNoTracking()
+                                    .ToListAsync();
 
                 var result = new {
                   info = patrol,
