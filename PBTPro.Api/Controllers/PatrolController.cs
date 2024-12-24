@@ -10,10 +10,12 @@ Additional Notes:
 Changes Logs:
 06/11/2024 - initial create
 */
+using DevExpress.Data.ODataLinq.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -62,18 +64,44 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                bool isNew = false;
+                patrol_info patrol = new patrol_info();
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
                 List<string> teamMembers = new List<string>();
                 teamMembers.Add(runUser);
-                teamMembers.AddRange(InputModel.Usernames.Where(username => !string.IsNullOrWhiteSpace(username)));
-
+                teamMembers.AddRange(InputModel.usernames.Where(username => !string.IsNullOrWhiteSpace(username) && username != runUser));
+                
                 #region Validation
+                if(InputModel.patrol_id.HasValue)
+                {
+                    patrol = await _dbContext.patrol_infos.Where(x=>x.patrol_id == InputModel.patrol_id).FirstOrDefaultAsync();
+                    if(patrol == null)
+                    {
+                        isNew = true;
+                    }
+                }else{
+                    patrol = new patrol_info
+                    {
+                        created_by = runUserID,
+                        created_date = DateTime.Now,
+                        patrol_status = "Belum Mula",
+                        patrol_scheduled = false
+                    };
+
+                    isNew = true;
+                }
+                
+                if(patrol.patrol_status.ToUpper() != "BELUM MULA")
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_ISNOT_NEW", MessageTypeEnum.Error, string.Format("rondaan sedang aktif dilaksanakan atau telah selesai")));
+                }
+
                 var isActivePatrolling = await _dbContext.patrol_members
-                                        .AnyAsync(x => teamMembers.Contains(x.member_username) &&
+                                        .AnyAsync(x => teamMembers.Contains(x.member_username) && x.member_end_dtm == null && 
                                            _dbContext.patrol_infos.Any(y =>
                                                y.patrol_id == x.member_patrol_id &&
-                                               y.patrol_status.ToUpper() == "IN-PROGRESS"
+                                               y.patrol_status.ToUpper() == "RONDAAN"
                                            )
                                         );
 
@@ -84,16 +112,24 @@ namespace PBTPro.Api.Controllers
                 #endregion
 
                 #region store data
-                patrol_info patrol = new patrol_info
+                var CurrentLocationArr = InputModel.current_location;
+                var CurrentLocation = new Point(CurrentLocationArr.Longitude, CurrentLocationArr.Latitude)
                 {
-                    patrol_status = "IN-PROGRESS",
-                    patrol_start_dtm = DateTime.Now,
-                    patrol_start_location = InputModel.CurrentLocation,
-                    created_by = runUserID,
-                    created_date = DateTime.Now
+                    SRID = 4326
                 };
-
-                _dbContext.patrol_infos.Add(patrol);
+                
+                patrol.patrol_status = "Rondaan";
+                patrol.patrol_start_dtm = DateTime.Now;
+                patrol.patrol_start_location = CurrentLocation;
+                patrol.updated_by = runUserID;
+                patrol.updated_date = DateTime.Now;
+                
+                if(isNew == true)
+                {
+                    _dbContext.patrol_infos.Add(patrol);
+                }else{
+                    _dbContext.patrol_infos.Update(patrol);
+                }
                 await _dbContext.SaveChangesAsync();
 
                 List<patrol_member> patrolDets = new List<patrol_member>();
@@ -106,6 +142,7 @@ namespace PBTPro.Api.Controllers
                         member_patrol_id = patrol.patrol_id,
                         member_username = member,
                         member_leader_flag = isLeader,
+                        member_start_dtm = patrol.patrol_start_dtm,
                         created_by = runUserID,
                         created_date = DateTime.Now
                     };
@@ -168,7 +205,7 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var patrol = await _dbContext.patrol_infos.FirstOrDefaultAsync(x => x.patrol_id == InputModel.PatrolId && x.patrol_status.ToUpper() == "IN-PROGRESS");
+                var patrol = await _dbContext.patrol_infos.FirstOrDefaultAsync(x => x.patrol_id == InputModel.patrol_id && x.patrol_status.ToUpper() == "RONDAAN");
 
                 if (patrol == null)
                 {
@@ -176,16 +213,31 @@ namespace PBTPro.Api.Controllers
                 }
                 #endregion
 
-                patrol.patrol_end_location = InputModel.CurrentLocation;
+                var CurrentLocationArr = InputModel.current_location;
+                var CurrentLocation = new Point(CurrentLocationArr.Longitude, CurrentLocationArr.Latitude)
+                {
+                    SRID = 4326
+                };
+
+                patrol.patrol_end_location = CurrentLocation;
                 patrol.patrol_end_dtm = DateTime.Now;
-                patrol.patrol_status = "Completed";
+                patrol.patrol_status = "Selesai";
                 patrol.updated_by = runUserID;
                 patrol.updated_date = DateTime.Now;
 
                 _dbContext.patrol_infos.Update(patrol);
                 await _dbContext.SaveChangesAsync();
 
-                List<patrol_member>? patrolDets = await _dbContext.patrol_members.Where(x => x.member_patrol_id == InputModel.PatrolId).ToListAsync();
+                List<patrol_member>? patrolDets = await _dbContext.patrol_members.Where(x => x.member_patrol_id == InputModel.patrol_id).ToListAsync();
+                foreach (var patrolDet in patrolDets.Where(x => x.member_leader_flag != true))
+                {
+                    patrolDet.member_end_dtm = patrol.patrol_end_dtm;
+                    patrolDet.updated_by = runUserID;
+                    patrolDet.update_date = DateTime.Now;
+                    _dbContext.patrol_members.Update(patrolDet);
+                }                    
+                await _dbContext.SaveChangesAsync();
+
                 foreach (var patrolDet in patrolDets.Where(x => x.member_leader_flag != true))
                 {
                     var connectionId = PushDataHub.GetConnectedUsers().Where(kvp => kvp.Value == patrolDet.member_username).Select(kvp => kvp.Key).FirstOrDefault();
@@ -214,8 +266,140 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+        
+        [HttpPost]
+        public async Task<IActionResult> AddMember([FromBody] PatrolInputMemberModel InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                if(string.IsNullOrWhiteSpace(InputModel.username)){                    
+                    return Error("", SystemMesg(_feature, "MEMBER_ISNULL", MessageTypeEnum.Error, string.Format("pegawai tidah sah")));
+                }
+
+                var patrol = await _dbContext.patrol_infos.FirstOrDefaultAsync(x => x.patrol_id == InputModel.patrol_id && x.patrol_status.ToUpper() == "RONDAAN");
+
+                if (patrol == null)
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
+                }
+
+                var isActivePatrolling = await _dbContext.patrol_members
+                                        .AnyAsync(x => x.member_username == InputModel.username && x.member_end_dtm == null && 
+                                           _dbContext.patrol_infos.Any(y =>
+                                               y.patrol_id == x.member_patrol_id &&
+                                               y.patrol_status.ToUpper() == "RONDAAN"
+                                           )
+                                        );
+
+                if (isActivePatrolling)
+                {
+                    return Error("", SystemMesg(_feature, "MEMBER_ACTIVEPATROL", MessageTypeEnum.Error, string.Format("pegawai telah tersenarai di dalam kumpulan rondaan aktif lain")));
+                }
+                #endregion
+
+                patrol_member patrolDet = new patrol_member
+                {
+                    member_patrol_id = patrol.patrol_id,
+                    member_username = InputModel.username,
+                    member_leader_flag = false,
+                    member_start_dtm = DateTime.Now,
+                    created_by = runUserID,
+                    created_date = DateTime.Now
+                };
+
+                _dbContext.patrol_members.Add(patrolDet);
+                await _dbContext.SaveChangesAsync();
+                
+                var connectionId = PushDataHub.GetConnectedUsers().Where(kvp => kvp.Value == patrolDet.member_username).Select(kvp => kvp.Key).FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(connectionId))
+                {
+                    var data = new
+                    {
+                        Action = "STRPATROL",
+                        PatrolId = patrol.patrol_id,
+                        Isleader = false
+                    };
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", "web-api", data);
+                }
+
+                var result = new
+                {
+                    Action = "ADDMEMBER",
+                    PatrolId = patrol.patrol_id,
+                    Isleader = true
+                };
+                return Ok(result, SystemMesg(_feature, "PATROL_ADD_MEMBER", MessageTypeEnum.Success, string.Format("Berjaya menambah pegawai")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveMember([FromBody] PatrolInputMemberModel InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                var patrol = await _dbContext.patrol_infos.FirstOrDefaultAsync(x => x.patrol_id == InputModel.patrol_id && x.patrol_status.ToUpper() == "RONDAAN");
+
+                if (patrol == null)
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
+                }
+
+                patrol_member patrolDet = await _dbContext.patrol_members.FirstOrDefaultAsync(x => x.member_patrol_id == InputModel.patrol_id && x.member_username == InputModel.username && x.member_end_dtm == null);
+
+                if(patrolDet == null){
+
+                    return Error("", SystemMesg(_feature, "PATROL_MEMBER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pegawai tidak dijumpai")));
+                }
+                #endregion
+
+                patrolDet.member_end_dtm = DateTime.Now;
+                patrolDet.updated_by = runUserID;
+                patrolDet.update_date = DateTime.Now;
+                _dbContext.patrol_members.Update(patrolDet);
+                    
+                await _dbContext.SaveChangesAsync();
+                
+                var connectionId = PushDataHub.GetConnectedUsers().Where(kvp => kvp.Value == patrolDet.member_username).Select(kvp => kvp.Key).FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(connectionId))
+                {
+                    var data = new
+                    {
+                        Action = "STPPATROL",
+                        PatrolId = patrol.patrol_id,
+                        Isleader = false
+                    };
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", "web-api", data);
+                }
+
+                var result = new
+                {
+                    Action = "REMMEMBER",
+                    PatrolId = patrol.patrol_id,
+                    Isleader = true
+                };
+                return Ok(result, SystemMesg(_feature, "PATROL_REM_MEMBER", MessageTypeEnum.Success, string.Format("Berjaya membuang pegawai")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
         [AllowAnonymous]
         [HttpGet]
+        
         public async Task<ActionResult<IEnumerable<patrol_info>>> ListAll()
         {
             try
@@ -230,6 +414,7 @@ namespace PBTPro.Api.Controllers
         }
         [AllowAnonymous]
         [HttpPost]
+        
         public async Task<IActionResult> Add([FromBody] patrol_info InputModel)
         {
             try

@@ -4,15 +4,23 @@ namespace PBTPro.DAL.Models.PayLoads
 {
     public class StartPatrolModel
     {
-        public List<string>? Usernames { get; set; }
-        public Point? CurrentLocation { get; set; }
+        public int? patrol_id { get; set; }
+        public List<string>? usernames { get; set; }
+        public CurrentLocation? current_location { get; set; }
     }
 
     public class StopPatrolModel
     {
-        public int PatrolId { get; set; }
-        public Point? CurrentLocation { get; set; }
+        public int patrol_id { get; set; }
+        public CurrentLocation? current_location { get; set; }
     }
+
+    public class PatrolInputMemberModel
+    {
+        public int patrol_id { get; set; }
+        public string username { get; set; }
+    }
+
     public class PatrolSchedulerModel
     {
         public int scheduler_id { get; set; }
@@ -22,4 +30,9 @@ namespace PBTPro.DAL.Models.PayLoads
         public List<string>? Usernames { get; set; }
     }
 
+    public class CurrentLocation
+    {
+        public double Longitude { get; set; }
+        public double Latitude { get; set; }
+    }
 }
