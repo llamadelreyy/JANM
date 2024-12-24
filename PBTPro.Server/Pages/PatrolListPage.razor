@@ -1,10 +1,9 @@
 ﻿@page "/senarai_rondaan"
-@attribute [AllowAnonymous]
+@attribute [Authorize(Roles = "Administrator")]
 
-
+@implements IDisposable
 
 @using System.Globalization
-@implements IDisposable
 @using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
@@ -12,12 +11,13 @@
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
 @using PBTPro.DAL.Services
+
 @inject PatrolService _patrolling
+@inject DepartmentService _department
 @inject NavigationManager NavigationManager
 @inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
-@inject DepartmentService _department
 
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -35,316 +35,302 @@
 
 <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 <div class="item-container-x">
-    @{
-
-        <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
-            @if (_lstPatrollings != null && _lstPatrollings.Any())
+    <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="@OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+        @{
+            var Items = lstActiveIndex.Where(c => c.active_flag == true).GroupBy(item => item.patrol_status).ToList();
+            @foreach (var itm in Items)
             {
-                var groupedItems = _lstPatrollings.GroupBy(item => item.patrol_status).ToList();
-
-                @foreach (var group in groupedItems)
-                {
-                    <DxTab Text="@group.Key"></DxTab>
-                }
+                var combine = @itm.Key + " (" + @itm.Count() + ")";
+                <DxTab Text="@combine"></DxTab>
             }
-        </DxTabs>
+        }
+    </DxTabs>
+    <DxGrid @ref="Grid"
+            Data="@DataSource"
+            ShowGroupPanel="true"
+            ShowFilterRow="true"            
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            PageSize="25"           
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
 
-        <DxGrid @ref="Grid"
-                Data="@_lstPatrollings"
-                KeyFieldName="patrol_id"
-                ShowGroupPanel="true"
-                ShowFilterRow="true"
-                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-                EditorRenderMode="GridEditorRenderMode.Integrated"
-                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                PageSize="25"
-                CustomizeEditModel="Grid_CustomizeEditModel"
-                @bind-PageIndex="@GridPageIndex"
-                PagerPosition="GridPagerPosition.Bottom"
-                PagerNavigationMode="PagerNavigationMode.InputBox"
-                EditModelSaving="Grid_EditModelSaving"
-                EditFormButtonsVisible="false"
-                PageSizeSelectorVisible="true"
-                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-                PageSizeSelectorAllRowsItemVisible="true"
-                PagerAutoHideNavButtons="false"
-                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-                HighlightRowOnHover="true"
-                CssClass="mv-1000">
+        <Columns>
+            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
+                <HeaderTemplate>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((patrol_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                </CellDisplayTemplate>
+            </DxGridCommandColumn>
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                <CellDisplayTemplate>
+                    <div>
+                        @CombineTextPegawai(((patrol_info)context.DataItem).patrol_officer_name, ((patrol_info)context.DataItem).patrol_dept_name)
+                    </div>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_location)" Caption="Lokasi Rondaan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn Caption="Tarikh & Masa Mula dan Tamat Rondaan" MinWidth="200" Width="40%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                <CellDisplayTemplate>
+                    <div>
+                        @CombineText(Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm))
+                    </div>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_status)" Caption="Status Rondaan" Width="20%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                <CellDisplayTemplate>
+                    <div>@GetStatusRondaanIconHtml(((patrol_info)context.DataItem).patrol_status)</div>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
 
-            <Columns>
-
-                <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
-                    <HeaderTemplate>
-                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                    </HeaderTemplate>
-                    <CellDisplayTemplate>
-                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        <a @onclick="@(() => Delete((patrol_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                    </CellDisplayTemplate>
-                </DxGridCommandColumn>
-                <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
-                    <CellDisplayTemplate>
-                        <div>
-                            @CombineTextPegawai(((patrol_info)context.DataItem).patrol_officer_name, ((patrol_info)context.DataItem).patrol_dept_name)
-                        </div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_location)" Caption="Lokasi Rondaan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-                <DxGridDataColumn Caption="Tarikh & Masa Mula dan Tamat Rondaan" MinWidth="200" Width="40%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
-                    <CellDisplayTemplate>
-                        <div>
-                            @CombineText(Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm))
-                        </div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_status)" Caption="Status Rondaan" Width="20%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
-                    <CellDisplayTemplate>
-                        <div>@GetStatusRondaanIconHtml(((patrol_info)context.DataItem).patrol_status)</div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-
-            </Columns>
-
-            <EditFormTemplate Context="editFormContext">
-                @{
-                    var dtData = (patrol_info)editFormContext.EditModel;
-                }
-                <DxFormLayout CssClass="w-100">
-
-                    <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
-                        <table class="">
-                            <tr>
-                                <td nowrap>Jabatan</td>
-                                <td>&nbsp;:&nbsp;</td>
-                                <td width="50%" colspan="7">
-                                    <DxComboBox Data="@Data"
-                                                ShowValidationIcon="true"
-                                                NullText="Pilih Jabatan..."
-                                                @bind-Value="@SelectedEmployee"
-                                                TextFieldName="@nameof(department_info.dept_depart_name)" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Nama Pegawai</td>
-                                <td>&nbsp;:&nbsp;</td>
-                                <td width="50%" colspan="7">
-                                    <DxComboBox Data="@namapegawai"
-                                                ShowValidationIcon="true"
-                                                NullText="Pilih Nama Pegawai..."
-                                                @bind-Value="@dtData.patrol_officer_name"
-                                                @bind-Text="@dtData.patrol_officer_name">
-                                    </DxComboBox>
-                                    @* <DxComboBox Data="@dtOfficerName"
+        <EditFormTemplate Context="editFormContext">
+            @{
+                var dtData = (patrol_info)editFormContext.EditModel;
+                var editContext = new EditContext(dtData);
+            }
+            <DxFormLayout EditContext="editContext" CssClass="w-100">
+                <DxFormLayoutItem Caption="patrol_id" ColSpanMd="6" Visible="false">
+                    <DxTextBox @bind-Value="@dtData.patrol_id" ReadOnly="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
+                    <table class="">
+                        <tr>
+                            <td nowrap>Jabatan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@Data"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Jabatan..."
+                                            @bind-Value="@SelectedEmployee"
+                                            TextFieldName="@nameof(department_info.dept_depart_name)" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Nama Pegawai</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@namapegawai"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Nama Pegawai..."
+                                            @bind-Value="@dtData.patrol_officer_name"
+                                            @bind-Text="@dtData.patrol_officer_name">
+                                </DxComboBox>
+                                @* <DxComboBox Data="@dtOfficerName"
                                 @bind-Value="@ValueOfficerName"
                                 NullText="Pilih Nama Pegawai..."
                                 TextFieldName="@nameof(patrol_scheduler.scheduler_officer)"
                                 ShowValidationIcon="true"
                                 onchange="OnOfficerNameChanged">
                                 </DxComboBox>  *@
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Lokasi Rondaan</td>
-                                <td>&nbsp;:&nbsp;</td>
-                                <td width="50%" colspan="7">
-                                    <DxComboBox Data="@lokasirondaan"
-                                                ShowValidationIcon="true"
-                                                NullText="Pilih Lokasi Rondaan..."
-                                                @bind-Value="@dtData.patrol_location"
-                                                @bind-Text="@dtData.patrol_location">
-                                    </DxComboBox>
-                                    @* <DxComboBox Data="@dtLocation"
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Lokasi Rondaan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@lokasirondaan"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Lokasi Rondaan..."
+                                            @bind-Value="@dtData.patrol_location"
+                                            @bind-Text="@dtData.patrol_location">
+                                </DxComboBox>
+                                @* <DxComboBox Data="@dtLocation"
                                 @bind-Value="@ValueLocation"
                                 NullText="Pilih Lokasi Rondaan..."
                                 TextFieldName="@nameof(patrol_scheduler.scheduler_location)"
                                 ShowValidationIcon="true">
                                 </DxComboBox> *@
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Masa Mula Rondaan</td>
-                                <td>&nbsp;:&nbsp;</td>
-                                <td width="50%">
-                                    <DxDateEdit @bind-Date="@dtData.patrol_start_dtm"
-                                                TimeSectionVisible="true"
-                                                CssClass="cw-320"
-                                                InputId="deStartTimeSection" />
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Masa Tamat Rondaan</td>
-                                <td>&nbsp;:&nbsp;</td>
-                                <td width="50%">
-                                    <DxDateEdit @bind-Date="@dtData.patrol_end_dtm"
-                                                TimeSectionVisible="true"
-                                                CssClass="cw-320"
-                                                InputId="deEndTimeSection" />
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Status Rondaan</td>
-                                <td>&nbsp;:&nbsp;</td>
-                                <td width="50%" colspan="7">
-                                    <DxComboBox Data="@patrollingStatusOptions"
-                                                ShowValidationIcon="true"
-                                                NullText="Pilih Status..."
-                                                @bind-Value="@dtData.patrol_status"
-                                                @bind-Text="@dtData.patrol_status">
-                                    </DxComboBox>
-                                </td>
-                            </tr>
-                            <tr style="height:10px;"><td colspan="7"></td></tr>
-                            <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                            <tr style="height:10px;"><td colspan="7"></td></tr>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Masa Mula Rondaan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxDateEdit @bind-Date="@dtData.patrol_start_dtm"
+                                            TimeSectionVisible="true"
+                                            CssClass="cw-320"
+                                            InputId="deStartTimeSection" />
+                            </td>
+                            <td width="100px">&nbsp;</td>
+                            <td nowrap></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%"></td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Masa Tamat Rondaan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%">
+                                <DxDateEdit @bind-Date="@dtData.patrol_end_dtm"
+                                            TimeSectionVisible="true"
+                                            CssClass="cw-320"
+                                            InputId="deEndTimeSection" />
+                            </td>
+                            <td width="100px">&nbsp;</td>
+                            <td nowrap></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%"></td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Status Rondaan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@patrollingStatusOptions"
+                                            ShowValidationIcon="true"
+                                            NullText="Pilih Status..."
+                                            @bind-Value="@dtData.patrol_status"
+                                            @bind-Text="@dtData.patrol_status">
+                                </DxComboBox>
+                            </td>
+                        </tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
+                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                        <tr style="height:10px;"><td colspan="7"></td></tr>
 
-                        </table>
-                    </DxFormLayoutItem>
+                    </table>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12">
+                    <DxButton SubmitFormOnClick="true" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditFormTemplate>        
+    </DxGrid>
 
-                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="12">
-                        <DxButton SubmitFormOnClick="true" Text="Simpan" />
-                        <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
-                    </DxFormLayoutItem>
-                </DxFormLayout>
-            </EditFormTemplate>
-            <CustomValidators>
-                <MyCustomValidator DataItemValidating="ValidateGridData" />
-            </CustomValidators>
-        </DxGrid>
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            <br />Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
 
-        <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
-            <BodyContentTemplate>
-                <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
-                <br />Anda pasti untuk menghapuskan rekod ini?
-                <br /><br />
-                <div class="confirm-dialog-buttons">
-                    <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-                    <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
-                </div>
-            </BodyContentTemplate>
-        </DxPopup>
-    }
 </div>
 @code {
-
-    private List<patrol_info> _lstPatrollings = new List<patrol_info>();
+    private List<patrol_info> lstActiveIndex = new List<patrol_info>();
+    public List<(patrol_info, int)> Items { get; set; } = new List<(patrol_info, int)>();
+    IEnumerable<patrol_info> DataSource;
+    IEnumerable<department_info> Data { get; set; }
     patrol_info dtDatas { get; set; }
-
-    int ActiveTabIndex;
+    department_info SelectedEmployee { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
-    string GridSearchText = "";
     bool ConfirmationShown { get; set; } = false;
-    string strSelected { get; set; }
-    int intSelected { get; set; }
+    private string tabType = "Belum Mula";
+    int ActiveTabIndex;
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    public List<(patrol_info, int)> Items { get; set; } = new List<(patrol_info, int)>();
-    IEnumerable<patrol_info> DataSource;
-
-    //cth
-    IEnumerable<department_info> Data { get; set; }
-    department_info SelectedEmployee { get; set; }
-    string Text { get; set; }
-    string Value { get; set; }
-
+    #region List
     protected override async Task OnInitializedAsync()
     {
-        _lstPatrollings = await _patrolling.GetPatrollingAsync();
-
-        try
-        {
-            _lstPatrollings = await _patrolling.ListAll();
-            Data = await _department.ListAll();
-            SelectedEmployee = Data.FirstOrDefault();
-
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
-        }
+        lstActiveIndex = await _patrolling.ListAll();
+        DataSource = await GetListDataAsync(tabType);
+        Data = await _department.ListAll();
+        SelectedEmployee = Data.FirstOrDefault();
         DataLoadedTcs.TrySetResult(true);
     }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+   
+    private async Task OnActiveTabIndexChanged(int index)
     {
-        if (firstRender)
+        ActiveTabIndex = index;
+        switch (ActiveTabIndex)
         {
-            await DataLoadedTcs.Task;
-            await Grid.CancelEditAsync();
+            case 0:
+                tabType = "Belum Mula";
+                break;
+            case 1:
+                tabType = "Rondaan";
+                break;
+            case 2:
+                tabType = "Selesai";
+                break;
+            default:
+                tabType = "Belum Mula";
+                break;
         }
+
+        DataSource = await GetListDataAsync(tabType);
+        StateHasChanged();
     }
 
-    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    private async Task<IEnumerable<patrol_info>> GetListDataAsync(string? TabType = "")
     {
-        var _data = (patrol_info)e.EditModel;
-
-        if (_data.patrol_officer_name == null || _data.patrol_officer_name.Trim() == "")
-        {
-            e.AddError(nameof(_data.patrol_officer_name), "Nama pegawai rondaan tidak sah. Medan perlu diisi.");
-        }
-        if (_data.patrol_location == null || _data.patrol_location.Trim() == "")
-        {
-            e.AddError(nameof(_data.patrol_officer_name), "Lokasi rondaan tidak sah. Medan perlu diisi.");
-        }
+        IEnumerable<patrol_info> result = await _patrolling.ListByTabType(TabType);
+        return result;
     }
+
+    async Task UpdateDataAsync()
+    {
+        DataSource = await _patrolling.Refresh();
+    }
+
+    #endregion
+
+    #region add/edit/delete
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
-        ReturnViewModel response = new ReturnViewModel();
-        bool blnSuccess = false;
-        var editModel = e.EditModel as patrol_info;
-
-        editModel.active_flag = true;
-
         try
         {
-            if (e.IsNew)
-            {                
-                int dtIdMax;
+            ReturnViewModel response = new ReturnViewModel();
+            var inputModel = e.EditModel as patrol_info;
 
-                if (_lstPatrollings.Any())  // Check if the collection has any elements
+            if (e.IsNew)
+            {
+                int? dtIdMax;
+                if (lstActiveIndex.Any())
                 {
-                    dtIdMax = _lstPatrollings.Max(x => x.patrol_id);
-                    dtIdMax++;// Get the maximum patrol_id
+                    dtIdMax = lstActiveIndex.OrderByDescending(x => x.patrol_id).FirstOrDefault()?.patrol_id;
+                    if (dtIdMax.HasValue)
+                    {
+                        dtIdMax++;
+                    }
                 }
                 else
                 {
-                    dtIdMax = 1;  // Set a default value if the collection is empty
+                    dtIdMax = 1;
                 }
-                editModel.patrol_id = dtIdMax;
-                editModel.patrol_dept_name = SelectedEmployee.dept_depart_name;
-                editModel.created_date = DateTime.Now;
-
-                response = await _patrolling.Add(editModel);
-                blnSuccess = true;
+                inputModel.patrol_id = dtIdMax ?? 0;
+                inputModel.patrol_dept_name = SelectedEmployee.dept_depart_name;
+                inputModel.patrol_status = inputModel.patrol_status;
+                inputModel.created_date = DateTime.Now;
+                inputModel.active_flag = true;
+                response = await _patrolling.Add(inputModel);
             }
             else
             {
-                editModel.patrol_dept_name = SelectedEmployee.dept_depart_name;
-                editModel.updated_date = DateTime.Now;
-
-                response = await _patrolling.Update(editModel.patrol_id, editModel);
-                blnSuccess = true;
+                response = await _patrolling.Update(inputModel);
             }
 
-            if (blnSuccess)
+            if (response.ReturnCode == 200)
             {
-                await UpdateDataAsync();
-                toastService.ShowInfo("Proses kemaskini selesai.");
+                DataSource = await GetListDataAsync(tabType);
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+                NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
             }
             else
             {
-                toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+                e.Cancel = true;
+                HandleResponse(response.ReturnMessage, "Error");
             }
         }
         catch (Exception ex)
@@ -352,21 +338,13 @@
             Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
     }
-    async Task UpdateDataAsync()
-    {
-        _lstPatrollings = await _patrolling.Refresh();
-    }
-    public void Dispose()
-    {
-        DataLoadedTcs.TrySetCanceled();
-    }
+
     async Task Delete(patrol_info item)
     {
-        strSelected = item.patrol_status;
-        intSelected = item.patrol_id;
         dtDatas = item;
         ConfirmationShown = true;
     }
+
     async void OnYesButtonClick()
     {
         try
@@ -392,41 +370,93 @@
         }
         dtDatas = null;
     }
+    
     void OnNoButtonClick()
     {
+        dtDatas = null;
         ConfirmationShown = false;
     }
-    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
-    {
-        if (e.Item.Name == "Custom")
-            e.DisplayText = string.Format("Bil. : {0}", e.Value);
-    }
-    void OnActiveTabIndexChanged(int index)
-    {
-        ActiveTabIndex = index;
-    }
-    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
-    {
-        var dataItem = (patrol_info)e.DataItem;
-        var editModel = e.EditModel as patrol_info;
+    
+    #endregion
 
-        if (dataItem == null)
-            e.EditModel = new patrol_info
-            {
-            };
+    #region lookup data
+    private List<string> jabatan = new List<string>
+    {
+        "Jabatan Perlesenan",
+        "Jabatan Kesihatan",
+        "Jabatan Penguatkuasaan"
+    };
+
+    private List<string> namapegawai = new List<string>
+    {
+        "Mohd Zaki",
+        "Siti Aminah",
+        "Mohd Ali",
+        "AZIZUL HASNI AWANG"
+    };
+
+    private List<string> lokasirondaan = new List<string>
+    {
+        "Telok Gong",
+        "Bukit Raja",
+        "Bukit Jalil",
+        "Puchong Jaya",
+        "Sri Petaling",
+    };
+
+    private List<string> patrollingStatusOptions = new List<string>
+    {
+        "Belum Mula",
+        "Rondaan",
+        "Selesai"
+    };
+    #endregion
+
+    #region MarkupString
+    public MarkupString GetStatusRondaanIconHtml(string status)
+    {
+        string priorytyClass = "";
+        string title = "";
+
+        if (status == "Selesai")
+        {
+            priorytyClass = "info";
+            title = " SELESAI ";
+        }
+        else if (status == "Rondaan")
+        {
+            priorytyClass = "warning";
+            title = " RONDAAN ";
+        }
         else
         {
-            e.EditModel = new patrol_info
-                {
-                    patrol_officer_name = dataItem.patrol_officer_name,
-                    patrol_dept_name = dataItem.patrol_dept_name,
-                    patrol_location = dataItem.patrol_location,
-                    patrol_start_dtm = dataItem.patrol_start_dtm,
-                    patrol_end_dtm = dataItem.patrol_end_dtm,
-                    patrol_status = dataItem.patrol_status,
-                };
+            priorytyClass = "danger";
+            title = " BELUM MULA ";
         }
+
+        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
+        return new MarkupString(html);
     }
+
+    public MarkupString CombineText(DateTime startDtm, DateTime EndDtm, DateTime startTm, DateTime EndTm)
+    {
+        string html = string.Format("<b>TARIKH:</b> {0} - {1} <br/> <b>MASA:</b> {2} - {3} ", startDtm.ToString("dd/MM/yyyy"), EndDtm.ToString("dd/MM/yyyy"), startTm.ToString("HH:mm tt"), EndTm.ToString("HH:mm tt"));
+        return new MarkupString(html);
+    }
+
+    public MarkupString CombineTextPegawai(string strNama, string strjabatan)
+    {
+        string html = string.Format("{0} <br/> {1}", strNama.ToUpper(), strjabatan.ToUpper());
+        return new MarkupString(html);
+    }
+    #endregion
+
+    #region response
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
     private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
@@ -452,65 +482,6 @@
                 Title = message
             });
     }
-    private List<string> jabatan = new List<string>
-    {
-        "Jabatan Perlesenan",
-        "Jabatan Kesihatan",
-        "Jabatan Penguatkuasaan"
-    };
-    private List<string> namapegawai = new List<string>
-    {
-        "Mohd Zaki",
-        "Siti Aminah",
-        "Mohd Ali",
-        "AZIZUL HASNI AWANG"
-    };
-    private List<string> lokasirondaan = new List<string>
-    {
-        "Telok Gong",
-        "Bukit Raja",
-        "Bukit Jalil",
-        "Puchong Jaya",
-        "Sri Petaling",
-    };
-    private List<string> patrollingStatusOptions = new List<string>
-    {
-        "Belum Mula",
-        "Rondaan",
-        "Selesai"
-    };
-    public MarkupString GetStatusRondaanIconHtml(string status)
-    {
-        string priorytyClass = "";
-        string title = "";
+    #endregion
 
-        if (status == "Selesai")
-        {
-            priorytyClass = "info";
-            title = " SELESAI ";
-        }
-        else if (status == "Rondaan")
-        {
-            priorytyClass = "warning";
-            title = " RONDAAN ";
-        }
-        else
-        {
-            priorytyClass = "danger";
-            title = " BELUM MULA ";
-        }
-
-        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
-        return new MarkupString(html);
-    }
-    public MarkupString CombineText(DateTime startDtm, DateTime EndDtm, DateTime startTm, DateTime EndTm)
-    {
-        string html = string.Format("<b>TARIKH:</b> {0} - {1} <br/> <b>MASA:</b> {2} - {3} ", startDtm.ToString("dd/MM/yyyy"), EndDtm.ToString("dd/MM/yyyy"), startTm.ToString("HH:mm tt"), EndTm.ToString("HH:mm tt"));
-        return new MarkupString(html);
-    }
-    public MarkupString CombineTextPegawai(string strNama, string strjabatan)
-    {
-        string html = string.Format("{0} <br/> {1}", strNama.ToUpper(), strjabatan.ToUpper());
-        return new MarkupString(html);
-    }
 }

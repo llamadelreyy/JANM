@@ -103,9 +103,13 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<auditlog_archive_info>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("auditlog_archive_info", "audit");
+            //entity
+            //    .HasNoKey()
+            //    .ToTable("auditlog_archive_info", "audit");
+
+            entity.HasKey(e => e.archive_id).HasName("uditlog_archive_info_pkey");
+
+            entity.ToTable("auditlog_archive_info", "audit");
 
             entity.Property(e => e.archive_id).HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)");
             entity.Property(e => e.archive_isarchived).HasDefaultValue(true);
@@ -119,6 +123,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.archive_audit_id).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<auditlog_info>(entity =>

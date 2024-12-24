@@ -1,9 +1,9 @@
 ﻿@page "/senarai_jabatan"
-@attribute [AllowAnonymous]
+@attribute [Authorize(Roles = "Administrator")]
 
+@implements IDisposable
 
 @using System.Globalization
-@implements IDisposable
 @using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
@@ -11,12 +11,13 @@
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
 @using PBTPro.DAL.Services
+
 @inject DepartmentService _department
 @inject NavigationManager NavigationManager
 @inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
-@using PBTPro.DAL.Services
+
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="/images/icons/information.png" />
@@ -38,11 +39,9 @@
             KeyFieldName="dept_id"
             ShowGroupPanel="true"
             ShowFilterRow="true"
-            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
             EditorRenderMode="GridEditorRenderMode.Integrated"
             FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
             PageSize="25"
-            CustomizeEditModel="Grid_CustomizeEditModel"
             @bind-PageIndex="@GridPageIndex"
             PagerPosition="GridPagerPosition.Bottom"
             PagerNavigationMode="PagerNavigationMode.InputBox"
@@ -57,7 +56,6 @@
             CssClass="mv-1000">
 
         <Columns>
-
             <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
                 <HeaderTemplate>
                     <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
@@ -67,8 +65,6 @@
                     <a @onclick="@(() => Delete((department_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-
-
             <DxGridDataColumn FieldName="@nameof(department_info.dept_code)" Caption="Kod Jabatan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(department_info.dept_depart_name)" Caption="Nama Jabatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(department_info.dept_description)" Caption="Catatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
@@ -92,9 +88,6 @@
                 var dtData = (department_info)editFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
-
-
-
                 <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
                     <table>
 
@@ -151,24 +144,18 @@
 
                     </table>
                 </DxFormLayoutItem>
-
                 <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12">
                     <DxButton SubmitFormOnClick="true" Text="Simpan" />
                     <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
                 </DxFormLayoutItem>
             </DxFormLayout>
-        </EditFormTemplate>
-        <CustomValidators>
-            <MyCustomValidator DataItemValidating="ValidateGridData" />
-        </CustomValidators>
+        </EditFormTemplate>        
     </DxGrid>
-
 
     <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
         <BodyContentTemplate>
-            <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
-            <br />Anda pasti untuk menghapuskan rekod ini?
+            Anda pasti untuk menghapuskan rekod ini?
             <br /><br />
             <div class="confirm-dialog-buttons">
                 <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
@@ -180,32 +167,28 @@
 
 @code {
     private List<department_info> _lstDepartment = new List<department_info>();
-
+    department_info dtData { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
-    string GridSearchText = "";
-
     bool ConfirmationShown { get; set; } = false;
-    string strSelected { get; set; }
-    int intSelected { get; set; }
-    department_info dtData { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+    #region list
     protected override async Task OnInitializedAsync()
     {
         _lstDepartment = await _department.GetDepartmentAsync();
-        DataLoadedTcs.TrySetResult(true);
         try
         {
             _lstDepartment = await _department.ListAll();
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
         }
+        DataLoadedTcs.TrySetResult(true);
     }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -214,30 +197,13 @@
             await Grid.CancelEditAsync();
         }
     }
-    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    async Task UpdateDataAsync()
     {
-        var _data = (department_info)e.EditModel;
-
-        if (_data.dept_status == null || _data.dept_status.Trim() == "")
-        {
-            e.AddError(nameof(_data.dept_status), "Status Jabatan tidak dipilih. Medan perlu diisi.");
-        }
-
-        if (_data.dept_code == null || _data.dept_code.Trim() == "")
-        {
-            e.AddError(nameof(_data.dept_code), "Kod Jabatan tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.dept_depart_name == null || _data.dept_depart_name == "")
-        {
-            e.AddError(nameof(_data.dept_depart_name), "Nama Jabatan tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.dept_description == null || _data.dept_description == "")
-        {
-            e.AddError(nameof(_data.dept_description), "Catatan Jabatan tidak sah. Medan perlu diisi.");
-        }
+        _lstDepartment = await _department.Refresh();
     }
+    #endregion
+
+    #region add/edit/delete
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();
@@ -269,21 +235,10 @@
         {
             Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
-    }
-    async Task UpdateDataAsync()
-    {
-        _lstDepartment = await _department.Refresh();
-    }
-
-    public void Dispose()
-    {
-        DataLoadedTcs.TrySetCanceled();
-    }
+    }  
 
     async Task Delete(department_info item)
     {
-        strSelected = item.dept_code;
-        intSelected = item.dept_id;
         dtData = item;
         ConfirmationShown = true;
     }
@@ -317,33 +272,9 @@
     {
         ConfirmationShown = false;
     }
-    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
-    {
-        var dataItem = (department_info)e.DataItem;
-        var editModel = e.EditModel as department_info;
-
-        if (dataItem == null)
-            e.EditModel = new department_info
-            {
-            };
-        else
-        {
-            e.EditModel = new department_info
-                {
-                    dept_id = dataItem.dept_id,
-                    dept_code = dataItem.dept_code,
-                    dept_depart_name = dataItem.dept_depart_name,
-                    dept_description = dataItem.dept_description,
-                    dept_status = dataItem.dept_status
-                };
-        }
-    }
-    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
-    {
-        if (e.Item.Name == "Custom")
-            e.DisplayText = string.Format("Bil. : {0}", e.Value);
-    }
-
+   #endregion
+  
+    #region lookup
     public MarkupString GetStatusDepartmentIconHtml(string status)
     {
         string priorytyClass = "";
@@ -374,6 +305,15 @@
         "Aktif",
         "Tidak Aktif"
     };
+    #endregion
+
+    #region response
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+
     private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
@@ -399,4 +339,6 @@
                 Title = message
             });
     }
+    #endregion
+
 }
