@@ -1,8 +1,9 @@
 ﻿@page "/sejarah_lesen"
-@attribute [AllowAnonymous]
+@attribute [Authorize(Roles = "Administrator")]
+
+@implements IDisposable
 
 @using System.Globalization
-@implements IDisposable
 @using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
@@ -12,8 +13,8 @@
 @using PBTPro.DAL.Models.CommonServices
 @using PBTPro.DAL.Models.PayLoads
 
-@inject NavigationManager NavigationManager
 @inject LicenseService _license
+@inject NavigationManager NavigationManager
 @inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
@@ -39,15 +40,12 @@
             KeyFieldName="license_hist_id"
             ShowGroupPanel="true"
             ShowFilterRow="true"
-            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
             EditorRenderMode="GridEditorRenderMode.Integrated"
             FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
             PageSize="25"
-            CustomizeEditModel="Grid_CustomizeEditModel"
             @bind-PageIndex="@GridPageIndex"
             PagerPosition="GridPagerPosition.Bottom"
             PagerNavigationMode="PagerNavigationMode.InputBox"
-            EditModelSaving="Grid_EditModelSaving"
             EditFormButtonsVisible="false"
             PageSizeSelectorVisible="true"
             PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
@@ -64,7 +62,6 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((license_view)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn FieldName="@nameof(license_view.license_hist_holder)" Caption="Nama Penyewa" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
@@ -86,192 +83,59 @@
                               SortOrder="GridColumnSortOrder.Ascending"
                               SortIndex="0" />
         </Columns>       
-    </DxGrid>
-
-
-    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
-        <BodyContentTemplate>
-            <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
-            <br />Anda pasti untuk menghapuskan rekod ini?
-            <br /><br />
-            <div class="confirm-dialog-buttons">
-                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
-            </div>
-        </BodyContentTemplate>
-    </DxPopup>
+    </DxGrid>   
 </div>
 
 @code {
     private List<license_history> _lstlicenseHistory = new List<license_history>();
     private List<license_view> _lstlicense = new List<license_view>();
-
-    IGrid Grid { get; set; }
-    int GridPageIndex { get; set; } = 0;
-    string GridSearchText = "";
-
-    bool ConfirmationShown { get; set; } = false;
-    string strSelected { get; set; }
-    int intSelected { get; set; }
     license_history dtData { get; set; }
     license_view _dtData { get; set; }
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+    #region list
     protected override async Task OnInitializedAsync()
     {
         _lstlicense = await _license.GetHistoryLicenseAsync();
-        DataLoadedTcs.TrySetResult(true);
         try
-        {
-            _lstlicense = await _license.ListAll();
-        }
+        {  _lstlicense = await _license.ListAll();  }
         catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
-        }
-    }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await DataLoadedTcs.Task;
-            await Grid.CancelEditAsync();
-        }
-    }
-   
-     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
-     {
-        // ReturnViewModel response = new ReturnViewModel();
-        // bool blnSuccess = false;
-        // var editModel = e.EditModel as license_history;
-        // try
-        // {
-        //     if (e.IsNew)
-        //     {
-        //         response = await _license.PostLicenseHistory(editModel);
-        //         blnSuccess = true;
-        //     }
-        //     else
-        //     {
-        //         response = await _license.PutLicenseHistory(editModel.faq_id, editModel);
-        //         blnSuccess = true;
-        //     }
-        //     if (blnSuccess)
-        //     {
-        //         await UpdateDataAsync();
-        //         toastService.ShowInfo("Proses kemaskini selesai.");
-        //     }
-        //     else
-        //     {
-        //         toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        //     Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
-        // }
-     }
+        { Console.Error.WriteLine($"Error loading actions: {ex.Message}"); }
+        DataLoadedTcs.TrySetResult(true);
+    }        
 
     async Task UpdateDataAsync()
     {
         _lstlicense = await _license.Refresh();
     }
+   #endregion
+
+    #region delete
+    async Task Delete(license_view item)
+    {
+        _dtData = item;
+    }      
+
+   #endregion
+
+    #region lookup
+    public MarkupString CombineText(DateTime startDtm, DateTime EndDtm)
+    {
+        string html = string.Format("<b>TARIKH:</b> {0} - {1} ", startDtm.ToString("dd/MM/yyyy"), EndDtm.ToString("dd/MM/yyyy"));
+        return new MarkupString(html);
+    }
+    #endregion
+
+    #region response
     public void Dispose()
     {
         DataLoadedTcs.TrySetCanceled();
     }
-    async Task Delete(license_view item)
-    {
-        strSelected = item.license_hist_account;
-        //intSelected = item.license_hist_id;
-        _dtData = item;
-        ConfirmationShown = true;
-    }
 
-    async void OnYesButtonClick()
-    {
-        // try
-        // {
-        //     ReturnViewModel response = new ReturnViewModel();
-        //     response = await _license.DeleteFaq(dtData.license_hist_id);
-
-        //     if (response.ReturnCode == 200)
-        //     {
-        //         await UpdateDataAsync();
-        //         ConfirmationShown = false;
-        //         StateHasChanged();
-        //         HandleResponse(response.ReturnMessage);
-        //     }
-        //     else
-        //     {
-        //         ConfirmationShown = false;
-        //         HandleResponse(response.ReturnMessage, "Error");
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        // }
-    }
-
-    void OnNoButtonClick()
-    {
-        ConfirmationShown = false;
-    }
-    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
-    {
-        // var dataItem = (license_history)e.DataItem;
-        // var editModel = e.EditModel as license_history;
-
-        // if (dataItem == null)
-        //     e.EditModel = new license_history
-        //     {
-        //         // scheduler_date = DateTime.Now,
-        //     };
-        // else
-        // {
-        //     e.EditModel = new license_history
-        //         {
-        //             faq_id = dataItem.faq_id,
-        //             faq_category = dataItem.faq_category,
-        //             faq_question = dataItem.faq_question,
-        //             faq_answer = dataItem.faq_answer,
-        //             faq_status = dataItem.faq_status
-        //         };
-        // }
-    }
-    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
-    {
-        if (e.Item.Name == "Custom")
-            e.DisplayText = string.Format("Bil. : {0}", e.Value);
-    }
-
-    public MarkupString GetStatusFAQIconHtml(string status)
-    {
-        string priorytyClass = "";
-        string title = "";
-
-        if (status == "Aktif")
-        {
-            priorytyClass = "info";
-            title = " AKTIF ";
-        }
-        else if (status == "Tidak Aktif")
-        {
-            priorytyClass = "danger";
-            title = " TIDAK AKTIF ";
-        }
-
-        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
-        title);
-        return new MarkupString(html);
-    }
-    public MarkupString CombineText(string strStatus, string strNama)
-    {
-        string html = string.Format("{0} <br/> {1}", strStatus, strNama.ToUpper());
-        return new MarkupString(html);
-    }
     private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
@@ -297,9 +161,7 @@
                 Title = message
             });
     }
-    public MarkupString CombineText(DateTime startDtm, DateTime EndDtm)
-    {
-        string html = string.Format("<b>TARIKH:</b> {0} - {1} ", startDtm.ToString("dd/MM/yyyy"), EndDtm.ToString("dd/MM/yyyy"));
-        return new MarkupString(html);
-    }
+    #endregion
+
+   
 }

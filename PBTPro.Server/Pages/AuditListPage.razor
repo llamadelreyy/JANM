@@ -1,8 +1,9 @@
 ﻿@page "/senarai_audit"
-@attribute [AllowAnonymous]
+@attribute [Authorize(Roles = "Administrator")]
 
- @using System.Globalization
 @implements IDisposable
+
+@using System.Globalization
 @using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
@@ -10,10 +11,11 @@
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
 @using PBTPro.DAL.Services
+
+@inject AuditService _audit
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 @inject NavigationManager NavigationManager
-@inject AuditService _audit
 @inject IToastService toastService
 
 
@@ -31,83 +33,73 @@
     }
 </style>
 
-
 <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 <div class="item-container-x">
     <DxGrid @ref="Grid"
-        Data="@_lstAudits"
-        KeyFieldName="audit_id"
-        ShowGroupPanel="true"
-        ShowFilterRow="true"
-        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-        PageSize="25"
-        @bind-PageIndex="@GridPageIndex"
-        PagerPosition="GridPagerPosition.Bottom"
-        PagerNavigationMode="PagerNavigationMode.InputBox"
-        PageSizeSelectorVisible="true"
-        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-        PageSizeSelectorAllRowsItemVisible="true"
-        PagerAutoHideNavButtons="false"
-        ColumnResizeMode="@ColumnResizeMode"
-        HighlightRowOnHover="true"
-        CssClass="mv-1000">
+            Data="@_lstAudits"
+            KeyFieldName="audit_id"
+            ShowGroupPanel="true"
+            ShowFilterRow="true"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="@ColumnResizeMode"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
 
         <Columns>
-            <DxGridDataColumn 
-                FieldName="@nameof(auditlog_info.created_date)" 
-                Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center"
-                AllowGroup="false"
-                SortOrder="GridColumnSortOrder.Descending" 
-                DisplayFormat="dd/MM/yyyy HH:mm:ss" />
+            <DxGridDataColumn FieldName="@nameof(auditlog_info.created_date)"
+                              Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center"
+                              AllowGroup="false"
+                              SortOrder="GridColumnSortOrder.Descending"
+                              DisplayFormat="dd/MM/yyyy HH:mm:ss" />
             <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_username)" Caption="Nama Pengguna" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_type)" Caption="Jenis Maklumat" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
-            <CellDisplayTemplate>
+                <CellDisplayTemplate>
                     <div>@GetStatusAuditIconHtml(((auditlog_info)context.DataItem).audit_type)</div>
-            </CellDisplayTemplate>
-        </DxGridDataColumn>
-            @* <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_module_name)" Caption="Nama Modul" TextAlignment="GridTextAlignment.Left" AllowGroup="false" /> *@
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
             <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_method)" Caption="Method" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_description)" Caption="Penerangan" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-        </Columns>      
+        </Columns>
     </DxGrid>
     <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
     <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
     <DxButton Text="Export XLS" Click="ExportXls_Click" />
     <DxButton Text="Export CSV" Click="ExportCsv_Click" />
-    <DxButton Text="Archive Audit Log within 6 months data" Click="InsertArchiveAudit_Click" />
+    <DxButton Text="Arkib" @onclick="RedirectToPage" />
+    @* <DxButton Text="Archive Audit Log within 6 months data" Click="InsertArchiveAudit_Click" />  *@  
     <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 </div>
+
 @code {
 
     private List<auditlog_info> _lstAudits = new List<auditlog_info>();
-
+    auditlog_info dtData { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
-    string GridSearchText = "";
-
-    bool ConfirmationShown { get; set; } = false;
-    string strSelected { get; set; }
-    int intSelected { get; set; }
-    auditlog_info dtData { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-
+    #region list
     protected override async Task OnInitializedAsync()
     {
         _lstAudits = await _audit.GetAuditAsync();
-        DataLoadedTcs.TrySetResult(true);
-
         try
-        {
-            _lstAudits = await _audit.ListAll();
-        }
+        { _lstAudits = await _audit.ListAll(); }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
         }
-    }  
+        DataLoadedTcs.TrySetResult(true);
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -116,20 +108,15 @@
             await Grid.CancelEditAsync();
         }
     }
+
     async Task UpdateDataAsync()
     {
         _lstAudits = await _audit.Refresh();
     }
 
-    void Grid_CustomizeDataRowEditor(GridCustomizeDataRowEditorEventArgs e)
-    {
-        if (e.EditSettings is ITextEditSettings settings)
-            settings.ShowValidationIcon = true;
-    }
-    public void Dispose()
-    {
-        DataLoadedTcs.TrySetCanceled();
-    }
+    #endregion
+    
+    #region lookup
     public MarkupString GetStatusAuditIconHtml(int? status)
     {
         string priorytyClass = "";
@@ -151,6 +138,9 @@
         return new MarkupString(html);
     }
 
+    #endregion
+
+    #region Export
     async Task ExportXlsx_Click()
     {
         await Grid.ExportToXlsxAsync("ExportResult");
@@ -165,8 +155,22 @@
     {
         await Grid.ExportToCsvAsync("ExportResult");
     }
-    async Task InsertArchiveAudit_Click()
+    
+    private void RedirectToPage()
     {
-        await _audit.Archive();
+        // Redirect to the desired page
+        NavigationManager.NavigateTo("/arkib");
     }
+
+    // async Task InsertArchiveAudit_Click()
+    // {
+    //     await _audit.Archive();
+    // }
+    #endregion
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
 }

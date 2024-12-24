@@ -1,8 +1,9 @@
 ﻿@page "/senarai_faq"
-@attribute [AllowAnonymous]
+@attribute [Authorize(Roles = "Administrator")]
+
+@implements IDisposable
 
 @using System.Globalization
-@implements IDisposable
 @using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
@@ -11,8 +12,8 @@
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
 
-@inject NavigationManager NavigationManager
 @inject FaqService _faq
+@inject NavigationManager NavigationManager
 @inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
@@ -38,11 +39,9 @@
             KeyFieldName="faq_id"
             ShowGroupPanel="true"
             ShowFilterRow="true"
-            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
             EditorRenderMode="GridEditorRenderMode.Integrated"
             FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
             PageSize="25"
-            CustomizeEditModel="Grid_CustomizeEditModel"
             @bind-PageIndex="@GridPageIndex"
             PagerPosition="GridPagerPosition.Bottom"
             PagerNavigationMode="PagerNavigationMode.InputBox"
@@ -57,7 +56,6 @@
             CssClass="mv-1000">
 
         <Columns>
-
             <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
                 <HeaderTemplate>
                     <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
@@ -67,8 +65,6 @@
                     <a @onclick="@(() => Delete((faq_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-
-
             <DxGridDataColumn FieldName="@nameof(faq_info.faq_category)" Caption="Kategori" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(faq_info.faq_question)" Caption="Soalan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(faq_info.faq_answer)" Caption="Jawapan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
@@ -92,9 +88,6 @@
                 var dtData = (faq_info)editFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
-
-
-
                 <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
                     <table>
 
@@ -119,7 +112,7 @@
                                             NullText="Pilih Kategori..."
                                             @bind-Value="@dtData.faq_category"
                                             @bind-Text="@dtData.faq_category">
-                                </DxComboBox>                              
+                                </DxComboBox>
                             </td>
                         </tr>
                         <tr>
@@ -146,7 +139,6 @@
 
                     </table>
                 </DxFormLayoutItem>
-
                 <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12">
                     <DxButton SubmitFormOnClick="true" Text="Simpan" />
@@ -154,16 +146,10 @@
                 </DxFormLayoutItem>
             </DxFormLayout>
         </EditFormTemplate>
-        <CustomValidators>
-            <MyCustomValidator DataItemValidating="ValidateGridData" />
-        </CustomValidators>
     </DxGrid>
-
-
     <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
         <BodyContentTemplate>
-            <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
-            <br />Anda pasti untuk menghapuskan rekod ini?
+            Anda pasti untuk menghapuskan rekod ini?
             <br /><br />
             <div class="confirm-dialog-buttons">
                 <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
@@ -172,62 +158,36 @@
         </BodyContentTemplate>
     </DxPopup>
 </div>
+
 @code {
-
     private List<faq_info> _lstFaqs = new List<faq_info>();
-
+    faq_info dtData { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
-
     bool ConfirmationShown { get; set; } = false;
-    string strSelected { get; set; }
-    int intSelected { get; set; }
-    faq_info dtData { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+    #region list
     protected override async Task OnInitializedAsync()
     {
         _lstFaqs = await _faq.GetFAQAsync();
-        DataLoadedTcs.TrySetResult(true);
         try
-        {
-            _lstFaqs = await _faq.ListAll();
-        }
+        { _lstFaqs = await _faq.ListAll(); }
         catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
-        }
+        { Console.Error.WriteLine($"Error loading actions: {ex.Message}"); }
+        DataLoadedTcs.TrySetResult(true);
     }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+
+    async Task UpdateDataAsync()
     {
-        if (firstRender)
-        {
-            await DataLoadedTcs.Task;
-            await Grid.CancelEditAsync();
-        }
+        _lstFaqs = await _faq.Refresh();
     }
-    void ValidateGridData(ValidationMessageStoreEventArgs e)
-    {
-        var _data = (faq_info)e.EditModel;
+    #endregion
 
-        if (_data.faq_category == null || _data.faq_category.Trim() == "")
-        {
-            e.AddError(nameof(_data.faq_category), "Kategori soalan lazim tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.faq_question == null || _data.faq_question == "")
-        {
-            e.AddError(nameof(_data.faq_question), "Soalan lazim tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.faq_answer == null || _data.faq_answer == "")
-        {
-            e.AddError(nameof(_data.faq_answer), "Jawapan soalan lazim tidak sah. Medan perlu diisi.");
-        }
-    }
+    #region add/edit/delete
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();
@@ -260,26 +220,15 @@
             Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
     }
-    async Task UpdateDataAsync()
-    {
-        _lstFaqs = await _faq.Refresh();
-    }
-
-    public void Dispose()
-    {
-        DataLoadedTcs.TrySetCanceled();
-    }
 
     async Task Delete(faq_info item)
     {
-        strSelected = item.faq_question;
-        intSelected = item.faq_id;
         dtData = item;
         ConfirmationShown = true;
     }
 
     async void OnYesButtonClick()
-    {        
+    {
         try
         {
             ReturnViewModel response = new ReturnViewModel();
@@ -305,36 +254,13 @@
 
     void OnNoButtonClick()
     {
+        dtData = null;
         ConfirmationShown = false;
     }
-    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
-    {
-        var dataItem = (faq_info)e.DataItem;
-        var editModel = e.EditModel as faq_info;
 
-        if (dataItem == null)
-            e.EditModel = new faq_info
-                {
-                    // scheduler_date = DateTime.Now,
-                };
-        else
-        {
-            e.EditModel = new faq_info
-                {
-                    faq_id = dataItem.faq_id,
-                    faq_category = dataItem.faq_category,
-                    faq_question = dataItem.faq_question,
-                    faq_answer = dataItem.faq_answer,
-                    faq_status = dataItem.faq_status
-                };
-        }
-    }
-    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
-    {
-        if (e.Item.Name == "Custom")
-            e.DisplayText = string.Format("Bil. : {0}", e.Value);
-    }
+    #endregion
 
+    #region lookup
     public MarkupString GetStatusFAQIconHtml(string status)
     {
         string priorytyClass = "";
@@ -372,6 +298,14 @@
         "PBT Mobile",
         "PBT Web"
     };
+    #endregion
+
+    #region response
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
     private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
@@ -397,4 +331,5 @@
                 Title = message
             });
     }
+    #endregion
 }

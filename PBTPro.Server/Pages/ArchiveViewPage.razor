@@ -1,0 +1,93 @@
+﻿@page "/arkib"
+@attribute [Authorize(Roles = "Administrator")]
+
+@implements IDisposable
+
+@using System.Globalization
+@using Blazored.Toast.Services
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+@using PBTPro.DAL.Services
+
+@inject AuditService _audit
+@inject ArchiveAuditService _archive
+@inject PBTAuthStateProvider _PBTAuthStateProvider
+@inject IToastNotificationService ToastService
+@inject NavigationManager NavigationManager
+@inject IToastService toastService
+
+
+<div class="d-lg-flex border-bottom mb-2">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="/images/icons/information.png" />
+        <div class="textTitle">Log Audit - Senarai Arkib Log Audit</div>
+    </div>
+</div>
+
+<style>
+    .dxbl-grid {
+        height: 79vh;
+        max-height: 79vh;
+    }
+</style>
+
+
+<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+<div class="item-container-x">
+    <label for="cbOverview" class="demo-text cw-480 mb-1">
+        Tempoh (bulan) untuk arkib data log audit
+    </label>    
+    <DxComboBox Data="@archiveDtm"
+                ShowValidationIcon="true"
+                NullText="Pilih Tempoh Arkib..."
+                TextFieldName="Arkib data log"
+                @bind-Value="@SelectedAudit">
+    </DxComboBox>
+    <DxButton Text="Submit"
+              CssClass="w-100" Click="@OnSubmitButtonClick" />
+    <p class="demo-text cw-480 mt-3">
+
+    </p>
+</div>
+
+@code {
+    IEnumerable<auditlog_info> dtAudit { get; set; }
+    IEnumerable<auditlog_archive_info> dtArchive { get; set; }
+    auditlog_info SelectedAudit { get; set; }
+    auditlog_archive_info SelectedArchive { get; set; }
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    int dtm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dtAudit = await _audit.ListAll();
+        SelectedAudit = dtAudit.FirstOrDefault();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+        }
+    }
+
+    async Task OnSubmitButtonClick()
+    {
+        dtm = 1;
+        await _archive.ArchiveByMonth(dtm);
+    }
+
+    private List<string> archiveDtm = new List<string>
+    {
+        "1","3","6","12"
+    };
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+}
