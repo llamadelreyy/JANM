@@ -11,7 +11,7 @@
                         @*<img class="avatar shadow-0 img-fluid rounded-circle" src="https://d19m59y37dris4.cloudfront.net/admin/2-2-0/img/avatar-1.ce912d90.jpg" alt="...">*@
                         <a href="" class="avatar-text online"><span class="avatar-text-initial">R</span></a>
                         <div class="ms-3 title">
-                            <span class="loginuser mb-2">@PBTAuthStateProvider.CurrentUser.Fullname </span> [ <a href="user_profile" alt="ubah profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="#" alt="ubah profail"><i class="ri-lock-password-line ri-1x"></i></a> ]
+                            <span class="loginuser mb-2">@PBTAuthStateProvider.CurrentUser.Fullname </span> [ <a href="user_profile" alt="ubah profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="user_password" alt="ubah profail"><i class="ri-lock-password-line ri-1x"></i></a> ]
                             <p class="text-sm text-gray-500 fw-light mb-0 lh-1">
                                 <span class="loginusername">@string.Join(", ", PBTAuthStateProvider.CurrentUser.Roles)</span> [ <a alt="logout" href="/logout"><i class="ri-logout-box-r-line ri-1x"></i></a>]
                             </p>
@@ -31,7 +31,7 @@
             <DxTreeViewNode NavigateUrl="./" Text="Utama" IconUrl="\lib\remixicon\png\home-3-fill.png" CssClass="singleNodesClass"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="/login" Text="Log Masuk" IconUrl="\images\icons-small\key.png" CssClass="singleNodesClass"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="./" Text="Notifikasi" IconUrl="\images\icons-small\bell.png" CssClass="singleNodesClass" BadgeText="0"></DxTreeViewNode>
-            <DxTreeViewNode NavigateUrl="user_profile" Text="My Profile" IconUrl="\images\icons-small\blue-document--pencil.png" CssClass="singleNodesClass"></DxTreeViewNode>
+            <DxTreeViewNode NavigateUrl="user_profile" Text="Profail" IconUrl="\images\icons-small\blue-document--pencil.png" CssClass="singleNodesClass"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="carian_umum" Text="Carian Umum" IconUrl="\images\icons-small\magnifier-left.png" CssClass="singleNodesClass"></DxTreeViewNode>
 
             <DxTreeViewNode Text="Tetapan" IconUrl="" CssClass="@rootNodeCssClass">

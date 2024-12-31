@@ -132,34 +132,23 @@
                                                CssClass="cw-320" style="width:170px"
                                                Mask="000000000000" />
                                        
-@*                                 <DxTextBox @bind-Text="@dtEdit.ic_no"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="cth: 701231161234"
-                                           TextChanged="@((string value) => OnIdPenggunaChanged(value))"
-                                           Maxlength="12"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:150px" /> *@
                             </td>
                             <td width="100px">&nbsp;</td>
                             <td nowrap>No Tel. Bimbit</td>
                             <td>&nbsp;&nbsp;</td>
                             <td width="50%">
+
                                 <DxMaskedInput @bind-Value="@dtEdit.mobile_no"
                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                                BindValueMode="BindValueMode.OnInput"
-                                               NullText="cth: +60123456789"
-                                               Maxlength="12"
+                                               Maxlength="14"
                                                ShowValidationIcon="true"
                                                CssClass="cw-320" style="width:170px"
-                                               Mask="+600000000000" />
-@*                                 <DxTextBox @bind-Text="@dtEdit.mobile_no"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="cth: 0123456789"
-                                           Maxlength="12"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:150px" /> *@
+                                               MaskMode=MaskMode.Text
+                                               Mask="99999999999999">
+                                    <DxTextMaskProperties SaveLiteral=false></DxTextMaskProperties>
+                                </DxMaskedInput>
+
                             </td>
                         </tr>
                         <tr>
@@ -214,13 +203,25 @@
                             <td nowrap>Emel</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-                                <DxMaskedInput @bind-Value="@dtEdit.user_email"
+@*                                 <DxMaskedInput @bind-Value="@dtEdit.user_email"
                                                CssClass="cw-320"
                                                Mask="@EmailMask"
                                                Maxlength="60"
                                                ShowValidationIcon="true"
                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                                MaskMode="MaskMode.RegEx" style="width:350px">
+                                    <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
+                                                           Placeholder="Placeholder"
+                                                           PlaceholdersVisible="PlaceholderVisible" />
+                                </DxMaskedInput> *@
+
+                                <DxMaskedInput @bind-Value="@dtEdit.user_email"
+                                               CssClass="cw-320"
+                                               NullText="@("_@_.__")"
+                                               Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"
+                                               Maxlength="60"
+                                               ShowValidationIcon="true"
+                                               MaskMode="MaskMode.RegEx">
                                     <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
                                                            Placeholder="Placeholder"
                                                            PlaceholdersVisible="PlaceholderVisible" />
@@ -280,8 +281,8 @@
     string strIdPengguna { get; set; }
 
     IEnumerable<char> PredefinedPlaceholders { get; set; } = new List<char>() { '_', '#' };
-    string Email { get; set; }
-    string EmailMask { get; set; } = @"\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*";
+    // string Email { get; set; }
+    // string EmailMask { get; set; } = @"\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*";
 
     MaskAutoCompleteMode AutoCompleteMode { get; set; } = MaskAutoCompleteMode.Strong;
     char Placeholder { get; set; } = '_';
@@ -311,9 +312,50 @@
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
         var _data = (system_user)e.EditModel;
-        if (_data.user_name == null || _data.user_name.Trim() == "")
+        if (_data.full_name == null || _data.full_name.Trim() == "")
         {
-            e.AddError(nameof(_data.user_name), "!!!!!!. Medan perlu diisi.");
+            e.AddError(nameof(_data.full_name), "Nama Penuh perlu dimasukkan.");
+        }
+
+        if (strIdPengguna == null)
+        {
+            e.AddError(nameof(strIdPengguna), "No Kad Pengenalan perlu dimasukkan.");
+        }
+        else
+        {
+            if (strIdPengguna.Trim() == "")
+                e.AddError(nameof(strIdPengguna), "No Kad Pengenalan perlu dimasukkan.");
+            else
+            {
+                _data.ic_no = strIdPengguna;
+                _data.user_name = strIdPengguna;
+            }
+
+        }
+
+        if (_data.mobile_no == null || _data.mobile_no.Trim() == "")
+        {
+            e.AddError(nameof(_data.mobile_no), "No Telefon Bimbit perlu dimasukkan.");
+        }
+
+        if (_data.dept_id == 0)
+        {
+            e.AddError(nameof(_data.dept_id), "Sila pilih Jabatan dari senarai.");
+        }
+
+        if (_data.section_id == 0)
+        {
+            e.AddError(nameof(_data.section_id), "Sila pilih Seksyen dari senarai.");
+        }
+
+        if (_data.unit_id == 0)
+        {
+            e.AddError(nameof(_data.unit_id), "Sila pilih Unit dari senarai.");
+        }
+
+        if (_data.user_email == null || _data.user_email.Trim() == "")
+        {
+            e.AddError(nameof(_data.user_email), "Alamat Emel perlu dimasukkan.");
         }
     }
 
