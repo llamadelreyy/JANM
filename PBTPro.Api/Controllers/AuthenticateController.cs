@@ -8,6 +8,7 @@ using PBTPro.Api.Constants;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
+using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using System.Security.Claims;
 using System.Text;
@@ -25,10 +26,10 @@ namespace PBTPro.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly JWTTokenService _tokenService;
         private readonly IEmailSender _emailSender;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly string _feature = "AUTH";
 
-        public AuthenticateController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IOptions<IdentityOptions> identityOptions, RoleManager<IdentityRole> roleManager, IConfiguration configuration, PBTProDbContext dbContext, ILogger<AuthenticateController> logger, JWTTokenService tokenService, IEmailSender emailSender) : base(dbContext)
+        public AuthenticateController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IOptions<IdentityOptions> identityOptions, RoleManager<ApplicationRole> roleManager, IConfiguration configuration, PBTProDbContext dbContext, ILogger<AuthenticateController> logger, JWTTokenService tokenService, IEmailSender emailSender) : base(dbContext)
         {
             _logger = logger;
             _userManager = userManager;
@@ -46,10 +47,10 @@ namespace PBTPro.Api.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
             #region validation
-            if (string.IsNullOrWhiteSpace(model.Name))
-            {
-                return Error("", SystemMesg(_feature, "NAME_ISREQUIRED", MessageTypeEnum.Error, string.Format("Nama adalah wajib")));
-            }
+            //if (string.IsNullOrWhiteSpace(model.Name))
+            //{
+            //    return Error("", SystemMesg(_feature, "NAME_ISREQUIRED", MessageTypeEnum.Error, string.Format("Nama adalah wajib")));
+            //}
 
             if (string.IsNullOrWhiteSpace(model.Username))
             {
@@ -76,26 +77,96 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var runUser = await getDefRunUser();
+                var runUserId = await getDefRunUserId();
 
                 ApplicationUser user = new ApplicationUser();
                 user.Email = model.Email;
                 user.NormalizedEmail = model.Email.ToUpper();
                 user.SecurityStamp = Guid.NewGuid().ToString();
                 user.UserName = model.Username.ToLower();
-                user.LoginKey = user.UserName;
-                user.NormalizedUserName = model.Username.ToUpper();
-                user.Name = model.Name;
-                user.Status = "A";
+                //user.LoginKey = user.UserName;
+                //user.NormalizedUserName = model.Username.ToUpper();
+                //user.Name = model.Name;
+                //user.Status = "A";
                 user.EmailConfirmed = true;
                 user.PhoneNumber = model.PhoneNo;
                 if (!string.IsNullOrEmpty(model.PhoneNo)) user.PhoneNumberConfirmed = true;
-                user.CreatedBy = runUser;
-                user.CreatedDtm = DateTime.Now;
+                user.CreatorId = runUserId;
+                user.ModifierId = runUserId;
+                user.CreatedAt = DateTime.Now;
+                user.ModifiedAt = DateTime.Now;
 
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (!result.Succeeded)
                 {
-                    return Error("", SystemMesg(_feature, "REGISTER", MessageTypeEnum.Error, string.Format("Gagal mencipta pengguna, sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+                    List<string> passwordErrors = new List<string>();
+                    foreach (var error in result.Errors)
+                    {
+                        if (error.Code.ToLower() == "passwordtooshort")
+                        {
+                            var requiredPasswordLength = _identityOptions.Password.RequiredLength;
+                            List<string> param = new List<string> { requiredPasswordLength.ToString() };
+                            passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_TOO_SHORT", MessageTypeEnum.Error, string.Format("Kata laluan mestilah sekurang-kurangnya [0] aksara."), param));
+                            continue;
+                        }
+
+                        if (error.Code.ToLower() == "passwordrequiresdigit")
+                        {
+                            passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_DIGIT", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu digit ('0'-'9').")));
+                            continue;
+                        }
+
+                        if (error.Code.ToLower() == "passwordrequiresnonalphanumeric")
+                        {
+                            passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_NONALPHA", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu aksara bukan abjad angka.")));
+                            continue;
+                        }
+
+                        if (error.Code.ToLower() == "passwordrequiresuniquechars")
+                        {
+                            passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_UNIQUE", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu aksara unik.")));
+                            continue;
+                        }
+
+                        if (error.Code.ToLower() == "passwordrequireslower")
+                        {
+                            passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_LOWER", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu huruf kecil ('a'-'z').")));
+                            continue;
+                        }
+
+                        if (error.Code.ToLower() == "passwordrequiresupper")
+                        {
+                            passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_UPPER", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu huruf besar ('A'-'Z').")));
+                            continue;
+                        }
+                    }
+
+                    if (passwordErrors.Count > 0)
+                    {
+                        var ValidationErr = String.Join("\r\n- ", passwordErrors.ToList());
+                        List<string> param = new List<string> { "- " + ValidationErr };
+                        return Error("", SystemMesg(_feature, "INVALID_PASS_COMBINATION", MessageTypeEnum.Error, string.Format("Kombinasi katalaluan tidak diterima :\r\n[0]"), param));
+                    }
+                    else
+                    {
+                        return Error("", SystemMesg(_feature, "REGISTER", MessageTypeEnum.Error, string.Format("Gagal mencipta pengguna, sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(model.Name))
+                {
+                    user_account ua = new user_account
+                    {
+                        ua_user_id = user.Id,
+                        ua_name = model.Name,
+                        creator_id = runUserId,
+                        created_at = DateTime.Now,
+                        modifier_id = runUserId,
+                        modified_at = DateTime.Now
+                    };
+
+                    _dbContext.user_accounts.Add(ua);
+                    await _dbContext.SaveChangesAsync();
                 }
 
                 if (!string.IsNullOrWhiteSpace(user?.Email))
@@ -124,13 +195,19 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "USER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pengguna tidak sah.")));
                 }
+                
+                string Fullname = user.UserName;
 
                 var LoginResult = await _signInManager.PasswordSignInAsync(user, model.Password, false, true);
                 if (LoginResult.Succeeded)
                 {
+                    user.LastLogin = DateTime.Now;
+                    _dbContext.Users.Update(user);
+                    await _dbContext.SaveChangesAsync();
+
                     var authClaims = new List<Claim>
                     {
-                        new Claim(ClaimTypes.NameIdentifier, user.Id),
+                        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(), ClaimValueTypes.Integer),
                         new Claim(ClaimTypes.Name, user.UserName)
                     };
 
@@ -141,8 +218,14 @@ namespace PBTPro.Api.Controllers
                         authClaims.Add(new Claim(ClaimTypes.Role, role));
                     }
 
+                    var userAccount = await _dbContext.user_accounts.AsNoTracking().FirstOrDefaultAsync(x => x.ua_user_id == user.Id);
+                    if(userAccount != null)
+                    {
+                        Fullname = userAccount.ua_name;
+                    }
+
                     var token = _tokenService.GenerateJwtToken(authClaims, model.RememberMe);
-                    return Ok(new LoginResult {Fullname = user.Name, Userid = user.Id, Username = user.UserName, Token = token, Roles = roles.ToList() }, SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
+                    return Ok(new LoginResult {Fullname = user.UserName, Userid = user.Id, Username = user.UserName, Token = token, Roles = roles.ToList() }, SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
                 }
                 else if (LoginResult.IsLockedOut)
                 {
