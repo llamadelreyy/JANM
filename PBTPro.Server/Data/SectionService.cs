@@ -74,7 +74,11 @@ namespace PBTPro.Data
                 var accessToken = _cf.CheckToken();
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Section/ListSection");
-                string jsonString = await _cf.List(request);
+                string jsonString = string.Empty;
+                if (request.Content != null)
+                    jsonString = await _cf.List(request);
+
+
                 List<section_info> sectionList = JsonConvert.DeserializeObject<List<section_info>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai seksyen.", Convert.ToInt32(uID), LoggerName, "");
 

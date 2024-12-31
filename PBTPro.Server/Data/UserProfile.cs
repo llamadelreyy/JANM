@@ -74,9 +74,33 @@ namespace PBTPro.Data
                 var accessToken = _cf.CheckToken();
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Profile/Retrieve/" + userId);
-                string jsonString = await _cf.List(request);
+                string jsonString = string.Empty;
+                if (request.Content != null)
+                    jsonString = await _cf.List(request);
+
                 List<user_profile> userProfile = JsonConvert.DeserializeObject<List<user_profile>>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Capaian profail pengguna.", Convert.ToInt32(uID), LoggerName, "");
+                //for testing -->  await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Capaian profail pengguna.", Convert.ToInt32(uID), LoggerName, "");
+
+                //FOR TESTING PURPOSE ===============
+                userProfile = new List<user_profile> {
+                    new user_profile {
+                        profile_department_id = 1,
+                        profile_department_name = "Jabatan Penilaian",
+                        profile_section_id = 1,
+                        profile_section_name = "Harta dan Pusaka",
+                        profile_unit_id = 1,
+                        profile_unit_name = "Unit 001", 
+                        profile_role_id = 1,
+                        profile_role = "Penguatkuasa",
+                        profile_user_id = "750727085221",
+                        profile_name = "John Doe",
+                        profile_icno = "750727085221",
+                        profile_email = "john_doe@gmail.com",
+                        profile_tel_no =  "0123678902",
+                        created_date = DateTime.Parse("2024/01/05")
+                    }
+                 };
+                //====================================
 
                 return userProfile;
             }

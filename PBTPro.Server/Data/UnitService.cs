@@ -74,7 +74,10 @@ namespace PBTPro.Data
                 var accessToken = _cf.CheckToken();
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Unit/ListUnit");
-                string jsonString = await _cf.List(request);
+                string jsonString = string.Empty;
+                if (request.Content != null)
+                    jsonString = await _cf.List(request);
+
                 List<unit_info> unitList = JsonConvert.DeserializeObject<List<unit_info>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai unit.", Convert.ToInt32(uID), LoggerName, "");
 

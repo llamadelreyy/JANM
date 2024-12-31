@@ -86,7 +86,10 @@ namespace PBTPro.Data
                 var accessToken = _cf.CheckToken();
 
                 var request = _cf.CheckRequest(platformApiUrl + "/api/Department/ListDepartment");
-                string jsonString = await _cf.List(request);
+                string jsonString = string.Empty;
+                if (request.Content != null)
+                    jsonString = await _cf.List(request);
+
                 List<department_info> departmentList = JsonConvert.DeserializeObject<List<department_info>>(jsonString);
                 await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai jabatan.", Convert.ToInt32(uID), LoggerName, "");
 
