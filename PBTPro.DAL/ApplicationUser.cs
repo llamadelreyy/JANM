@@ -1,20 +1,34 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿/*
+Project: PBT Pro
+Description: custom model for users
+Author: ismail
+Date: December 2024
+Version: 1.0
+Additional Notes:
+- this model to override default dotnet identity user
+
+Changes Logs:
+30/12/2024 - initial create
+*/
+using Microsoft.AspNetCore.Identity;
 
 namespace PBTPro.DAL
 {
-    public class ApplicationUser : IdentityUser
+    public class ApplicationUser : IdentityUser<int>
     {
-        public string? NetworkId { get; set; }
-        public string? ModifiedBy { get; set; }
-        public DateTime? ModifiedDtm { get; set; }
-        public string? Name { get; set; }
-        public string? Status { get; set; }
-        public string? OfficePhone { get; set; }
-        public DateTime? LastSeenDtm { get; set; }
-        public string CreatedBy { get; set; } = null!;
-        public DateTime CreatedDtm { get; set; }
-        public string? UnitOffice { get; set; }
-        public string? Department { get; set; }
-        public string? LoginKey { get; set; }
+        public string? IdNo { get; set; }
+        public int? IdTypeId { get; set; }
+        public DateTime? PwdUpdateAt { get; set; }
+        public DateTime? LastLogin { get; set; }
+        public string? VerificationCode { get; set; }
+        public string? Salt { get; set; }
+        public int? UserStatusId { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public int CreatorId { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+        public int? ModifierId { get; set; }
+        public override string PasswordHash { get; set; }
+        public override string SecurityStamp { get; set; }
     }
 }
