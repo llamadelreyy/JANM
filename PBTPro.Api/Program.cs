@@ -9,6 +9,7 @@ using PBTPro.Api.Controllers;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
 using PBTPro.DAL.Services;
+using PBTPro.DAL.Store;
 using PBTPro.Shared.Models.CommonService;
 using Prometheus;
 using System.Reflection;
@@ -125,12 +126,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     {
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15); 
         options.Lockout.MaxFailedAccessAttempts = 3;
         options.Lockout.AllowedForNewUsers = true;
     })
+    .AddUserStore<ApplicationUserStore>()
+    .AddRoleStore<ApplicationRoleStore>()
     .AddEntityFrameworkStores<PBTProDbContext>()
     .AddDefaultTokenProviders();
 

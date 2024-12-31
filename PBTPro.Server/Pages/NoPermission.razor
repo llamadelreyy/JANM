@@ -1,0 +1,21 @@
+﻿@page "/no-permission"
+
+@using DevExpress.Blazor
+@inject NavigationManager Navigation
+
+<DxCard>
+    <DxCardHeader>
+        <h3>Akses Tidak Dibenarkan</h3>
+    </DxCardHeader>
+    <DxCardContent>
+        <p>Anda tidak dibenarkan untuk melihat kandungan ini!</p>
+        <DxButton Text="Go Back" Click="@GoBack" />
+    </DxCardContent>
+</DxCard>
+
+@code {
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

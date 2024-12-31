@@ -8,6 +8,7 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 
 namespace PBTPro.Api.Controllers.Base
 {
@@ -181,7 +182,22 @@ namespace PBTPro.Api.Controllers.Base
 
         protected async Task<int> getDefRunUserId()
         {
-            return 0;
+            int result = 0;
+            try
+            {
+                //var UserIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                result = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                //if (!int.TryParse(UserIdString, out result))
+                //{
+                //    result = 0;
+                //}
+            }
+            catch (Exception ex)
+            {
+                result = 0;
+            }
+
+            return result;
         }
 
         protected string SystemMesg(string features, string code, MessageTypeEnum type, string msg, List<string>? param = null)
