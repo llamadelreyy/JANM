@@ -7,7 +7,7 @@ public partial class user_profile
 {
     public int profile_id { get; set; }
 
-    public string profile_user_id { get; set; } = null!;
+    public int profile_user_id { get; set; }
 
     public string profile_name { get; set; } = null!;
 

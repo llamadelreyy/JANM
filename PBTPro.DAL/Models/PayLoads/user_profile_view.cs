@@ -11,7 +11,7 @@ namespace PBTPro.DAL.Models.PayLoads
     {
         public int profile_id { get; set; }
 
-        public string profile_user_id { get; set; } = null!;
+        public int profile_user_id { get; set; }
 
         public string profile_name { get; set; } = null!;
         
@@ -82,14 +82,14 @@ namespace PBTPro.DAL.Models.PayLoads
 
     public class update_signature_input_model
     {
-        public string user_id { get; set; } = null!;
+        public int user_id { get; set; }
         public IFormFile? sign_image { get; set; }
 
     }
 
     public class update_avatar_input_model
     {
-        public string user_id { get; set; } = null!;
+        public int user_id { get; set; }
         public IFormFile? avatar_image { get; set; }
 
     }

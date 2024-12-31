@@ -143,7 +143,7 @@ namespace PBTPro.Api.Controllers
                                         pm.update_date,
                                         pm.member_start_dtm,
                                         pm.member_end_dtm,
-                                        member_fullname = u.Name
+                                        member_fullname = u.UserName
                                     })
                                     .AsNoTracking()
                                     .ToListAsync();
@@ -263,7 +263,7 @@ namespace PBTPro.Api.Controllers
                     {
                         Username = patrolDet.member_username,
                         Isleader = patrolDet.member_leader_flag,
-                        Name = user.Name
+                        Name = user.UserName
                     }).ToList();
 
                 foreach (var patrolDet in patrolDets.Where(x => x.member_leader_flag != true))

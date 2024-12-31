@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using NetTopologySuite.Geometries;
@@ -6,7 +7,7 @@ using PBTPro.DAL.Services;
 
 namespace PBTPro.DAL
 {
-    public partial class PBTProDbContext : IdentityDbContext<ApplicationUser> //DbContext
+    public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, int> //DbContext
     {
         private string? _currentUser;
         public PBTProDbContext()
@@ -27,6 +28,8 @@ namespace PBTPro.DAL
         {
             _currentUser = userService.GetUser();
         }
+
+        public DbSet<ApplicationUserRole> UserRoles { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -84,293 +87,142 @@ namespace PBTPro.DAL
 
             #endregion 
 
-            modelBuilder.Entity("PBTPro.DAL.ApplicationUser", b =>
+            modelBuilder.Entity<ApplicationUser>(entity =>
             {
-                b.Property<string>("Id")
-                    .HasColumnType("NVARCHAR2(450)");
+                entity.ToTable("users", "core");
+                entity.Ignore(u => u.NormalizedEmail);
+                entity.Ignore(u => u.NormalizedUserName);
 
-                b.Property<int>("AccessFailedCount")
-                    .HasColumnType("NUMBER(10)");
+                // Default Identity fields
+                entity.Property(u => u.Id).HasColumnName("user_id");
+                entity.Property(u => u.UserName).HasColumnName("user_name");
+                entity.Property(u => u.PasswordHash).HasColumnName("pwd_hash");
+                entity.Property(u => u.SecurityStamp).HasColumnName("security_stamp");
+                entity.Property(u => u.ConcurrencyStamp).HasColumnName("concurrency_stamp");
+                entity.Property(u => u.Email).HasColumnName("email");
+                entity.Property(u => u.Salt).HasColumnName("salt");
+                entity.Property(u => u.EmailConfirmed).HasColumnName("email_confirmed");
+                entity.Property(u => u.PhoneNumberConfirmed).HasColumnName("phone_number_confirmed");
+                entity.Property(u => u.TwoFactorEnabled).HasColumnName("two_factor_enabled"); 
+                entity.Property(e => e.LockoutEnd)
+                .HasPrecision(6)
+                .HasDefaultValueSql("NULL::timestamp with time zone")
+                .HasComment("Timestamp indicating when the user lockout ends, if applicable (used for account lockout after failed login attempts).")
+                .HasColumnName("lockout_end");
+                entity.Property(u => u.LockoutEnabled).HasColumnName("lockout_enabled");
+                entity.Property(u => u.AccessFailedCount).HasColumnName("access_failed_count");
+                entity.Property(u => u.PhoneNumber).HasColumnName("phoneno");
 
-                b.Property<string>("ConcurrencyStamp")
-                    .IsConcurrencyToken()
-                    .HasColumnType("NVARCHAR2(2000)");
+                // Custom fields
+                entity.Property(u => u.IdNo).HasColumnName("idno");
+                entity.Property(u => u.IdTypeId).HasColumnName("id_type_id");
+                entity.Property(u => u.PwdUpdateAt).HasColumnName("pwd_update_at").HasColumnType("timestamp without time zone");
+                entity.Property(u => u.LastLogin).HasColumnName("last_login").HasColumnType("timestamp without time zone");
+                entity.Property(u => u.VerificationCode).HasColumnName("verification_code");
+                entity.Property(u => u.UserStatusId).HasColumnName("user_status_id");
+                entity.Property(u => u.IsDeleted).HasColumnName("is_deleted");
 
-                b.Property<string>("Email")
-                    .HasMaxLength(256)
-                    .HasColumnType("NVARCHAR2(256)");
-
-                b.Property<bool>("EmailConfirmed")
-                    .HasColumnType("NUMBER(1)");
-
-                b.Property<bool>("LockoutEnabled")
-                    .HasColumnType("NUMBER(1)");
-
-                b.Property<DateTimeOffset?>("LockoutEnd")
-                    .HasColumnType("TIMESTAMP(7) WITH TIME ZONE");
-
-                b.Property<string>("NormalizedEmail")
-                    .HasMaxLength(256)
-                    .HasColumnType("NVARCHAR2(256)");
-
-                b.Property<string>("NormalizedUserName")
-                    .HasMaxLength(256)
-                    .HasColumnType("NVARCHAR2(256)");
-
-                b.Property<string>("PasswordHash")
-                    .HasColumnType("NVARCHAR2(2000)");
-
-                b.Property<string>("PhoneNumber")
-                    .HasColumnType("NVARCHAR2(2000)");
-
-                b.Property<bool>("PhoneNumberConfirmed")
-                    .HasColumnType("NUMBER(1)");
-
-                b.Property<string>("SecurityStamp")
-                    .HasColumnType("NVARCHAR2(2000)");
-
-                b.Property<bool>("TwoFactorEnabled")
-                    .HasColumnType("NUMBER(1)");
-
-                b.Property<string>("UserName")
-                    .HasMaxLength(256)
-                    .HasColumnType("NVARCHAR2(256)");
-
-                b.Property<string>("Name")
-                    .HasMaxLength(50)
-                    .HasColumnType("NVARCHAR2(50)");
-
-                b.Property<string>("NetworkId")
-                    .HasColumnType("NVARCHAR2(50)");
-
-                b.Property<string>("OfficePhone")
-                    .HasColumnType("NVARCHAR2(50)");
-
-                b.Property<string>("Status")
-                    .HasMaxLength(10)
-                    .HasColumnType("NVARCHAR2(10)");
-
-                b.Property<DateTime?>("LastSeenDtm")
-                    .HasColumnType("TIMESTAMP(6)");
-
-                b.Property<string>("CreatedBy")
-                .IsRequired(false)
-                    .HasMaxLength(30)
-                    .HasColumnType("NVARCHAR2(30)");
-
-                b.Property<DateTime>("CreatedDtm")
-                .IsRequired(true)
-                    .HasPrecision(6)
-                    .HasColumnType("TIMESTAMP(6)");
-
-                b.Property<string>("ModifiedBy")
-                    .HasColumnType("NVARCHAR2(30)");
-
-                b.Property<DateTime?>("ModifiedDtm")
-                    .HasColumnType("TIMESTAMP(6)");
-
-                b.Property<string>("UnitOffice")
-                    .HasColumnType("NVARCHAR2(15)");
-
-                b.Property<string>("Department")
-                    .HasColumnType("NVARCHAR2(100)");
-
-                b.HasKey("Id");
-
-                b.HasIndex("NormalizedEmail")
-                    .HasDatabaseName("EmailIndex");
-
-                b.HasIndex("NormalizedUserName")
-                    .IsUnique()
-                    .HasDatabaseName("UserNameIndex")
-                    .HasFilter("\"NormalizedUserName\" IS NOT NULL");
-
-                b.Property<string>("LoginKey")
-                .IsRequired(false)
-                    .HasColumnType("NVARCHAR2(50)");
-
-                b.ToTable("AspNetUsers", (string)null);
+                // Auditing fields
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasComment("Timestamp indicating when the user record was created.")
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("created_at");
+                entity.Property(e => e.CreatorId)
+                    .HasComment("ID of the user who created this record.")
+                    .HasColumnName("creator_id");
+                entity.Property(e => e.ModifiedAt)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasComment("Timestamp indicating when the user record was last modified.")
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("modified_at");
+                entity.Property(e => e.ModifierId)
+                    .HasComment("ID of the user who last modified this record.")
+                    .HasColumnName("modifier_id");
             });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+            modelBuilder.Entity<ApplicationRole>(entity =>
             {
-                b.Property<string>("Id")
-                .HasColumnType("NVARCHAR2(450)");
+                entity.ToTable("roles", "core");
+                entity.Ignore(r => r.NormalizedName);
+                entity.Ignore(r => r.ConcurrencyStamp);
 
-                b.Property<string>("ConcurrencyStamp")
-                    .IsConcurrencyToken()
-                    .HasColumnType("NVARCHAR2(2000)");
+                entity.Property(r => r.Id).HasColumnName("role_id");
+                entity.Property(r => r.Name).HasColumnName("role_name");
+                entity.Property(r => r.RoleDesc).HasColumnName("role_desc");
+                entity.Property(r => r.IsDefaultRole).HasColumnName("is_default_role");
+                entity.Property(r => r.IsTenant).HasColumnName("is_tenant");
+                entity.Property(r => r.IsDeleted).HasColumnName("is_deleted");
 
-                b.Property<string>("Name")
-                    .HasMaxLength(256)
-                    .HasColumnType("NVARCHAR2(256)");
-
-                b.Property<string>("NormalizedName")
-                    .HasMaxLength(256)
-                    .HasColumnType("NVARCHAR2(256)");
-
-                b.HasKey("Id");
-
-                b.HasIndex("NormalizedName")
-                    .IsUnique()
-                    .HasDatabaseName("RoleNameIndex")
-                    .HasFilter("\"NormalizedName\" IS NOT NULL");
-
-                b.ToTable("AspNetRoles", (string)null);
+                // Auditing fields
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasComment("Timestamp indicating when the user record was created.")
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("created_at");
+                entity.Property(e => e.CreatorId)
+                    .HasComment("ID of the user who created this record.")
+                    .HasColumnName("creator_id");
+                entity.Property(e => e.ModifiedAt)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasComment("Timestamp indicating when the user record was last modified.")
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("modified_at");
+                entity.Property(e => e.ModifierId)
+                    .HasComment("ID of the user who last modified this record.")
+                    .HasColumnName("modifier_id");
             });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+            modelBuilder.Ignore<IdentityUserRole<int>>();
+            modelBuilder.Entity<ApplicationUserRole>(entity =>
             {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("NUMBER(10)");
+                entity.ToTable("user_roles", "core");
 
-                b.Property<string>("ClaimType")
-                    .HasColumnType("NVARCHAR2(2000)");
+                //entity.HasKey(r => r.UserRoleId);
+                entity.HasKey(r => new { r.UserId, r.RoleId });
 
-                b.Property<string>("ClaimValue")
-                    .HasColumnType("NVARCHAR2(2000)");
+                entity.Property(r => r.UserRoleId)
+                .HasColumnName("user_role_id")
+                .ValueGeneratedOnAdd();
 
-                b.Property<string>("RoleId")
-                    .IsRequired()
-                    .HasColumnType("NVARCHAR2(450)");
+                entity.Property(r => r.RoleId).HasColumnName("role_id");
+                entity.Property(r => r.UserId).HasColumnName("user_id");
+                entity.Property(r => r.IsDeleted).HasColumnName("is_deleted");
 
-                b.HasKey("Id");
+                // Auditing fields
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasComment("Timestamp indicating when the user record was created.")
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("created_at");
+                entity.Property(e => e.CreatorId)
+                    .HasComment("ID of the user who created this record.")
+                    .HasColumnName("creator_id");
+                entity.Property(e => e.ModifiedAt)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasComment("Timestamp indicating when the user record was last modified.")
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("modified_at");
+                entity.Property(e => e.ModifierId)
+                    .HasComment("ID of the user who last modified this record.")
+                    .HasColumnName("modifier_id");
 
-                b.HasIndex("RoleId");
+                //entity.HasOne<ApplicationUser>()
+                //.WithMany(u => u.ApplicationUserRoles)
+                //.HasForeignKey(r => r.UserId)
+                //.OnDelete(DeleteBehavior.Restrict);
 
-                b.ToTable("AspNetRoleClaims", (string)null);
+                //entity.HasOne<ApplicationRole>()
+                //    .WithMany(r => r.ApplicationUserRoles)
+                //    .HasForeignKey(r => r.RoleId)
+                //    .OnDelete(DeleteBehavior.Restrict);
             });
+            modelBuilder.Entity<IdentityUserRole<int>>().HasKey(r => new { r.UserId, r.RoleId });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("NUMBER(10)");
-
-                b.Property<string>("ClaimType")
-                    .HasColumnType("NVARCHAR2(2000)");
-
-                b.Property<string>("ClaimValue")
-                    .HasColumnType("NVARCHAR2(2000)");
-
-                b.Property<string>("UserId")
-                    .IsRequired()
-                    .HasColumnType("NVARCHAR2(450)");
-
-                b.HasKey("Id");
-
-                b.HasIndex("UserId");
-
-                b.ToTable("AspNetUserClaims", (string)null);
-            });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-            {
-                b.Property<string>("LoginProvider")
-                    .HasColumnType("NVARCHAR2(450)");
-
-                b.Property<string>("ProviderKey")
-                    .HasColumnType("NVARCHAR2(450)");
-
-                b.Property<string>("ProviderDisplayName")
-                    .HasColumnType("NVARCHAR2(2000)");
-
-                b.Property<string>("UserId")
-                    .IsRequired()
-                    .HasColumnType("NVARCHAR2(450)");
-
-                b.HasKey("LoginProvider", "ProviderKey");
-
-                b.HasIndex("UserId");
-
-                b.ToTable("AspNetUserLogins", (string)null);
-            });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-            {
-                b.Property<string>("UserId")
-                    .HasColumnType("NVARCHAR2(450)");
-
-                b.Property<string>("RoleId")
-                    .HasColumnType("NVARCHAR2(450)");
-
-                b.HasKey("UserId", "RoleId");
-
-                b.HasIndex("RoleId");
-
-                b.ToTable("AspNetUserRoles", (string)null);
-            });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-            {
-                b.Property<string>("UserId")
-                    .HasColumnType("NVARCHAR2(450)");
-
-                b.Property<string>("LoginProvider")
-                    .HasColumnType("NVARCHAR2(450)");
-
-                b.Property<string>("Name")
-                    .HasColumnType("NVARCHAR2(450)");
-
-                b.Property<string>("Value")
-                    .HasColumnType("NVARCHAR2(2000)");
-
-                b.HasKey("UserId", "LoginProvider", "Name");
-
-                b.ToTable("AspNetUserTokens", (string)null);
-            });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
-            {
-                b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                    .WithMany()
-                    .HasForeignKey("RoleId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-            {
-                b.HasOne("PBTPro.DAL.ApplicationUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-            {
-                b.HasOne("PBTPro.DAL.ApplicationUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-            {
-                b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                    .WithMany()
-                    .HasForeignKey("RoleId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-
-                b.HasOne("PBTPro.DAL.ApplicationUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-            {
-                b.HasOne("PBTPro.DAL.ApplicationUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+            modelBuilder.Ignore<IdentityUserLogin<int>>();
+            modelBuilder.Ignore<IdentityUserToken<int>>();
+            modelBuilder.Ignore<IdentityUserClaim<int>>();
+            modelBuilder.Ignore<IdentityRoleClaim<int>>();
         }
     }
 }

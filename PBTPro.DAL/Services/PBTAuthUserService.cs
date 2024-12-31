@@ -43,7 +43,29 @@ public class PBTAuthUserService
 
         return result;
     }
-    
+
+    public async Task<ReturnViewModel> LookupPermissionFromAPIAsync(string accessToken)
+    {
+        var result = new ReturnViewModel();
+        try
+        {
+            string requestUrl = $"/api/User/GetUserMenuPermission";
+            _ApiConnector.accessToken = accessToken;
+            var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+            result = response;
+        }
+        catch (Exception ex)
+        {
+            result = new ReturnViewModel();
+            result.ReturnMessage = ex.Message;
+            result.ReturnCode = 500;
+        }
+
+        return result;
+    }
+
+
     public async Task<ReturnViewModel> ResetPasswordAsync(ResetPasswordInput InputModel)
     {
         var result = new ReturnViewModel();
