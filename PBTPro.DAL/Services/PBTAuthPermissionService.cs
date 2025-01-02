@@ -16,7 +16,6 @@ namespace PBTPro.DAL.Services
         private readonly PBTAuthStateProvider _authStateProvider;
 
         private readonly NavigationManager _navigationManager;
-        private AuthenticatedMenuPermission Permission { get; set; } = new AuthenticatedMenuPermission();
 
         public PBTAuthPermissionService(PBTAuthStateProvider authStateProvider, NavigationManager navigationManager)
         {
@@ -24,23 +23,11 @@ namespace PBTPro.DAL.Services
             _navigationManager = navigationManager;
         }
 
-        public async Task InitializePermissionAsync()
-        {
-            Permission = await LoadPermissionData();
-        }
-
-        private async Task<AuthenticatedMenuPermission> LoadPermissionData()
-        {
-            var menuPath = GetCurrentMenuPath();
-
-            return Permission;
-        }
-
         private string GetCurrentMenuPath()
         {
             var fullUrl = _navigationManager.Uri;
             var uri = new Uri(fullUrl);
-            return uri.AbsolutePath.TrimStart('/');
+            return uri.AbsolutePath;//.TrimStart('/');
         }
 
         public bool HasPermission(string action)
