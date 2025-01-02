@@ -70,8 +70,7 @@ builder.Services.AddTransient<UserRoleService>();
 builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<RoleMenuService>();
 builder.Services.AddTransient<NoticeService>();
-//builder.Services.AddTransient<NoticeService>();
-
+builder.Services.AddTransient<PBTAuthPermissionService>();
 builder.Services.AddTransient<FaqService>();
 builder.Services.AddTransient<ConfigFormFieldService>();
 builder.Services.AddTransient<DepartmentService>();
