@@ -1,5 +1,7 @@
-﻿@page "/unit"
+﻿@page "/section"
 @attribute [AllowAnonymous]
+
+@implements IDisposable
 
 @using System.Globalization
 @using Blazored.Toast.Services
@@ -10,13 +12,12 @@
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
 
-@inject UnitService _UnitService
 @inject DepartmentService _DepartmentService
 @inject SectionService _SectionService
 @inject NavigationManager NavigationManager
+@inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
-@inject IToastService toastService
 
 <style>
     .dxbl-grid {
@@ -27,8 +28,8 @@
 
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="\images\icons-small\hard-hat--arrow.png" />
-        <div class="textTitle">Unit</div>
+        <img class="imgTitle" src="\images\icons-small\hard-hat--plus.png" />
+        <div class="textTitle">Seksyen</div>
     </div>
 </div>
 
@@ -36,7 +37,7 @@
 
     <DxGrid @ref="Grid"
             Data="dataSource"
-            KeyFieldName="unit_id"
+            KeyFieldName="section_id"
             ShowGroupPanel="true"
             ShowFilterRow="false"
             TextWrapEnabled="true"
@@ -68,14 +69,13 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((unit_info)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((section_info)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Jabatan" MinWidth="120" Width="15%" FieldName="dept_name" />
-            <DxGridDataColumn Caption="Seksyen" MinWidth="120" Width="15%" FieldName="section_name" />
-            <DxGridDataColumn Caption="Kod" MinWidth="100" Width="13%" FieldName="unit_code" />
-            <DxGridDataColumn Caption="Nama" MinWidth="250" Width="20%" FieldName="unit_name" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="25%" FieldName="unit_desc" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Kod" MinWidth="100" Width="13%" FieldName="section_code" />
+            <DxGridDataColumn Caption="Nama" MinWidth="250" Width="25%" FieldName="section_name" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="35%" FieldName="section_desc" TextAlignment="GridTextAlignment.Left" />
 
             <DxGridDataColumn FieldName="created_date"
                               DisplayFormat="dd/MM/yyyy"
@@ -93,7 +93,7 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtEdit = (unit_info)EditFormContext.EditModel;
+                var dtEdit = (section_info)EditFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
@@ -113,28 +113,10 @@
                             </td>
                         </tr>
                         <tr>
-                            <td nowrap>Seksyen</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="6">
-                                @{
-                                    var intDepartmentID = dtDepartment.Where(c => c.dept_id == dtEdit.dept_id).FirstOrDefault().dept_id;
-                                    var SectionData = dtSection.Where(x => x.dept_id == intDepartmentID);
-                                }
-                                <DxComboBox Data="@SectionData"
-                                            NullText="Pilih Seksyen ..."
-                                            ShowValidationIcon="true"
-                                            FilteringMode="DataGridFilteringMode.Contains" s
-                                            @bind-Value="@dtEdit.section_id"
-                                            TextFieldName="section_name"
-                                            ValueFieldName="section_id">
-                                </DxComboBox>
-                            </td>
-                        </tr>
-                        <tr>
                             <td nowrap>Kod</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%">
-                                <DxTextBox @bind-Text="@dtEdit.unit_code"
+                                <DxTextBox @bind-Text="@dtEdit.section_code"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                            BindValueMode="BindValueMode.OnInput"
                                            NullText="Masukkan kod unit ..."
@@ -151,7 +133,7 @@
                             <td nowrap>Nama</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-                                <DxTextBox @bind-Text="@dtEdit.unit_name"
+                                <DxTextBox @bind-Text="@dtEdit.section_name"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                            BindValueMode="BindValueMode.OnInput"
                                            NullText="Masukkan nama unit ..."
@@ -164,7 +146,7 @@
                             <td nowrap>Keterangan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-                                <DxTextBox @bind-Text="@dtEdit.unit_desc"
+                                <DxTextBox @bind-Text="@dtEdit.section_desc"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                            BindValueMode="BindValueMode.OnInput"
                                            NullText="Masukkan keterangan ..."
@@ -186,9 +168,9 @@
             <MyCustomValidator DataItemValidating="ValidateGridData" />
         </CustomValidators>
 
-        
+
         <TotalSummary>
-            <DxGridSummaryItem FooterColumnName="unit_code"
+            <DxGridSummaryItem FooterColumnName="section_code"
                                Name="Custom"
                                SummaryType=GridSummaryItemType.Count />
         </TotalSummary>
@@ -211,8 +193,7 @@
 
 @code {
     IEnumerable<department_info> dtDepartment;
-    IEnumerable<section_info> dtSection;
-    IEnumerable<unit_info> dataSource;
+    IEnumerable<section_info> dataSource;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -220,15 +201,14 @@
 
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
-    unit_info dtData { get; set; }
+    section_info dtData { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
-        dataSource = await _UnitService.ListAll();
+        dataSource = await _SectionService.ListAll();
         dtDepartment = await _DepartmentService.ListAll();
-        dtSection = await _SectionService.ListAll();
 
         DataLoadedTcs.TrySetResult(true);
     }
@@ -244,10 +224,10 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (unit_info)e.EditModel;
-        if (_data.unit_name == null || _data.unit_name.Trim() == "")
+        var _data = (section_info)e.EditModel;
+        if (_data.section_name == null || _data.section_name.Trim() == "")
         {
-            e.AddError(nameof(_data.unit_name), "!!!!!!. Medan perlu diisi.");
+            e.AddError(nameof(_data.section_name), "!!!!!!. Medan perlu diisi.");
         }
     }
 
@@ -257,13 +237,13 @@
         // string strMessage = "";
         // if (e.IsNew)
         // {
-        //     var jsonString = JsonConvert.SerializeObject((unit_info)e.EditModel);
-        //     blnSuccess = await _UnitService.Add(jsonString) > 0 ? true : false;
+        //     var jsonString = JsonConvert.SerializeObject((section_info)e.EditModel);
+        //     blnSuccess = await _SectionService.Add(jsonString) > 0 ? true : false;
         //     strMessage = "Proses tambah rekod selesai.";
         // }
         // else
         // {
-        //     blnSuccess = await _UnitService.Update((unit_info)e.EditModel) > 0 ? true : false;
+        //     blnSuccess = await _SectionService.Update((section_info)e.EditModel) > 0 ? true : false;
         //     strMessage = "Proses kemaskini selesai.";
         // }
 
@@ -274,17 +254,17 @@
 
         ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
-        var editModel = e.EditModel as unit_info;
+        var editModel = e.EditModel as section_info;
         try
         {
             if (e.IsNew)
             {
-                response = await _UnitService.Add(editModel);
+                response = await _SectionService.Add(editModel);
                 blnSuccess = true;
             }
             else
             {
-                response = await _UnitService.Update(editModel.unit_id, editModel);
+                response = await _SectionService.Update(editModel.section_id, editModel);
                 blnSuccess = true;
             }
             if (blnSuccess)
@@ -294,7 +274,7 @@
             }
             else
             {
-               toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+                toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
             }
         }
         catch (Exception ex)
@@ -306,7 +286,7 @@
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _UnitService.Refresh();
+        dataSource = await _SectionService.Refresh();
     }
 
     public void Dispose()
@@ -314,9 +294,9 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(unit_info item)
+    async Task Delete(section_info item)
     {
-        strSelected = item.unit_name;
+        strSelected = item.section_name;
         dtData = item;
         ConfirmationShown = true;
     }
@@ -326,7 +306,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _UnitService.Delete(dtData.unit_id);
+            response = await _SectionService.Delete(dtData.section_id);
 
             if (response.ReturnCode == 200)
             {
@@ -347,7 +327,7 @@
         // bool blnSuccess = false;
         // if (dtData != null)
         // {
-        //     blnSuccess = await _UnitService.Delete(dtData.unit_id);
+        //     blnSuccess = await _SectionService.Delete(dtData.section_id);
         //     if (blnSuccess) await UpdateDataAsync();
         // }
 
@@ -376,11 +356,9 @@
                 Title = strMessage
             });
     }
-     #region response
-    
 
-
-    private void HandleResponse(string message, string? status = "Success")
+    #region response
+        private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
 
@@ -406,4 +384,5 @@
             });
     }
     #endregion
+
 }

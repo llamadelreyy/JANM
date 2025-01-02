@@ -58,7 +58,7 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((UserRoleProp)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((user_role)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Nama Pengguna" MinWidth="180" Width="28%" FieldName="user_name" />
@@ -82,28 +82,31 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtData = (UserRoleProp)EditFormContext.EditModel;
+                var dtUserRole = (user_role)EditFormContext.EditModel;
+                // // valueRole = GetUserRole(dtData);
 
                 //For edit need to get all the role belong to selected user
-                List<RoleProp> arrItem = new List<RoleProp>();
-                RoleProp _item;
-                
+                List<system_role> arrItem = new List<system_role>();
+                system_role _item;
+
                 //Loop the main data to get all the role for selected user
                 @foreach (var item in dataSource)
                 {
-                    if (dtData.user_id == item.user_id)
+                    if (dtUserRole.user_id == item.user_id)
                     {
-                        _item = new RoleProp();
+                        _item = new system_role();
                         _item.role_id = item.role_id;
                         _item.role_name = item.role_name;
                         _item.role_desc = item.role_desc;
+                        _item.role_select = true;
                         _item.created_date = item.created_date;
                         arrItem.Add(_item);
                     }
                 }
 
                 valueRole = arrItem;
-                //This is to check whether in add new @ edit mode
+
+                // This is to check whether in add new @ edit mode
                 boolLockDropDown = Grid.IsEditingNewRow();
             }
             <DxFormLayout CssClass="w-100">
@@ -119,11 +122,11 @@
                                             SearchMode="ListSearchMode.AutoSearch"
                                             Enabled="@boolLockDropDown"
                                             ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                            TextFieldName="@nameof(UserProp.Text)"
+                                            TextFieldName="@nameof(system_user.Text)"
                                             ValueFieldName="user_id"
                                             CssClass="combo-width"
                                             DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
-                                            @bind-Value="@dtData.user_id">
+                                            @bind-Value="@dtUserRole.user_id">
                                 </DxComboBox>
                             </td>
                             <td width="100px">&nbsp;</td>
@@ -135,15 +138,57 @@
                             <td nowrap>Peranan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-                                <DxListBox Data="@dataRole"
-                                           TextFieldName="@nameof(RoleProp.Text)"
-                                           ValueFieldName="@nameof(RoleProp.role_id)"
+@*                                  <DxListBox Data="@dataRole"
+                                           TextFieldName="@nameof(system_role.Text)"
+                                           ValueFieldName="@nameof(system_role.role_id)"
                                            SelectionMode="ListBoxSelectionMode.Multiple"
                                            ShowCheckboxes="true"
-                                           CssClass="w-auto mt-1 me-1 flex-grow-1 chi-220"
-                                           style="flex-basis: 240px"
+                                           Enabled="true"
                                            @bind-Values="@valueRole">
-                                </DxListBox>
+                                </DxListBox> *@
+
+                                <div class="multiselect">
+                                    <div id="checkboxes">
+                                        @{
+                                            foreach (var item in dataRole)
+                                            {
+                                                bool blnSelected = false;
+                                                foreach (var value in valueRole)
+                                                {
+                                                    if (item.role_id == value.role_id)
+                                                    {
+                                                        blnSelected = true;
+                                                        item.role_select = true;
+                                                    }
+                                                }
+
+                                                if (blnSelected)
+                                                {
+                                                    <div>
+                                                        <label class="multiselect-container" for="@item.role_id">
+                                                            @item.role_name (@item.role_desc)
+                                                            <input type="checkbox" class="check_role" id="@item.role_id" checked="checked" @onchange="@((e) => CheckboxChanged(e, item.role_id))" />                                                          
+                                                            <span class="checkmark"></span>
+                                                        </label>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div>
+                                                        <label class="multiselect-container" for="@item.role_id">
+                                                            @item.role_name (@item.role_desc)
+                                                            <input type="checkbox" class="check_role" id="@item.role_id" @onchange="@((e) => CheckboxChanged(e, item.role_id))" />                                                           
+                                                            <span class="checkmark"></span>
+                                                        </label>
+                                                    </div>
+                                                }
+
+                                            }
+                                        }
+                                    </div>
+                                </div>
+
+
                             </td>
                         </tr>
                     </table>
@@ -194,10 +239,10 @@
 
 @code {
     [Inject] IToastNotificationService ToastService { get; set; }
-    IEnumerable<UserRoleProp> dataSource;
-    IEnumerable<UserProp> dataUser;
-    IEnumerable<RoleProp> dataRole;
-    IEnumerable<RoleProp> valueRole;
+    IEnumerable<user_role> dataSource;
+    IEnumerable<system_user> dataUser;
+    IEnumerable<system_role> dataRole;
+    IEnumerable<system_role> valueRole;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -208,10 +253,9 @@
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
 
-    UserRoleProp dtData { get; set; }
+    user_role dtData { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -219,8 +263,17 @@
         dataSource = await _UserRoleService.GetUserRoleAsync();
         dataUser = await _UserService.GetUserAsync();
         dataRole = await _RoleService.GetRoleAsync();
-        //valueRole = dataRole;
+        // // valueRole = dataRole;
         DataLoadedTcs.TrySetResult(true);
+    }
+
+    protected void CheckboxChanged(ChangeEventArgs e, int key)
+    {
+        var i = dataRole.FirstOrDefault(i => i.role_id == key);
+        if (i != null)
+        {
+            i.role_select = (bool)e.Value;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -234,7 +287,7 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (UserRoleProp)e.EditModel;
+        var _data = (user_role)e.EditModel;
         if (_data.role_desc == null || _data.role_desc.Trim() == "")
         {
             e.AddError(nameof(_data.role_desc), "!!!!!!. Medan perlu diisi.");
@@ -244,39 +297,35 @@
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         bool blnSuccess = false;
+        string strMessage = "";
+        //update selected user_id dgn selected role id
+        foreach (var item in dataRole)
+        {
+
+        }
+
         if (e.IsNew)
-            blnSuccess = true; //await _UserRoleService.InsertUserRoleAsync((UserRoleProp)e.EditModel, intCurrentUserId);
+        {
+            // var jsonString = JsonConvert.SerializeObject((section_info)e.EditModel);
+            // blnSuccess = await _SectionService.AddSection(jsonString) > 0 ? true : false;
+            // strMessage = "Proses tambah rekod selesai.";
+        }
         else
-            blnSuccess = true; //await _UserRoleService.UpdateUserRoleAsync((UserRoleProp)e.EditModel, intCurrentUserId);
+        {
+            // blnSuccess = await _SectionService.UpdateSection((section_info)e.EditModel) > 0 ? true : false;
+            // strMessage = "Proses kemaskini selesai.";
+        }
 
         if (blnSuccess)
-        {
             await UpdateDataAsync();
 
-            ToastService.ShowToast(new ToastOptions()
-            {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = ToastRenderStyle.Success,
-                Title = "Proses kemaskini selesai."
-            });
-        }
-        else
-        {
-            ToastService.ShowToast(new ToastOptions()
-            {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = ToastRenderStyle.Danger,
-                Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
-            });
-        }
+        ShowToast(blnSuccess, blnSuccess ? strMessage : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
     }
 
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _UserRoleService.GetUserRoleAsync();
+        dataSource = await _UserRoleService.RefreshUserRoleAsync();
     }
 
     public void Dispose()
@@ -284,7 +333,7 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(UserRoleProp item)
+    async Task Delete(user_role item)
     {
         strSelected = item.role_name;
         dtData = item;
@@ -293,19 +342,14 @@
 
     async void OnYesButtonClick()
     {
+        bool blnSuccess = false;
         if (dtData != null)
         {
-            //await _UserRoleService.RemoveUserRoleAsync((UserRoleProp)dtData);
-            //await UpdateDataAsync();
+            //blnSuccess = await _UserRoleService.RemoveUserRoleAsync((user_role)dtData);
+            //if (blnSuccess) await UpdateDataAsync();
         }
         ConfirmationShown = false;
-        ToastService.ShowToast(new ToastOptions()
-        {
-            ProviderName = "Overview",
-            ThemeMode = ToastThemeMode.Saturated,
-            RenderStyle = ToastRenderStyle.Success,
-            Title = "Proses hapus selesai."
-        });
+        ShowToast(blnSuccess, blnSuccess ? "Proses hapus selesai" : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
     }
 
     void OnNoButtonClick()
@@ -317,5 +361,16 @@
     {
         if (e.Item.Name == "Custom")
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    void ShowToast(bool blnStatus, string strMessage)
+    {
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = blnStatus ? ToastRenderStyle.Success : ToastRenderStyle.Danger,
+                Title = strMessage
+            });
     }
 }

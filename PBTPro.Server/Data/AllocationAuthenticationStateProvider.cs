@@ -6,7 +6,7 @@
 //////public class AllocationAuthenticationStateProvider : AuthenticationStateProvider, IDisposable
 //////{
 //////    private readonly AllocationUserService _allocationUserService;
-//////    public UserProp CurrentUser { get; private set; } = new();
+//////    public system_user CurrentUser { get; private set; } = new();
 //////    public string strUserFullNameNRole { get; set; } = "";
 
 //////    public AllocationAuthenticationStateProvider(AllocationUserService allocationUserService)
@@ -21,7 +21,7 @@
 
 //////        if (authenticationState is not null)
 //////        {
-//////            CurrentUser = UserProp.FromClaimsPrincipal(authenticationState.User);
+//////            CurrentUser = system_user.FromClaimsPrincipal(authenticationState.User);
 //////            if (CurrentUser.userID == 0)
 //////                await GetAuthenticationStateAsync();
 //////        }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace PBTPro.DAL.Models;
 
@@ -13,8 +14,11 @@ public partial class user_profile
 
     public string? profile_photo_filename { get; set; }
 
+    [Required(ErrorMessage = "Medan Emel perlu diisi.")]
     public string profile_email { get; set; } = null!;
 
+
+    [Required(ErrorMessage = "Medan No Telefon perlu diisi.")]
     public string? profile_tel_no { get; set; }
 
     public string? profile_icno { get; set; }
@@ -57,11 +61,23 @@ public partial class user_profile
 
     public int? updated_by { get; set; }
 
-    public int? profile_department_id { get; set; }
+    public int profile_department_id { get; set; }
+    
+    public string profile_department_name { get; set; } = null!;
+    
+    public int profile_section_id { get; set; }
+    
+    public string profile_section_name { get; set; } = null!;
+    
+    public int profile_unit_id { get; set; }
+    
+    public string profile_unit_name { get; set; } = null!;
+    
+    public int profile_role_id { get; set; }
+    
+    public string profile_role { get; set; } = null!;
 
-    public int? profile_section_id { get; set; }
-
-    public int? profile_unit_id { get; set; }
-
+    public string userOldPassword { get; set; } = "";
+    
     public string? profile_signature_filename { get; set; }
 }
