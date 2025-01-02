@@ -124,7 +124,7 @@ builder.Services.AddTransient<SessionDashboardStorage>();
 // commented due to conflict on deploment
 //builder.WebHost.UseStaticWebAssets();
 
-//ismail - for standard login - DUMMY
+//ismail - for standard login
 builder.Services.AddScoped<PBTAuthUserService>();
 builder.Services.AddScoped<PBTAuthStateProvider>();
 builder.Services.AddScoped<PBTAuthPermissionService>();
