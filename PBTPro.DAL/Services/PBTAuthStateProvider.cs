@@ -72,35 +72,47 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
         var result = new ReturnViewModel();
         try
         {
-            //var principal = new ClaimsPrincipal();
-            //var response = await _PBTAuthUserService.LookupUserFromAPIAsync(username, password);
-            //result = response;
+            var principal = new ClaimsPrincipal();
+            var response = await _PBTAuthUserService.LookupUserFromAPIAsync(username, password);
+            result = response;
 
-            //if (response.ReturnCode == 200)
-            //{
-            //    string? dataString = response?.Data?.ToString();
-            //    if (!string.IsNullOrWhiteSpace(dataString))
-            //    {
-            //        var data = JsonConvert.DeserializeObject<LoginResult>(dataString);
+            if (response.ReturnCode == 200)
+            {
+                string? dataString = response?.Data?.ToString();
+                if (!string.IsNullOrWhiteSpace(dataString))
+                {
+                    var data = JsonConvert.DeserializeObject<LoginResult>(dataString);
 
-            //        var user = new AuthenticatedUser
-            //        {
-            //            Fullname = data.Fullname,
-            //            Token = data.Token,
-            //            Userid = data.Userid,
-            //            Username = data.Username,
-            //            Roles = data.Roles,
-            //            Password = password
-            //        };
+                    var user = new AuthenticatedUser
+                    {
+                        Fullname = data.Fullname,
+                        Token = data.Token,
+                        Userid = data.Userid,
+                        Username = data.Username,
+                        Roles = data.Roles,
+                        Password = password
+                    };
 
-            //        strUserFullNameNRole = user.Fullname + " (" + user.Roles + ")";
-            //        accessToken = user.Token ?? string.Empty;
-            //        await _PBTAuthUserService.PersistUserToBrowserAsync(user);
-            //        principal = user.ToClaimsPrincipal();
-            //    }
-            //}
+                    strUserFullNameNRole = user.Fullname + " (" + user.Roles + ")";
+                    accessToken = user.Token ?? string.Empty;
 
+                    var permissionResponse = await _PBTAuthUserService.LookupPermissionFromAPIAsync(accessToken);
+                    if (permissionResponse.ReturnCode == 200)
+                    {
+                        string? permissionDataString = permissionResponse?.Data?.ToString();
+                        if (!string.IsNullOrWhiteSpace(permissionDataString))
+                        {
+                            var test = JsonConvert.DeserializeObject<List<AuthenticatedMenuPermission>>(permissionDataString);
+                            Permissions = JsonConvert.DeserializeObject<List<AuthenticatedMenuPermission>>(permissionDataString);
+                        }
+                    }
 
+                    await _PBTAuthUserService.PersistUserToBrowserAsync(user);
+                    principal = user.ToClaimsPrincipal();
+                }
+            }
+
+            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(principal)));
         }
         catch (Exception ex)
         {
