@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Newtonsoft.Json;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 using System.Security.Claims;
 
 namespace PBTPro.DAL.Services;
@@ -11,6 +12,7 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
     public AuthenticatedUser CurrentUser { get; private set; } = new();
     public string strUserFullNameNRole { get; set; } = "";
     public string accessToken { get; set; } = "";
+    public List<AuthenticatedMenuPermission> Permissions { get; private set; } = new List<AuthenticatedMenuPermission>();
 
     public PBTAuthStateProvider(PBTAuthUserService PBTAuthUserService)
     {
@@ -50,6 +52,17 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
             strUserFullNameNRole = user.Fullname + " (" + user.Roles + ")";
             accessToken = user.Token;
             principal = user.ToClaimsPrincipal();
+
+            var permissionResponse = await _PBTAuthUserService.LookupPermissionFromAPIAsync(accessToken);
+            if (permissionResponse.ReturnCode == 200)
+            {
+                string? permissionDataString = permissionResponse?.Data?.ToString();
+                if (!string.IsNullOrWhiteSpace(permissionDataString))
+                {
+                    var test = JsonConvert.DeserializeObject<List<AuthenticatedMenuPermission>>(permissionDataString);
+                    Permissions = JsonConvert.DeserializeObject<List<AuthenticatedMenuPermission>>(permissionDataString);
+                }
+            }
         }
         return new(principal);
     }
@@ -82,6 +95,18 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
 
                     strUserFullNameNRole = user.Fullname + " (" + user.Roles + ")";
                     accessToken = user.Token ?? string.Empty;
+
+                    var permissionResponse = await _PBTAuthUserService.LookupPermissionFromAPIAsync(accessToken);
+                    if (permissionResponse.ReturnCode == 200)
+                    {
+                        string? permissionDataString = permissionResponse?.Data?.ToString();
+                        if (!string.IsNullOrWhiteSpace(permissionDataString))
+                        {
+                            var test = JsonConvert.DeserializeObject<List<AuthenticatedMenuPermission>>(permissionDataString);
+                            Permissions = JsonConvert.DeserializeObject<List<AuthenticatedMenuPermission>>(permissionDataString);
+                        }
+                    }
+
                     await _PBTAuthUserService.PersistUserToBrowserAsync(user);
                     principal = user.ToClaimsPrincipal();
                 }

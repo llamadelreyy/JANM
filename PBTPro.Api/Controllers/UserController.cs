@@ -67,7 +67,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var UserId = await getDefRunUserId();
                 user_profile_view data = new user_profile_view();
 
                 var baseImageViewURL = await getImageViewUrl();
@@ -106,7 +106,7 @@ namespace PBTPro.Api.Controllers
                     UserProfile = await _dbContext.Users.Where(x => x.Id == UserId).Select(x => new user_profile_view
                     {
                         profile_user_id = x.Id,
-                        profile_name = x.Name ?? x.UserName,
+                        profile_name = x.UserName,
                         profile_email = x.Email,
                         profile_employee_no = "ABC9090112",
                         profile_department_view = "Penguatkuasa",
@@ -133,9 +133,8 @@ namespace PBTPro.Api.Controllers
 
                 #region Validation
                 bool isNew = false;
-                var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                if(UserId != InputModel.user_id)
+                if(runUserID != InputModel.user_id)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_USERID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
@@ -153,15 +152,15 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_FILE_SIZE", MessageTypeEnum.Error, string.Format("saiz fail melebihi had yang dibenarkan, saiz fail maksimum yang dibenarkan ialah [0]."), param));
                 }
 
-                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.profile_user_id == UserId);
+                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.profile_user_id == runUserID);
 
                 if(userProfile == null)
                 {
                     isNew = true;
-                    userProfile = await _dbContext.Users.Where(x => x.Id == UserId).Select(x => new user_profile
+                    userProfile = await _dbContext.Users.Where(x => x.Id == runUserID).Select(x => new user_profile
                     {
                         profile_user_id = x.Id,
-                        profile_name = x.Name ?? x.UserName,
+                        profile_name = x.UserName,
                         profile_email = x.Email
                     }).AsNoTracking().FirstOrDefaultAsync();
                 }
@@ -173,7 +172,7 @@ namespace PBTPro.Api.Controllers
                 {
                     string ImageUploadExt = Path.GetExtension(InputModel.sign_image.FileName).ToString().ToLower();
 
-                    FileName = UserId + ImageUploadExt;
+                    FileName = $"{runUserID}_{runUser}{ImageUploadExt}";
                     var UploadPath = await getImageUploadPath("signature");
                     var Fullpath = Path.Combine(UploadPath, FileName);
                     using (var stream = new FileStream(Fullpath, FileMode.Create))
@@ -216,9 +215,8 @@ namespace PBTPro.Api.Controllers
 
                 #region Validation
                 bool isNew = false;
-                var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                if (UserId != InputModel.user_id)
+                if (runUserID != InputModel.user_id)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_USERID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
@@ -236,15 +234,15 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_FILE_SIZE", MessageTypeEnum.Error, string.Format("saiz fail melebihi had yang dibenarkan, saiz fail maksimum yang dibenarkan ialah [0]."), param));
                 }
 
-                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.profile_user_id == UserId);
+                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.profile_user_id == runUserID);
 
                 if (userProfile == null)
                 {
                     isNew = true;
-                    userProfile = await _dbContext.Users.Where(x => x.Id == UserId).Select(x => new user_profile
+                    userProfile = await _dbContext.Users.Where(x => x.Id == runUserID).Select(x => new user_profile
                     {
                         profile_user_id = x.Id,
-                        profile_name = x.Name ?? x.UserName,
+                        profile_name = x.UserName,
                         profile_email = x.Email
                     }).AsNoTracking().FirstOrDefaultAsync();
                 }
@@ -256,7 +254,7 @@ namespace PBTPro.Api.Controllers
                 {
                     string ImageUploadExt = Path.GetExtension(InputModel.avatar_image.FileName).ToString().ToLower();
 
-                    FileName = UserId + ImageUploadExt;
+                    FileName = $"{runUserID}_{runUser}{ImageUploadExt}";
                     var UploadPath = await getImageUploadPath("profile");
                     var Fullpath = Path.Combine(UploadPath, FileName);
                     using (var stream = new FileStream(Fullpath, FileMode.Create))
@@ -397,6 +395,69 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetUserMenuPermission()
+        {
+            try
+            {
+                List<permission_menu_view> PermissionMenus = new List<permission_menu_view>();
+                int UserId = await getDefRunUserId();
+
+                var userRoles = await _dbContext.UserRoles.Where(x => x.UserId == UserId).AsNoTracking().ToListAsync();
+                
+                if (userRoles.Any())
+                {
+                    PermissionMenus = userRoles
+                    .Join(_dbContext.permissions, ur => ur.RoleId, p => p.role_id, (ur, p) => new { ur, p })
+                    .Join(_dbContext.menus, combined => combined.p.menu_id, m => m.menu_id, (combined, m) => new permission_menu_view
+                    {
+                        menu_id = combined.p.menu_id,
+                        menu_name = m.menu_name,
+                        menu_path = m.menu_path,
+                        can_view = combined.p.can_view,
+                        can_add = combined.p.can_add,
+                        can_delete = combined.p.can_delete,
+                        can_edit = combined.p.can_edit,
+                        can_print = combined.p.can_print,
+                        can_download = combined.p.can_download,
+                        can_upload = combined.p.can_upload,
+                        can_execute = combined.p.can_execute,
+                        can_authorize = combined.p.can_authorize,
+                        can_view_sensitive = combined.p.can_view_sensitive,
+                        can_export_data = combined.p.can_export_data,
+                        can_import_data = combined.p.can_import_data,
+                        can_approve_changes = combined.p.can_approve_changes
+                    })
+                    .GroupBy(pm => pm.menu_id)
+                    .Select(g => new permission_menu_view
+                    {
+                        menu_id = g.Key,
+                        menu_name = g.First().menu_name,
+                        menu_path = g.First().menu_path,
+                        can_view = g.Max(pm => pm.can_view),
+                        can_add = g.Max(pm => pm.can_add),
+                        can_delete = g.Max(pm => pm.can_delete),
+                        can_edit = g.Max(pm => pm.can_edit),
+                        can_print = g.Max(pm => pm.can_print),
+                        can_download = g.Max(pm => pm.can_download),
+                        can_upload = g.Max(pm => pm.can_upload),
+                        can_execute = g.Max(pm => pm.can_execute),
+                        can_authorize = g.Max(pm => pm.can_authorize),
+                        can_view_sensitive = g.Max(pm => pm.can_view_sensitive),
+                        can_export_data = g.Max(pm => pm.can_export_data),
+                        can_import_data = g.Max(pm => pm.can_import_data),
+                        can_approve_changes = g.Max(pm => pm.can_approve_changes)
+                    })
+                    .ToList();
+                }
+
+                return Ok(PermissionMenus, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
         #region private logic
         protected async Task<string?> getImageUploadPath(string? lv1 = null, string? lv2 = null, string? lv3 = null, string? lv4 = null)
         {
