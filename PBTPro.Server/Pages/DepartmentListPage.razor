@@ -66,7 +66,7 @@
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn FieldName="@nameof(department_info.dept_code)" Caption="Kod Jabatan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(department_info.dept_depart_name)" Caption="Nama Jabatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(department_info.dept_name)" Caption="Nama Jabatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(department_info.dept_description)" Caption="Catatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(department_info.dept_status)" Caption="Status Aktif" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                 <CellDisplayTemplate>
@@ -120,7 +120,7 @@
                             <td nowrap>Nama Jabatan</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.dept_depart_name"
+                                <DxTextBox @bind-Text="@dtData.dept_name"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                            BindValueMode="BindValueMode.OnInput"
                                            NullText="Nama Jabatan..."
@@ -150,7 +150,7 @@
                     <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
                 </DxFormLayoutItem>
             </DxFormLayout>
-        </EditFormTemplate>        
+        </EditFormTemplate>
     </DxGrid>
 
     <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
@@ -235,7 +235,7 @@
         {
             Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
-    }  
+    }
 
     async Task Delete(department_info item)
     {
@@ -265,15 +265,15 @@
         }
         catch (Exception ex)
         {
-        }       
+        }
     }
 
     void OnNoButtonClick()
     {
         ConfirmationShown = false;
     }
-   #endregion
-  
+    #endregion
+
     #region lookup
     public MarkupString GetStatusDepartmentIconHtml(string status)
     {

@@ -129,7 +129,7 @@
                                             ShowValidationIcon="true"
                                             NullText="Pilih Jabatan..."
                                             @bind-Value="@SelectedDepartment"
-                                            TextFieldName="@nameof(department_info.dept_depart_name)" />
+                                            TextFieldName="@nameof(department_info.dept_name)" />
                             </td>
                         </tr>
                         <tr>
@@ -332,7 +332,7 @@
                     dtIdMax = 1;
                 }
                 // inputModel.patrol_id = dtIdMax ?? 0;
-                inputModel.patrol_dept_name = SelectedDepartment.dept_depart_name;
+                inputModel.patrol_dept_name = SelectedDepartment.dept_name;
                 inputModel.patrol_status = inputModel.patrol_status;
                 inputModel.created_date = DateTime.Now;
                 inputModel.active_flag = true;

@@ -68,16 +68,18 @@ builder.Services.AddTransient<CompoundService>();
 builder.Services.AddTransient<RoleService>();
 builder.Services.AddTransient<UserRoleService>();
 builder.Services.AddTransient<UserService>();
+builder.Services.AddTransient<RoleMenuService>();
 builder.Services.AddTransient<NoticeService>();
-builder.Services.AddTransient<LicenseService>();
+builder.Services.AddTransient<PBTAuthPermissionService>();
 builder.Services.AddTransient<FaqService>();
 builder.Services.AddTransient<ConfigFormFieldService>();
 builder.Services.AddTransient<DepartmentService>();
+builder.Services.AddTransient<SectionService>();
+builder.Services.AddTransient<UnitService>();
 builder.Services.AddTransient<AuditService>();
 builder.Services.AddTransient<ArchiveAuditService>();
 builder.Services.AddTransient<PatrolService>();
-builder.Services.AddScoped<PBTAuthStateProvider>();
-builder.Services.AddScoped<PBTAuthPermissionService>();
+
 
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();
