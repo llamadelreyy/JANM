@@ -23,5 +23,5 @@ namespace PBTPro.DAL.Models
 
         public int? updated_by { get; set; }
 
-    public string dept_status { get; set; } = null!;
+    }
 }

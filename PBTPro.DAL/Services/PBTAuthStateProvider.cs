@@ -100,41 +100,7 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
             //    }
             //}
 
-            // ================= For Testing purpose ======================
-            var principal = new ClaimsPrincipal();
-            var response = await _PBTAuthUserService.LookupUserFromAPIAsync(username, password);
-            result = response;
 
-            var user = new AuthenticatedUser
-            {
-                Fullname = "Administrator",
-                Token = "12345",
-                Userid = "1",
-                Username = "administrator",
-                Roles = new() { "Pengguna" },
-                Password = "1qazXSW@"
-            };
-
-                    strUserFullNameNRole = user.Fullname + " (" + user.Roles + ")";
-                    accessToken = user.Token ?? string.Empty;
-
-                    var permissionResponse = await _PBTAuthUserService.LookupPermissionFromAPIAsync(accessToken);
-                    if (permissionResponse.ReturnCode == 200)
-                    {
-                        string? permissionDataString = permissionResponse?.Data?.ToString();
-                        if (!string.IsNullOrWhiteSpace(permissionDataString))
-                        {
-                            var test = JsonConvert.DeserializeObject<List<AuthenticatedMenuPermission>>(permissionDataString);
-                            Permissions = JsonConvert.DeserializeObject<List<AuthenticatedMenuPermission>>(permissionDataString);
-                        }
-                    }
-
-                    await _PBTAuthUserService.PersistUserToBrowserAsync(user);
-                    principal = user.ToClaimsPrincipal();
-                }
-            }
-
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(principal)));
         }
         catch (Exception ex)
         {
