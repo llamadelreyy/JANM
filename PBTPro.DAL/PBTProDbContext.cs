@@ -107,7 +107,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             //    .HasNoKey()
             //    .ToTable("auditlog_archive_info", "audit");
 
-            entity.HasKey(e => e.archive_id).HasName("uditlog_archive_info_pkey");
+            entity.HasKey(e => e.archive_id).HasName("auditlog_archive_info_pkey");
 
             entity.ToTable("auditlog_archive_info", "audit");
 
@@ -862,9 +862,10 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<patrol_info>(entity =>
         {
+
             entity.HasKey(e => e.patrol_id).HasName("patrol_info_pkey");
 
-            entity.ToTable("patrol_info", "patrol");
+            entity.ToTable("patrol_info", "patrol");            
 
             entity.Property(e => e.active_flag).HasDefaultValue(true);
             entity.Property(e => e.created_by).HasDefaultValue(0);

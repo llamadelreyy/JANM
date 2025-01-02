@@ -109,6 +109,8 @@ namespace PBTPro.Api.Controllers
                 _dbContext.auditlog_infos.RemoveRange(recordsToDelete);
                 _dbContext.SaveChanges();
                 #endregion
+                
+                await Task.Delay(1000);
 
                 #region display list archive log
                 var dataFromTableB_b = _dbContext.auditlog_infos.AsNoTracking().ToList();

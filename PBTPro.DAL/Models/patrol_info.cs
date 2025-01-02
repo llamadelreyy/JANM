@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using NetTopologySuite.Geometries;
 
 namespace PBTPro.DAL.Models;
@@ -37,9 +38,9 @@ public partial class patrol_info
     public DateTime? updated_date { get; set; }
 
     public string? patrol_dept_name { get; set; }
-
+    //[JsonIgnore]
     public Point? patrol_start_location { get; set; }
-
+    //[JsonIgnore]
     public Point? patrol_end_location { get; set; }
 
     public bool patrol_scheduled { get; set; }

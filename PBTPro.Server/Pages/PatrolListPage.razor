@@ -37,21 +37,34 @@
 <div class="item-container-x">
     <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="@OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
         @{
-            var Items = lstActiveIndex.Where(c => c.active_flag == true).GroupBy(item => item.patrol_status).ToList();
-            @foreach (var itm in Items)
-            {
-                var combine = @itm.Key + " (" + @itm.Count() + ")";
-                <DxTab Text="@combine"></DxTab>
-            }
+            // var combine = "";
+            // var count=0;
+
+            // var Items = lstActiveIndex.Where(c => c.active_flag == true).OrderBy(item => item.patrol_status).GroupBy(item => item.patrol_status).ToList();
+
+            // @foreach (var itm in Items)
+            // {
+            //     // combine = @itm.Key + " (" + count + ")";
+            //     count = @itm.Count();
+            //     // <DxTab Text="@combine"></DxTab>
+            // }
+
+            var belummula = $"Belum Mula ({result})";
+            var rondaan = $"Rondaan ({result1})";
+            var selesai = $"Selesai ({result2})";
+
+            <DxTab Text="@belummula"></DxTab>
+            <DxTab Text="@rondaan"></DxTab>
+            <DxTab Text="@selesai"></DxTab>
         }
     </DxTabs>
     <DxGrid @ref="Grid"
             Data="@DataSource"
             ShowGroupPanel="true"
-            ShowFilterRow="true"            
+            ShowFilterRow="true"
             EditorRenderMode="GridEditorRenderMode.Integrated"
             FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-            PageSize="25"           
+            PageSize="25"
             @bind-PageIndex="@GridPageIndex"
             PagerPosition="GridPagerPosition.Bottom"
             PagerNavigationMode="PagerNavigationMode.InputBox"
@@ -115,7 +128,7 @@
                                 <DxComboBox Data="@Data"
                                             ShowValidationIcon="true"
                                             NullText="Pilih Jabatan..."
-                                            @bind-Value="@SelectedEmployee"
+                                            @bind-Value="@SelectedDepartment"
                                             TextFieldName="@nameof(department_info.dept_depart_name)" />
                             </td>
                         </tr>
@@ -208,12 +221,12 @@
                     <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
                 </DxFormLayoutItem>
             </DxFormLayout>
-        </EditFormTemplate>        
+        </EditFormTemplate>
     </DxGrid>
 
     <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
         <BodyContentTemplate>
-            <br />Anda pasti untuk menghapuskan rekod ini?
+            Anda pasti untuk menghapuskan rekod ini?
             <br /><br />
             <div class="confirm-dialog-buttons">
                 <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
@@ -227,14 +240,15 @@
     private List<patrol_info> lstActiveIndex = new List<patrol_info>();
     public List<(patrol_info, int)> Items { get; set; } = new List<(patrol_info, int)>();
     IEnumerable<patrol_info> DataSource;
-    IEnumerable<department_info> Data { get; set; }
+    IEnumerable<department_info> dtDept { get; set; }
     patrol_info dtDatas { get; set; }
-    department_info SelectedEmployee { get; set; }
+    department_info SelectedDepartment { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     bool ConfirmationShown { get; set; } = false;
     private string tabType = "Belum Mula";
     int ActiveTabIndex;
+    int result; int result1; int result2;
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -242,16 +256,26 @@
     #region List
     protected override async Task OnInitializedAsync()
     {
-        lstActiveIndex = await _patrolling.ListAll();
         DataSource = await GetListDataAsync(tabType);
-        Data = await _department.ListAll();
-        SelectedEmployee = Data.FirstOrDefault();
+
+        #region get all and count by patrol status
+        lstActiveIndex = await _patrolling.ListAll();
+        result = lstActiveIndex.Count(a => a.patrol_status == "Belum Mula");
+        result1 = lstActiveIndex.Count(a => a.patrol_status == "Rondaan");
+        result2 = lstActiveIndex.Count(a => a.patrol_status == "Selesai");
+        #endregion
+
+        #region lookup department list
+        dtDept = await _department.ListAll();
+        SelectedDepartment = dtDept.FirstOrDefault();
+        #endregion
+
         DataLoadedTcs.TrySetResult(true);
     }
-   
+
     private async Task OnActiveTabIndexChanged(int index)
     {
-        ActiveTabIndex = index;
+        ActiveTabIndex = index;        
         switch (ActiveTabIndex)
         {
             case 0:
@@ -263,7 +287,7 @@
             case 2:
                 tabType = "Selesai";
                 break;
-            default:
+            default :
                 tabType = "Belum Mula";
                 break;
         }
@@ -274,9 +298,8 @@
 
     private async Task<IEnumerable<patrol_info>> GetListDataAsync(string? TabType = "")
     {
-        IEnumerable<patrol_info> result = await _patrolling.ListByTabType(TabType);
-        return result;
-    }
+        return await _patrolling.ListByTabType(tabType);
+    }   
 
     async Task UpdateDataAsync()
     {
@@ -308,8 +331,8 @@
                 {
                     dtIdMax = 1;
                 }
-                inputModel.patrol_id = dtIdMax ?? 0;
-                inputModel.patrol_dept_name = SelectedEmployee.dept_depart_name;
+                // inputModel.patrol_id = dtIdMax ?? 0;
+                inputModel.patrol_dept_name = SelectedDepartment.dept_depart_name;
                 inputModel.patrol_status = inputModel.patrol_status;
                 inputModel.created_date = DateTime.Now;
                 inputModel.active_flag = true;
@@ -370,13 +393,13 @@
         }
         dtDatas = null;
     }
-    
+
     void OnNoButtonClick()
     {
         dtDatas = null;
         ConfirmationShown = false;
     }
-    
+
     #endregion
 
     #region lookup data

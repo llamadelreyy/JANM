@@ -510,7 +510,33 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var data = await _dbContext.patrol_infos.AsNoTracking().ToListAsync();
+                var data = await _dbContext.patrol_infos.Where(x => x.active_flag == true).Select(x => new
+                {
+                    patrol_id = x.patrol_id,
+                    patrol_cnt_notice = x.patrol_cnt_notice,
+                    patrol_cnt_compound = x.patrol_cnt_compound,
+                    patrol_cnt_notes = x.patrol_cnt_notes,
+                    patrol_cnt_seizure = x.patrol_cnt_seizure,
+                    patrol_status = x.patrol_status,
+                    patrol_start_dtm = x.patrol_start_dtm,
+                    patrol_end_dtm = x.patrol_end_dtm,
+                    active_flag = x.active_flag,
+                    created_by = x.created_by,
+                    created_date = x.created_date,
+                    updated_by = x.updated_by,
+                    patrol_officer_name = x.patrol_officer_name,
+                    patrol_location = x.patrol_location,
+                    updated_date = x.updated_date,
+                    patrol_dept_name = x.patrol_dept_name,
+                    patrol_scheduled = x.patrol_scheduled,
+                    patrol_start_location = x.patrol_start_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_start_location))
+                                    : null,
+
+                    patrol_end_location = x.patrol_end_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_end_location))
+                                    : null
+                }).AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -530,22 +556,22 @@ namespace PBTPro.Api.Controllers
                 var runUser = await getDefRunUser();
 
                 #region Validation
-                var isPatrolDup = await _dbContext.patrol_infos
-                                        .AnyAsync(y => y.patrol_officer_name == InputModel.patrol_officer_name &&
-                                        (y.patrol_start_dtm < DateTime.Now || y.patrol_start_dtm == InputModel.patrol_start_dtm) &&
-                                        (y.patrol_end_dtm < DateTime.Now || y.patrol_end_dtm == InputModel.patrol_end_dtm) &&
-                                        y.patrol_location == InputModel.patrol_location);
+                //var isPatrolDup = await _dbContext.patrol_infos
+                //                        .AnyAsync(y => y.patrol_officer_name == InputModel.patrol_officer_name &&
+                //                        (y.patrol_start_dtm < DateTime.Now || y.patrol_start_dtm == InputModel.patrol_start_dtm) &&
+                //                        (y.patrol_end_dtm < DateTime.Now || y.patrol_end_dtm == InputModel.patrol_end_dtm) &&
+                //                        y.patrol_location == InputModel.patrol_location);
 
-                if (isPatrolDup)
-                {
-                    return Error("", SystemMesg(_feature, "MEMBERS_ASSIGNED", MessageTypeEnum.Error, string.Format("pegawai sedang dalam rondaan")));
-                }
+                //if (isPatrolDup)
+                //{
+                //    return Error("", SystemMesg(_feature, "MEMBERS_ASSIGNED", MessageTypeEnum.Error, string.Format("pegawai sedang dalam rondaan")));
+                //}
                 #endregion
 
                 #region store data
                 patrol_info patrolinfo = new patrol_info
                 {
-                    patrol_id = InputModel.patrol_id,
+                    //patrol_id = InputModel.patrol_id,
                     patrol_dept_name = InputModel.patrol_dept_name,
                     patrol_officer_name = InputModel.patrol_officer_name,
                     patrol_location = InputModel.patrol_location,
@@ -627,7 +653,7 @@ namespace PBTPro.Api.Controllers
 
                 if (formField == null)
                 {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah. Status Belum Mula sahaja boleh dipadam.")));
                 }
 
                 #endregion
@@ -648,7 +674,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfields = await _dbContext.patrol_infos.Where(x => x.active_flag == true && x.patrol_status == tabType)
+                var parFormfields = await _dbContext.patrol_infos.Where(x => x.active_flag == true && x.patrol_status == tabType).OrderBy(x => x.patrol_status)
                                     .AsNoTracking().ToListAsync();
 
                 if (parFormfields.Count == 0)
