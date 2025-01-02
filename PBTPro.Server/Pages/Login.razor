@@ -8,7 +8,7 @@
 @inject IToastNotificationService ToastService
 
 <div class="item-container-x">
-    <EditForm Model="@LoginModel" OnValidSubmit="@HandleValidSubmit" Context="EditFormContext">
+@*     <EditForm Model="@LoginModel" OnValidSubmit="@HandleValidSubmit" Context="EditFormContext">
         <DataAnnotationsValidator />
         <DxFormLayout>
             <DxFormLayoutItem Caption="Nama Pengguna:" ColSpanMd="12">
@@ -34,7 +34,60 @@
                 </DxButton>
             </DxFormLayoutItem>
         </DxFormLayout>
-    </EditForm>
+    </EditForm> *@
+
+
+    <div class="gridlayout-content gridlayout-item align-content-center" CssClass="w-100 ch-480">
+        @*Content*@
+
+        <div class="loginPBTPro mt-5" style="border:solid 1px #999;border-radius: 5px;box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);">
+            <div class="text-center py-3">
+                <img src="images/mdk.jpeg" class="loginImej" />
+
+                <p class="tm-8 mb-0 fw-normal fs-825">
+                    <b>Log masuk.</b>
+                </p>
+            </div>
+            <div class="card-body">
+                <EditForm Model="@LoginModel" OnSubmit="@HandleValidSubmit" Context="EditFormContext">
+                    <DataAnnotationsValidator />
+                    <DxFormLayout>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxTextBox @bind-Text="@LoginModel.Username"
+                                       NullText="Nama Pengguna ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       ShowValidationIcon="true"
+                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                        </DxFormLayoutItem>
+
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxTextBox @bind-Text="@LoginModel.Password"
+                                       NullText="Kata Laluan ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       Password="true"
+                                       ShowValidationIcon="true"
+                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                        </DxFormLayoutItem>
+
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton CssClass="w-100 btn-edit-grid" Text="Log Masuk" 
+                                      RenderStyle="ButtonRenderStyle.Primary"
+                                      Enabled="true"
+                                      SubmitFormOnClick="true">
+                            </DxButton>
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditForm>
+            </div>
+            <div class="text-center py-3" style="margin:0 0 30px 0;">
+                <p class="tm-8 mb-0 fw-normal fs-825">
+                    Lupa kata laluan. Sila tekan <a href="/forgetpassword">disini</a>.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
 </div>
 }
 
@@ -44,22 +97,35 @@
     string FormSubmitResult = "";
     public async Task HandleValidSubmit()
     {
-        ReturnViewModel response = new ReturnViewModel();
+        // ReturnViewModel response = new ReturnViewModel();
+        // response = await PBTAuthStateProvider.LoginAsync(LoginModel.Username, LoginModel.Password);
 
+        // if (response.ReturnCode == 200)
+        // {
+        //     //HandleResponse(response.ReturnMessage);
+        //     if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
+        //         NavigationManager.NavigateTo("/", true);
+        //     else
+        //         NavigationManager.NavigateTo("zon_eksekutif", true);
+        // }
+        // else
+        // {
+        //     HandleResponse(response.ReturnMessage, "Error");
+        // }
+
+        //============ FOR TESTING PURPOSE ==============
+        ReturnViewModel response = new ReturnViewModel();
         response = await PBTAuthStateProvider.LoginAsync(LoginModel.Username, LoginModel.Password);
 
-        if (response.ReturnCode == 200)
-        {
-            //HandleResponse(response.ReturnMessage);
-            if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
-                NavigationManager.NavigateTo("/", true);
-            else
-                NavigationManager.NavigateTo("zon_eksekutif", true);
-        }
+        //HandleResponse(response.ReturnMessage);
+        if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
+            NavigationManager.NavigateTo("/", true);
         else
-        {
-            HandleResponse(response.ReturnMessage, "Error");
-        }
+            NavigationManager.NavigateTo("zon_eksekutif", true);
+
+        //===============================================
+
+
     }
 
 

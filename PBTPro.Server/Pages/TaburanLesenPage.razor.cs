@@ -43,6 +43,7 @@ namespace PBTPro.Pages
         //Lesen Information
         IEnumerable<NoticeProp> NoticeData;
         IEnumerable<(NoticeProp, int)> Items;
+        IGrid Grid { get; set; }
         TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
 
@@ -59,6 +60,7 @@ namespace PBTPro.Pages
         [Inject] private IJSRuntime JsRuntime { get; set; }
         public int ZIndex { get; set; } = 0;
         private readonly Stack<Marker> markersPin = new Stack<Marker>();
+        private readonly Stack<Marker> markerSearch = new Stack<Marker>();
         private readonly Stack<AdvancedMarkerElement> markers = new Stack<AdvancedMarkerElement>();
 
         private LatLngBounds _bounds = null!;
@@ -347,10 +349,17 @@ namespace PBTPro.Pages
             await serverSideScripts4.InvokeVoidAsync("openRightBar");
         }
 
-        private async Task OpenFilter()
+        private async Task OpenFilter(int mode)
         {
             IJSObjectReference serverSideScripts1 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
-            await serverSideScripts1.InvokeVoidAsync("openNav");
+            if (mode == 0)
+            {
+                await serverSideScripts1.InvokeVoidAsync("openNav");
+            }
+            else
+            {
+                await serverSideScripts1.InvokeVoidAsync("openNavSearch");
+            }
         }
 
         private async Task CloseFilter()
@@ -436,6 +445,70 @@ namespace PBTPro.Pages
 
             return vSubList;
         }
+
+        void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+        {
+            if (e.ElementType == GridElementType.SearchBoxContainer)
+            {
+                e.Style = "Width: 100%";
+            }
+        }
+
+        protected async Task OnSelectedRow(object itemData)
+        {
+            //Remove the last marker ==========
+            if (markerSearch.Any())
+            {
+                var lastMarker = markerSearch.Pop();
+                await lastMarker.SetMap(null);
+            }
+            //====================================
+
+            var item = (NoticeProp)itemData;
+            await PremiseLocation(item.Position);
+            //NavigationManager.NavigateTo("/reportnotis?nolesen=" + item.NoLesen, false);
+        }
+
+        private async Task PremiseLocation(LatLngLiteral? pos)
+        {
+            if (pos==null)
+            {
+                return;
+            }
+
+            //Close the search window
+            await CloseFilter();
+
+            LatLngLiteral premisePos = pos;
+            ZIndex++;
+
+            var marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
+            {
+                Position = premisePos,
+                Map = map1.InteropObject,
+                ZIndex = -1,
+                Animation = Animation.Bounce,
+                //Icon = new Icon()
+                //{
+                //    Url = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+                //}
+                Icon = "images/icons/marker.png"
+            });
+
+            markerSearch.Push(marker);
+            await this.map1.InteropObject.SetCenter(premisePos);
+            await this.map1.InteropObject.SetZoom(21);
+
+            //Set the animation
+            if (!markerSearch.Any())
+            {
+                return;
+            }
+            var lastMarker = markerSearch.Peek();
+            await lastMarker.SetAnimation(Animation.Bounce);
+
+        }
+
 
         public void Dispose()
         {

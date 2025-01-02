@@ -28,13 +28,34 @@ export function openRightBar() {
 
 
 export function openNav() {
-	
 
+	//Show the tapis table
+	document.getElementById('tableTapis').style.visibility = 'visible';
+	document.getElementById('SearchPremisePanel').style.visibility = 'hidden';
+	
 	const element = document.getElementById("buttonTapis");
 	let pos = element.offsetLeft;
 
 	document.getElementById("mySidenav").style.left = pos + "px";
 	document.getElementById("mySidenav").style.width = "300px";
+
+}
+
+export function openNavSearch() {
+
+	//hide the tapis filter
+	document.getElementById('SearchPremisePanel').style.visibility = 'visible';
+	document.getElementById('tableTapis').style.visibility = 'hidden';
+
+	const element = document.getElementById("buttonTapis");
+	let pos = element.offsetLeft;
+
+	//get the screen width - the sidebar - 100px;
+	let width = document.documentElement.clientWidth - 300;
+
+	document.getElementById("mySidenav").style.left = pos + "px";
+	document.getElementById("mySidenav").style.width = width + "px";
+	//document.getElementById("mySidenav").style.width = "1000px";
 
 }
 
