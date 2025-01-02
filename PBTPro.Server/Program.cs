@@ -128,6 +128,7 @@ builder.Services.AddTransient<SessionDashboardStorage>();
 //ismail - for standard login - DUMMY
 builder.Services.AddScoped<PBTAuthUserService>();
 builder.Services.AddScoped<PBTAuthStateProvider>();
+builder.Services.AddScoped<PBTAuthPermissionService>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<PBTAuthStateProvider>());
 
 //////builder.Services.AddScoped<AllocationUserService>();

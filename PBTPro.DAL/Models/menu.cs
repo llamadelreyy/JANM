@@ -46,7 +46,7 @@ public partial class menu
     /// <summary>
     /// Timestamp indicating when the row was created.
     /// </summary>
-    public DateOnly? created_at { get; set; }
+    public DateTime? created_at { get; set; }
 
     /// <summary>
     /// User ID of the creator.
@@ -56,7 +56,7 @@ public partial class menu
     /// <summary>
     /// Timestamp indicating when the user record was last modified.
     /// </summary>
-    public DateOnly? modified_at { get; set; }
+    public DateTime? modified_at { get; set; }
 
     /// <summary>
     /// User ID of the modifier.
