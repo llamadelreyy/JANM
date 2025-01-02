@@ -453,7 +453,7 @@
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _RoleMenuService.RefreshRoleMenuAsync();
+        dataSource = await _RoleMenuService.Refresh();
     }
 
     public void Dispose()

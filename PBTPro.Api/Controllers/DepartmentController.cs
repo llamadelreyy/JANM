@@ -89,7 +89,7 @@ namespace PBTPro.Api.Controllers
                 department_info department_infos = new department_info
                 {
                     dept_code = InputModel.dept_code,
-                    dept_depart_name = InputModel.dept_depart_name,
+                    dept_name = InputModel.dept_name,
                     dept_description = InputModel.dept_description,
                     dept_status = InputModel.dept_status,
                     created_by = runUserID,
@@ -104,7 +104,7 @@ namespace PBTPro.Api.Controllers
                 var result = new
                 {
                     dept_code = department_infos.dept_code,
-                    dept_depart_name = department_infos.dept_depart_name,
+                    dept_name = department_infos.dept_name,
                     dept_description = department_infos.dept_description,
                     dept_status = department_infos.dept_status,
                     created_date = department_infos.created_date
@@ -137,7 +137,7 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "DEPT_CODE", MessageTypeEnum.Error, string.Format("Ruangan Kod Jabatan diperlukan")));
                 }
-                if (string.IsNullOrWhiteSpace(InputModel.dept_depart_name))
+                if (string.IsNullOrWhiteSpace(InputModel.dept_name))
                 {
                     return Error("", SystemMesg(_feature, "DEPT_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Jabatan diperlukan")));
                 }
@@ -148,7 +148,7 @@ namespace PBTPro.Api.Controllers
                 #endregion
 
                 formField.dept_code = InputModel.dept_code;
-                formField.dept_depart_name = InputModel.dept_depart_name;
+                formField.dept_name = InputModel.dept_name;
                 formField.dept_description = InputModel.dept_description;
                 formField.dept_status = InputModel.dept_status;
 

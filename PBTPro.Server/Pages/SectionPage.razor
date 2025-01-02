@@ -1,12 +1,23 @@
 ﻿@page "/section"
 @attribute [AllowAnonymous]
 
-@using PBTPro.Data
-@using PBTPro.DAL.Models
+@implements IDisposable
+
+@using System.Globalization
+@using Blazored.Toast.Services
 @using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+@using PBTPro.DAL.Services
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+
 @inject DepartmentService _DepartmentService
 @inject SectionService _SectionService
 @inject NavigationManager NavigationManager
+@inject IToastService toastService
+@inject PBTAuthStateProvider _PBTAuthStateProvider
+@inject IToastNotificationService ToastService
 
 <style>
     .dxbl-grid {
@@ -181,7 +192,6 @@
 
 
 @code {
-    [Inject] IToastNotificationService ToastService { get; set; }
     IEnumerable<department_info> dtDepartment;
     IEnumerable<section_info> dataSource;
 
@@ -197,8 +207,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dataSource = await _SectionService.GetAllSection();
-        dtDepartment = await _DepartmentService.GetAllDepartment();
+        dataSource = await _SectionService.ListAll();
+        dtDepartment = await _DepartmentService.ListAll();
 
         DataLoadedTcs.TrySetResult(true);
     }
@@ -223,30 +233,60 @@
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
+        // bool blnSuccess = false;
+        // string strMessage = "";
+        // if (e.IsNew)
+        // {
+        //     var jsonString = JsonConvert.SerializeObject((section_info)e.EditModel);
+        //     blnSuccess = await _SectionService.Add(jsonString) > 0 ? true : false;
+        //     strMessage = "Proses tambah rekod selesai.";
+        // }
+        // else
+        // {
+        //     blnSuccess = await _SectionService.Update((section_info)e.EditModel) > 0 ? true : false;
+        //     strMessage = "Proses kemaskini selesai.";
+        // }
+
+        // if (blnSuccess)
+        //     await UpdateDataAsync();
+
+        // ShowToast(blnSuccess, blnSuccess ? strMessage : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+
+        ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
-        string strMessage = "";
-        if (e.IsNew)
+        var editModel = e.EditModel as section_info;
+        try
         {
-            var jsonString = JsonConvert.SerializeObject((section_info)e.EditModel);
-            blnSuccess = await _SectionService.AddSection(jsonString) > 0 ? true : false;
-            strMessage = "Proses tambah rekod selesai.";
+            if (e.IsNew)
+            {
+                response = await _SectionService.Add(editModel);
+                blnSuccess = true;
+            }
+            else
+            {
+                response = await _SectionService.Update(editModel.section_id, editModel);
+                blnSuccess = true;
+            }
+            if (blnSuccess)
+            {
+                await UpdateDataAsync();
+                //toastService.ShowInfo("Proses kemaskini selesai.");
+            }
+            else
+            {
+                //toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            blnSuccess = await _SectionService.UpdateSection((section_info)e.EditModel) > 0 ? true : false;
-            strMessage = "Proses kemaskini selesai.";
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
-
-        if (blnSuccess)
-            await UpdateDataAsync();
-
-        ShowToast(blnSuccess, blnSuccess ? strMessage : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
     }
 
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _SectionService.RefreshSection();
+        dataSource = await _SectionService.Refresh();
     }
 
     public void Dispose()
@@ -263,15 +303,36 @@
 
     async void OnYesButtonClick()
     {
-        bool blnSuccess = false;
-        if (dtData != null)
+        try
         {
-            blnSuccess = await _SectionService.DeleteSection(dtData.section_id);
-            if (blnSuccess) await UpdateDataAsync();
-        }
+            ReturnViewModel response = new ReturnViewModel();
+            response = await _SectionService.Delete(dtData.section_id);
 
-        ConfirmationShown = false;
-        ShowToast(blnSuccess, blnSuccess ? "Proses hapus selesai" : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                ConfirmationShown = false;
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                ConfirmationShown = false;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+        // bool blnSuccess = false;
+        // if (dtData != null)
+        // {
+        //     blnSuccess = await _SectionService.Delete(dtData.section_id);
+        //     if (blnSuccess) await UpdateDataAsync();
+        // }
+
+        // ConfirmationShown = false;
+        // ShowToast(blnSuccess, blnSuccess ? "Proses hapus selesai" : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
     }
 
     void OnNoButtonClick()
@@ -295,5 +356,33 @@
                 Title = strMessage
             });
     }
+
+    #region response
+        private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
+    #endregion
 
 }

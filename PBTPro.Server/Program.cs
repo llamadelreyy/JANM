@@ -79,7 +79,7 @@ builder.Services.AddTransient<SectionService>();
 builder.Services.AddTransient<UnitService>();
 builder.Services.AddTransient<AuditService>();
 builder.Services.AddTransient<ArchiveAuditService>();
-builder.Services.AddTransient<PatrollingService>();
+builder.Services.AddTransient<PatrolService>();
 
 
 builder.Services.AddSingleton<FileUrlStorageService>();

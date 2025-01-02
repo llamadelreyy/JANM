@@ -1,9 +1,5 @@
 ﻿@page "/senarai_jabatan"
-<<<<<<<< HEAD:PBTPro.Server/Pages/DepartmentListPage.razor
 @attribute [Authorize(Roles = "Administrator")]
-========
-@attribute [AllowAnonymous]
->>>>>>>> azmee/04:PBTPro.Server/Pages/DepartmentPage.razor
 
 @implements IDisposable
 
@@ -154,7 +150,7 @@
                     <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
                 </DxFormLayoutItem>
             </DxFormLayout>
-        </EditFormTemplate>        
+        </EditFormTemplate>
     </DxGrid>
 
     <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
@@ -203,31 +199,7 @@
     }
     async Task UpdateDataAsync()
     {
-<<<<<<<< HEAD:PBTPro.Server/Pages/DepartmentListPage.razor
         _lstDepartment = await _department.Refresh();
-========
-        var _data = (department_info)e.EditModel;
-
-        if (_data.dept_status == null || _data.dept_status.Trim() == "")
-        {
-            e.AddError(nameof(_data.dept_status), "Status Jabatan tidak dipilih. Medan perlu diisi.");
-        }
-
-        if (_data.dept_code == null || _data.dept_code.Trim() == "")
-        {
-            e.AddError(nameof(_data.dept_code), "Kod Jabatan tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.dept_name == null || _data.dept_name == "")
-        {
-            e.AddError(nameof(_data.dept_name), "Nama Jabatan tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.dept_description == null || _data.dept_description == "")
-        {
-            e.AddError(nameof(_data.dept_description), "Catatan Jabatan tidak sah. Medan perlu diisi.");
-        }
->>>>>>>> azmee/04:PBTPro.Server/Pages/DepartmentPage.razor
     }
     #endregion
 
@@ -249,8 +221,6 @@
                 response = await _department.Update(editModel.dept_id, editModel);
                 blnSuccess = true;
             }
-
-
             if (blnSuccess)
             {
                 await UpdateDataAsync();
@@ -265,7 +235,7 @@
         {
             Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
-    }  
+    }
 
     async Task Delete(department_info item)
     {
@@ -295,15 +265,15 @@
         }
         catch (Exception ex)
         {
-        }       
+        }
     }
 
     void OnNoButtonClick()
     {
         ConfirmationShown = false;
     }
-   #endregion
-  
+    #endregion
+
     #region lookup
     public MarkupString GetStatusDepartmentIconHtml(string status)
     {

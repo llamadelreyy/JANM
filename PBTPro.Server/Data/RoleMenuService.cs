@@ -1,12 +1,11 @@
-﻿using System.Data;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
-using System.Reflection;
-using PBTPro.DAL.Services;
 using PBTPro.DAL.Models.CommonServices;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using PBTPro.DAL.Services;
+using System.Reflection;
+using System.Text;
 
 namespace PBTPro.Data
 {
@@ -33,43 +32,32 @@ namespace PBTPro.Data
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
+        }       
         public IConfiguration _configuration { get; }
-        private List<role_menu> _RoleMenu { get; set; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        protected readonly CommonFunction _cf;
-        protected readonly SharedFunction _sf;
+        protected readonly AuditLogger _cf;
         private readonly ILogger<RoleMenuService> _logger;
-        private string LoggerName = "";
-        string _controllerName = "";
+        private readonly ApiConnector _apiConnector;
+        private readonly PBTAuthStateProvider _PBTAuthStateProvider;
 
-        public RoleMenuService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<RoleMenuService> logger, PBTProDbContext dbContext)
+        private string _baseReqURL = "/api/RoleMenu";
+        private string LoggerName = "";
+        private List<role_menu> _RoleMenu { get; set; }
+        
+        public RoleMenuService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<RoleMenuService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
-            _dbContext = dbContext;
-            _httpContextAccessor = httpContextAccessor;
-            _cf = new CommonFunction(httpContextAccessor, configuration);
-            _sf = new SharedFunction(httpContextAccessor);
-            _logger = logger;
-            _controllerName = (string)(_httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
+            _PBTAuthStateProvider = PBTAuthStateProvider;
+            _apiConnector = apiConnector;
+            _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
             CreateRoleMenu();
-        }
-
-        public void GetDefaultPermission()
-        {
-            if (LoggerName != null || LoggerName != "")
-                LoggerName = "1";//User.Identity.Name;  // assign value to logger name
-            else LoggerName = null;
-        }
+        }       
 
         public async void CreateRoleMenu()
         {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-
             try
             {
 
@@ -238,11 +226,11 @@ namespace PBTPro.Data
                             }
                  };
 
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai peranan menu sistem.", Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai peranan menu sistem.", 1, LoggerName, "");
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             finally
             {
@@ -251,108 +239,273 @@ namespace PBTPro.Data
 
         public Task<List<role_menu>> GetRoleMenuAsync(CancellationToken ct = default)
         {
+            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk soalan lazim.", 1, LoggerName, "");
             return Task.FromResult(_RoleMenu);
         }
 
-
-        [AllowAnonymous]
-        [HttpPost]
-        public async Task<ActionResult<role_menu>> InsertRoleMenu([FromBody] string strData = "")
-        {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-            try
-            {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
-
-                var request = _cf.CheckRequest(platformApiUrl + "/api/RoleMenu/InsertRoleMenu");
-                string jsonString = await _cf.AddNew(request, strData, platformApiUrl + "/api/RoleMenu/InsertRoleMenu");
-                role_menu dtData = JsonConvert.DeserializeObject<role_menu>(jsonString);
-
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah peranan menu baru.", Convert.ToInt32(uID), LoggerName, "");
-                return dtData;
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
-            }
-        }
-
-        [HttpDelete]
-        public async Task<int> DeleteRoleMenu(int id)
-        {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-            try
-            {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
-
-                var request = _cf.CheckRequest(platformApiUrl + "/api/RoleMenu/DeleteRoleMenu/" + id);
-                string jsonString = await _cf.Delete(request);
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data peranan menu.", Convert.ToInt32(uID), LoggerName, "");
-
-                return id;
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return 0;
-            }
-        }
-
-        [AllowAnonymous]
-        [HttpPut]
-        public async Task<ActionResult<role_menu>> UpdateRoleMenu(int id, role_menu dtData)
-        {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
-            try
-            {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
-
-                var uri = platformApiUrl + "/api/RoleMenu/UpdateRoleMenu/" + id;
-                var request = _cf.CheckRequestPut(platformApiUrl + "/api/RoleMenu/UpdateRoleMenu/" + id);
-                string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(dtData), uri);
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk peranan menu.", Convert.ToInt32(uID), LoggerName, "");
-
-                return dtData;
-
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
-            }
-        }
-
-        [AllowAnonymous]
         [HttpGet]
-        public async Task<List<role_menu>> RefreshRoleMenuAsync()
+        public async Task<List<role_menu>> ListAll()
         {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            var result = new List<role_menu>();
+            string requestUrl = $"{_baseReqURL}/ListAll";
+            var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
             try
             {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
-
-                var request = _cf.CheckRequest(platformApiUrl + "/api/RoleMenu/ListRoleMenu");
-                string jsonString = await _cf.List(request);
-                List<role_menu> dtData = JsonConvert.DeserializeObject<List<role_menu>>(jsonString);
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai peranan menu.", Convert.ToInt32(uID), LoggerName, "");
-
-                return dtData;
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<role_menu>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<role_menu>();
             }
+            return result;
         }
 
+        [HttpGet]
+        public async Task<List<role_menu>> Refresh()
+        {
+            var result = new List<role_menu>();
+            try
+            {
+                string requestUrl = $"{_baseReqURL}/ListAll";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<role_menu>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<role_menu>();
+            }
+            return result;
+        }
+
+        public async Task<ReturnViewModel> Add(role_menu inputModel)
+        {
+            var result = new ReturnViewModel();
+            try
+            {
+                var reqData = JsonConvert.SerializeObject(inputModel);
+                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
+
+                string requestUrl = $"{_baseReqURL}/Add";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
+
+                result = response;
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk soalan lazim.", 1, LoggerName, "");
+            }
+            catch (Exception ex)
+            {
+                result = new ReturnViewModel();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+            }
+            return result;
+        }
+
+        public async Task<ReturnViewModel> Update(int id, role_menu inputModel)
+        {
+            var result = new ReturnViewModel();
+            try
+            {
+                var reqData = JsonConvert.SerializeObject(inputModel);
+                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
+
+                string requestUrl = $"{_baseReqURL}/Update/{inputModel._id}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
+
+                result = response;
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
+
+            }
+            catch (Exception ex)
+            {
+                result = new ReturnViewModel();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+            }
+            return result;
+        }
+
+        public async Task<ReturnViewModel> Delete(int id)
+        {
+            var result = new ReturnViewModel();
+            try
+            {
+                string requestUrl = $"{_baseReqURL}/Delete/{id}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
+
+                result = response;
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk soalan lazim.", 1, LoggerName, "");
+            }
+            catch (Exception ex)
+            {
+                result = new ReturnViewModel();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+            }
+            return result;
+        }
+
+        //public Task<List<role_menu>> GetSectionAsync(CancellationToken ct = default)
+        //{
+        //    var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk soalan lazim.", 1, LoggerName, "");
+        //    return Task.FromResult(_Section);
+        //}
+
+        public async Task<role_menu> ViewDetail(int id)
+        {
+            var result = new role_menu();
+            try
+            {
+                string requestquery = $"/{id}";
+                string requestUrl = $"{_baseReqURL}/ViewDetail{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<role_menu>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci soalan lazim.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                result = new role_menu();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+            }
+            return result;
+        }
     }
 }
+//        [AllowAnonymous]
+//        [HttpPost]
+//        public async Task<ActionResult<role_menu>> InsertRoleMenu([FromBody] string strData = "")
+//        {
+//            GetDefaultPermission();
+//            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+//            try
+//            {
+//                var platformApiUrl = _configuration["PlatformAPI"];
+//                var accessToken = _cf.CheckToken();
+
+//                var request = _cf.CheckRequest(platformApiUrl + "/api/RoleMenu/InsertRoleMenu");
+//                string jsonString = await _cf.AddNew(request, strData, platformApiUrl + "/api/RoleMenu/InsertRoleMenu");
+//                role_menu dtData = JsonConvert.DeserializeObject<role_menu>(jsonString);
+
+//                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Tambah peranan menu baru.", Convert.ToInt32(uID), LoggerName, "");
+//                return dtData;
+//            }
+//            catch (Exception ex)
+//            {
+//                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+//                return null;
+//            }
+//        }
+
+//        [HttpDelete]
+//        public async Task<int> DeleteRoleMenu(int id)
+//        {
+//            GetDefaultPermission();
+//            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+//            try
+//            {
+//                var platformApiUrl = _configuration["PlatformAPI"];
+//                var accessToken = _cf.CheckToken();
+
+//                var request = _cf.CheckRequest(platformApiUrl + "/api/RoleMenu/DeleteRoleMenu/" + id);
+//                string jsonString = await _cf.Delete(request);
+//                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data peranan menu.", Convert.ToInt32(uID), LoggerName, "");
+
+//                return id;
+//            }
+//            catch (Exception ex)
+//            {
+//                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+//                return 0;
+//            }
+//        }
+
+//        [AllowAnonymous]
+//        [HttpPut]
+//        public async Task<ActionResult<role_menu>> UpdateRoleMenu(int id, role_menu dtData)
+//        {
+//            GetDefaultPermission();
+//            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+//            try
+//            {
+//                var platformApiUrl = _configuration["PlatformAPI"];
+//                var accessToken = _cf.CheckToken();
+
+//                var uri = platformApiUrl + "/api/RoleMenu/UpdateRoleMenu/" + id;
+//                var request = _cf.CheckRequestPut(platformApiUrl + "/api/RoleMenu/UpdateRoleMenu/" + id);
+//                string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(dtData), uri);
+//                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk peranan menu.", Convert.ToInt32(uID), LoggerName, "");
+
+//                return dtData;
+
+//            }
+//            catch (Exception ex)
+//            {
+//                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+//                return null;
+//            }
+//        }
+
+//        [AllowAnonymous]
+//        [HttpGet]
+//        public async Task<List<role_menu>> RefreshRoleMenuAsync()
+//        {
+//            GetDefaultPermission();
+//            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+//            try
+//            {
+//                var platformApiUrl = _configuration["PlatformAPI"];
+//                var accessToken = _cf.CheckToken();
+
+//                var request = _cf.CheckRequest(platformApiUrl + "/api/RoleMenu/ListRoleMenu");
+//                string jsonString = await _cf.List(request);
+//                List<role_menu> dtData = JsonConvert.DeserializeObject<List<role_menu>>(jsonString);
+//                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai peranan menu.", Convert.ToInt32(uID), LoggerName, "");
+
+//                return dtData;
+//            }
+//            catch (Exception ex)
+//            {
+//                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
+//                return null;
+//            }
+//        }
+
+//    }
+//}
