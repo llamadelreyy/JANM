@@ -293,9 +293,9 @@
     protected override async Task OnInitializedAsync()
     {
         dataSource = await _UserService.GetUserAsync();
-        dtDepartment = await _DepartmentService.GetAllDepartment();
-        dtSection = await _SectionService.GetAllSection();
-        dtUnit = await _UnitService.GetAllUnit();
+        dtDepartment = await _DepartmentService.ListAll();
+        dtSection = await _SectionService.ListAll();
+        dtUnit = await _UnitService.ListAll();
 
         DataLoadedTcs.TrySetResult(true);
     }

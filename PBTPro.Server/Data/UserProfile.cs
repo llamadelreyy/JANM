@@ -6,6 +6,7 @@ using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 using System.Reflection;
+using System.Text;
 
 namespace PBTPro.Data
 {
@@ -34,107 +35,201 @@ namespace PBTPro.Data
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+        //public IConfiguration _configuration { get; }
+        //private List<user_profile> _Profile { get; set; }
+
+        //private readonly PBTProDbContext _dbContext;
+        //private readonly IHttpContextAccessor _httpContextAccessor;
+        //protected readonly CommonFunction _cf;
+        //private readonly ILogger<UserProfileService> _logger;
+        //private string LoggerName = "";
+        //string _controllerName = "";
+
+        //public UserProfileService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<UserProfileService> logger, PBTProDbContext dbContext)
+        //{
+        //    _configuration = configuration;
+        //    _dbContext = dbContext;
+        //    _httpContextAccessor = httpContextAccessor;
+        //    _cf = new CommonFunction(httpContextAccessor, configuration);
+        //    _logger = logger;
+        //    _controllerName = (string)(_httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
+        //}
+
         public IConfiguration _configuration { get; }
-        private List<user_profile> _Profile { get; set; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        protected readonly CommonFunction _cf;
-        protected readonly SharedFunction _sf;
+        protected readonly AuditLogger _cf;
         private readonly ILogger<UserProfileService> _logger;
-        private string LoggerName = "";
-        string _controllerName = "";
+        private readonly ApiConnector _apiConnector;
+        private readonly PBTAuthStateProvider _PBTAuthStateProvider;
 
-        public UserProfileService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<UserProfileService> logger, PBTProDbContext dbContext)
+        private string _baseReqURL = "/api/Profile";
+        private string LoggerName = "";
+        private List<user_profile> _Profile { get; set; }
+
+        public UserProfileService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<UserProfileService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
-            _dbContext = dbContext;
-            _httpContextAccessor = httpContextAccessor;
-            _cf = new CommonFunction(httpContextAccessor, configuration);
-            _sf = new SharedFunction(httpContextAccessor);
-            _logger = logger;
-            _controllerName = (string)(_httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
-        }
-        public void GetDefaultPermission()
-        {
-            if (LoggerName != null || LoggerName != "")
-                LoggerName = "1";//User.Identity.Name;  // assign value to logger name
-            else LoggerName = null;
+            _PBTAuthStateProvider = PBTAuthStateProvider;
+            _apiConnector = apiConnector;
+            _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
 
-        [AllowAnonymous]
-        [HttpGet]
+        //[AllowAnonymous]
+        //[HttpGet]
+        //public async Task<List<user_profile>> Retrieve(string userId)
+        //{
+        //    try
+        //    {
+        //        var platformApiUrl = _configuration["PlatformAPI"];
+        //        var accessToken = _cf.CheckToken();
+
+        //        var request = _cf.CheckRequest(platformApiUrl + "/api/Profile/Retrieve/" + userId);
+        //        string jsonString = string.Empty;
+        //        if (request.Content != null)
+        //            jsonString = await _cf.List(request);
+
+        //        List<user_profile> userProfile = JsonConvert.DeserializeObject<List<user_profile>>(jsonString);
+        //        //for testing -->  await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Capaian profail pengguna.", Convert.ToInt32(uID), LoggerName, "");
+
+        //        //FOR TESTING PURPOSE ===============
+        //        userProfile = new List<user_profile> {
+        //            new user_profile {
+        //                profile_department_id = 1,
+        //                profile_department_name = "Jabatan Penilaian",
+        //                profile_section_id = 1,
+        //                profile_section_name = "Harta dan Pusaka",
+        //                profile_unit_id = 1,
+        //                profile_unit_name = "Unit 001", 
+        //                profile_role_id = 1,
+        //                profile_role = "Penguatkuasa",
+        //                profile_user_id = "750727085221",
+        //                profile_name = "John Doe",
+        //                profile_icno = "750727085221",
+        //                profile_email = "john_doe@gmail.com",
+        //                profile_tel_no =  "0123678902",
+        //                created_date = DateTime.Parse("2024/01/05")
+        //            }
+        //         };
+        //        //====================================
+
+        //        return userProfile;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+        //        return null;
+        //    }
+        //}
+
         public async Task<List<user_profile>> Retrieve(string userId)
         {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            var result = new List<user_profile>();
+            string requestquery = $"/{userId}";
+            string requestUrl = $"{_baseReqURL}/Retrieve{requestquery}";            
+            var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
             try
             {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
-
-                var request = _cf.CheckRequest(platformApiUrl + "/api/Profile/Retrieve/" + userId);
-                string jsonString = string.Empty;
-                if (request.Content != null)
-                    jsonString = await _cf.List(request);
-
-                List<user_profile> userProfile = JsonConvert.DeserializeObject<List<user_profile>>(jsonString);
-                //for testing -->  await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Capaian profail pengguna.", Convert.ToInt32(uID), LoggerName, "");
-
-                //FOR TESTING PURPOSE ===============
-                userProfile = new List<user_profile> {
-                    new user_profile {
-                        profile_department_id = 1,
-                        profile_department_name = "Jabatan Penilaian",
-                        profile_section_id = 1,
-                        profile_section_name = "Harta dan Pusaka",
-                        profile_unit_id = 1,
-                        profile_unit_name = "Unit 001", 
-                        profile_role_id = 1,
-                        profile_role = "Penguatkuasa",
-                        profile_user_id = "750727085221",
-                        profile_name = "John Doe",
-                        profile_icno = "750727085221",
-                        profile_email = "john_doe@gmail.com",
-                        profile_tel_no =  "0123678902",
-                        created_date = DateTime.Parse("2024/01/05")
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<user_profile>>(dataString);
                     }
-                 };
-                //====================================
-
-                return userProfile;
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return null;
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<user_profile>();
             }
+            return result;
         }
+        //public async Task<List<user_profile>> Retrieve(int id)
+        //{
+        //    var result = new user_profile();
+        //    try
+        //    {
+        //        string requestquery = $"/{id}";
+        //        string requestUrl = $"{_baseReqURL}/ViewDetail{requestquery}";
+        //        var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
-        [AllowAnonymous]
-        [HttpPut]
-        public async Task<bool> UpdateProfile(int userId, user_profile profile)
+        //        if (response.ReturnCode == 200)
+        //        {
+        //            string? dataString = response?.Data?.ToString();
+        //            if (!string.IsNullOrWhiteSpace(dataString))
+        //            {
+        //                result = JsonConvert.DeserializeObject<user_profile>(dataString);
+        //            }
+        //            await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci soalan lazim.", 1, LoggerName, "");
+        //        }
+        //        else
+        //        {
+        //            await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result = new user_profile();
+        //        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+        //    }
+        //    return result;
+        //}
+
+        public async Task<ReturnViewModel> UpdateProfile(int id, user_profile inputModel)
         {
-            GetDefaultPermission();
-            var uID = _httpContextAccessor.HttpContext.Session.GetString("UserID");
+            var result = new ReturnViewModel();
             try
             {
-                var platformApiUrl = _configuration["PlatformAPI"];
-                var accessToken = _cf.CheckToken();
+                var reqData = JsonConvert.SerializeObject(inputModel);
+                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                var uri = platformApiUrl + "/api/Profile/UpdateProfile/" + userId;
-                var request = _cf.CheckRequestPut(platformApiUrl + "/api/Profile/UpdateProfile/" + userId);
-                string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(profile), uri);
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini profail pengguna.", Convert.ToInt32(uID), LoggerName, "");
+                string requestUrl = $"{_baseReqURL}/UpdateProfile/{inputModel.profile_id}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
-                return true;
+                result = response;
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
 
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, Convert.ToInt32(uID), LoggerName, "");
-                return false;
+                result = new ReturnViewModel();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
+            return result;
         }
+
+        //        [AllowAnonymous]
+        //        [HttpPut]
+        //        public async Task<bool> UpdateProfile(int userId, user_profile profile)
+        //        {
+        //1            try
+        //            {
+        //                var platformApiUrl = _configuration["PlatformAPI"];
+        //                var accessToken = _cf.CheckToken();
+
+        //                var uri = platformApiUrl + "/api/Profile/UpdateProfile/" + userId;
+        //                var request = _cf.CheckRequestPut(platformApiUrl + "/api/Profile/UpdateProfile/" + userId);
+        //                string jsonString = await _cf.Update(request, JsonConvert.SerializeObject(profile), uri);
+        //                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini profail pengguna.", 1, LoggerName, "");
+
+        //                return true;
+
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message,1, LoggerName, "");
+        //                return false;
+        //            }
+        //        }
     }
 }

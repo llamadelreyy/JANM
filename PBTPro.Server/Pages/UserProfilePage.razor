@@ -1,6 +1,7 @@
 ﻿@page "/user_profile"
 @attribute [AllowAnonymous]
 
+@using PBTPro.DAL.Services
 @using PBTPro.Data
 @using PBTPro.DAL.Models
 @using System.ComponentModel.DataAnnotations
@@ -103,8 +104,9 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>ID Pengguna</div>
-                        <DxTextBox @bind-Text="@userInfo.profile_user_id"
+                        <DxTextBox 
                                    NullText="ID Pengguna ..."
+                                  @*  @bind-Text="@userInfo.profile_user_id" *@
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
                                    Enabled="false" />
@@ -216,7 +218,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dataSource = await _UserProfileService.Retrieve(_PBTAuthStateProvider.CurrentUser.Userid);
+        dataSource = await _UserProfileService.Retrieve(Convert.ToString(_PBTAuthStateProvider.CurrentUser.Userid));
         //dataSource = await _UserProfileService.Retrieve("1");
         if (dataSource != null)
             userInfo = dataSource.FirstOrDefault();
