@@ -1167,7 +1167,7 @@ label {
     font-weight: bold;
     letter-spacing: 0.05rem;
     text-transform: uppercase !important;
-    font-size: 0.8rem !important;
+    font-size: 0.75rem !important;
     line-height: 13px !important;
     padding: 5px 0px !important;
 }
@@ -1175,14 +1175,14 @@ label {
 .layout_edit td, .dxbl-fl-ctrl div {
     font-weight: bold;
     letter-spacing: 0.035rem;
-    font-size: 0.95rem !important;
+/*    font-size: 0.95rem !important;*/
 }
 
 .layout_edit .dxbl-text-edit, .dxbl-text-edit {
     border: 0.12rem solid #efeded !important;
     border-radius: 3px !important;
     background-color: #fbf9f9;
-    font-size: 0.95rem !important;
+/*    font-size: 0.95rem !important;*/
     font-weight: bold !important;
 }
 
@@ -1235,4 +1235,129 @@ label {
     border-radius: 3px !important;
     cursor: pointer;
     padding: 7px 0 !important;
+}
+
+.multiselect {
+    padding: 10px 10px;
+    border:1px #ccc solid;
+    border-radius:2px;
+}
+
+/* Customize the label (the container) */
+.multiselect-container {
+    display: block;
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    font-weight: normal;
+    letter-spacing: 0.03rem !important;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+    /* Hide the browser's default checkbox */
+    .multiselect-container input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+/* Create a custom checkbox */
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 22px;
+    width: 23px;
+    background-color: #eee;
+    border:1px solid #666;
+}
+
+/* On mouse-over, add a grey background color */
+.multiselect-container:hover input ~ .checkmark {
+    background-color: #b6b2b2;
+}
+
+/* When the checkbox is checked, add a blue background */
+.multiselect-container input:checked ~ .checkmark {
+    background-color: #2196F3;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+/* Show the checkmark when checked */
+.multiselect-container input:checked ~ .checkmark:after {
+    display: block;
+}
+
+/* Style the checkmark/indicator */
+.multiselect-container .checkmark:after {
+    left: 8px;
+    top: 2px;
+    width: 7px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+.loginPBTPro {
+    margin: auto;
+    width: 40%;
+    padding: 0px 10px;
+}
+
+.treeview-icon {
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    background-position: center center;
+}
+
+.treeview-icon-folder {
+    background-image: url("images/icons/folder-color.svg");
+}
+
+.treeview-icon-image {
+    background-image: url("images/icons/image-colors.svg");
+}
+
+.treeview-icon-video {
+    background-image: url("images/icons/video-colors.svg");
+}
+
+.treeview-icon-music {
+    background-image: url("images/icons/music-colors.svg");
+}
+
+.treeview-icon-document {
+    background-image: url("images/icons/document-color.svg");
+}
+
+#menuAccess .dxbl-treeview-item-content {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    margin: 0 !important;
+    font-weight: normal;
+}
+
+/*main tree view gap*/
+.dxbl-treeview-item-content {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    margin: 0 !important;
 }

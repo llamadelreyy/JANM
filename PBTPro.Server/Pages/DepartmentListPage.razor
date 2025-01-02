@@ -1,5 +1,9 @@
 ﻿@page "/senarai_jabatan"
+<<<<<<<< HEAD:PBTPro.Server/Pages/DepartmentListPage.razor
 @attribute [Authorize(Roles = "Administrator")]
+========
+@attribute [AllowAnonymous]
+>>>>>>>> azmee/04:PBTPro.Server/Pages/DepartmentPage.razor
 
 @implements IDisposable
 
@@ -66,7 +70,7 @@
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn FieldName="@nameof(department_info.dept_code)" Caption="Kod Jabatan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(department_info.dept_depart_name)" Caption="Nama Jabatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(department_info.dept_name)" Caption="Nama Jabatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(department_info.dept_description)" Caption="Catatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             <DxGridDataColumn FieldName="@nameof(department_info.dept_status)" Caption="Status Aktif" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                 <CellDisplayTemplate>
@@ -120,7 +124,7 @@
                             <td nowrap>Nama Jabatan</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.dept_depart_name"
+                                <DxTextBox @bind-Text="@dtData.dept_name"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                            BindValueMode="BindValueMode.OnInput"
                                            NullText="Nama Jabatan..."
@@ -199,7 +203,31 @@
     }
     async Task UpdateDataAsync()
     {
+<<<<<<<< HEAD:PBTPro.Server/Pages/DepartmentListPage.razor
         _lstDepartment = await _department.Refresh();
+========
+        var _data = (department_info)e.EditModel;
+
+        if (_data.dept_status == null || _data.dept_status.Trim() == "")
+        {
+            e.AddError(nameof(_data.dept_status), "Status Jabatan tidak dipilih. Medan perlu diisi.");
+        }
+
+        if (_data.dept_code == null || _data.dept_code.Trim() == "")
+        {
+            e.AddError(nameof(_data.dept_code), "Kod Jabatan tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.dept_name == null || _data.dept_name == "")
+        {
+            e.AddError(nameof(_data.dept_name), "Nama Jabatan tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.dept_description == null || _data.dept_description == "")
+        {
+            e.AddError(nameof(_data.dept_description), "Catatan Jabatan tidak sah. Medan perlu diisi.");
+        }
+>>>>>>>> azmee/04:PBTPro.Server/Pages/DepartmentPage.razor
     }
     #endregion
 
@@ -221,6 +249,8 @@
                 response = await _department.Update(editModel.dept_id, editModel);
                 blnSuccess = true;
             }
+
+
             if (blnSuccess)
             {
                 await UpdateDataAsync();

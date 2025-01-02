@@ -1,9 +1,14 @@
 ﻿namespace PBTPro.DAL.Models
 {
-    public class UnitProp
+    public class unit_info
     {
         public int unit_id { get; set; }
         public int dept_id { get; set; }
+        public string dept_code { get; set; }
+        public string dept_name { get; set; }
+        public int section_id { get; set; }
+        public string section_name { get; set; }
+        public string section_code { get; set; }
         public string unit_code { get; set; }
         public string unit_name { get; set; }
         public string unit_desc { get; set; }

@@ -1,13 +1,501 @@
 ﻿@page "/user_access"
 @attribute [AllowAnonymous]
 
+@using PBTPro.Data
+@using PBTPro.DAL.Models
+@inject RoleMenuService _RoleMenuService
+@inject RoleService _RoleService
+@inject NavigationManager NavigationManager
+
+<style>
+    .dxbl-grid {
+        height: 88vh;
+        max-height: 88vh;
+    }
+</style>
+
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="\images\icons-small\blue-document-tree.png" />
-        <div class="textTitle">Akses Pengguna</div>
+        <div class="textTitle">Akses Peranan</div>
     </div>
 </div>
 
+<div class="item-container-x">
+
+    <DxGrid @ref="Grid"
+            Data="dataSource"
+            KeyFieldName="_id"
+            ShowGroupPanel="true"
+            ShowFilterRow="false"
+            TextWrapEnabled="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
+
+        <Columns>
+            <DxGridCommandColumn Width="55px">
+                <HeaderTemplate>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                    @{
+                        boolMarkOnce = false;
+                        boolPopulateOnce = false;
+                        strSelectedMenu = "";
+                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        <a @onclick="@(() => Delete((role_menu)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    }
+                </CellDisplayTemplate>
+            </DxGridCommandColumn>
+            <DxGridDataColumn Caption="Peranan" MinWidth="100" Width="10%" GroupIndex="0" FieldName="role_name" />
+            <DxGridDataColumn Caption="Kategori" MinWidth="200" Width="20%" GroupIndex="1" FieldName="menu_name" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Menu" MinWidth="220" Width="22%" FieldName="submenu_name" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Papar" MinWidth="80" Width="8%" FieldName="bln_read" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="Tambah" MinWidth="80" Width="8%" FieldName="bln_create" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="Ubah" MinWidth="80" Width="8%" FieldName="bln_update" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="Hapus" MinWidth="80" Width="8%" FieldName="bln_delete" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="Cetak" MinWidth="80" Width="8%" FieldName="bln_print" TextAlignment="GridTextAlignment.Center" />
+
+            <DxGridDataColumn FieldName="created_date"
+                              DisplayFormat="dd/MM/yyyy"
+                              Caption="Tarikh Data"
+                              MinWidth="100"
+                              Width="10%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0">
+                <FilterMenuTemplate>
+                    <DateRange FilterContext="context" />
+                </FilterMenuTemplate>
+            </DxGridDataColumn>
+        </Columns>
+
+        <EditFormTemplate Context="EditFormContext">
+            @{
+                var dtEdit = (role_menu)EditFormContext.EditModel;
+                var MenuContent = FileMenu.Content;
+
+                // This is to check whether in add new @ edit mode
+                boolEditMode = Grid.IsEditingNewRow();
+
+                int intRoleId = dtEdit.role_id;
+
+                // This is to check whether in add new @ edit mode
+                if ((!boolEditMode) && (!boolPopulateOnce))
+                {
+                    //Filter only the role
+                    var lstMenu = dataSource.Where(c => c.role_id == intRoleId);
+
+                    foreach (var item in MenuContent)
+                    {
+                        if (item.IsMenu)
+                        {
+                            foreach (var menu2 in item.Content)
+                            {
+                                if (menu2.IsMenu)
+                                {
+                                    foreach (var menu3 in menu2.Content)
+                                    {
+                                        foreach (var _dt in lstMenu)
+                                        {
+                                            //Papar
+                                            if ((_dt.menu_id.ToString() == menu3.ParentId) && (menu3.MenuId.ToString() == (_dt.bln_read ? "1" : "0")))
+                                            {
+                                                strSelectedMenu = menu3.ParentId + "-" + menu3.MenuId + "; " + strSelectedMenu;
+                                            }
+
+                                            //Tambah
+                                            if ((_dt.menu_id.ToString() == menu3.ParentId) && (menu3.MenuId.ToString() == (_dt.bln_create ? "2" : "0")))
+                                            {
+                                                strSelectedMenu = menu3.ParentId + "-" + menu3.MenuId + "; " + strSelectedMenu;
+                                            }
+
+                                            //Ubah
+                                            if ((_dt.menu_id.ToString() == menu3.ParentId) && (menu3.MenuId.ToString() == (_dt.bln_update ? "3" : "0")))
+                                            {
+                                                strSelectedMenu = menu3.ParentId + "-" + menu3.MenuId + "; " + strSelectedMenu;
+                                            }
+
+                                            //Hapus
+                                            if ((_dt.menu_id.ToString() == menu3.ParentId) && (menu3.MenuId.ToString() == (_dt.bln_delete ? "4" : "0")))
+                                            {
+                                                strSelectedMenu = menu3.ParentId + "-" + menu3.MenuId + "; " + strSelectedMenu;
+                                            }
+
+                                            //Cetak
+                                            if ((_dt.menu_id.ToString() == menu3.ParentId) && (menu3.MenuId.ToString() == (_dt.bln_print ? "5" : "0")))
+                                            {
+                                                strSelectedMenu = menu3.ParentId + "-" + menu3.MenuId + "; " + strSelectedMenu;
+                                            }
+                                        }
+
+                                        // if ((menu3.ParentId == "301") && (menu3.MenuId == "2"))
+                                        // {
+                                        //     //menu3.Selected = true;
+                                        //     strSelectedMenu = " - [" + menu3.ParentId + " - " + menu3.MenuId + "]; " + strSelectedMenu;
+                                        // }
+                                    }
+                                }
+                                else
+                                {
+
+                                    foreach (var _dt in lstMenu)
+                                    {
+                                        //Papar
+                                        if ((_dt.menu_id.ToString() == menu2.ParentId) && (menu2.MenuId.ToString() == (_dt.bln_read ? "1" : "0")))
+                                        {
+                                            strSelectedMenu = menu2.ParentId + "-" + menu2.MenuId + "; " + strSelectedMenu;
+                                        }
+
+                                        //Tambah
+                                        if ((_dt.menu_id.ToString() == menu2.ParentId) && (menu2.MenuId.ToString() == (_dt.bln_create ? "2" : "0")))
+                                        {
+                                            strSelectedMenu = menu2.ParentId + "-" + menu2.MenuId + "; " + strSelectedMenu;
+                                        }
+
+                                        //Ubah
+                                        if ((_dt.menu_id.ToString() == menu2.ParentId) && (menu2.MenuId.ToString() == (_dt.bln_update ? "3" : "0")))
+                                        {
+                                            strSelectedMenu = menu2.ParentId + "-" + menu2.MenuId + "; " + strSelectedMenu;
+                                        }
+
+                                        //Hapus
+                                        if ((_dt.menu_id.ToString() == menu2.ParentId) && (menu2.MenuId.ToString() == (_dt.bln_delete ? "4" : "0")))
+                                        {
+                                            strSelectedMenu = menu2.ParentId + "-" + menu2.MenuId + "; " + strSelectedMenu;
+                                        }
+
+                                        //Cetak
+                                        if ((_dt.menu_id.ToString() == menu2.ParentId) && (menu2.MenuId.ToString() == (_dt.bln_print ? "5" : "0")))
+                                        {
+                                            strSelectedMenu = menu2.ParentId + "-" + menu2.MenuId + "; " + strSelectedMenu;
+                                        }
+                                    }
+
+                                    // if ((menu2.ParentId == "400") && (menu2.MenuId == "2"))
+                                    // {
+
+                                    //     //menu2.Selected = true;
+                                    //     strSelectedMenu = " - [" + menu2.ParentId + " - " + menu2.MenuId + "]; " + strSelectedMenu;
+                                    // }
+                                }
+                            }
+                        }
+                    }
+
+                    // This is to marked that tree view is already populate
+                    boolPopulateOnce = true;
+                }
+
+            }
+            <DxFormLayout CssClass="w-100">
+                <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                    <table class="layout_edit">
+                        <tr>
+                            <td nowrap>Peranan</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
+                            <td width="50%">
+                                <DxComboBox Data="@dataRole"
+                                            NullText="Pilih Peranan ..."
+                                            Enabled="@boolEditMode"
+                                            SearchFilterCondition="ListSearchFilterCondition.Contains"
+                                            ShowValidationIcon="true"
+                                            TextFieldName="role_name"
+                                            ValueFieldName="role_id"
+                                            @bind-Value="@dtEdit.role_id">
+                                </DxComboBox>
+                            </td>
+                            <td width="100px">&nbsp;</td>
+                            <td nowrap></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%"></td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Menu</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
+                            <td width="50%" colspan="6">
+
+                                <div class="cw-320" id="menuAccess" style="height:280px;overflow-x:hidden;border:1px solid #ccc;">
+                                    <DxTreeView Data="@MenuContent"
+                                                @ref="@MyTreeView"
+                                                CheckMode="TreeViewCheckMode.Recursive"
+                                                CheckAllVisible="true"
+                                                CheckedChanged="CheckedChanged"
+                                                AllowSelectNodes="true"
+                                                AnimationType="LayoutAnimationType.Slide"
+                                                CssClass="h-300">
+                                        <DataMappings>
+                                            <DxTreeViewDataMapping Children="Content"
+                                                                   Text="Name"
+                                                                   IconUrl="IconUrl"
+                                                                   CssClass="cssClass"
+                                                                   Checked="Selected"
+                                                                   IconCssClass="IconCssClass" />
+                                        </DataMappings>
+                                    </DxTreeView>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12">
+                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditFormTemplate>
+        <CustomValidators>
+            <MyCustomValidator DataItemValidating="ValidateGridData" />
+        </CustomValidators>
+
+        @*This is to count the summary*@
+        <TotalSummary>
+            <DxGridSummaryItem FooterColumnName="role_name"
+                               Name="Custom"
+                               SummaryType=GridSummaryItemType.Count />
+        </TotalSummary>
+
+    </DxGrid>
+</div>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+        <br />Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
+
+
 @code {
+    [Inject] IToastNotificationService ToastService { get; set; }
+    IEnumerable<role_menu> dataSource;
+    IEnumerable<system_role> dataRole;
+    List<role_menu> _RoleMenu { get; set; }
+
+    DxTreeView MyTreeView;
+    IReadOnlyList<ITreeViewNodeInfo> checkedMenus;
+
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
+    // This is to check whether in add new @ edit mode
+    bool boolEditMode { get; set; } = false;
+    bool boolPopulateOnce { get; set; } = false;
+    bool boolMarkOnce { get; set; } = false;
+
+    bool ConfirmationShown { get; set; } = false;
+    string strSelected { get; set; }
+    role_menu dtData { get; set; }
+
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    int count = 0;
+    string strSelectedMenu { get; set; } = "";
+    void CheckedChanged(TreeViewCheckedChangedEventArgs e)
+    {
+        count = e.CheckedItems.Count;
+        if (e.CheckedItems != null)
+        {
+            checkedMenus = e.CheckedItems;
+        }
+
+        if (count > 0)
+        {
+            var dataItem = (FileMenuObject)checkedMenus[count - 1].DataItem;
+
+            //Check if user check Tambah, Ubah, Hapus and Print - make the Papar automatically checked
+            if ((dataItem.MenuId == "2") || (dataItem.MenuId == "3") || (dataItem.MenuId == "4") || (dataItem.MenuId == "5"))
+            {
+                MyTreeView.SetNodesChecked(n => (n.DataItem as FileMenuObject).ParentId == dataItem.ParentId && (n.DataItem as FileMenuObject).MenuId == "1", true);
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        dataSource = await _RoleMenuService.GetRoleMenuAsync();
+        dataRole = await _RoleService.GetRoleAsync();
+        checkedMenus = new List<ITreeViewNodeInfo>();
+
+        DataLoadedTcs.TrySetResult(true);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+            await Grid.CancelEditAsync(); //.StartEditRowAsync(0);
+        }
+        else
+        {
+            if (!boolEditMode)
+            {
+                // Checked back all the item based on selected role
+                if ((!boolMarkOnce) && (strSelectedMenu.Trim() != ""))
+                {
+                    string[] arrMenuId = strSelectedMenu.Split(";");
+
+                    foreach (var item in arrMenuId)
+                    {
+                        string[] _idMenu = item.Split("-");
+                        MyTreeView.SetNodesChecked(n => (n.DataItem as FileMenuObject).ParentId == _idMenu[0].Trim() && (n.DataItem as FileMenuObject).MenuId == _idMenu[1].Trim(), true);
+                    }
+
+                    //MyTreeView.ExpandAll();
+                    // MyTreeView.SetNodesChecked(n => (n.DataItem as FileMenuObject).ParentId == "301" && (n.DataItem as FileMenuObject).MenuId == "2", true);
+                    // MyTreeView.SetNodesChecked(n => (n.DataItem as FileMenuObject).ParentId == "400" && (n.DataItem as FileMenuObject).MenuId == "2", true);
+
+                    // This is to marked that tree view is already populate
+                    boolMarkOnce = true;
+                }
+            }
+        }
+    }
+
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (role_menu)e.EditModel;
+        if (_data.menu_name == null || _data.menu_name.Trim() == "")
+        {
+            e.AddError(nameof(_data.menu_name), "!!!!!!. Medan perlu diisi.");
+        }
+    }
+
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        string strParentId, strParentId2;
+        string strMenuId, strMenuId2;
+
+        for (var i = 0; i < count; i++)
+        {
+
+            strParentId = "";
+            strMenuId = "";
+            strParentId2 = "";
+            strMenuId2 = "";
+
+            var item = (FileMenuObject)checkedMenus[i].DataItem;
+
+            if (item.ParentId != "0")
+            {
+                var itemParent = (FileMenuObject)checkedMenus[i].Parent.DataItem;
+                strParentId2 = itemParent.ParentId;
+                strMenuId2 = itemParent.MenuId;
+
+                if (itemParent.ParentId != "0")
+                {
+                    var itemParent1 = (FileMenuObject)checkedMenus[i].Parent.Parent.DataItem;
+                    strParentId = itemParent1.ParentId;
+                    strMenuId = itemParent1.MenuId;
+                }
+            }
+
+            strSelectedMenu = strMenuId + "-" + strParentId + " - " + strMenuId2 + " - " + strParentId2 + " = [" + item.ParentId + " - " + item.MenuId + "]; " + strSelectedMenu;
+        }
+
+
+        bool blnSuccess = false;
+        if (e.IsNew)
+            blnSuccess = true; //await _RoleMenuService.InsertUserRoleAsync((system_role)e.EditModel, intCurrentUserId);
+        else
+            blnSuccess = true; //await _RoleMenuService.UpdateUserRoleAsync((system_role)e.EditModel, intCurrentUserId);
+
+        if (blnSuccess)
+        {
+            await UpdateDataAsync();
+
+            ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = ToastRenderStyle.Success,
+                Title = "Proses kemaskini selesai."
+            });
+        }
+        else
+        {
+            ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = ToastRenderStyle.Danger,
+                Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
+            });
+        }
+    }
+
+    async Task UpdateDataAsync()
+    {
+        //Refresh back the data source
+        dataSource = await _RoleMenuService.RefreshRoleMenuAsync();
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+    async Task Delete(role_menu item)
+    {
+        strSelected = item.submenu_name;
+        dtData = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        if (dtData != null)
+        {
+            //await _RoleMenuService.RemoveRoleAsync((system_role)dtData);
+            //await UpdateDataAsync();
+        }
+
+        ConfirmationShown = false;
+        ToastService.ShowToast(new ToastOptions()
+        {
+            ProviderName = "Overview",
+            ThemeMode = ToastThemeMode.Saturated,
+            RenderStyle = ToastRenderStyle.Success,
+            Title = "Proses hapus selesai."
+        });
+    }
+
+    void OnNoButtonClick()
+    {
+        ConfirmationShown = false;
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
 
 }
+
