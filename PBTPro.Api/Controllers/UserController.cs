@@ -13,19 +13,16 @@ Changes Logs:
 20/11/2024 - add field & logic for profile avatar
 03/12/2024 - change hardcoded upload path & url to refer param table 
 */
-using DevExpress.Xpo.DB.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using OneOf.Types;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using System.Data;
-using System.Security.Claims;
 
 namespace PBTPro.Api.Controllers
 {
@@ -400,7 +397,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                List<permission_menu_view> PermissionMenus = new List<permission_menu_view>();
+                List<AuthenticatedMenuPermission> PermissionMenus = new List<AuthenticatedMenuPermission>();
                 int UserId = await getDefRunUserId();
 
                 var userRoles = await _dbContext.UserRoles.Where(x => x.UserId == UserId).AsNoTracking().ToListAsync();
@@ -409,7 +406,7 @@ namespace PBTPro.Api.Controllers
                 {
                     PermissionMenus = userRoles
                     .Join(_dbContext.permissions, ur => ur.RoleId, p => p.role_id, (ur, p) => new { ur, p })
-                    .Join(_dbContext.menus, combined => combined.p.menu_id, m => m.menu_id, (combined, m) => new permission_menu_view
+                    .Join(_dbContext.menus, combined => combined.p.menu_id, m => m.menu_id, (combined, m) => new AuthenticatedMenuPermission
                     {
                         menu_id = combined.p.menu_id,
                         menu_name = m.menu_name,
@@ -429,7 +426,7 @@ namespace PBTPro.Api.Controllers
                         can_approve_changes = combined.p.can_approve_changes
                     })
                     .GroupBy(pm => pm.menu_id)
-                    .Select(g => new permission_menu_view
+                    .Select(g => new AuthenticatedMenuPermission
                     {
                         menu_id = g.Key,
                         menu_name = g.First().menu_name,
