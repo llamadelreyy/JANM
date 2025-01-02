@@ -38,13 +38,13 @@
 <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 <div class="item-container-x">
     <label for="cbOverview" class="demo-text cw-480 mb-1">
-        Tempoh (bulan) untuk arkib data log audit
+        Pilih Tempoh (bulan) untuk arkib data log audit
     </label>    
     <DxComboBox Data="@archiveDtm"
                 ShowValidationIcon="true"
                 NullText="Pilih Tempoh Arkib..."
                 TextFieldName="Arkib data log"
-                @bind-Value="@SelectedAudit">
+                @bind-Value="@dtm">
     </DxComboBox>
     <DxButton Text="Submit"
               CssClass="w-100" Click="@OnSubmitButtonClick" />
@@ -59,12 +59,12 @@
     auditlog_info SelectedAudit { get; set; }
     auditlog_archive_info SelectedArchive { get; set; }
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    int dtm;
+    string dtm;
 
     protected override async Task OnInitializedAsync()
     {
         dtAudit = await _audit.ListAll();
-        SelectedAudit = dtAudit.FirstOrDefault();
+        SelectedAudit = dtAudit.FirstOrDefault();        
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -77,8 +77,24 @@
 
     async Task OnSubmitButtonClick()
     {
-        dtm = 1;
-        await _archive.ArchiveByMonth(dtm);
+        var result = new List<auditlog_info>();
+        ReturnViewModel response = new ReturnViewModel();
+
+        if (int.TryParse(dtm.ToString(), out int archiveDuration))
+        {
+            result = await _archive.ArchiveByMonth(archiveDuration);
+        }
+
+        if (response.ReturnCode == 200)
+        {
+            StateHasChanged();
+            HandleResponse(response.ReturnMessage);
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+        else
+        {
+            HandleResponse(response.ReturnMessage, "Error");
+        }
     }
 
     private List<string> archiveDtm = new List<string>
@@ -86,8 +102,36 @@
         "1","3","6","12"
     };
 
+    #region response
     public void Dispose()
     {
         DataLoadedTcs.TrySetCanceled();
     }
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
+    #endregion
 }

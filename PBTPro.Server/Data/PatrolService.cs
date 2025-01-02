@@ -9,6 +9,7 @@ Additional Notes:
 Changes Logs:
 14/11/2024 - initial create
 */
+using DevExpress.DashboardCommon;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -19,6 +20,7 @@ using PBTPro.DAL.Models.PayLoads;
 using PBTPro.DAL.Services;
 using System.Reflection;
 using System.Text;
+using static DevExpress.Utils.Filtering.ExcelFilterOptions;
 
 namespace PBTPro.Data
 {
@@ -64,6 +66,13 @@ namespace PBTPro.Data
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
+        }
+
+        public Task<List<patrol_info>> GetPatrollingAsync(CancellationToken ct = default)
+        {
+            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk jadual rondaan.", 1, LoggerName, "");
+
+            return Task.FromResult(_Patrolling);
         }
 
         public async Task<List<patrol_info>> ListAll()
@@ -212,16 +221,6 @@ namespace PBTPro.Data
             return result;
         }        
         
-        public Task<List<patrol_info>> GetPatrollingAsync(CancellationToken ct = default)
-        {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk jadual rondaan.", 1, LoggerName, "");
-
-            return Task.FromResult(_Patrolling);
-        }
-        
-        
-        
-
         public async Task<patrol_scheduler> ViewDetail(int id)
         {
             var result = new patrol_scheduler();
@@ -278,6 +277,6 @@ namespace PBTPro.Data
             }
 
             return result;
-        }      
+        }
     }
 }
