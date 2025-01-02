@@ -8,7 +8,7 @@ using PBTPro.DAL.Models;
 
 namespace PBTPro.DAL;
 
-public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
+public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, int>
 {
     //public PBTProDbContext(DbContextOptions<PBTProDbContext> options)
     //    : base(options)
@@ -18,16 +18,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
     public virtual DbSet<auditlog_archive_info> auditlog_archive_infos { get; set; }
 
     public virtual DbSet<auditlog_info> auditlog_infos { get; set; }
-
-    public virtual DbSet<compound_act> compound_acts { get; set; }
-
-    public virtual DbSet<compound_info> compound_infos { get; set; }
-
-    public virtual DbSet<compound_location> compound_locations { get; set; }
-
-    public virtual DbSet<compound_medium> compound_media { get; set; }
-
-    public virtual DbSet<compound_officer> compound_officers { get; set; }
 
     public virtual DbSet<config_building> config_buildings { get; set; }
 
@@ -43,13 +33,11 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<config_system_param> config_system_params { get; set; }
 
-    public virtual DbSet<confiscation_info> confiscation_infos { get; set; }
-
-    public virtual DbSet<confiscation_medium> confiscation_media { get; set; }
-
     public virtual DbSet<department_info> department_infos { get; set; }
 
     public virtual DbSet<faq_info> faq_infos { get; set; }
+
+    public virtual DbSet<menu> menus { get; set; }
 
     public virtual DbSet<license_address_swap> license_address_swaps { get; set; }
 
@@ -89,13 +77,11 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<patrol_scheduler> patrol_schedulers { get; set; }
 
-    public virtual DbSet<user_menu> user_menus { get; set; }
+    public virtual DbSet<permission> permissions { get; set; }
 
-    public virtual DbSet<user_permission> user_permissions { get; set; }
+    public virtual DbSet<user_account> user_accounts { get; set; }
 
     public virtual DbSet<user_profile> user_profiles { get; set; }
-
-    public virtual DbSet<user_role_menu> user_role_menus { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -144,120 +130,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.created_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
-        });
-
-        modelBuilder.Entity<compound_act>(entity =>
-        {
-            entity.HasKey(e => e.act_id).HasName("compound_act_pkey");
-
-            entity.ToTable("compound_act", "compound");
-
-            entity.Property(e => e.act_amount1).HasPrecision(15, 2);
-            entity.Property(e => e.act_amount2).HasPrecision(15, 2);
-            entity.Property(e => e.act_amount3).HasPrecision(15, 2);
-            entity.Property(e => e.act_code).HasMaxLength(30);
-            entity.Property(e => e.act_court_amount).HasPrecision(15, 2);
-            entity.Property(e => e.act_dept_code).HasMaxLength(30);
-            entity.Property(e => e.act_dept_name).HasMaxLength(250);
-            entity.Property(e => e.act_fnotice_amount).HasPrecision(15, 2);
-            entity.Property(e => e.act_fnotice_period).HasPrecision(5);
-            entity.Property(e => e.act_name).HasMaxLength(500);
-            entity.Property(e => e.act_notice_amount).HasPrecision(15, 2);
-            entity.Property(e => e.act_notice_period).HasPrecision(5);
-            entity.Property(e => e.act_offence_code).HasMaxLength(30);
-            entity.Property(e => e.act_offence_name).HasMaxLength(500);
-            entity.Property(e => e.act_pbt_code).HasPrecision(5);
-            entity.Property(e => e.act_period1).HasPrecision(5);
-            entity.Property(e => e.act_period2).HasPrecision(5);
-            entity.Property(e => e.act_period3).HasPrecision(5);
-            entity.Property(e => e.act_transaction_code).HasMaxLength(30);
-            entity.Property(e => e.act_transaction_name).HasMaxLength(500);
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-        });
-
-        modelBuilder.Entity<compound_info>(entity =>
-        {
-            entity.HasKey(e => e.compound_id).HasName("compound_info_pkey");
-
-            entity.ToTable("compound_info", "compound");
-
-            entity.Property(e => e.compound_act_code).HasMaxLength(30);
-            entity.Property(e => e.compound_amount).HasPrecision(15, 2);
-            entity.Property(e => e.compound_desc).HasMaxLength(500);
-            entity.Property(e => e.compound_license_no).HasMaxLength(50);
-            entity.Property(e => e.compound_no).HasMaxLength(30);
-            entity.Property(e => e.compound_offence_code).HasMaxLength(30);
-            entity.Property(e => e.compound_offender_addr1).HasMaxLength(100);
-            entity.Property(e => e.compound_offender_addr2).HasMaxLength(150);
-            entity.Property(e => e.compound_offender_addr3).HasMaxLength(150);
-            entity.Property(e => e.compound_offender_area).HasMaxLength(50);
-            entity.Property(e => e.compound_offender_id).HasMaxLength(30);
-            entity.Property(e => e.compound_offender_name).HasMaxLength(250);
-            entity.Property(e => e.compound_offender_pcode).HasPrecision(5);
-            entity.Property(e => e.compound_offender_state).HasMaxLength(30);
-            entity.Property(e => e.compound_officer_code).HasMaxLength(30);
-            entity.Property(e => e.compound_pay_amount).HasPrecision(15, 2);
-            entity.Property(e => e.compound_pay_status).HasMaxLength(30);
-            entity.Property(e => e.compound_pbt_code).HasPrecision(5);
-            entity.Property(e => e.compound_road_tax).HasMaxLength(30);
-            entity.Property(e => e.compound_status).HasMaxLength(30);
-            entity.Property(e => e.compound_trans_code).HasMaxLength(30);
-            entity.Property(e => e.compound_vehicle_brand).HasMaxLength(50);
-            entity.Property(e => e.compound_vehicle_model).HasMaxLength(50);
-            entity.Property(e => e.compound_vehicle_plate).HasMaxLength(10);
-            entity.Property(e => e.compound_vehicle_type).HasMaxLength(30);
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-        });
-
-        modelBuilder.Entity<compound_location>(entity =>
-        {
-            entity.HasKey(e => e.location_id).HasName("compound_location_pkey");
-
-            entity.ToTable("compound_location", "compound");
-
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.location_comp_no).HasMaxLength(30);
-            entity.Property(e => e.location_latitude).HasMaxLength(100);
-            entity.Property(e => e.location_longitude).HasMaxLength(100);
-            entity.Property(e => e.location_pbt_code).HasPrecision(5);
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-
-            entity.HasOne(d => d.location_comp).WithMany(p => p.compound_locations)
-                .HasForeignKey(d => d.location_comp_id)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("compund_id");
-        });
-
-        modelBuilder.Entity<compound_medium>(entity =>
-        {
-            entity.HasKey(e => e.media_comp_id).HasName("compound_media_pkey");
-
-            entity.ToTable("compound_media", "compound");
-
-            entity.Property(e => e.media_comp_no).HasMaxLength(30);
-            entity.Property(e => e.media_pbt_code).HasPrecision(5);
-            entity.Property(e => e.media_url_link).HasMaxLength(500);
-
-            entity.HasOne(d => d.media_comp_idnoNavigation).WithMany(p => p.compound_media)
-                .HasForeignKey(d => d.media_comp_idno)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("comp_id");
-        });
-
-        modelBuilder.Entity<compound_officer>(entity =>
-        {
-            entity.HasKey(e => e.officer_id).HasName("compound_officer_pkey");
-
-            entity.ToTable("compound_officer", "compound");
-
-            entity.Property(e => e.officer_dept).HasMaxLength(30);
-            entity.Property(e => e.officer_grade).HasMaxLength(30);
-            entity.Property(e => e.officer_grade_desc).HasMaxLength(150);
-            entity.Property(e => e.officer_name).HasMaxLength(250);
-            entity.Property(e => e.officer_pbt_code).HasPrecision(5);
-            entity.Property(e => e.officer_serial).HasMaxLength(30);
         });
 
         modelBuilder.Entity<config_building>(entity =>
@@ -395,49 +267,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.updated_by).HasDefaultValue(0);
         });
 
-        modelBuilder.Entity<confiscation_info>(entity =>
-        {
-            entity.HasKey(e => e.confiscation_id).HasName("confiscation_info_pkey");
-
-            entity.ToTable("confiscation_info", "compound");
-
-            entity.Property(e => e.confiscation_act_code).HasMaxLength(30);
-            entity.Property(e => e.confiscation_address1).HasMaxLength(100);
-            entity.Property(e => e.confiscation_address2).HasMaxLength(150);
-            entity.Property(e => e.confiscation_address3).HasMaxLength(150);
-            entity.Property(e => e.confiscation_amount).HasPrecision(15, 2);
-            entity.Property(e => e.confiscation_area).HasMaxLength(50);
-            entity.Property(e => e.confiscation_detail).HasMaxLength(1000);
-            entity.Property(e => e.confiscation_langitude).HasMaxLength(200);
-            entity.Property(e => e.confiscation_license_no).HasMaxLength(50);
-            entity.Property(e => e.confiscation_longitude).HasMaxLength(200);
-            entity.Property(e => e.confiscation_offence_code).HasMaxLength(30);
-            entity.Property(e => e.confiscation_offender).HasMaxLength(250);
-            entity.Property(e => e.confiscation_offender_id).HasMaxLength(30);
-            entity.Property(e => e.confiscation_officer).HasMaxLength(30);
-            entity.Property(e => e.confiscation_pcode).HasPrecision(5);
-            entity.Property(e => e.confiscation_state).HasMaxLength(30);
-            entity.Property(e => e.confiscation_status).HasMaxLength(30);
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-        });
-
-        modelBuilder.Entity<confiscation_medium>(entity =>
-        {
-            entity.HasKey(e => e.confiscation_media_id).HasName("confiscation_media_pkey");
-
-            entity.ToTable("confiscation_media", "compound");
-
-            entity.Property(e => e.confiscation_url_link).HasMaxLength(300);
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-
-            entity.HasOne(d => d.confiscation_main).WithMany(p => p.confiscation_media)
-                .HasForeignKey(d => d.confiscation_main_id)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("confiscation_main_id");
-        });
-
         modelBuilder.Entity<department_info>(entity =>
         {
             entity.HasKey(e => e.dept_id).HasName("department_info_pkey");
@@ -477,6 +306,51 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.updated_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
+        });
+
+        modelBuilder.Entity<menu>(entity =>
+        {
+            entity.HasKey(e => e.menu_id).HasName("menus_pkey");
+
+            entity.ToTable("menus", "core", tb => tb.HasComment("This table stores information about the menus available in the system. It can be hierarchical, where each core.menu item may have a parent core.menu."));
+
+            entity.Property(e => e.menu_id).HasComment("Identifier for each core.menu item.");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the row was created.");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("User ID of the creator.");
+            entity.Property(e => e.icon_path)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("'0'::character varying")
+                .HasComment("Path to the icon associated with the core.menu item.");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the row has been logically deleted (soft deleted). 0 represents not deleted, and 1 represents deleted.");
+            entity.Property(e => e.is_tenant)
+                .HasDefaultValue(false)
+                .HasComment("Indicates whether the core.menu is associated with tenant modules.");
+            entity.Property(e => e.menu_name)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("'0'::character varying")
+                .HasComment("Name of the core.menu item.");
+            entity.Property(e => e.menu_path)
+                .HasMaxLength(50)
+                .HasComment("Path/Route to the UI with the core.menu item.");
+            entity.Property(e => e.menu_sequence)
+                .HasDefaultValue(0)
+                .HasComment("Sequence number indicating the order of the core.menu item.");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the user record was last modified.");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("User ID of the modifier.");
+            entity.Property(e => e.module_id).HasComment("Identifier for the module associated with the core.menu item.");
+            entity.Property(e => e.parent_id)
+                .HasDefaultValue(0)
+                .HasComment("Identifier linking the core.menu item to its parent core.menu item (if applicable).");
         });
 
         modelBuilder.Entity<license_address_swap>(entity =>
@@ -939,40 +813,134 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.updated_by).HasDefaultValue(0);
         });
 
-        modelBuilder.Entity<user_menu>(entity =>
+        modelBuilder.Entity<permission>(entity =>
         {
-            entity.HasKey(e => e.menu_id).HasName("user_menu_pkey");
+            entity.HasKey(e => e.permission_id).HasName("permissions_pkey");
 
-            entity.ToTable("user_menu", "users");
+            entity.ToTable("permissions", "core", tb => tb.HasComment("The core.permission table manages permissions for various features within the system. It associates roles with specific features and defines the level of access each role has for those features."));
 
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
+            entity.Property(e => e.permission_id).HasComment("Unique identifier for each core.permission record.");
+            entity.Property(e => e.can_add)
+                .HasDefaultValue(true)
+                .HasComment("Flags indicating whether the role associated with the core.permission has specific access rights for the corresponding feature.");
+            entity.Property(e => e.can_approve_changes)
+                .HasDefaultValue(true)
+                .HasComment("In systems where changes need approval before implementation, this column can specify whether users with the specified role can approve proposed changes.");
+            entity.Property(e => e.can_authorize)
+                .HasDefaultValue(true)
+                .HasComment("If your system includes approval processes, this column specifies whether users with the specified role have the authority to approve or authorize certain actions or transactions for themselves or as supervisors.");
+            entity.Property(e => e.can_delete)
+                .HasDefaultValue(true)
+                .HasComment("Flags indicating whether the role associated with the core.permission has specific access rights for the corresponding feature.");
+            entity.Property(e => e.can_download)
+                .HasDefaultValue(true)
+                .HasComment("Flags indicating whether the role associated with the core.permission has specific access rights for the corresponding feature.");
+            entity.Property(e => e.can_edit)
+                .HasDefaultValue(true)
+                .HasComment("Flags indicating whether the role associated with the core.permission has specific access rights for the corresponding feature.");
+            entity.Property(e => e.can_execute)
+                .HasDefaultValue(true)
+                .HasComment("This column indicates whether a user with the specified role can execute or perform actions associated with a feature. It can be useful for scenarios where viewing, adding, editing, or deleting actions need to be restricted separately.");
+            entity.Property(e => e.can_export_data)
+                .HasDefaultValue(true)
+                .HasComment("If your system involves exporting data, this column can specify whether users with the specified role can export data from the system.");
+            entity.Property(e => e.can_import_data)
+                .HasDefaultValue(false)
+                .HasComment("Similarly, if data import functionality exists, this column can determine whether users with the specified role can import data into the system");
+            entity.Property(e => e.can_print)
+                .HasDefaultValue(true)
+                .HasComment("Flags indicating whether the role associated with the core.permission has specific access rights for the corresponding feature.");
+            entity.Property(e => e.can_upload)
+                .HasDefaultValue(true)
+                .HasComment("Flags indicating whether the role associated with the core.permission has specific access rights for the corresponding feature.");
+            entity.Property(e => e.can_view)
+                .HasDefaultValue(true)
+                .HasComment("Flags indicating whether the role associated with the core.permission has specific access rights for the corresponding feature.");
+            entity.Property(e => e.can_view_sensitive)
+                .HasDefaultValue(true)
+                .HasComment("For systems dealing with sensitive information, this column can control whether users with the specified role are allowed to view sensitive data.");
+            entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.menu_name).HasMaxLength(50);
-            entity.Property(e => e.menu_path).HasMaxLength(150);
-            entity.Property(e => e.menu_status).HasMaxLength(30);
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-            entity.Property(e => e.updated_date)
+                .HasComment("Timestamp indicating when the row was created.");
+            entity.Property(e => e.creator_id).HasComment("User ID of the creator ");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the row has been logically deleted (soft deleted). 0 represents not deleted, and 1 represents deleted.");
+            entity.Property(e => e.menu_id).HasComment("Identifier for the feature to which the core.permission applies.");
+            entity.Property(e => e.modified_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
+                .HasComment("Timestamp indicating when the user record was last modified.");
+            entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
+            entity.Property(e => e.role_id).HasComment("Identifier for the role associated with the core.permission.");
         });
 
-        modelBuilder.Entity<user_permission>(entity =>
+        modelBuilder.Entity<user_account>(entity =>
         {
-            entity.HasKey(e => e.permission_id).HasName("user_permission_pkey");
+            entity.HasKey(e => e.ua_user_id).HasName("user_accounts_pkey");
 
-            entity.ToTable("user_permission", "users");
+            entity.ToTable("user_accounts", "core", tb => tb.HasComment("The \"user_accounts\" table stores information about user accounts in the system. Each record represents a user account and includes details such as the user's full name, date of birth, identification information, address, nationality, marital status, and acceptance of terms and conditions."));
 
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
+            entity.Property(e => e.ua_user_id)
+                .ValueGeneratedNever()
+                .HasComment("This column serves as a unique identifier for each user account and is a foreign key referencing the user associated with the account.");
+            entity.Property(e => e.accept_terms1)
+                .HasDefaultValue(true)
+                .HasComment("Flag indicating whether the user accepted the first set of terms and conditions during registration.");
+            entity.Property(e => e.accept_terms2)
+                .HasDefaultValue(true)
+                .HasComment("Flag indicating whether the user accepted the second set of terms and conditions during registration (if applicable).");
+            entity.Property(e => e.accept_terms3)
+                .HasDefaultValue(true)
+                .HasComment("Flag indicating whether the user accepted the third set of terms and conditions during registration (if applicable).");
+            entity.Property(e => e.addr_line1)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasComment("First line of the user's address.");
+            entity.Property(e => e.addr_line2)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasComment("Second line of the user's address (optional).");
+            entity.Property(e => e.country_id).HasComment("References the country of the user's address.");
+            entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the user account was created.")
                 .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.permission_status).HasMaxLength(30);
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-            entity.Property(e => e.updated_date)
+            entity.Property(e => e.creator_id).HasComment("User ID of the creator who created the account.");
+            entity.Property(e => e.district_id).HasComment("References the district of the user's address.");
+            entity.Property(e => e.dob).HasComment("Date of birth of the user. Could be extracted from the identification document (e.g., MyCard).");
+            entity.Property(e => e.gen_id).HasComment("User gender (e.g., male, female).");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the row has been logically deleted (soft deleted). True indicates deleted, false indicates active.");
+            entity.Property(e => e.is_married)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the user is married (true for married, false for single).");
+            entity.Property(e => e.modified_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the user account was last modified.")
                 .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasComment("User ID of the modifier who last updated the account.");
+            entity.Property(e => e.nat_id).HasComment("National Identification Number of the user.");
+            entity.Property(e => e.postcode)
+                .HasMaxLength(20)
+                .HasDefaultValueSql("NULL::bpchar")
+                .IsFixedLength()
+                .HasComment("Postal code of the user's address.");
+            entity.Property(e => e.race_id).HasComment("References the race/ethnicity of the user, as identified in the ref_races table.");
+            entity.Property(e => e.state_id).HasComment("References the state of the user's address.");
+            entity.Property(e => e.town_id).HasComment("References the town of the user's address.");
+            entity.Property(e => e.ua_name)
+                .HasMaxLength(100)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasComment("Full name of the user.");
+            entity.Property(e => e.ua_photo_url)
+                .HasMaxLength(255)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasComment("Name of the user's account photo file location/path.");
+            entity.Property(e => e.ua_signature_url)
+                .HasMaxLength(255)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasComment("Name of the user's account signature file location/path.");
         });
 
         modelBuilder.Entity<user_profile>(entity =>
@@ -1000,23 +968,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.profile_status).HasMaxLength(30);
             entity.Property(e => e.profile_tel_no).HasMaxLength(150);
             entity.Property(e => e.profile_user_id).HasMaxLength(50);
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-            entity.Property(e => e.updated_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-        });
-
-        modelBuilder.Entity<user_role_menu>(entity =>
-        {
-            entity.HasKey(e => e.rolemenu_id).HasName("user_role_menu_pkey");
-
-            entity.ToTable("user_role_menu", "users");
-
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.permission_status).HasMaxLength(30);
             entity.Property(e => e.updated_by).HasDefaultValue(0);
             entity.Property(e => e.updated_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
