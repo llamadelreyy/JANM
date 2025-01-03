@@ -182,9 +182,9 @@
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
         var _data = (system_role)e.EditModel;
-        if (_data.role_desc == null || _data.role_desc.Trim() == "")
+        if (_data.role_name == null || _data.role_name.Trim() == "")
         {
-            e.AddError(nameof(_data.role_desc), "!!!!!!. Medan perlu diisi.");
+            e.AddError(nameof(_data.role_name), "Medan Peranan perlu diisi.");
         }
     }
 
