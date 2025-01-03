@@ -87,6 +87,15 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<ref_unit> ref_units { get; set; }
 
+    public virtual DbSet<ref_id_type> ref_id_types { get; set; }
+
+    public virtual DbSet<ref_race> ref_races { get; set; }
+
+    public virtual DbSet<ref_nationality> ref_nationalities { get; set; }
+
+    public virtual DbSet<ref_gender> ref_genders { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
@@ -1012,6 +1021,112 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.unit_name)
                 .HasMaxLength(40)
                 .HasComment("Name of unit (e.g., Unit Kaunter).");
+        });
+
+        modelBuilder.Entity<ref_id_type>(entity =>
+        {
+            entity.HasKey(e => e.id_type_id).HasName("ref_id_types_pkey");
+
+            entity.ToTable("ref_id_types", "core", tb => tb.HasComment("The ucIDTypes is reference table to store type of ID such as IC number, passpord etc."));
+
+            entity.Property(e => e.id_type_id).HasComment("Type of ID");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the row was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasComment("User ID of the creator ");
+            entity.Property(e => e.id_type_name)
+                .HasMaxLength(50)
+                .HasComment("User's unique username used for authentication.");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the row has been logically deleted (soft deleted). 0 represents not deleted, and 1 represents deleted.");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the user record was last modified.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
+        });
+
+        modelBuilder.Entity<ref_race>(entity =>
+        {
+            entity.HasKey(e => e.race_id).HasName("pk_races");
+
+            entity.ToTable("ref_races", "core", tb => tb.HasComment("List of races (biological)"));
+
+            entity.Property(e => e.race_id)
+                .HasDefaultValueSql("nextval('core.races_race_id_seq'::regclass)")
+                .HasComment("Primary key serves as the table's unique identifier.");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the row was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasComment("User ID of the creator ");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the row has been logically deleted (soft deleted). 0 represents not deleted, and 1 represents deleted.");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the user record was last modified.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
+            entity.Property(e => e.race_name)
+                .HasMaxLength(50)
+                .HasComment("Name");
+        });
+
+        modelBuilder.Entity<ref_nationality>(entity =>
+        {
+            entity.HasKey(e => e.nat_id).HasName("pk_nationalities");
+
+            entity.ToTable("ref_nationalities", "core", tb => tb.HasComment("Nationality of the user."));
+
+            entity.Property(e => e.nat_id)
+                .HasDefaultValueSql("nextval('core.nationalities_nat_id_seq'::regclass)")
+                .HasComment("A n identifier for each nationality, which serves as the primary key of the table.");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the row was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasComment("User ID of the creator ");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the row has been logically deleted (soft deleted). 0 represents not deleted, and 1 represents deleted.");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the user record was last modified.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
+            entity.Property(e => e.nat_name)
+                .HasMaxLength(50)
+                .HasComment("The name of the nationality");
+        });
+
+        modelBuilder.Entity<ref_gender>(entity =>
+        {
+            entity.HasKey(e => e.gen_id).HasName("pk_gender");
+
+            entity.ToTable("ref_gender", "core", tb => tb.HasComment("core.gender reference Male & Female"));
+
+            entity.Property(e => e.gen_id)
+                .HasDefaultValueSql("nextval('core.gender_gen_id_seq'::regclass)")
+                .HasComment("User's unique username used for authentication.");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the row was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasComment("User ID of the creator ");
+            entity.Property(e => e.gen_name)
+                .HasMaxLength(50)
+                .HasComment("Gendel Name");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the row has been logically deleted (soft deleted). 0 represents not deleted, and 1 represents deleted.");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp indicating when the user record was last modified.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
         });
 
 
