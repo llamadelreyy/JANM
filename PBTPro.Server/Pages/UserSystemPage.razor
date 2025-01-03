@@ -187,7 +187,7 @@
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
                                 @{
-                                    var _dtUnit = dtUnit.Where(x => x.dept_id == dtEdit.dept_id && x.section_id  == dtEdit.section_id);
+                                    var _dtUnit = dtUnit.Where(x => x.dept_id == dtEdit.dept_id && x.div_id  == dtEdit.section_id);
                                 }
                                 <DxComboBox Data="@_dtUnit"
                                             NullText="Pilih Unit ..."
@@ -268,8 +268,8 @@
     [Inject] IToastNotificationService ToastService { get; set; }
     IEnumerable<system_user> dataSource;
     IEnumerable<department_info> dtDepartment;
-    IEnumerable<section_info> dtSection;
-    IEnumerable<unit_info> dtUnit;
+    IEnumerable<ref_division> dtSection;
+    IEnumerable<ref_unit> dtUnit;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
