@@ -17,29 +17,34 @@
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 
-<div class="d-lg-flex border-bottom mb-2">
-    <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons/information.png" />
-        <div class="textTitle">Tetapan - Senarai Jabatan</div>
-    </div>
-</div>
-
 <style>
     .dxbl-grid {
-        height: 79vh;
-        max-height: 79vh;
+        height: 98.5%;
+        max-height: 98.5%;
     }
 </style>
 
-<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+<div class="d-lg-flex border-bottom">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="\images\icons-small\hard-hat.png" />
+        <div class="textTitle">Jabatan</div>
+    </div>
+</div>
+
 <div class="item-container-x">
+
     <DxGrid @ref="Grid"
             Data="@_lstDepartment"
-            KeyFieldName="dept_id"
+            KeyFieldName="DeptId"
             ShowGroupPanel="true"
-            ShowFilterRow="true"
+            ShowFilterRow="false"
+            TextWrapEnabled="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
             EditorRenderMode="GridEditorRenderMode.Integrated"
             FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
             PageSize="25"
             @bind-PageIndex="@GridPageIndex"
             PagerPosition="GridPagerPosition.Bottom"
@@ -50,24 +55,27 @@
             PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
             PageSizeSelectorAllRowsItemVisible="true"
             PagerAutoHideNavButtons="false"
-            ColumnResizeMode="@ColumnResizeMode"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
             HighlightRowOnHover="true"
             CssClass="mv-1000">
 
         <Columns>
-            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
+
+            <DxGridCommandColumn Width="55px">
                 <HeaderTemplate>
                     <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
                 </HeaderTemplate>
                 <CellDisplayTemplate>
-                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((department_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((department_info)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn FieldName="@nameof(department_info.dept_code)" Caption="Kod Jabatan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(department_info.dept_name)" Caption="Nama Jabatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(department_info.dept_description)" Caption="Catatan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(department_info.dept_status)" Caption="Status Aktif" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+
+            <DxGridDataColumn FieldName="@nameof(department_info.dept_code)" Caption="Kod Jabatan" Width="10%" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(department_info.dept_name)" Caption="Nama Jabatan" Width="25%" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(department_info.dept_description)" Caption="Catatan" Width="28%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(department_info.dept_status)" Caption="Status Aktif" Width="25%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                 <CellDisplayTemplate>
                     <div>@GetStatusDepartmentIconHtml(((department_info)context.DataItem).dept_status)</div>
                 </CellDisplayTemplate>
@@ -87,12 +95,46 @@
                 var dtData = (department_info)editFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
-                <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
-                    <table>
-
+                <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
+                    <table class="layout_edit">
+                        <tr>
+                            <td nowrap>Kod Jabatan</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.dept_code"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Kod Jabatan..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" style="width:120px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Nama Jabatan</td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.dept_name"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Nama Jabatan..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" style="width:350px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap valign="top">Catatan</td>
+                            <td valign="top">&nbsp;&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxMemo @bind-Text="@dtData.dept_description"
+                                        CssClass="cw-480"
+                                        Rows="3" />
+                            </td>
+                        </tr>
                         <tr>
                             <td nowrap>Status Paparan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxComboBox Data="@DeptStatusOptions"
                                             ShowValidationIcon="true"
@@ -102,55 +144,21 @@
                                 </DxComboBox>
                             </td>
                         </tr>
-                        <tr>
-                            <td nowrap>Kod Jabatan</td>
-                            <td>&nbsp;:&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.dept_code"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Kod Jabatan..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:370px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Nama Jabatan</td>
-                            <td>&nbsp;:&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.dept_name"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Nama Jabatan..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:370px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap valign="top">Catatan</td>
-                            <td valign="top">&nbsp;:&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxMemo @bind-Text="@dtData.dept_description"
-                                        CssClass="cw-480"
-                                        Rows="3" />
-                            </td>
-                        </tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-
                     </table>
                 </DxFormLayoutItem>
+
                 <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12">
-                    <DxButton SubmitFormOnClick="true" Text="Simpan" />
-                    <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
+                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
                 </DxFormLayoutItem>
             </DxFormLayout>
         </EditFormTemplate>
+        <CustomValidators>
+            <MyCustomValidator DataItemValidating="ValidateGridData" />
+        </CustomValidators>
     </DxGrid>
+
 
     <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
         <BodyContentTemplate>
@@ -169,6 +177,8 @@
     department_info dtData { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
     bool ConfirmationShown { get; set; } = false;
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
@@ -203,6 +213,32 @@
     #endregion
 
     #region add/edit/delete
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (department_info)e.EditModel;
+
+        if (_data.dept_status == null || _data.dept_status.Trim() == "")
+        {
+            e.AddError(nameof(_data.dept_status), "Status Jabatan tidak dipilih. Medan perlu diisi.");
+        }
+
+        if (_data.dept_code == null || _data.dept_code.Trim() == "")
+        {
+            e.AddError(nameof(_data.dept_code), "Kod Jabatan tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.dept_name == null || _data.dept_name == "")
+        {
+            e.AddError(nameof(_data.dept_name), "Nama Jabatan tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.dept_description == null || _data.dept_description == "")
+        {
+            e.AddError(nameof(_data.dept_description), "Catatan Jabatan tidak sah. Medan perlu diisi.");
+        }
+    }
+
+
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();
@@ -294,25 +330,32 @@
         title);
         return new MarkupString(html);
     }
+
     public MarkupString CombineText(string strStatus, string strNama)
     {
         string html = string.Format("{0} <br/> {1}", strStatus, strNama.ToUpper());
         return new MarkupString(html);
     }
+
     private List<string> DeptStatusOptions = new List<string>
     {
         "Aktif",
         "Tidak Aktif"
     };
-    #endregion
 
-    #region response
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
     public void Dispose()
     {
         DataLoadedTcs.TrySetCanceled();
     }
+    #endregion
 
-
+    #region response
     private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
