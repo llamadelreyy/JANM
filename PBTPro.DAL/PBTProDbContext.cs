@@ -79,8 +79,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<permission> permissions { get; set; }
 
-    public virtual DbSet<user_account> user_accounts { get; set; }
-
     public virtual DbSet<user_profile> user_profiles { get; set; }
 
     public virtual DbSet<ref_department> ref_departments { get; set; }
@@ -885,104 +883,41 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.role_id).HasComment("Identifier for the role associated with the core.permission.");
         });
 
-        modelBuilder.Entity<user_account>(entity =>
-        {
-            entity.HasKey(e => e.ua_user_id).HasName("user_accounts_pkey");
-
-            entity.ToTable("user_accounts", "core", tb => tb.HasComment("The \"user_accounts\" table stores information about user accounts in the system. Each record represents a user account and includes details such as the user's full name, date of birth, identification information, address, nationality, marital status, and acceptance of terms and conditions."));
-
-            entity.Property(e => e.ua_user_id)
-                .ValueGeneratedNever()
-                .HasComment("This column serves as a unique identifier for each user account and is a foreign key referencing the user associated with the account.");
-            entity.Property(e => e.accept_terms1)
-                .HasDefaultValue(true)
-                .HasComment("Flag indicating whether the user accepted the first set of terms and conditions during registration.");
-            entity.Property(e => e.accept_terms2)
-                .HasDefaultValue(true)
-                .HasComment("Flag indicating whether the user accepted the second set of terms and conditions during registration (if applicable).");
-            entity.Property(e => e.accept_terms3)
-                .HasDefaultValue(true)
-                .HasComment("Flag indicating whether the user accepted the third set of terms and conditions during registration (if applicable).");
-            entity.Property(e => e.addr_line1)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasComment("First line of the user's address.");
-            entity.Property(e => e.addr_line2)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasComment("Second line of the user's address (optional).");
-            entity.Property(e => e.country_id).HasComment("References the country of the user's address.");
-            entity.Property(e => e.created_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp indicating when the user account was created.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.creator_id).HasComment("User ID of the creator who created the account.");
-            entity.Property(e => e.district_id).HasComment("References the district of the user's address.");
-            entity.Property(e => e.dob).HasComment("Date of birth of the user. Could be extracted from the identification document (e.g., MyCard).");
-            entity.Property(e => e.gen_id).HasComment("User gender (e.g., male, female).");
-            entity.Property(e => e.is_deleted)
-                .HasDefaultValue(false)
-                .HasComment("Flag indicating whether the row has been logically deleted (soft deleted). True indicates deleted, false indicates active.");
-            entity.Property(e => e.is_married)
-                .HasDefaultValue(false)
-                .HasComment("Flag indicating whether the user is married (true for married, false for single).");
-            entity.Property(e => e.modified_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp indicating when the user account was last modified.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.modifier_id).HasComment("User ID of the modifier who last updated the account.");
-            entity.Property(e => e.nat_id).HasComment("National Identification Number of the user.");
-            entity.Property(e => e.postcode)
-                .HasMaxLength(20)
-                .HasDefaultValueSql("NULL::bpchar")
-                .IsFixedLength()
-                .HasComment("Postal code of the user's address.");
-            entity.Property(e => e.race_id).HasComment("References the race/ethnicity of the user, as identified in the ref_races table.");
-            entity.Property(e => e.state_id).HasComment("References the state of the user's address.");
-            entity.Property(e => e.town_id).HasComment("References the town of the user's address.");
-            entity.Property(e => e.ua_name)
-                .HasMaxLength(100)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasComment("Full name of the user.");
-            entity.Property(e => e.ua_photo_url)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasComment("Name of the user's account photo file location/path.");
-            entity.Property(e => e.ua_signature_url)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying")
-                .HasComment("Name of the user's account signature file location/path.");
-        });
-
         modelBuilder.Entity<user_profile>(entity =>
         {
-            entity.HasKey(e => e.profile_id).HasName("user_profile_pkey");
+            entity.HasKey(e => e.profile_id).HasName("user_profiles_pkey");
 
-            entity.ToTable("user_profile", "users");
+            entity.ToTable("user_profiles", "core");
 
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
+            entity.HasIndex(e => e.profile_email, "user_profiles_profile_email_key").IsUnique();
+
+            entity.HasIndex(e => e.profile_icno, "user_profiles_profile_icno_key").IsUnique();
+
+            entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.profile_accept_term1).HasColumnType("char");
-            entity.Property(e => e.profile_accept_term2).HasColumnType("char");
-            entity.Property(e => e.profile_accept_term3).HasColumnType("char");
+            entity.Property(e => e.dept_code).HasMaxLength(10);
+            entity.Property(e => e.div_code).HasMaxLength(10);
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.profile_accept_term1).HasDefaultValue(false);
+            entity.Property(e => e.profile_accept_term2).HasDefaultValue(false);
+            entity.Property(e => e.profile_accept_term3).HasDefaultValue(false);
             entity.Property(e => e.profile_email).HasMaxLength(150);
             entity.Property(e => e.profile_icno)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("NULL::character varying");
             entity.Property(e => e.profile_last_login).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.profile_name).HasMaxLength(50);
-            entity.Property(e => e.profile_photo_filename).HasColumnType("character varying");
-            entity.Property(e => e.profile_postcode).HasMaxLength(1);
-            entity.Property(e => e.profile_signature_filename).HasColumnType("character varying");
-            entity.Property(e => e.profile_status).HasMaxLength(30);
-            entity.Property(e => e.profile_tel_no).HasMaxLength(150);
-            entity.Property(e => e.profile_user_id).HasMaxLength(50);
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-            entity.Property(e => e.updated_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.profile_name).HasMaxLength(100);
+            entity.Property(e => e.profile_photoname).HasMaxLength(255);
+            entity.Property(e => e.profile_postcode)
+                .HasMaxLength(10)
+                .IsFixedLength();
+            entity.Property(e => e.profile_signfile).HasMaxLength(255);
+            entity.Property(e => e.profile_telno).HasMaxLength(150);
+            entity.Property(e => e.unit_code).HasMaxLength(10);
         });
 
         modelBuilder.Entity<ref_department>(entity =>

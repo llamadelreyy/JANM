@@ -155,17 +155,20 @@ namespace PBTPro.Api.Controllers
 
                 if (!string.IsNullOrWhiteSpace(model.Name))
                 {
-                    user_account ua = new user_account
+                    user_profile up = new user_profile
                     {
-                        ua_user_id = user.Id,
-                        ua_name = model.Name,
+                        user_id = user.Id,
+                        profile_name = model.Name,
+                        profile_email = user.Email,
+                        profile_icno = user.IdNo,
+                        profile_telno = user.PhoneNumber,
                         creator_id = runUserId,
                         created_at = DateTime.Now,
                         modifier_id = runUserId,
                         modified_at = DateTime.Now
                     };
 
-                    _dbContext.user_accounts.Add(ua);
+                    _dbContext.user_profiles.Add(up);
                     await _dbContext.SaveChangesAsync();
                 }
 
@@ -218,10 +221,10 @@ namespace PBTPro.Api.Controllers
                         authClaims.Add(new Claim(ClaimTypes.Role, role));
                     }
 
-                    var userAccount = await _dbContext.user_accounts.AsNoTracking().FirstOrDefaultAsync(x => x.ua_user_id == user.Id);
-                    if(userAccount != null)
+                    var userProfile = await _dbContext.user_profiles.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == user.Id);
+                    if(userProfile != null)
                     {
-                        Fullname = userAccount.ua_name;
+                        Fullname = userProfile.profile_name;
                     }
 
                     var token = _tokenService.GenerateJwtToken(authClaims, model.RememberMe);
