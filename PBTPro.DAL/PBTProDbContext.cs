@@ -87,8 +87,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<ref_unit> ref_units { get; set; }
 
-    public virtual DbSet<role> roles { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
@@ -981,6 +979,8 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("Timestamp when the record was last updated.")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+            entity.Property(e => e.dept_name)
+                .HasMaxLength(100);               
         });
 
         modelBuilder.Entity<ref_unit>(entity =>
@@ -1014,39 +1014,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("Name of unit (e.g., Unit Kaunter).");
         });
 
-        modelBuilder.Entity<role>(entity =>
-        {
-            entity.HasKey(e => e.role_id).HasName("roles_pkey");
-
-            entity.ToTable("roles", "core", tb => tb.HasComment("Stores information about different roles in the system, such as user roles and permissions."));
-
-            entity.Property(e => e.role_id).HasComment("Unique identifier for each role.");
-            entity.Property(e => e.created_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp indicating when the role was created.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.creator_id).HasComment("ID of the user who created this role record.");
-            entity.Property(e => e.is_default_role)
-                .HasDefaultValue(false)
-                .HasComment("Flag indicating if this role is the default role for users in the system.");
-            entity.Property(e => e.is_deleted)
-                .HasDefaultValue(false)
-                .HasComment("Flag indicating whether the role record has been logically deleted (soft deleted). \n        false means not deleted, true means deleted.");
-            entity.Property(e => e.is_tenant)
-                .HasDefaultValue(false)
-                .HasComment("Flag indicating if this role is associated with tenant modules or multi-tenancy functionality.");
-            entity.Property(e => e.modified_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp indicating when the role record was last modified.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.modifier_id).HasComment("ID of the user who last modified this role record.");
-            entity.Property(e => e.role_desc)
-                .HasMaxLength(255)
-                .HasComment("Description providing additional information about the role and its responsibilities.");
-            entity.Property(e => e.role_name)
-                .HasMaxLength(50)
-                .HasComment("Meaningful name for the role (e.g., Admin, User, etc.).");
-        });
 
         OnModelCreatingPartial(modelBuilder);
     }

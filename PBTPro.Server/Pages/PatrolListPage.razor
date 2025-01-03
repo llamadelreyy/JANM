@@ -240,9 +240,9 @@
     private List<patrol_info> lstActiveIndex = new List<patrol_info>();
     public List<(patrol_info, int)> Items { get; set; } = new List<(patrol_info, int)>();
     IEnumerable<patrol_info> DataSource;
-    IEnumerable<department_info> dtDept { get; set; }
+    IEnumerable<ref_department> dtDept { get; set; }
     patrol_info dtDatas { get; set; }
-    department_info SelectedDepartment { get; set; }
+    ref_department SelectedDepartment { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     bool ConfirmationShown { get; set; } = false;

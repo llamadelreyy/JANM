@@ -68,7 +68,7 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((unit_info)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((ref_unit)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Jabatan" MinWidth="120" Width="15%" FieldName="dept_name" />
@@ -77,7 +77,7 @@
             <DxGridDataColumn Caption="Nama" MinWidth="250" Width="20%" FieldName="unit_name" TextAlignment="GridTextAlignment.Left" />
             <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="25%" FieldName="unit_desc" TextAlignment="GridTextAlignment.Left" />
 
-            <DxGridDataColumn FieldName="created_date"
+            <DxGridDataColumn FieldName="created_at"
                               DisplayFormat="dd/MM/yyyy"
                               Caption="Tarikh Data"
                               MinWidth="100"
@@ -93,7 +93,7 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtEdit = (unit_info)EditFormContext.EditModel;
+                var dtEdit = (ref_unit)EditFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
@@ -107,6 +107,7 @@
                                             ShowValidationIcon="true"
                                             FilteringMode="DataGridFilteringMode.Contains"
                                             @bind-Value="@dtEdit.dept_id"
+                                            @bind-Text="@dtEdit.dept_name"
                                             TextFieldName="dept_name"
                                             ValueFieldName="dept_id">
                                 </DxComboBox>
@@ -124,9 +125,10 @@
                                             NullText="Pilih Seksyen ..."
                                             ShowValidationIcon="true"
                                             FilteringMode="DataGridFilteringMode.Contains" s
-                                            @bind-Value="@dtEdit.section_id"
-                                            TextFieldName="section_name"
-                                            ValueFieldName="section_id">
+                                            @bind-Value="@dtEdit.div_id"
+                                            @bind-Text="@dtEdit.div_name"
+                                            TextFieldName="div_name"
+                                            ValueFieldName="div_id">
                                 </DxComboBox>
                             </td>
                         </tr>
@@ -210,7 +212,7 @@
 
 
 @code {
-    IEnumerable<department_info> dtDepartment;
+    IEnumerable<ref_department> dtDepartment;
     IEnumerable<ref_division> dtSection;
     IEnumerable<ref_unit> dataSource;
 
@@ -220,7 +222,7 @@
 
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
-    unit_info dtData { get; set; }
+    ref_unit dtData { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -244,7 +246,7 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (unit_info)e.EditModel;
+        var _data = (ref_unit)e.EditModel;
         if (_data.unit_name == null || _data.unit_name.Trim() == "")
         {
             e.AddError(nameof(_data.unit_name), "!!!!!!. Medan perlu diisi.");
@@ -314,7 +316,7 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(unit_info item)
+    async Task Delete(ref_unit item)
     {
         strSelected = item.unit_name;
         dtData = item;

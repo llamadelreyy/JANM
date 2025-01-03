@@ -82,7 +82,7 @@
                 <DxGridDataColumn Caption="Nama" MinWidth="250" Width="25%" FieldName="div_name" TextAlignment="GridTextAlignment.Left" />
                 <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="35%" FieldName="div_desc" TextAlignment="GridTextAlignment.Left" />
 
-                <DxGridDataColumn FieldName="created_date"
+                <DxGridDataColumn FieldName="created_at"
                 DisplayFormat="dd/MM/yyyy"
                 Caption="Tarikh Data"
                 MinWidth="100"
@@ -112,6 +112,7 @@
                                             ShowValidationIcon="true"
                                             FilteringMode="DataGridFilteringMode.Contains"
                                             @bind-Value="@dtEdit.dept_id"
+                                            @bind-Text ="@dtEdit.dept_name"
                                             TextFieldName="dept_name"
                                             ValueFieldName="dept_id">
                                 </DxComboBox>
@@ -198,7 +199,7 @@
 
 
 @code {
-    IEnumerable<department_info> dtDepartment;
+    IEnumerable<ref_department> dtDepartment;
     IEnumerable<ref_division> dataSource;
 
     IGrid Grid { get; set; }

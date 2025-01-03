@@ -91,6 +91,8 @@ namespace PBTPro.Api.Controllers
                     div_code = InputModel.div_code,
                     div_name = InputModel.div_name,
                     div_desc = InputModel.div_desc,
+                    dept_id = InputModel.dept_id,
+                    dept_name = InputModel.dept_name,
                     is_deleted = false,
                     creator_id = runUserID,
                     created_at = DateTime.Now,
@@ -106,6 +108,8 @@ namespace PBTPro.Api.Controllers
                     div_code = division_infos.div_code,
                     div_name = division_infos.div_name,
                     div_desc = division_infos.div_desc,
+                    dept_id = division_infos.dept_id,
+                    dept_name = division_infos.dept_name,
                     is_deleted = division_infos.is_deleted,
                     created_at = division_infos.created_at
                 };
@@ -147,8 +151,9 @@ namespace PBTPro.Api.Controllers
                 formField.div_code = InputModel.div_code;
                 formField.div_name = InputModel.div_name;
                 formField.div_desc = InputModel.div_desc;
+                formField.dept_id = InputModel.dept_id;
+                formField.dept_name = InputModel.dept_name;
                 formField.is_deleted = InputModel.is_deleted;
-
                 formField.modifier_id = runUserID;
                 formField.modified_at = DateTime.Now;
 

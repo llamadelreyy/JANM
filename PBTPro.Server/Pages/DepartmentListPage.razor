@@ -35,7 +35,7 @@
 
     <DxGrid @ref="Grid"
             Data="@_lstDepartment"
-            KeyFieldName="DeptId"
+            KeyFieldName="dept_id"
             ShowGroupPanel="true"
             ShowFilterRow="false"
             TextWrapEnabled="true"
@@ -68,19 +68,19 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((department_info)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((ref_department)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
 
-            <DxGridDataColumn FieldName="@nameof(department_info.dept_code)" Caption="Kod Jabatan" Width="10%" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn FieldName="@nameof(department_info.dept_name)" Caption="Nama Jabatan" Width="25%" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn FieldName="@nameof(department_info.dept_description)" Caption="Catatan" Width="28%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(department_info.dept_status)" Caption="Status Aktif" Width="25%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+            <DxGridDataColumn FieldName="@nameof(ref_department.dept_code)" Caption="Kod Jabatan" Width="10%" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(ref_department.dept_name)" Caption="Nama Jabatan" Width="25%" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(ref_department.dept_desc)" Caption="Catatan" Width="28%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            @* <DxGridDataColumn FieldName="@nameof(ref_department.dept_status)" Caption="Status Aktif" Width="25%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                 <CellDisplayTemplate>
-                    <div>@GetStatusDepartmentIconHtml(((department_info)context.DataItem).dept_status)</div>
+                    <div>@GetStatusDepartmentIconHtml(((ref_department)context.DataItem).dept_status)</div>
                 </CellDisplayTemplate>
-            </DxGridDataColumn>
-            <DxGridDataColumn FieldName=@nameof(department_info.created_date)
+            </DxGridDataColumn> *@
+            <DxGridDataColumn FieldName=@nameof(ref_department.created_at)
                               DisplayFormat="dd/MM/yyyy"
                               Caption="Tarikh Cipta"
                               MinWidth="120"
@@ -92,7 +92,7 @@
 
         <EditFormTemplate Context="editFormContext">
             @{
-                var dtData = (department_info)editFormContext.EditModel;
+                var dtData = (ref_department)editFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
@@ -127,12 +127,12 @@
                             <td nowrap valign="top">Catatan</td>
                             <td valign="top">&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxMemo @bind-Text="@dtData.dept_description"
+                                <DxMemo @bind-Text="@dtData.dept_desc"
                                         CssClass="cw-480"
                                         Rows="3" />
                             </td>
                         </tr>
-                        <tr>
+                        @* <tr>
                             <td nowrap>Status Paparan</td>
                             <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
@@ -143,7 +143,7 @@
                                             @bind-Text="@dtData.dept_status">
                                 </DxComboBox>
                             </td>
-                        </tr>
+                        </tr> *@
                     </table>
                 </DxFormLayoutItem>
 
@@ -173,8 +173,8 @@
 </div>
 
 @code {
-    private List<department_info> _lstDepartment = new List<department_info>();
-    department_info dtData { get; set; }
+    private List<ref_department> _lstDepartment = new List<ref_department>();
+    ref_department dtData { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
@@ -215,12 +215,9 @@
     #region add/edit/delete
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (department_info)e.EditModel;
+        var _data = (ref_department)e.EditModel;
 
-        if (_data.dept_status == null || _data.dept_status.Trim() == "")
-        {
-            e.AddError(nameof(_data.dept_status), "Status Jabatan tidak dipilih. Medan perlu diisi.");
-        }
+       
 
         if (_data.dept_code == null || _data.dept_code.Trim() == "")
         {
@@ -232,9 +229,9 @@
             e.AddError(nameof(_data.dept_name), "Nama Jabatan tidak sah. Medan perlu diisi.");
         }
 
-        if (_data.dept_description == null || _data.dept_description == "")
+        if (_data.dept_desc == null || _data.dept_desc == "")
         {
-            e.AddError(nameof(_data.dept_description), "Catatan Jabatan tidak sah. Medan perlu diisi.");
+            e.AddError(nameof(_data.dept_desc), "Catatan Jabatan tidak sah. Medan perlu diisi.");
         }
     }
 
@@ -243,7 +240,7 @@
     {
         ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
-        var editModel = e.EditModel as department_info;
+        var editModel = e.EditModel as ref_department;
         try
         {
             if (e.IsNew)
@@ -272,7 +269,7 @@
         }
     }
 
-    async Task Delete(department_info item)
+    async Task Delete(ref_department item)
     {
         dtData = item;
         ConfirmationShown = true;
