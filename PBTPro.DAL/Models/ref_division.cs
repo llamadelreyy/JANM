@@ -54,4 +54,5 @@ public partial class ref_division
     public bool? is_deleted { get; set; }
 
     public int? dept_id { get; set; }
+    public string? dept_name { get; set; }
 }
