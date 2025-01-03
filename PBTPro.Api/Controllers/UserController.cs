@@ -13,19 +13,16 @@ Changes Logs:
 20/11/2024 - add field & logic for profile avatar
 03/12/2024 - change hardcoded upload path & url to refer param table 
 */
-using DevExpress.Xpo.DB.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using OneOf.Types;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using System.Data;
-using System.Security.Claims;
 
 namespace PBTPro.Api.Controllers
 {
@@ -74,44 +71,48 @@ namespace PBTPro.Api.Controllers
                 var AvatarViewURL = baseImageViewURL + "/profile";
                 var SignatureViewURL = baseImageViewURL + "/signature";
 
-                var UserProfile = await _dbContext.user_profiles.Where(x => x.profile_user_id == UserId).Select(x => new user_profile_view
+                var UserProfile = await _dbContext.user_profiles.Where(x => x.user_id == UserId).Select(x => new user_profile_view
                 {
                     profile_id = x.profile_id,
-                    profile_user_id = x.profile_user_id,
-                    profile_photo_url = !string.IsNullOrWhiteSpace(x.profile_photo_filename) ? AvatarViewURL + "/" + x.profile_photo_filename : AvatarViewURL + "/avatar-user-profile-icon.jpg",
+                    user_id = x.user_id.Value,
+                    unit_code = x.unit_code,
+                    div_code = x.div_code,
+                    dept_code = x.dept_code,
+                    nat_id = x.nat_id,
+                    race_id = x.race_id,
+                    gen_id = x.gen_id,
                     profile_name = x.profile_name,
-                    profile_dob = x.profile_dob,
+                    profile_photoname = x.profile_photoname,
+                    profile_email = x.profile_email,
+                    profile_telno = x.profile_telno,
                     profile_icno = x.profile_icno,
-                    profile_nat_id = x.profile_nat_id,
-                    profile_race_id = x.profile_race_id,
-                    profile_address1 = x.profile_address1,
-                    profile_address2 = x.profile_address2,
+                    profile_dob = x.profile_dob,
                     profile_postcode = x.profile_postcode,
-                    profile_city_id = x.profile_city_id,
-                    profile_district_id = x.profile_district_id,
-                    profile_state_id = x.profile_state_id,
-                    profile_country_id = x.profile_country_id,
                     profile_accept_term1 = x.profile_accept_term1,
                     profile_accept_term2 = x.profile_accept_term2,
-                    profile_email = x.profile_email,
+                    profile_accept_term3 = x.profile_accept_term3,
+                    profile_last_login = x.profile_last_login,
+                    profile_signfile = x.profile_signfile,
                     profile_employee_no = "ABC9090112",
-                    profile_department_view = "Penguatkuasa",
-                    profile_section_view = "Operasi",
-                    profile_unit_view = "Operasi & Penguatkuasa",
-                    profile_signature_url = !string.IsNullOrWhiteSpace(x.profile_signature_filename) ? SignatureViewURL + "/" + x.profile_signature_filename : null
+                    dept_name = "Penguatkuasa",
+                    div_name = "Operasi",
+                    unit_name = "Operasi & Penguatkuasa",
+                    profile_photo_url = !string.IsNullOrWhiteSpace(x.profile_photoname) ? AvatarViewURL + "/" + x.profile_photoname : AvatarViewURL + "/avatar-user-profile-icon.jpg",
+                    profile_signature_url = !string.IsNullOrWhiteSpace(x.profile_signfile) ? SignatureViewURL + "/" + x.profile_signfile : null
                 }).AsNoTracking().FirstOrDefaultAsync();
 
                 if(UserProfile == null)
                 {
                     UserProfile = await _dbContext.Users.Where(x => x.Id == UserId).Select(x => new user_profile_view
                     {
-                        profile_user_id = x.Id,
+                        user_id = x.Id,
                         profile_name = x.UserName,
                         profile_email = x.Email,
                         profile_employee_no = "ABC9090112",
-                        profile_department_view = "Penguatkuasa",
-                        profile_section_view = "Operasi",
-                        profile_unit_view = "Operasi & Penguatkuasa"
+                        dept_name = "Penguatkuasa",
+                        div_name = "Operasi",
+                        unit_name = "Operasi & Penguatkuasa",
+                        profile_photo_url = AvatarViewURL + "/avatar-user-profile-icon.jpg",
                     }).AsNoTracking().FirstOrDefaultAsync();
                 }
 
@@ -152,21 +153,23 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_FILE_SIZE", MessageTypeEnum.Error, string.Format("saiz fail melebihi had yang dibenarkan, saiz fail maksimum yang dibenarkan ialah [0]."), param));
                 }
 
-                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.profile_user_id == runUserID);
+                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.user_id == runUserID);
 
                 if(userProfile == null)
                 {
                     isNew = true;
                     userProfile = await _dbContext.Users.Where(x => x.Id == runUserID).Select(x => new user_profile
                     {
-                        profile_user_id = x.Id,
+                        user_id = x.Id,
                         profile_name = x.UserName,
-                        profile_email = x.Email
+                        profile_email = x.Email,
+                        profile_icno = x.IdNo,
+                        profile_telno = x.PhoneNumber
                     }).AsNoTracking().FirstOrDefaultAsync();
                 }
                 #endregion
 
-                string? FileName = userProfile.profile_signature_filename;
+                string? FileName = userProfile.profile_signfile;
                 //D:\Workspace\Dotnet\New\PBTPro.Server\wwwroot\images\signature
                 if (InputModel.sign_image?.Length > 0)
                 {
@@ -180,18 +183,18 @@ namespace PBTPro.Api.Controllers
                         await InputModel.sign_image.CopyToAsync(stream);
                     }
 
-                    userProfile.profile_signature_filename = FileName;
+                    userProfile.profile_signfile = FileName;
                     
                     if(isNew == true)
                     {
-                        userProfile.created_by = runUserID;
-                        userProfile.created_date = DateTime.Now;
+                        userProfile.creator_id = runUserID;
+                        userProfile.created_at = DateTime.Now;
                         _dbContext.user_profiles.Add(userProfile);
                     }
                     else
                     {
-                        userProfile.updated_by = runUserID;
-                        userProfile.updated_date = DateTime.Now;
+                        userProfile.modifier_id = runUserID;
+                        userProfile.modified_at = DateTime.Now;
                         _dbContext.user_profiles.Update(userProfile);
                     }
                     await _dbContext.SaveChangesAsync();
@@ -234,21 +237,23 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_FILE_SIZE", MessageTypeEnum.Error, string.Format("saiz fail melebihi had yang dibenarkan, saiz fail maksimum yang dibenarkan ialah [0]."), param));
                 }
 
-                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.profile_user_id == runUserID);
+                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.user_id == runUserID);
 
                 if (userProfile == null)
                 {
                     isNew = true;
                     userProfile = await _dbContext.Users.Where(x => x.Id == runUserID).Select(x => new user_profile
                     {
-                        profile_user_id = x.Id,
+                        user_id = x.Id,
                         profile_name = x.UserName,
-                        profile_email = x.Email
+                        profile_email = x.Email,
+                        profile_icno = x.IdNo,
+                        profile_telno = x.PhoneNumber
                     }).AsNoTracking().FirstOrDefaultAsync();
                 }
                 #endregion
 
-                string? FileName = userProfile.profile_signature_filename;
+                string? FileName = userProfile.profile_photoname;
                 //D:\Workspace\Dotnet\New\PBTPro.Server\wwwroot\images\signature
                 if (InputModel.avatar_image?.Length > 0)
                 {
@@ -262,18 +267,18 @@ namespace PBTPro.Api.Controllers
                         await InputModel.avatar_image.CopyToAsync(stream);
                     }
 
-                    userProfile.profile_photo_filename = FileName;
+                    userProfile.profile_photoname = FileName;
 
                     if (isNew == true)
                     {
-                        userProfile.created_by = runUserID;
-                        userProfile.created_date = DateTime.Now;
+                        userProfile.creator_id = runUserID;
+                        userProfile.created_at = DateTime.Now;
                         _dbContext.user_profiles.Add(userProfile);
                     }
                     else
                     {
-                        userProfile.updated_by = runUserID;
-                        userProfile.updated_date = DateTime.Now;
+                        userProfile.modifier_id = runUserID;
+                        userProfile.modified_at = DateTime.Now;
                         _dbContext.user_profiles.Update(userProfile);
                     }
                     await _dbContext.SaveChangesAsync();
@@ -400,7 +405,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                List<permission_menu_view> PermissionMenus = new List<permission_menu_view>();
+                List<AuthenticatedMenuPermission> PermissionMenus = new List<AuthenticatedMenuPermission>();
                 int UserId = await getDefRunUserId();
 
                 var userRoles = await _dbContext.UserRoles.Where(x => x.UserId == UserId).AsNoTracking().ToListAsync();
@@ -409,7 +414,7 @@ namespace PBTPro.Api.Controllers
                 {
                     PermissionMenus = userRoles
                     .Join(_dbContext.permissions, ur => ur.RoleId, p => p.role_id, (ur, p) => new { ur, p })
-                    .Join(_dbContext.menus, combined => combined.p.menu_id, m => m.menu_id, (combined, m) => new permission_menu_view
+                    .Join(_dbContext.menus, combined => combined.p.menu_id, m => m.menu_id, (combined, m) => new AuthenticatedMenuPermission
                     {
                         menu_id = combined.p.menu_id,
                         menu_name = m.menu_name,
@@ -429,7 +434,7 @@ namespace PBTPro.Api.Controllers
                         can_approve_changes = combined.p.can_approve_changes
                     })
                     .GroupBy(pm => pm.menu_id)
-                    .Select(g => new permission_menu_view
+                    .Select(g => new AuthenticatedMenuPermission
                     {
                         menu_id = g.Key,
                         menu_name = g.First().menu_name,

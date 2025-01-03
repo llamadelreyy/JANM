@@ -1,6 +1,7 @@
 ﻿@page "/user_profile"
 @attribute [AllowAnonymous]
 
+@using PBTPro.DAL.Models.PayLoads
 @using PBTPro.DAL.Services
 @using PBTPro.Data
 @using PBTPro.DAL.Models
@@ -53,7 +54,7 @@
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>Jabatan</div>
-                        <DxTextBox @bind-Text="@userInfo.profile_department_name"
+                        <DxTextBox @bind-Text="@userInfo.dept_name"
                                    NullText="Jabatan pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -62,7 +63,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>Section</div>
-                        <DxTextBox @bind-Text="@userInfo.profile_section_name"
+                        <DxTextBox @bind-Text="@userInfo.div_name"
                                    NullText="Seksyen pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -71,7 +72,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>Unit</div>
-                        <DxTextBox @bind-Text="@userInfo.profile_unit_name"
+                        <DxTextBox @bind-Text="@userInfo.unit_name"
                                    NullText="Unit pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -89,7 +90,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>No Telefon</div>
-                        <DxMaskedInput @bind-Value="@userInfo.profile_tel_no"
+                        <DxMaskedInput @bind-Value="@userInfo.profile_telno"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                        BindValueMode="BindValueMode.OnInput"
                                        Maxlength="14"
@@ -181,9 +182,9 @@
 
 @code {
     [Inject] IToastNotificationService ToastService { get; set; }
-    user_profile userInfo = new user_profile();
+    user_profile_view userInfo = new user_profile_view();
 
-    IEnumerable<user_profile> dataSource;
+    IEnumerable<user_profile_view> dataSource;
     // IEnumerable<department_info> dtDepartment;
     // IEnumerable<section_info> dtSection;
     // IEnumerable<unit_info> dtUnit;

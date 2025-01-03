@@ -45,9 +45,9 @@ namespace PBTPro.Data
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
 
-        private string _baseReqURL = "/api/Section";
+        private string _baseReqURL = "/api/Division";
         private string LoggerName = "";
-        private List<section_info> _Section { get; set; }
+        private List<ref_division> _Section { get; set; }
 
         public SectionService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<SectionService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
@@ -58,9 +58,9 @@ namespace PBTPro.Data
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
         [HttpGet]
-        public async Task<List<section_info>> ListAll()
+        public async Task<List<ref_division>> ListAll()
         {
-            var result = new List<section_info>();
+            var result = new List<ref_division>();
             string requestUrl = $"{_baseReqURL}/ListAll";
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
@@ -71,7 +71,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<section_info>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_division>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
                 }
@@ -83,15 +83,15 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<section_info>();
+                result = new List<ref_division>();
             }
             return result;
         }
 
         [HttpGet]
-        public async Task<List<section_info>> Refresh()
+        public async Task<List<ref_division>> Refresh()
         {
-            var result = new List<section_info>();
+            var result = new List<ref_division>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/ListAll";
@@ -102,7 +102,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<section_info>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_division>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
                 }
@@ -115,12 +115,12 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<section_info>();
+                result = new List<ref_division>();
             }
             return result;
         }
 
-        public async Task<ReturnViewModel> Add(section_info inputModel)
+        public async Task<ReturnViewModel> Add(ref_division inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -142,7 +142,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, section_info inputModel)
+        public async Task<ReturnViewModel> Update(int id, ref_division inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -150,7 +150,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/Update/{inputModel.section_id}";
+                string requestUrl = $"{_baseReqURL}/Update/{inputModel.div_id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
@@ -184,15 +184,15 @@ namespace PBTPro.Data
             return result;
         }
 
-        public Task<List<section_info>> GetSectionAsync(CancellationToken ct = default)
+        public Task<List<ref_division>> GetSectionAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk soalan lazim.", 1, LoggerName, "");
             return Task.FromResult(_Section);
         }
 
-        public async Task<section_info> ViewDetail(int id)
+        public async Task<ref_division> ViewDetail(int id)
         {
-            var result = new section_info();
+            var result = new ref_division();
             try
             {
                 string requestquery = $"/{id}";
@@ -204,7 +204,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<section_info>(dataString);
+                        result = JsonConvert.DeserializeObject<ref_division>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci soalan lazim.", 1, LoggerName, "");
                 }
@@ -215,7 +215,7 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new section_info();
+                result = new ref_division();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;
@@ -238,7 +238,7 @@ namespace PBTPro.Data
 //                    jsonString = await _cf.List(request);
 
 
-//                List<section_info> sectionList = JsonConvert.DeserializeObject<List<section_info>>(jsonString);
+//                List<ref_division> sectionList = JsonConvert.DeserializeObject<List<section_info>>(jsonString);
 //                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai seksyen.", Convert.ToInt32(uID), LoggerName, "");
 
 //                //FOR TESTING PURPOSE ===============

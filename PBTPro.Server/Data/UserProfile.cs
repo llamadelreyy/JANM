@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 using PBTPro.DAL.Services;
 using System.Reflection;
 using System.Text;
@@ -124,9 +125,9 @@ namespace PBTPro.Data
         //    }
         //}
 
-        public async Task<List<user_profile>> Retrieve(string userId)
+        public async Task<List<user_profile_view>> Retrieve(string userId)
         {
-            var result = new List<user_profile>();
+            var result = new List<user_profile_view>();
             string requestquery = $"/{userId}";
             string requestUrl = $"{_baseReqURL}/Retrieve{requestquery}";            
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
@@ -138,7 +139,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<user_profile>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<user_profile_view>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
                 }
@@ -150,7 +151,7 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<user_profile>();
+                result = new List<user_profile_view>();
             }
             return result;
         }

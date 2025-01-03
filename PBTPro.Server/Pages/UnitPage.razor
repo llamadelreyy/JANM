@@ -35,7 +35,7 @@
 <div class="item-container-x">
 
     <DxGrid @ref="Grid"
-            Data="dataSource"
+            Data="@dataSource"
             KeyFieldName="unit_id"
             ShowGroupPanel="true"
             ShowFilterRow="false"
@@ -211,8 +211,8 @@
 
 @code {
     IEnumerable<department_info> dtDepartment;
-    IEnumerable<section_info> dtSection;
-    IEnumerable<unit_info> dataSource;
+    IEnumerable<ref_division> dtSection;
+    IEnumerable<ref_unit> dataSource;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -274,7 +274,7 @@
 
         ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
-        var editModel = e.EditModel as unit_info;
+        var editModel = e.EditModel as ref_unit;
         try
         {
             if (e.IsNew)
@@ -376,10 +376,7 @@
                 Title = strMessage
             });
     }
-     #region response
-    
-
-
+     #region response   
     private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
