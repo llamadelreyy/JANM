@@ -1021,6 +1021,10 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.unit_name)
                 .HasMaxLength(40)
                 .HasComment("Name of unit (e.g., Unit Kaunter).");
+            entity.Property(e => e.dept_name)
+                .HasMaxLength(100);
+            entity.Property(e => e.div_name)
+                .HasMaxLength(100);
         });
 
         modelBuilder.Entity<ref_id_type>(entity =>
