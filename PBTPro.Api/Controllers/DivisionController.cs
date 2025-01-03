@@ -21,6 +21,7 @@ using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using PBTPro.DAL.Services;
 using System.Reflection;
+using System.Runtime.Intrinsics.Arm;
 
 namespace PBTPro.Api.Controllers
 {
@@ -48,6 +49,7 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var data = await _dbContext.ref_divisions.AsNoTracking().ToListAsync();
+
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
