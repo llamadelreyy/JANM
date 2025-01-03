@@ -118,7 +118,7 @@
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
                                 @{
-                                    var intDepartmentID = dtDepartment.Where(c => c.dept_id == dtEdit.dept_id).FirstOrDefault().dept_id;
+                                    var intDepartmentID = dtDepartment.Where(c => c.dept_id == dtEdit.dept_id).FirstOrDefault()?.dept_id;
                                     var SectionData = dtSection.Where(x => x.dept_id == intDepartmentID);
                                 }
                                 <DxComboBox Data="@SectionData"
@@ -247,9 +247,25 @@
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
         var _data = (ref_unit)e.EditModel;
+
+        if (_data.unit_code == null || _data.unit_code.Trim() == "")
+        {
+            e.AddError(nameof(_data.unit_code), "Medan kod unit perlu diisi.");
+        }
+
         if (_data.unit_name == null || _data.unit_name.Trim() == "")
         {
-            e.AddError(nameof(_data.unit_name), "!!!!!!. Medan perlu diisi.");
+            e.AddError(nameof(_data.unit_name), "Medan Nama Unit perlu diisi.");
+        }
+
+        if (_data.dept_id == 0 || _data.dept_id == null)
+        {
+            e.AddError(nameof(_data.dept_id), "Sila pilih Jabatan dari senarai.");
+        }
+
+        if (_data.div_id == 0 || _data.div_id == null)
+        {
+            e.AddError(nameof(_data.div_id), "Sila pilih Seksyen dari senarai.");
         }
     }
 
@@ -282,21 +298,22 @@
             if (e.IsNew)
             {
                 response = await _UnitService.Add(editModel);
-                blnSuccess = true;
             }
             else
             {
                 response = await _UnitService.Update(editModel.unit_id, editModel);
-                blnSuccess = true;
             }
+            blnSuccess = response.ReturnCode == 200 ? true : false;
+
             if (blnSuccess)
             {
                 await UpdateDataAsync();
-                toastService.ShowInfo("Proses kemaskini selesai.");
+                HandleResponse("Proses kemaskini selesai.");
             }
             else
             {
-               toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+                // HandleResponse("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+                HandleResponse(response.ReturnMessage, "Error");
             }
         }
         catch (Exception ex)
@@ -368,16 +385,7 @@
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
-    void ShowToast(bool blnStatus, string strMessage)
-    {
-        ToastService.ShowToast(new ToastOptions()
-            {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = blnStatus ? ToastRenderStyle.Success : ToastRenderStyle.Danger,
-                Title = strMessage
-            });
-    }
+
      #region response   
     private void HandleResponse(string message, string? status = "Success")
     {
