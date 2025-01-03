@@ -70,7 +70,6 @@ builder.Services.AddTransient<UserRoleService>();
 builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<RoleMenuService>();
 builder.Services.AddTransient<NoticeService>();
-builder.Services.AddTransient<PBTAuthPermissionService>();
 builder.Services.AddTransient<FaqService>();
 builder.Services.AddTransient<ConfigFormFieldService>();
 builder.Services.AddTransient<DepartmentService>();
@@ -125,9 +124,10 @@ builder.Services.AddTransient<SessionDashboardStorage>();
 // commented due to conflict on deploment
 //builder.WebHost.UseStaticWebAssets();
 
-//ismail - for standard login - DUMMY
+//ismail - for standard login
 builder.Services.AddScoped<PBTAuthUserService>();
 builder.Services.AddScoped<PBTAuthStateProvider>();
+builder.Services.AddScoped<PBTAuthPermissionService>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<PBTAuthStateProvider>());
 
 //////builder.Services.AddScoped<AllocationUserService>();
