@@ -14,7 +14,6 @@
 
 @inject DepartmentService _department
 @inject NavigationManager NavigationManager
-@inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 
@@ -260,11 +259,11 @@
             if (blnSuccess)
             {
                 await UpdateDataAsync();
-                toastService.ShowInfo("Proses kemaskini selesai.");
+                //toastService.ShowInfo("Proses kemaskini selesai.");
             }
             else
             {
-                toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+                //toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
             }
         }
         catch (Exception ex)

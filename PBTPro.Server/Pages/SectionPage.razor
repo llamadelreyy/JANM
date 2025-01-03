@@ -69,13 +69,13 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((section_info)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((ref_division)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Jabatan" MinWidth="120" Width="15%" FieldName="dept_name" />
-            <DxGridDataColumn Caption="Kod" MinWidth="100" Width="13%" FieldName="section_code" />
-            <DxGridDataColumn Caption="Nama" MinWidth="250" Width="25%" FieldName="section_name" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="35%" FieldName="section_desc" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Kod" MinWidth="100" Width="13%" FieldName="div_code" />
+            <DxGridDataColumn Caption="Nama" MinWidth="250" Width="25%" FieldName="div_name" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="35%" FieldName="div_desc" TextAlignment="GridTextAlignment.Left" />
 
             <DxGridDataColumn FieldName="created_date"
                               DisplayFormat="dd/MM/yyyy"
@@ -93,7 +93,7 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtEdit = (section_info)EditFormContext.EditModel;
+                var dtEdit = (ref_division)EditFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
@@ -116,7 +116,7 @@
                             <td nowrap>Kod</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%">
-                                <DxTextBox @bind-Text="@dtEdit.section_code"
+                                <DxTextBox @bind-Text="@dtEdit.div_code"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                            BindValueMode="BindValueMode.OnInput"
                                            NullText="Masukkan kod unit ..."
@@ -133,7 +133,7 @@
                             <td nowrap>Nama</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-                                <DxTextBox @bind-Text="@dtEdit.section_name"
+                                <DxTextBox @bind-Text="@dtEdit.div_name"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                            BindValueMode="BindValueMode.OnInput"
                                            NullText="Masukkan nama unit ..."
@@ -146,7 +146,7 @@
                             <td nowrap>Keterangan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-                                <DxTextBox @bind-Text="@dtEdit.section_desc"
+                                <DxTextBox @bind-Text="@dtEdit.div_desc"
                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                            BindValueMode="BindValueMode.OnInput"
                                            NullText="Masukkan keterangan ..."
@@ -170,7 +170,7 @@
 
 
         <TotalSummary>
-            <DxGridSummaryItem FooterColumnName="section_code"
+            <DxGridSummaryItem FooterColumnName="div_code"
                                Name="Custom"
                                SummaryType=GridSummaryItemType.Count />
         </TotalSummary>
@@ -193,7 +193,7 @@
 
 @code {
     IEnumerable<department_info> dtDepartment;
-    IEnumerable<section_info> dataSource;
+    IEnumerable<ref_division> dataSource;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -201,7 +201,7 @@
 
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
-    section_info dtData { get; set; }
+    ref_division dtData { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -224,10 +224,10 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (section_info)e.EditModel;
-        if (_data.section_name == null || _data.section_name.Trim() == "")
+        var _data = (ref_division)e.EditModel;
+        if (_data.div_name == null || _data.div_name.Trim() == "")
         {
-            e.AddError(nameof(_data.section_name), "!!!!!!. Medan perlu diisi.");
+            e.AddError(nameof(_data.div_name), "!!!!!!. Medan perlu diisi.");
         }
     }
 
@@ -254,7 +254,7 @@
 
         ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
-        var editModel = e.EditModel as section_info;
+        var editModel = e.EditModel as ref_division;
         try
         {
             if (e.IsNew)
@@ -264,7 +264,7 @@
             }
             else
             {
-                response = await _SectionService.Update(editModel.section_id, editModel);
+                response = await _SectionService.Update(editModel.div_id, editModel);
                 blnSuccess = true;
             }
             if (blnSuccess)
@@ -294,9 +294,9 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(section_info item)
+    async Task Delete(ref_division item)
     {
-        strSelected = item.section_name;
+        strSelected = item.div_name;
         dtData = item;
         ConfirmationShown = true;
     }
@@ -306,7 +306,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _SectionService.Delete(dtData.section_id);
+            response = await _SectionService.Delete(dtData.div_id);
 
             if (response.ReturnCode == 200)
             {
@@ -345,17 +345,7 @@
         if (e.Item.Name == "Custom")
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
-
-    void ShowToast(bool blnStatus, string strMessage)
-    {
-        ToastService.ShowToast(new ToastOptions()
-            {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = blnStatus ? ToastRenderStyle.Success : ToastRenderStyle.Danger,
-                Title = strMessage
-            });
-    }
+    
 
     #region response
         private void HandleResponse(string message, string? status = "Success")

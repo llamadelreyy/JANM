@@ -46,7 +46,7 @@ namespace PBTPro.Data
 
         private string _baseReqURL = "/api/Unit";
         private string LoggerName = "";
-        private List<unit_info> _Unit { get; set; }
+        private List<ref_unit> _Unit { get; set; }
 
         public UnitService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<UnitService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
@@ -57,9 +57,9 @@ namespace PBTPro.Data
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
         [HttpGet]
-        public async Task<List<unit_info>> ListAll()
+        public async Task<List<ref_unit>> ListAll()
         {
-            var result = new List<unit_info>();
+            var result = new List<ref_unit>();
             string requestUrl = $"{_baseReqURL}/ListAll";
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
@@ -70,7 +70,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<unit_info>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_unit>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
                 }
@@ -82,15 +82,15 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<unit_info>();
+                result = new List<ref_unit>();
             }
             return result;
         }
 
         [HttpGet]
-        public async Task<List<unit_info>> Refresh()
+        public async Task<List<ref_unit>> Refresh()
         {
-            var result = new List<unit_info>();
+            var result = new List<ref_unit>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/ListAll";
@@ -101,7 +101,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<unit_info>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_unit>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
                 }
@@ -114,12 +114,12 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<unit_info>();
+                result = new List<ref_unit>();
             }
             return result;
         }
 
-        public async Task<ReturnViewModel> Add(unit_info inputModel)
+        public async Task<ReturnViewModel> Add(ref_unit inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -141,7 +141,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, unit_info inputModel)
+        public async Task<ReturnViewModel> Update(int id, ref_unit inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -149,7 +149,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/Update/{inputModel.section_id}";
+                string requestUrl = $"{_baseReqURL}/Update/{inputModel.div_id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
@@ -183,15 +183,15 @@ namespace PBTPro.Data
             return result;
         }
 
-        public Task<List<unit_info>> GetUnitAsync(CancellationToken ct = default)
+        public Task<List<ref_unit>> GetUnitAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk soalan lazim.", 1, LoggerName, "");
             return Task.FromResult(_Unit);
         }
 
-        public async Task<unit_info> ViewDetail(int id)
+        public async Task<ref_unit> ViewDetail(int id)
         {
-            var result = new unit_info();
+            var result = new ref_unit();
             try
             {
                 string requestquery = $"/{id}";
@@ -203,7 +203,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<unit_info>(dataString);
+                        result = JsonConvert.DeserializeObject<ref_unit>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci soalan lazim.", 1, LoggerName, "");
                 }
@@ -214,7 +214,7 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new unit_info();
+                result = new ref_unit();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;
