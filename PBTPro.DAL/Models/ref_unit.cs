@@ -54,4 +54,6 @@ public partial class ref_unit
     /// Logical delete flag indicating if the record is active or deleted.
     /// </summary>
     public bool? is_deleted { get; set; }
+
+    public int dept_id { get; set; }
 }
