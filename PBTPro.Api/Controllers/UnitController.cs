@@ -32,7 +32,7 @@ namespace PBTPro.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly IHubContext<PushDataHub> _hubContext;
         private string LoggerName = "administrator";
-        private readonly string _feature = "SEKSYEN";
+        private readonly string _feature = "UNIT";
 
         public UnitController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<UnitController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
         {
@@ -91,6 +91,10 @@ namespace PBTPro.Api.Controllers
                     unit_code = InputModel.unit_code,
                     unit_name = InputModel.unit_name,
                     unit_desc = InputModel.unit_desc,
+                    dept_id = InputModel.dept_id,
+                    dept_name = InputModel.dept_name,
+                    div_id = InputModel.div_id,
+                    div_name = InputModel.div_name,
                     is_deleted = false,
                     creator_id = runUserID,
                     created_at = DateTime.Now,
@@ -106,6 +110,10 @@ namespace PBTPro.Api.Controllers
                     unit_code = division_infos.unit_code,
                     unit_name = division_infos.unit_name,
                     unit_desc = division_infos.unit_desc,
+                    dept_id = division_infos.dept_id,
+                    dept_name = division_infos.dept_name,
+                    div_id = division_infos.div_id,
+                    div_name = division_infos.div_name,
                     is_deleted = division_infos.is_deleted,
                     created_at = division_infos.created_at
                 };
@@ -147,6 +155,10 @@ namespace PBTPro.Api.Controllers
                 formField.unit_code = InputModel.unit_code;
                 formField.unit_name = InputModel.unit_name;
                 formField.unit_desc = InputModel.unit_desc;
+                formField.dept_id = InputModel.dept_id;
+                formField.dept_name = InputModel.dept_name;
+                formField.div_id = InputModel.div_id;
+                formField.div_name = InputModel.div_name;
                 formField.is_deleted = InputModel.is_deleted;
 
                 formField.modifier_id = runUserID;

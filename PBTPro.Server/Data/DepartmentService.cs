@@ -58,7 +58,7 @@ namespace PBTPro.Data
         private string _baseReqURL = "/api/Department";
         private string LoggerName = "";
 
-        private List<department_info> _Department { get; set; }
+        private List<ref_department> _Department { get; set; }
 
         public DepartmentService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<DepartmentService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
@@ -72,16 +72,16 @@ namespace PBTPro.Data
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         }
 
-        public Task<List<department_info>> GetDepartmentAsync(CancellationToken ct = default)
+        public Task<List<ref_department>> GetDepartmentAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk jabatan.", 1, LoggerName, "");
             return Task.FromResult(_Department);
         }
 
         [HttpGet]
-        public async Task<List<department_info>> ListAll()
+        public async Task<List<ref_department>> ListAll()
         {
-            var result = new List<department_info>();
+            var result = new List<ref_department>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/ListAll";
@@ -92,7 +92,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<department_info>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_department>>(dataString);
                         await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai jabatan.", 1, LoggerName, "");
                     }
                 }
@@ -104,15 +104,15 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<department_info>();
+                result = new List<ref_department>();
             }
             return result;
         }
 
         [HttpGet]
-        public async Task<List<department_info>> Refresh()
+        public async Task<List<ref_department>> Refresh()
         {
-            var result = new List<department_info>();
+            var result = new List<ref_department>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/ListAll";
@@ -123,7 +123,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<department_info>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_department>>(dataString);
                         await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula dan papar senarai jabatan.", 1, LoggerName, "");
                     }
                 }
@@ -135,14 +135,14 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<department_info>();
+                result = new List<ref_department>();
             }
             return result;
         }
 
-        public async Task<department_info> ViewDetail(int id)
+        public async Task<ref_department> ViewDetail(int id)
         {
-            var result = new department_info();
+            var result = new ref_department();
             try
             {
                 string requestquery = $"/{id}";
@@ -154,7 +154,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<department_info>(dataString);
+                        result = JsonConvert.DeserializeObject<ref_department>(dataString);
                         await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya lihat maklumat terperinci data untuk jadual rondaan.", 1, LoggerName, "");
                     }
                 }
@@ -165,13 +165,13 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new department_info();
+                result = new ref_department();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;
         }
 
-        public async Task<ReturnViewModel> Add(department_info inputModel)
+        public async Task<ReturnViewModel> Add(ref_department inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -226,7 +226,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, department_info inputModel)
+        public async Task<ReturnViewModel> Update(int id, ref_department inputModel)
         {
             var result = new ReturnViewModel();
             try
