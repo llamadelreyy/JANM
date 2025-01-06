@@ -249,6 +249,30 @@
         }
     }
 
+    async Task<bool> CheckDuplicateRecord(ref_division model, bool isNew)
+    {
+
+        if (isNew)
+        {
+            var _dtAdd = dataSource.Where(x => x.dept_id == model.dept_id && x.div_code == model.div_code).FirstOrDefault();
+
+            if (_dtAdd != null)
+                return false;
+            else
+                return true;
+        }
+        else
+        {
+            var _dtEdit = dataSource.Where(x => x.dept_id == model.dept_id && x.div_id != model.div_id && x.div_code == model.div_code).FirstOrDefault();
+
+            if (_dtEdit != null)
+                return false;
+            else
+                return true;
+        }
+
+    }
+
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         // bool blnSuccess = false;
@@ -277,14 +301,28 @@
         {
             if (e.IsNew)
             {
-                response = await _SectionService.Add(editModel);
-                blnSuccess = true;
+                if (!await CheckDuplicateRecord(editModel, e.IsNew))
+                {
+                    response.ReturnCode = 500;
+                    response.ReturnMessage = "Ralat! Rekod telah wujud.";
+                }
+                else
+                    response = await _SectionService.Add(editModel);
             }
             else
             {
-                response = await _SectionService.Update(editModel.div_id, editModel);
-                blnSuccess = true;
+                if (!await CheckDuplicateRecord(editModel, e.IsNew))
+                {
+                    response.ReturnCode = 500;
+                    response.ReturnMessage = "Ralat! Rekod telah wujud.";
+                }
+                else
+                    response = await _SectionService.Update(editModel.div_id, editModel);
+
             }
+
+            blnSuccess = response.ReturnCode == 200 ? true : false;
+
             if (blnSuccess)
             {
                 await UpdateDataAsync();

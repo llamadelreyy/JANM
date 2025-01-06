@@ -124,7 +124,7 @@
                                 <DxComboBox Data="@SectionData"
                                             NullText="Pilih Seksyen ..."
                                             ShowValidationIcon="true"
-                                            FilteringMode="DataGridFilteringMode.Contains" s
+                                            FilteringMode="DataGridFilteringMode.Contains"
                                             @bind-Value="@dtEdit.div_id"
                                             @bind-Text="@dtEdit.div_name"
                                             TextFieldName="div_name"
@@ -267,6 +267,31 @@
         {
             e.AddError(nameof(_data.div_id), "Sila pilih Seksyen dari senarai.");
         }
+
+    }
+
+    async Task<bool> CheckDuplicateRecord(ref_unit model, bool isNew )
+    {
+
+        if (isNew)
+        {
+            var _dtAdd = dataSource.Where(x => x.dept_id == model.dept_id && x.div_id == model.div_id && x.unit_code == model.unit_code).FirstOrDefault();
+
+            if (_dtAdd != null)
+                return false;
+            else
+                return true;
+        }
+        else
+        {
+            var _dtEdit = dataSource.Where(x => x.dept_id == model.dept_id && x.div_id == model.div_id && x.unit_code == model.unit_code && x.unit_id != model.unit_id).FirstOrDefault();
+
+            if (_dtEdit != null)
+                return false;
+            else
+                return true;
+        }
+        
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
@@ -297,12 +322,25 @@
         {
             if (e.IsNew)
             {
-                response = await _UnitService.Add(editModel);
+                if (!await CheckDuplicateRecord(editModel, e.IsNew))
+                {
+                    response.ReturnCode = 500;
+                    response.ReturnMessage = "Ralat! Rekod telah wujud.";
+                }             
+                else
+                    response = await _UnitService.Add(editModel);
             }
             else
             {
-                response = await _UnitService.Update(editModel.unit_id, editModel);
+                if (!await CheckDuplicateRecord(editModel, e.IsNew))
+                {
+                    response.ReturnCode = 500;
+                    response.ReturnMessage = "Ralat! Rekod telah wujud.";
+                }
+                else
+                    response = await _UnitService.Update(editModel.unit_id, editModel);
             }
+
             blnSuccess = response.ReturnCode == 200 ? true : false;
 
             if (blnSuccess)
