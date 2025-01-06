@@ -86,6 +86,16 @@ namespace PBTPro.Api.Controllers
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
 
+                #region validation
+                var existingDepartment = await _dbContext.ref_departments
+                   .FirstOrDefaultAsync(d => d.dept_code == InputModel.dept_code && d.is_deleted == false);
+
+                if (existingDepartment != null)
+                {
+                    return BadRequest(SystemMesg("COMMON", "DUPLICATE_DEPT_CODE", MessageTypeEnum.Error, "The dept_code already exists."));
+                }
+                #endregion
+
                 #region store data
                 ref_department ref_department = new ref_department
                 {
@@ -128,7 +138,7 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.ref_departments.FirstOrDefaultAsync(x => x.dept_id == Id);
+                var formField = await _dbContext.ref_departments.FirstOrDefaultAsync(x => x.dept_id == InputModel.dept_id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
