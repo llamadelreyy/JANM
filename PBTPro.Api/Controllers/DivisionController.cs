@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -45,10 +46,30 @@ namespace PBTPro.Api.Controllers
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ref_division>>> ListAll()
-        {            
+        {
             try
             {
-                var data = await _dbContext.ref_divisions.AsNoTracking().ToListAsync();
+                var data = await (from division in _dbContext.ref_divisions
+                                  join dept in _dbContext.ref_departments
+                                  on division.dept_id equals dept.dept_id
+                                  select new
+                                  {
+                                      div_id = division.div_id,
+                                      dept_id = division.dept_id,
+                                      div_code = division.div_code,
+                                      div_name = division.div_name,
+                                      div_desc = division.div_desc,
+                                      created_at = division.created_at,
+                                      creator_id = division.creator_id,
+                                      dept_name = dept.dept_name,
+
+                                  }).ToListAsync();
+
+                if (data == null)
+                {
+                    var data1 = await _dbContext.ref_divisions.AsNoTracking().ToListAsync();
+                    return Ok(data1, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                }
 
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
@@ -87,7 +108,17 @@ namespace PBTPro.Api.Controllers
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
 
-                #region store data
+                #region validation
+                var existingDivision = await _dbContext.ref_divisions
+                   .FirstOrDefaultAsync(d => d.div_code == InputModel.div_code && d.dept_name == InputModel.dept_name && d.is_deleted == false);
+
+                if (existingDivision != null)
+                {
+                    return BadRequest(SystemMesg("COMMON", "DUPLICATE_DIV_CODE_DEPT_NAME", MessageTypeEnum.Error, "The div_code with the same dept_name already exists."));
+                }
+                #endregion
+
+                #region store data               
                 ref_division division_infos = new ref_division
                 {
                     div_code = InputModel.div_code,
@@ -117,6 +148,10 @@ namespace PBTPro.Api.Controllers
                 };
                 return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
             }
+            catch (PostgresException ex) when (ex.SqlState == "23505") // 23505 is the unique violation error code
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("The combination of div_code and dept_name already exists.")));// BadRequest("The combination of div_code and dept_name already exists.");
+            }
             catch (Exception ex)
             {
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
@@ -133,7 +168,7 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.ref_divisions.FirstOrDefaultAsync(x => x.div_id == Id);
+                var formField = await _dbContext.ref_divisions.FirstOrDefaultAsync(x => x.div_id == InputModel.div_id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
@@ -147,7 +182,7 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "DIV_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Jabatan diperlukan")));
                 }
-                
+
                 #endregion
 
                 formField.div_code = InputModel.div_code;
@@ -161,7 +196,7 @@ namespace PBTPro.Api.Controllers
 
                 _dbContext.ref_divisions.Update(formField);
                 await _dbContext.SaveChangesAsync();
-                
+
                 return Ok(formField, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
             catch (Exception ex)
@@ -200,7 +235,7 @@ namespace PBTPro.Api.Controllers
         private bool DivisionExists(int id)
         {
             return (_dbContext.ref_divisions?.Any(e => e.div_id == id)).GetValueOrDefault();
-        }        
+        }
 
     }
 }

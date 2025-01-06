@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.GeometriesGraph;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -47,7 +48,32 @@ namespace PBTPro.Api.Controllers
         {            
             try
             {
-                var data = await _dbContext.ref_units.AsNoTracking().ToListAsync();
+                var data = await (from unit in _dbContext.ref_units
+                                  join dept in _dbContext.ref_departments
+                                  on unit.dept_id equals dept.dept_id
+                                  join div in _dbContext.ref_divisions
+                                  on unit.div_id equals div.div_id
+                                  select new
+                                  {
+                                      unit_id = unit.unit_id,
+                                      dept_id = unit.dept_id,
+                                      unit_code = unit.unit_code,
+                                      unit_name = unit.unit_name,
+                                      unit_desc = unit.unit_desc,
+                                      created_at = unit.created_at,
+                                      creator_id = unit.creator_id,
+                                      dept_name = dept.dept_name,
+                                      div_name = div.div_name,
+                                      div_id = div.div_id
+
+                                  }).ToListAsync();
+
+                if (data == null)
+                {
+                    var data1 = await _dbContext.ref_units.AsNoTracking().ToListAsync();
+                    return Ok(data1, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                }
+
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -84,6 +110,16 @@ namespace PBTPro.Api.Controllers
             {
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
+
+                #region validation
+                var existingUnit = await _dbContext.ref_units
+                   .FirstOrDefaultAsync(d => d.unit_code == InputModel.unit_code && d.dept_name == InputModel.dept_name && d.div_name == InputModel.div_name && d.is_deleted == false);
+
+                if (existingUnit != null)
+                {
+                    return Error("",SystemMesg("COMMON", "DUPLICATE_UNIT_CODE_DIV_NAME_DEPT_NAME", MessageTypeEnum.Error, "The unit_code with the same dept_name already exists."));
+                }
+                #endregion
 
                 #region store data
                 ref_unit division_infos = new ref_unit
@@ -135,7 +171,7 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.ref_units.FirstOrDefaultAsync(x => x.unit_id == Id);
+                var formField = await _dbContext.ref_units.FirstOrDefaultAsync(x => x.unit_id == InputModel.unit_id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
