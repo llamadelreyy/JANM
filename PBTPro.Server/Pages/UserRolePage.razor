@@ -1,12 +1,13 @@
 ﻿@page "/user_role"
 @attribute [AllowAnonymous]
 
-@using PBTPro.Data
-@using PBTPro.DAL.Models
+@implements IDisposable
+
 @inject RoleService _RoleService
 @inject UserRoleService _UserRoleService
 @inject UserService _UserService
 @inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastService
 
 <style>
     .dxbl-grid {
@@ -41,6 +42,7 @@
             PagerPosition="GridPagerPosition.Bottom"
             PagerNavigationMode="PagerNavigationMode.InputBox"
             EditModelSaving="Grid_EditModelSaving"
+            CustomizeEditModel="OnCustomizeEditModel"
             EditFormButtonsVisible="false"
             PageSizeSelectorVisible="true"
             PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
@@ -83,28 +85,6 @@
         <EditFormTemplate Context="EditFormContext">
             @{
                 var dtUserRole = (user_role)EditFormContext.EditModel;
-                // // valueRole = GetUserRole(dtData);
-
-                //For edit need to get all the role belong to selected user
-                List<system_role> arrItem = new List<system_role>();
-                system_role _item;
-
-                //Loop the main data to get all the role for selected user
-                @foreach (var item in dataSource)
-                {
-                    if (dtUserRole.user_id == item.user_id)
-                    {
-                        _item = new system_role();
-                        _item.role_id = item.role_id;
-                        _item.role_name = item.role_name;
-                        _item.role_desc = item.role_desc;
-                        _item.role_select = true;
-                        _item.created_date = item.created_date;
-                        arrItem.Add(_item);
-                    }
-                }
-
-                valueRole = arrItem;
 
                 // This is to check whether in add new @ edit mode
                 boolLockDropDown = Grid.IsEditingNewRow();
@@ -125,6 +105,7 @@
                                             TextFieldName="@nameof(system_user.Text)"
                                             ValueFieldName="user_id"
                                             CssClass="combo-width"
+                                            SelectedItemChanged="@((system_user x) => SelectedItemChanged(x))"
                                             DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
                                             @bind-Value="@dtUserRole.user_id">
                                 </DxComboBox>
@@ -138,18 +119,11 @@
                             <td nowrap>Peranan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-@*                                  <DxListBox Data="@dataRole"
-                                           TextFieldName="@nameof(system_role.Text)"
-                                           ValueFieldName="@nameof(system_role.role_id)"
-                                           SelectionMode="ListBoxSelectionMode.Multiple"
-                                           ShowCheckboxes="true"
-                                           Enabled="true"
-                                           @bind-Values="@valueRole">
-                                </DxListBox> *@
 
                                 <div class="multiselect">
                                     <div id="checkboxes">
                                         @{
+                                            //Select back the role for selected user
                                             foreach (var item in dataRole)
                                             {
                                                 bool blnSelected = false;
@@ -157,38 +131,25 @@
                                                 {
                                                     if (item.role_id == value.role_id)
                                                     {
-                                                        blnSelected = true;
-                                                        item.role_select = true;
+                                                        blnSelected = value.role_select; // true;
+                                                        item.role_select = value.role_select;  //true;
                                                     }
                                                 }
 
-                                                if (blnSelected)
-                                                {
-                                                    <div>
-                                                        <label class="multiselect-container" for="@item.role_id">
-                                                            @item.role_name (@item.role_desc)
-                                                            <input type="checkbox" class="check_role" id="@item.role_id" checked="checked" @onchange="@((e) => CheckboxChanged(e, item.role_id))" />                                                          
-                                                            <span class="checkmark"></span>
-                                                        </label>
-                                                    </div>
-                                                }
-                                                else
-                                                {
-                                                    <div>
-                                                        <label class="multiselect-container" for="@item.role_id">
-                                                            @item.role_name (@item.role_desc)
-                                                            <input type="checkbox" class="check_role" id="@item.role_id" @onchange="@((e) => CheckboxChanged(e, item.role_id))" />                                                           
-                                                            <span class="checkmark"></span>
-                                                        </label>
-                                                    </div>
-                                                }
+
+                                                <div>
+                                                    <label class="multiselect-container" for="@item.role_id">
+                                                        @item.role_name (@item.role_desc)
+                                                        <input type="checkbox" class="check_role" id="@item.role_id" checked="@(blnSelected ? true : false)" @onchange="@((e) => CheckboxChanged(e, item.role_id))" />
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </div>
+       
 
                                             }
                                         }
                                     </div>
                                 </div>
-
-
                             </td>
                         </tr>
                     </table>
@@ -213,14 +174,6 @@
 
     </DxGrid>
 
-    @*
-    <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
-    <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
-    <DxButton Text="Export XLS" Click="ExportXls_Click" />
-    <DxButton Text="Export CSV" Click="ExportCsv_Click" />
-    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
-    *@
-
 </div>
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
@@ -238,11 +191,11 @@
 
 
 @code {
-    [Inject] IToastNotificationService ToastService { get; set; }
     IEnumerable<user_role> dataSource;
     IEnumerable<system_user> dataUser;
     IEnumerable<system_role> dataRole;
     IEnumerable<system_role> valueRole;
+    
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -254,7 +207,6 @@
     string strSelected { get; set; }
 
     user_role dtData { get; set; }
-
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
@@ -274,6 +226,75 @@
         {
             i.role_select = (bool)e.Value;
         }
+
+        //Clear the selection
+        foreach (var item in valueRole)
+        {
+            if (item.role_id == key)
+                item.role_select = (bool)e.Value;
+        }
+
+    }
+
+
+    void SelectedItemChanged(system_user x)
+    {
+
+        if (x != null)
+        {
+            List<system_role> arrItem = new List<system_role>();
+            system_role _item;
+
+            //Loop the main data to get all the role for selected user
+            @foreach (var item in dataSource)
+            {
+                if (x.user_id == item.user_id)
+                {
+                    _item = new system_role();
+                    _item.role_id = item.role_id;
+                    _item.role_name = item.role_name;
+                    _item.role_desc = item.role_desc;
+                    _item.role_select = true;
+                    _item.created_date = item.created_date;
+                    arrItem.Add(_item);
+
+                    //Mark that role is selected
+                    foreach (var _role in dataRole)
+                    {
+                        if (_role.role_id == item.role_id)
+                            _role.role_select = true;
+                    }
+                }
+            }
+
+            valueRole = arrItem;
+        }
+
+    }
+
+    void OnCustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        var dtUserRole = (user_role)e.EditModel;
+
+        List<system_role> arrItem = new List<system_role>();
+        system_role _item;
+
+        //Loop the main data to get all the role for selected user
+        @foreach (var item in dataSource)
+        {
+            if (dtUserRole.user_id == item.user_id)
+            {
+                _item = new system_role();
+                _item.role_id = item.role_id;
+                _item.role_name = item.role_name;
+                _item.role_desc = item.role_desc;
+                _item.role_select = true;
+                _item.created_date = item.created_date;
+                arrItem.Add(_item);
+            }
+        }
+
+        valueRole = arrItem;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -288,38 +309,62 @@
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
         var _data = (user_role)e.EditModel;
-        if (_data.role_desc == null || _data.role_desc.Trim() == "")
+        if (_data.user_id == 0)
         {
-            e.AddError(nameof(_data.role_desc), "!!!!!!. Medan perlu diisi.");
+            e.AddError(nameof(_data.user_id), "Sila pilih pengguna dari senarai.");
         }
+
+        int intCountRole = 0;
+        foreach (var item in dataRole)
+        {
+            if (item.role_select)
+                intCountRole++;
+        }
+
+        if (intCountRole == 0)
+        {
+            e.AddError(nameof(_data.user_id), "Sila pilih peranan bagi pengguna.");
+        }
+
+
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
-        bool blnSuccess = false;
-        string strMessage = "";
-        //update selected user_id dgn selected role id
-        foreach (var item in dataRole)
-        {
+        ReturnViewModel response = new ReturnViewModel();
+        var editModel = e.EditModel as user_role;
 
+        //update selected user_id with selected role id
+        List<user_role> saveUserRole = new List<user_role>();
+        user_role _item;
+
+        //Loop the main data to get all the role for selected user
+        @foreach (var item in dataRole)
+        {
+            if (item.role_select == true)
+            {
+                _item = new user_role();
+                _item.role_id = item.role_id;
+                _item.role_name = item.role_name;
+                _item.role_desc = item.role_desc;
+                _item.user_id = editModel.user_id;
+                saveUserRole.Add(_item);
+            }
         }
 
-        if (e.IsNew)
+        //Insert user with role
+        // response = await _UserRoleService.SaveUserRole(saveUserRole);
+
+        if (response.ReturnCode == 200)
         {
-            // var jsonString = JsonConvert.SerializeObject((section_info)e.EditModel);
-            // blnSuccess = await _SectionService.AddSection(jsonString) > 0 ? true : false;
-            // strMessage = "Proses tambah rekod selesai.";
+            await UpdateDataAsync();
+            HandleResponse("Proses kemaskini selesai.");
         }
         else
         {
-            // blnSuccess = await _SectionService.UpdateSection((section_info)e.EditModel) > 0 ? true : false;
-            // strMessage = "Proses kemaskini selesai.";
+            HandleResponse(response.ReturnMessage, "Error");
         }
 
-        if (blnSuccess)
-            await UpdateDataAsync();
-
-        ShowToast(blnSuccess, blnSuccess ? strMessage : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
     }
 
     async Task UpdateDataAsync()
@@ -342,14 +387,28 @@
 
     async void OnYesButtonClick()
     {
-        bool blnSuccess = false;
-        if (dtData != null)
+        try
         {
-            //blnSuccess = await _UserRoleService.RemoveUserRoleAsync((user_role)dtData);
-            //if (blnSuccess) await UpdateDataAsync();
+            ReturnViewModel response = new ReturnViewModel();
+            // response = await _UserRoleService.Delete(dtData.user_id, dtData.role_id);
+
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                ConfirmationShown = false;
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                ConfirmationShown = false;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
         }
-        ConfirmationShown = false;
-        ShowToast(blnSuccess, blnSuccess ? "Proses hapus selesai" : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while delete the edit model: {ex.Message}");
+        }
     }
 
     void OnNoButtonClick()
@@ -363,14 +422,29 @@
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
-    void ShowToast(bool blnStatus, string strMessage)
+    private void HandleResponse(string message, string? status = "Success")
     {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
         ToastService.ShowToast(new ToastOptions()
             {
                 ProviderName = "Overview",
                 ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = blnStatus ? ToastRenderStyle.Success : ToastRenderStyle.Danger,
-                Title = strMessage
+                RenderStyle = RenderStyle,
+                Title = message
             });
     }
 }

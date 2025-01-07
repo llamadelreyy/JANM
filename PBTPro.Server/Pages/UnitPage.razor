@@ -1,14 +1,7 @@
 ﻿@page "/unit"
 @attribute [AllowAnonymous]
 
-@using System.Globalization
-@using Blazored.Toast.Services
-@using Newtonsoft.Json
-@using System.ComponentModel
-@using PBTPro.DAL.Models;
-@using PBTPro.DAL.Services
-@using PBTPro.Data
-@using PBTPro.DAL.Models.CommonServices
+@implements IDisposable
 
 @inject UnitService _UnitService
 @inject DepartmentService _DepartmentService
@@ -16,7 +9,6 @@
 @inject NavigationManager NavigationManager
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
-@inject IToastService toastService
 
 <style>
     .dxbl-grid {
@@ -268,82 +260,39 @@
             e.AddError(nameof(_data.div_id), "Sila pilih Seksyen dari senarai.");
         }
 
-    }
-
-    async Task<bool> CheckDuplicateRecord(ref_unit model, bool isNew )
-    {
-
-        if (isNew)
+        if (Grid.IsEditingNewRow())
         {
-            var _dtAdd = dataSource.Where(x => x.dept_id == model.dept_id && x.div_id == model.div_id && x.unit_code == model.unit_code).FirstOrDefault();
+            var _dtAdd = dataSource.Where(x => x.dept_id == _data.dept_id && x.div_id == _data.div_id && x.unit_code == _data.unit_code).FirstOrDefault();
 
             if (_dtAdd != null)
-                return false;
-            else
-                return true;
+                e.AddError(nameof(_data.unit_code), "Kod unit telah wujud.");
         }
         else
         {
-            var _dtEdit = dataSource.Where(x => x.dept_id == model.dept_id && x.div_id == model.div_id && x.unit_code == model.unit_code && x.unit_id != model.unit_id).FirstOrDefault();
+            var _dtEdit = dataSource.Where(x => x.dept_id == _data.dept_id && x.div_id == _data.div_id && x.unit_code == _data.unit_code && x.unit_id != _data.unit_id).FirstOrDefault();
 
             if (_dtEdit != null)
-                return false;
-            else
-                return true;
+                e.AddError(nameof(_data.unit_code), "Kod unit telah wujud.");
         }
-        
+
+
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
-        // bool blnSuccess = false;
-        // string strMessage = "";
-        // if (e.IsNew)
-        // {
-        //     var jsonString = JsonConvert.SerializeObject((unit_info)e.EditModel);
-        //     blnSuccess = await _UnitService.Add(jsonString) > 0 ? true : false;
-        //     strMessage = "Proses tambah rekod selesai.";
-        // }
-        // else
-        // {
-        //     blnSuccess = await _UnitService.Update((unit_info)e.EditModel) > 0 ? true : false;
-        //     strMessage = "Proses kemaskini selesai.";
-        // }
-
-        // if (blnSuccess)
-        //     await UpdateDataAsync();
-
-        // ShowToast(blnSuccess, blnSuccess ? strMessage : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
 
         ReturnViewModel response = new ReturnViewModel();
-        bool blnSuccess = false;
         var editModel = e.EditModel as ref_unit;
+
         try
         {
             if (e.IsNew)
-            {
-                if (!await CheckDuplicateRecord(editModel, e.IsNew))
-                {
-                    response.ReturnCode = 500;
-                    response.ReturnMessage = "Ralat! Rekod telah wujud.";
-                }             
-                else
-                    response = await _UnitService.Add(editModel);
-            }
+                response = await _UnitService.Add(editModel);
             else
-            {
-                if (!await CheckDuplicateRecord(editModel, e.IsNew))
-                {
-                    response.ReturnCode = 500;
-                    response.ReturnMessage = "Ralat! Rekod telah wujud.";
-                }
-                else
-                    response = await _UnitService.Update(editModel.unit_id, editModel);
-            }
+                response = await _UnitService.Update(editModel.unit_id, editModel);
 
-            blnSuccess = response.ReturnCode == 200 ? true : false;
 
-            if (blnSuccess)
+            if (response.ReturnCode == 200)
             {
                 await UpdateDataAsync();
                 HandleResponse("Proses kemaskini selesai.");

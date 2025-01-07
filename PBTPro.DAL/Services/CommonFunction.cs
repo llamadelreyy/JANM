@@ -300,8 +300,11 @@ namespace PBTPro.DAL.Services
                 }
                 else
                 {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"API request failed with status code {response.StatusCode}: {errorContent}");
+                    //================================== Comment For Testing - Azmee =====================================
+                    //////var errorContent = await response.Content.ReadAsStringAsync();
+                    //////throw new Exception($"API request failed with status code {response.StatusCode}: {errorContent}");
+                    return result;
+                    //====================================================================================================
                 }
             }
             catch (Exception ex)

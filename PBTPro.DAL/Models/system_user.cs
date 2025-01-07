@@ -17,8 +17,8 @@ namespace PBTPro.DAL.Models
         public string Text => $"{user_name} ({full_name})";
         public int dept_id { get; set; }
         public string dept_name { get; set; }
-        public int section_id { get; set; }
-        public string section_name { get; set; }
+        public int div_id { get; set; }
+        public string div_name { get; set; }
         public int unit_id { get; set; }
         public string unit_name { get; set; }
         public DateTime? created_date { get; set; }
