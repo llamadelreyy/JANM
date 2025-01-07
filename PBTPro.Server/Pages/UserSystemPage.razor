@@ -65,7 +65,7 @@
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Jabatan" MinWidth="100" Width="12%" FieldName="dept_name" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn Caption="Seksyen" MinWidth="120" Width="13%" FieldName="section_name" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Seksyen" MinWidth="120" Width="13%" FieldName="div_name" TextAlignment="GridTextAlignment.Left" />
             <DxGridDataColumn Caption="Unit" MinWidth="120" Width="12%" FieldName="unit_name" TextAlignment="GridTextAlignment.Left" />
             <DxGridDataColumn Caption="Id Pengguna" MinWidth="100" Width="10%" FieldName="user_name" />
             <DxGridDataColumn Caption="Nama Penuh" MinWidth="150" Width="20%" FieldName="full_name" TextAlignment="GridTextAlignment.Left" />
@@ -175,10 +175,10 @@
                                 <DxComboBox Data="@_dtSection"
                                             NullText="Pilih Seksyen ..."
                                             ShowValidationIcon="true"
-                                            FilteringMode="DataGridFilteringMode.Contains" s
-                                            @bind-Value="@dtEdit.section_id"
-                                            TextFieldName="section_name"
-                                            ValueFieldName="section_id">
+                                            FilteringMode="DataGridFilteringMode.Contains"
+                                            @bind-Value="@dtEdit.div_id"
+                                            TextFieldName="div_code_name"
+                                            ValueFieldName="div_id">
                                 </DxComboBox>
                             </td>
                         </tr>
@@ -187,14 +187,14 @@
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
                                 @{
-                                    var _dtUnit = dtUnit.Where(x => x.dept_id == dtEdit.dept_id && x.div_id  == dtEdit.section_id);
+                                    var _dtUnit = dtUnit.Where(x => x.dept_id == dtEdit.dept_id && x.div_id == dtEdit.div_id);
                                 }
                                 <DxComboBox Data="@_dtUnit"
                                             NullText="Pilih Unit ..."
                                             ShowValidationIcon="true"
-                                            FilteringMode="DataGridFilteringMode.Contains" s
+                                            FilteringMode="DataGridFilteringMode.Contains"
                                             @bind-Value="@dtEdit.unit_id"
-                                            TextFieldName="unit_name"
+                                            TextFieldName="unit_code_name"
                                             ValueFieldName="unit_id">
                                 </DxComboBox>
                             </td>
@@ -343,9 +343,9 @@
             e.AddError(nameof(_data.dept_id), "Sila pilih Jabatan dari senarai.");
         }
 
-        if (_data.section_id == 0)
+        if (_data.div_id == 0)
         {
-            e.AddError(nameof(_data.section_id), "Sila pilih Seksyen dari senarai.");
+            e.AddError(nameof(_data.div_id), "Sila pilih Seksyen dari senarai.");
         }
 
         if (_data.unit_id == 0)

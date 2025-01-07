@@ -26,6 +26,8 @@ public partial class ref_unit
     /// </summary>
     public string unit_name { get; set; } = null!;
 
+    public string unit_code_name => $"{unit_code} - {unit_name}";
+
     /// <summary>
     /// Description about the unit (e.g., Roles, Job Description, etc.).
     /// </summary>

@@ -23,6 +23,8 @@ public partial class ref_department
     /// </summary>
     public string dept_name { get; set; } = null!;
 
+    public string dept_code_name => $"{dept_code} - {dept_name}";
+
     /// <summary>
     /// Description about the department (e.g., Roles, Job Description, etc.).
     /// </summary>

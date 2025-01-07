@@ -3,19 +3,9 @@
 
 @implements IDisposable
 
-@using System.Globalization
-@using Blazored.Toast.Services
-@using Newtonsoft.Json
-@using System.ComponentModel
-@using PBTPro.DAL.Models;
-@using PBTPro.DAL.Services
-@using PBTPro.Data
-@using PBTPro.DAL.Models.CommonServices
-
 @inject DepartmentService _DepartmentService
 @inject SectionService _SectionService
 @inject NavigationManager NavigationManager
-@inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 
@@ -247,83 +237,39 @@
         {
             e.AddError(nameof(_data.dept_id), "Sila pilih Jabatan dari senarai.");
         }
-    }
 
-    async Task<bool> CheckDuplicateRecord(ref_division model, bool isNew)
-    {
-
-        if (isNew)
+        if (Grid.IsEditingNewRow())
         {
-            var _dtAdd = dataSource.Where(x => x.dept_id == model.dept_id && x.div_code == model.div_code).FirstOrDefault();
+            var _dtAdd = dataSource.Where(x => x.dept_id == _data.dept_id && x.div_code == _data.div_code).FirstOrDefault();
 
             if (_dtAdd != null)
-                return false;
-            else
-                return true;
+                e.AddError(nameof(_data.div_code), "Kod Seksyen telah wujud.");
         }
         else
         {
-            var _dtEdit = dataSource.Where(x => x.dept_id == model.dept_id && x.div_id != model.div_id && x.div_code == model.div_code).FirstOrDefault();
+            var _dtEdit = dataSource.Where(x => x.dept_id == _data.dept_id && x.div_id != _data.div_id && x.div_code == _data.div_code).FirstOrDefault();
 
             if (_dtEdit != null)
-                return false;
-            else
-                return true;
+                e.AddError(nameof(_data.div_code), "Kod Seksyen telah wujud.");
         }
 
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
-        // bool blnSuccess = false;
-        // string strMessage = "";
-        // if (e.IsNew)
-        // {
-        //     var jsonString = JsonConvert.SerializeObject((section_info)e.EditModel);
-        //     blnSuccess = await _SectionService.Add(jsonString) > 0 ? true : false;
-        //     strMessage = "Proses tambah rekod selesai.";
-        // }
-        // else
-        // {
-        //     blnSuccess = await _SectionService.Update((section_info)e.EditModel) > 0 ? true : false;
-        //     strMessage = "Proses kemaskini selesai.";
-        // }
-
-        // if (blnSuccess)
-        //     await UpdateDataAsync();
-
-        // ShowToast(blnSuccess, blnSuccess ? strMessage : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
 
         ReturnViewModel response = new ReturnViewModel();
-        bool blnSuccess = false;
         var editModel = e.EditModel as ref_division;
+
         try
         {
             if (e.IsNew)
-            {
-                if (!await CheckDuplicateRecord(editModel, e.IsNew))
-                {
-                    response.ReturnCode = 500;
-                    response.ReturnMessage = "Ralat! Rekod telah wujud.";
-                }
-                else
-                    response = await _SectionService.Add(editModel);
-            }
+                response = await _SectionService.Add(editModel);
             else
-            {
-                if (!await CheckDuplicateRecord(editModel, e.IsNew))
-                {
-                    response.ReturnCode = 500;
-                    response.ReturnMessage = "Ralat! Rekod telah wujud.";
-                }
-                else
-                    response = await _SectionService.Update(editModel.div_id, editModel);
+                response = await _SectionService.Update(editModel.div_id, editModel);
 
-            }
 
-            blnSuccess = response.ReturnCode == 200 ? true : false;
-
-            if (blnSuccess)
+            if (response.ReturnCode == 200)
             {
                 await UpdateDataAsync();
                 HandleResponse("Proses kemaskini selesai.");
@@ -379,16 +325,8 @@
         }
         catch (Exception ex)
         {
+            Console.Error.WriteLine($"An error occurred while delete the edit model: {ex.Message}");
         }
-        // bool blnSuccess = false;
-        // if (dtData != null)
-        // {
-        //     blnSuccess = await _SectionService.Delete(dtData.section_id);
-        //     if (blnSuccess) await UpdateDataAsync();
-        // }
-
-        // ConfirmationShown = false;
-        // ShowToast(blnSuccess, blnSuccess ? "Proses hapus selesai" : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
     }
 
     void OnNoButtonClick()

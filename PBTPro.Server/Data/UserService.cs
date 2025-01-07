@@ -90,8 +90,8 @@ namespace PBTPro.Data
                         user_email = "john_doe@gmail.com",
                         dept_id = 1,
                         dept_name = "Jabatan Penilaian",
-                        section_id = 1,
-                        section_name =  "Harta dan Pusaka",
+                        div_id = 1,
+                        div_name =  "Harta dan Pusaka",
                         unit_id = 1,
                         unit_name = "Unit 001",
                         created_date = DateTime.Parse("2024/01/05")
@@ -105,8 +105,8 @@ namespace PBTPro.Data
                         user_email = "azman610@gmail.com",
                         dept_id = 1,
                         dept_name = "Jabatan Penilaian",
-                        section_id = 1,
-                        section_name =  "Harta dan Pusaka",
+                        div_id = 1,
+                        div_name =  "Harta dan Pusaka",
                         unit_id = 1,
                         unit_name = "Unit 001",
                         created_date = DateTime.Parse("2023/03/10")

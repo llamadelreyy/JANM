@@ -1,10 +1,11 @@
 ﻿@page "/role"
 @attribute [AllowAnonymous]
 
-@using PBTPro.Data
-@using PBTPro.DAL.Models
+@implements IDisposable
+
 @inject RoleService _RoleService
 @inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastService
 
 <style>
     .dxbl-grid {
@@ -55,8 +56,14 @@
                     <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
                 </HeaderTemplate>
                 <CellDisplayTemplate>
-                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((system_role)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    @{
+                        var intRoleID = ((system_role)context.DataItem).role_id;
+                        if ((intRoleID != 1) && (intRoleID != 2))
+                        {
+                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                            <a @onclick="@(() => Delete((system_role)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                        }
+                    }
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" FieldName="role_name" />
@@ -150,9 +157,7 @@
 
 
 @code {
-    [Inject] IToastNotificationService ToastService { get; set; }
     IEnumerable<system_role> dataSource;
-
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -186,38 +191,50 @@
         {
             e.AddError(nameof(_data.role_name), "Medan Peranan perlu diisi.");
         }
+
+
+        if (Grid.IsEditingNewRow())
+        {
+            var _dtAdd = dataSource.Where(x => x.role_name == _data.role_name).FirstOrDefault();
+
+            if (_dtAdd != null)
+                e.AddError(nameof(_data.role_name), "Nama peranan telah wujud.");
+        }
+        else
+        {
+            var _dtEdit = dataSource.Where(x => x.role_id != _data.role_id && x.role_name == _data.role_name).FirstOrDefault();
+
+            if (_dtEdit != null)
+                e.AddError(nameof(_data.role_name), "Nama peranan telah wujud.");
+        }
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
-        bool blnSuccess = false;
-        if (e.IsNew)
-            blnSuccess = true; //await _RoleService.InsertUserRoleAsync((system_role)e.EditModel, intCurrentUserId);
-        else
-            blnSuccess = true; //await _RoleService.UpdateUserRoleAsync((system_role)e.EditModel, intCurrentUserId);
-
-        if (blnSuccess)
+        ReturnViewModel response = new ReturnViewModel();
+        var editModel = e.EditModel as system_role;
+        try
         {
-            await UpdateDataAsync();
+            // if (e.IsNew)
+                // response = await _RoleService.Add(editModel);
+            // else
+                // response = await _RoleService.Update(editModel.role_id, editModel);
 
-            ToastService.ShowToast(new ToastOptions()
+            if (response.ReturnCode == 200)
             {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = ToastRenderStyle.Success,
-                Title = "Proses kemaskini selesai."
-            });
+                await UpdateDataAsync();
+                HandleResponse("Proses kemaskini selesai.");
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            ToastService.ShowToast(new ToastOptions()
-            {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = ToastRenderStyle.Danger,
-                Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
-            });
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
+
     }
 
     async Task UpdateDataAsync()
@@ -240,19 +257,28 @@
 
     async void OnYesButtonClick()
     {
-        if (dtData != null)
+        try
         {
-            //await _RoleService.RemoveRoleAsync((system_role)dtData);
-            //await UpdateDataAsync();
+            ReturnViewModel response = new ReturnViewModel();
+            // response = await _RoleService.Delete(dtData.role_id);
+
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                ConfirmationShown = false;
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                ConfirmationShown = false;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
         }
-        ConfirmationShown = false;
-        ToastService.ShowToast(new ToastOptions()
+        catch (Exception ex)
         {
-            ProviderName = "Overview",
-            ThemeMode = ToastThemeMode.Saturated,
-            RenderStyle = ToastRenderStyle.Success,
-            Title = "Proses hapus selesai."
-        });
+            Console.Error.WriteLine($"An error occurred while delete the edit model: {ex.Message}");
+        }
     }
 
     void OnNoButtonClick()
@@ -264,6 +290,32 @@
     {
         if (e.Item.Name == "Custom")
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
     }
 
 }
