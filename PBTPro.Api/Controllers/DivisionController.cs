@@ -114,7 +114,7 @@ namespace PBTPro.Api.Controllers
 
                 if (existingDivision != null)
                 {
-                    return BadRequest(SystemMesg("COMMON", "DUPLICATE_DIV_CODE_DEPT_NAME", MessageTypeEnum.Error, "The div_code with the same dept_name already exists."));
+                    return Error("",SystemMesg("COMMON", "DUPLICATE_DIV_CODE_DEPT_NAME", MessageTypeEnum.Error, "The div_code with the same dept_name already exists."));
                 }
                 #endregion
 

@@ -121,6 +121,13 @@ namespace PBTPro.DAL
                 entity.Property(u => u.VerificationCode).HasColumnName("verification_code");
                 entity.Property(u => u.UserStatusId).HasColumnName("user_status_id");
                 entity.Property(u => u.IsDeleted).HasColumnName("is_deleted");
+                entity.Property(u => u.dept_id).HasColumnName("dept_id");
+                entity.Property(u => u.dept_name).HasColumnName("dept_name");
+                entity.Property(u => u.div_id).HasColumnName("div_id");
+                entity.Property(u => u.div_name).HasColumnName("div_name");
+                entity.Property(u => u.unit_id).HasColumnName("unit_id");
+                entity.Property(u => u.unit_name).HasColumnName("unit_name");
+                entity.Property(u => u.full_name).HasColumnName("full_name");
 
                 // Auditing fields
                 entity.Property(e => e.CreatedAt)
