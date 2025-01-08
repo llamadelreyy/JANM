@@ -556,6 +556,9 @@ namespace PBTPro.Api.Controllers
                     SecurityStamp = Guid.NewGuid().ToString(),
                     UserName = model.UserName.ToLower(),
                     EmailConfirmed = true,
+
+                    ModifiedAt = DateTime.Now,
+                    ModifierId = runUserID
                 };
 
                 _dbContext.Users.Add(au);
@@ -578,6 +581,8 @@ namespace PBTPro.Api.Controllers
                     IsDeleted = false,
                     CreatorId = runUserID,
                     CreatedAt = DateTime.Now,
+                    odifiedAt = DateTime.Now,
+                    ModifierId = runUserID
                 };
                 return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
             }
@@ -629,7 +634,6 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-
                 #region Validation
                 var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == Id);
                 if (users == null)
@@ -668,8 +672,6 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-
         #endregion
-
     }
 }
