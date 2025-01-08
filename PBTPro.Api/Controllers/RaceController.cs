@@ -123,7 +123,7 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.ref_races.FirstOrDefaultAsync(x => x.race_id == Id);
+                var formField = await _dbContext.ref_races.FirstOrDefaultAsync(x => x.race_id == InputModel.race_id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));

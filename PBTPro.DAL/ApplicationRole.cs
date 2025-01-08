@@ -16,13 +16,25 @@ namespace PBTPro.DAL
 {
     public class ApplicationRole : IdentityRole<int>
     {
+        //role_id
+        public int Id { get; set; }
+        //role_name
+        public string Name { get; set; }
+        //role_desc
         public string RoleDesc { get; set; }
+        //is_default_role
         public bool IsDefaultRole { get; set; }
+        //is_tenant
         public bool IsTenant { get; set; }
+        //is_deleted
         public bool IsDeleted { get; set; }
+        //created_at
         public DateTime CreatedAt { get; set; }
+        //creator_id
         public int CreatorId { get; set; }
+        //modified_at
         public DateTime? ModifiedAt { get; set; }
+        //modifier_id
         public int? ModifierId { get; set; }
-    }
+    }        
 }

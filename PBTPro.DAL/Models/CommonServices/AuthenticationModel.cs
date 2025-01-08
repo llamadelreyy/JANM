@@ -16,6 +16,16 @@ namespace PBTPro.DAL.Models.CommonServices
         public string? Password { get; set; } = null!;
 
         public string? PhoneNo { get; set; }
+
+        //added by farhana
+        public string? ICNo { get; set; }
+        public int? DepartmentID { get; set; }
+        public string? DepartmentName { get; set; }
+        public int? DivisionID { get; set; }
+        public string? DivisionName { get; set; }
+        public int? UnitID { get; set; }
+        public string? UnitName { get; set; }
+        public string? FullName { get; set; }
     }
 
     public class LoginResult

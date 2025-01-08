@@ -12,6 +12,8 @@ using PBTPro.DAL.Services;
 using PBTPro.DAL.Store;
 using PBTPro.Shared.Models.CommonService;
 using Prometheus;
+using Serilog.Events;
+using Serilog;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -20,6 +22,24 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 IConfiguration configuration = builder.Configuration;
+
+
+Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.File("../logs/PBTAPI-.log",
+                          rollingInterval: RollingInterval.Day,
+                          outputTemplate: "{Timestamp:dd-MMM-yyyy HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                          restrictedToMinimumLevel: LogEventLevel.Warning)
+            .WriteTo.File("../logs/info/PBTAPI-.log",
+                          rollingInterval: RollingInterval.Hour,
+                          buffered: true,
+                          outputTemplate: "{Timestamp:dd-MMM-yyyy HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                          restrictedToMinimumLevel: LogEventLevel.Information)
+            .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Error)
+            .Enrich.FromLogContext()
+            .CreateLogger();
+builder.Logging.AddSerilog(Log.Logger);
+
 
 // Add services to the container.
 // Register the configuration for IConfiguration

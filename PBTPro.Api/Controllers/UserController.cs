@@ -13,6 +13,7 @@ Changes Logs:
 20/11/2024 - add field & logic for profile avatar
 03/12/2024 - change hardcoded upload path & url to refer param table 
 */
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,7 @@ namespace PBTPro.Api.Controllers
         private readonly IdentityOptions _identityOptions;
         private readonly string _feature = "USER";
         private readonly long _maxFileSize = 5 * 1024 * 1024;
-        private readonly List<string> _imageFileExt = new List<string> {".jpg", ".jpeg", ".png"};
+        private readonly List<string> _imageFileExt = new List<string> { ".jpg", ".jpeg", ".png" };
 
         public UserController(PBTProDbContext dbContext, ILogger<UserController> logger, UserManager<ApplicationUser> userManager, IOptions<IdentityOptions> identityOptions) : base(dbContext)
         {
@@ -101,7 +102,7 @@ namespace PBTPro.Api.Controllers
                     profile_signature_url = !string.IsNullOrWhiteSpace(x.profile_signfile) ? SignatureViewURL + "/" + x.profile_signfile : null
                 }).AsNoTracking().FirstOrDefaultAsync();
 
-                if(UserProfile == null)
+                if (UserProfile == null)
                 {
                     UserProfile = await _dbContext.Users.Where(x => x.Id == UserId).Select(x => new user_profile_view
                     {
@@ -135,7 +136,7 @@ namespace PBTPro.Api.Controllers
                 #region Validation
                 bool isNew = false;
 
-                if(runUserID != InputModel.user_id)
+                if (runUserID != InputModel.user_id)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_USERID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
@@ -155,7 +156,7 @@ namespace PBTPro.Api.Controllers
 
                 user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.user_id == runUserID);
 
-                if(userProfile == null)
+                if (userProfile == null)
                 {
                     isNew = true;
                     userProfile = await _dbContext.Users.Where(x => x.Id == runUserID).Select(x => new user_profile
@@ -184,8 +185,8 @@ namespace PBTPro.Api.Controllers
                     }
 
                     userProfile.profile_signfile = FileName;
-                    
-                    if(isNew == true)
+
+                    if (isNew == true)
                     {
                         userProfile.creator_id = runUserID;
                         userProfile.created_at = DateTime.Now;
@@ -231,9 +232,9 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_FILE_EXT", MessageTypeEnum.Error, string.Format("Sambungan fail tidak disokong. Jenis yang disokong ([0])."), param));
                 }
 
-                if(!IsFileSizeWithinLimit(InputModel.avatar_image, _maxFileSize))
+                if (!IsFileSizeWithinLimit(InputModel.avatar_image, _maxFileSize))
                 {
-                    List<string> param = new List<string> { FormatFileSize(_maxFileSize) };                    
+                    List<string> param = new List<string> { FormatFileSize(_maxFileSize) };
                     return Error("", SystemMesg(_feature, "INVALID_FILE_SIZE", MessageTypeEnum.Error, string.Format("saiz fail melebihi had yang dibenarkan, saiz fail maksimum yang dibenarkan ialah [0]."), param));
                 }
 
@@ -313,7 +314,7 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "VALID_NEW_PASS_ISNULL", MessageTypeEnum.Error, string.Format("Sahkan Kata Laluan diperlukan")));
                 }
 
-                if(InputModel.new_password != InputModel.valid_new_password)
+                if (InputModel.new_password != InputModel.valid_new_password)
                 {
                     return Error("", SystemMesg(_feature, "NEW_PASS_MISSMATCH", MessageTypeEnum.Error, string.Format("Kata Laluan baharu tidak sepadan")));
                 }
@@ -327,7 +328,7 @@ namespace PBTPro.Api.Controllers
                     {
                         foreach (var error in result.Errors)
                         {
-                            if(error.Code.ToLower() == "passwordtooshort")
+                            if (error.Code.ToLower() == "passwordtooshort")
                             {
                                 var requiredPasswordLength = _identityOptions.Password.RequiredLength;
                                 List<string> param = new List<string> { requiredPasswordLength.ToString() };
@@ -380,7 +381,7 @@ namespace PBTPro.Api.Controllers
                 {
                     var resultADD = await _userManager.AddPasswordAsync(user, InputModel.new_password);
 
-                    if(resultADD != null && resultADD.Succeeded)
+                    if (resultADD != null && resultADD.Succeeded)
                     {
                         return Ok("", SystemMesg(_feature, "UPDATE_PASSWORD", MessageTypeEnum.Success, string.Format("Berjaya mengemaskini kata laluan")));
                     }
@@ -409,7 +410,7 @@ namespace PBTPro.Api.Controllers
                 int UserId = await getDefRunUserId();
 
                 var userRoles = await _dbContext.UserRoles.Where(x => x.UserId == UserId).AsNoTracking().ToListAsync();
-                
+
                 if (userRoles.Any())
                 {
                     PermissionMenus = userRoles
@@ -463,6 +464,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+
         #region private logic
         protected async Task<string?> getImageUploadPath(string? lv1 = null, string? lv2 = null, string? lv3 = null, string? lv4 = null)
         {
@@ -471,7 +473,7 @@ namespace PBTPro.Api.Controllers
             using (PBTProDbContext _iwkContext = new PBTProDbContext())
             {
                 result = await _dbContext.config_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "BaseUploadPath").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
-                
+
                 if (!string.IsNullOrEmpty(lv1))
                 {
                     result = Path.Combine(result, lv1);
@@ -493,7 +495,7 @@ namespace PBTPro.Api.Controllers
             }
             return result;
         }
-        
+
         protected async Task<string?> getImageViewUrl(string? lv1 = null, string? lv2 = null, string? lv3 = null, string? lv4 = null)
         {
             string? result;
@@ -522,5 +524,152 @@ namespace PBTPro.Api.Controllers
             return result;
         }
         #endregion
+
+        #region crud
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> Add([FromBody] ApplicationUser model)
+        {
+            try
+            {
+                var runUserID = await getDefRunUserId();
+                var runUser = await getDefRunUser();
+
+                #region store data
+                ApplicationUser au = new ApplicationUser
+                {
+                    full_name = model.full_name,
+                    IdNo = model.IdNo,
+                    PhoneNumber = model.PhoneNumber,
+                    dept_id = (int)model.dept_id,
+                    dept_name = model.dept_name,
+                    div_id = (int)model.div_id,
+                    div_name = model.div_name,
+                    unit_id = (int)model.unit_id,
+                    unit_name = model.unit_name,
+                    Email = model.Email,
+                    IsDeleted = false,
+                    CreatorId = runUserID,
+                    CreatedAt = DateTime.Now,
+
+                    NormalizedEmail = model.Email.ToUpper(),
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    UserName = model.UserName.ToLower(),
+                    EmailConfirmed = true,
+                };
+
+                _dbContext.Users.Add(au);
+                await _dbContext.SaveChangesAsync();
+
+                #endregion
+
+                var result = new
+                {
+                    full_name = model.full_name,
+                    IdNo = model.IdNo,
+                    PhoneNumber = model.PhoneNumber,
+                    dept_id = (int)model.dept_id,
+                    dept_name = model.dept_name,
+                    div_id = (int)model.div_id,
+                    div_name = model.div_name,
+                    unit_id = (int)model.unit_id,
+                    unit_name = model.unit_name,
+                    Email = model.Email,
+                    IsDeleted = false,
+                    CreatorId = runUserID,
+                    CreatedAt = DateTime.Now,
+                };
+                return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> Update(int Id, [FromBody] ApplicationUser model)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+
+                #region Validation
+                var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == model.Id);
+                if (users == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                #endregion
+                users.full_name = model.full_name;
+                users.IdNo = model.IdNo;
+                users.PhoneNumber = model.PhoneNumber;
+                users.dept_id = (int)model.dept_id;
+                users.dept_name = model.dept_name;
+                users.div_id = (int)model.div_id;
+                users.div_name = model.div_name;
+                users.unit_id = (int)model.unit_id;
+                users.unit_name = model.unit_name;
+                users.ModifiedAt = DateTime.Now;
+                users.ModifierId = runUserID;
+
+                _dbContext.Users.Update(users);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(users, SystemMesg(_feature, "Update", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpDelete("{Id}")]
+        public async Task<IActionResult> Delete(int Id)
+        {
+            try
+            {
+
+                #region Validation
+                var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == Id);
+                if (users == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                #endregion
+
+                _dbContext.Users.Remove(users);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(users, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{Id}")]
+        public async Task<IActionResult> GetDetail(int Id)
+        {
+            try
+            {
+                var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == Id);
+
+                if (users == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(users, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        #endregion
+
     }
 }
