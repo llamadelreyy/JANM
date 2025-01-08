@@ -121,23 +121,18 @@
                             <td nowrap>No Kad Pengenalan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%">
-                                @{
-                                    strIdPengguna = dtEdit.ic_no;
-                                }
-                                <DxMaskedInput @bind-Value="@strIdPengguna"
+                                <DxMaskedInput @bind-Value="@dtEdit.ic_no"
                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                                NullText="cth: 701231161234"
                                                Maxlength="12"
                                                ShowValidationIcon="true"
                                                CssClass="cw-320" style="width:170px"
-                                               Mask="000000000000" />
-                                       
+                                               Mask="000000000000" />            
                             </td>
                             <td width="100px">&nbsp;</td>
                             <td nowrap>No Tel. Bimbit</td>
                             <td>&nbsp;&nbsp;</td>
                             <td width="50%">
-
                                 <DxMaskedInput @bind-Value="@dtEdit.mobile_no"
                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                                BindValueMode="BindValueMode.OnInput"
@@ -170,7 +165,7 @@
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
                                 @{
-                                    var _dtSection = dtSection.Where(x => x.dept_id == dtEdit.dept_id);
+                                    var _dtSection = dtSection.Where(x => x.dept_id == dtEdit?.dept_id);
                                 }
                                 <DxComboBox Data="@_dtSection"
                                             NullText="Pilih Seksyen ..."
@@ -187,7 +182,7 @@
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
                                 @{
-                                    var _dtUnit = dtUnit.Where(x => x.dept_id == dtEdit.dept_id && x.div_id == dtEdit.div_id);
+                                    var _dtUnit = dtUnit.Where(x => x.dept_id == dtEdit?.dept_id && x.div_id == dtEdit?.div_id);
                                 }
                                 <DxComboBox Data="@_dtUnit"
                                             NullText="Pilih Unit ..."
@@ -203,18 +198,6 @@
                             <td nowrap>Emel</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-@*                                 <DxMaskedInput @bind-Value="@dtEdit.user_email"
-                                               CssClass="cw-320"
-                                               Mask="@EmailMask"
-                                               Maxlength="60"
-                                               ShowValidationIcon="true"
-                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                               MaskMode="MaskMode.RegEx" style="width:350px">
-                                    <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
-                                                           Placeholder="Placeholder"
-                                                           PlaceholdersVisible="PlaceholderVisible" />
-                                </DxMaskedInput> *@
-
                                 <DxMaskedInput @bind-Value="@dtEdit.user_email"
                                                CssClass="cw-320"
                                                NullText="@("_@_.__")"
@@ -240,8 +223,6 @@
         <CustomValidators>
             <MyCustomValidator DataItemValidating="ValidateGridData" />
         </CustomValidators>
-
-        
         <TotalSummary>
             <DxGridSummaryItem FooterColumnName="user_name"
                                Name="Custom"
@@ -317,18 +298,19 @@
             e.AddError(nameof(_data.full_name), "Nama Penuh perlu dimasukkan.");
         }
 
-        if (strIdPengguna == null)
+        if (_data.ic_no == null)
         {
-            e.AddError(nameof(strIdPengguna), "No Kad Pengenalan perlu dimasukkan.");
+            e.AddError(nameof(_data.ic_no), "No Kad Pengenalan perlu dimasukkan.");
         }
         else
         {
-            if (strIdPengguna.Trim() == "")
-                e.AddError(nameof(strIdPengguna), "No Kad Pengenalan perlu dimasukkan.");
+            if (_data.ic_no.Trim() == "")
+                e.AddError(nameof(_data.ic_no), "No Kad Pengenalan perlu dimasukkan.");
             else
             {
-                _data.ic_no = strIdPengguna;
-                _data.user_name = strIdPengguna;
+                // _data.ic_no = strIdPengguna;
+                strIdPengguna = _data.ic_no;
+                _data.user_name = _data.ic_no;
             }
 
         }
@@ -361,24 +343,31 @@
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
-        bool blnSuccess = false;
-        string strMessage = "";
-        if (e.IsNew)
-        {
-            var jsonString = JsonConvert.SerializeObject((system_user)e.EditModel);
-            blnSuccess = await _UserService.AddUser(jsonString) > 0 ? true : false;
-            strMessage = "Proses tambah rekod selesai.";
-        }
-        else
-        {
-            blnSuccess = await _UserService.UpdateUser((system_user)e.EditModel) > 0 ? true : false;
-            strMessage = "Proses kemaskini selesai.";
-        }
+        ReturnViewModel response = new ReturnViewModel();
+        var editModel = e.EditModel as system_user;
 
-        if (blnSuccess)
-            await UpdateDataAsync();
+        try
+        {
+            // if (e.IsNew)
+            //     response = await _UserService.Add(editModel);
+            // else
+            //     response = await _UserService.Update(editModel.unit_id, editModel);
 
-        ShowToast(blnSuccess, blnSuccess ? strMessage : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                HandleResponse("Proses kemaskini selesai.");
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
     }
 
     async Task UpdateDataAsync()
@@ -401,15 +390,28 @@
 
     async void OnYesButtonClick()
     {
-        bool blnSuccess = false;
-        if (dtData != null)
+        try
         {
-            blnSuccess = await _UserService.DeleteUser(dtData.user_id);
-            if (blnSuccess) await UpdateDataAsync();
-        }
+            ReturnViewModel response = new ReturnViewModel();
+            response = await _UserService.Delete(dtData.user_id);
 
-        ConfirmationShown = false;
-        ShowToast(blnSuccess, blnSuccess ? "Proses hapus selesai" : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                ConfirmationShown = false;
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                ConfirmationShown = false;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
     }
 
     void OnNoButtonClick()
@@ -423,15 +425,30 @@
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
-    void ShowToast(bool blnStatus, string strMessage)
+    private void HandleResponse(string message, string? status = "Success")
     {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
         ToastService.ShowToast(new ToastOptions()
-            {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = blnStatus ? ToastRenderStyle.Success : ToastRenderStyle.Danger,
-                Title = strMessage
-            });
+        {
+            ProviderName = "Overview",
+            ThemeMode = ToastThemeMode.Saturated,
+            RenderStyle = RenderStyle,
+            Title = message
+        });
     }
 
 }
