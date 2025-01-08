@@ -1,1 +1,398 @@
-﻿
+﻿@page "/user_role"
+@attribute [Authorize(Roles = "Administrator")]
+
+@implements IDisposable
+
+@using Microsoft.AspNetCore.Identity
+@using System.Globalization
+@using Blazored.Toast.Services
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL
+@using PBTPro.DAL.Models;
+@using PBTPro.DAL.Services
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+
+@inject RoleService _RoleService
+@inject UserRoleService _UserRoleService
+@inject UserService _UserService
+@inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastService
+
+<style>
+    .dxbl-grid {
+        height: 88vh;
+        max-height: 88vh;
+    }
+</style>
+
+<div class="d-lg-flex border-bottom">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="\images\icons-small\xfn-friend.png" />
+        <div class="textTitle">Peranan Pengguna</div>
+    </div>
+</div>
+
+<div class="item-container-x">
+
+    <DxGrid @ref="Grid"
+            Data="_lstUserRole"
+            KeyFieldName="UserRoleId"
+            ShowGroupPanel="true"
+            ShowFilterRow="false"
+            TextWrapEnabled="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
+
+        <Columns>
+            <DxGridCommandColumn Width="55px">
+                <HeaderTemplate>
+                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((ApplicationUserRole)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                </CellDisplayTemplate>
+            </DxGridCommandColumn>
+            <DxGridDataColumn Caption="Nama Pengguna" MinWidth="180" Width="28%" FieldName="UserName" />
+            <DxGridDataColumn Caption="Nama Penuh Pengguna" MinWidth="240" Width="32%" FieldName="FullName" />
+            <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" GroupIndex="0" FieldName="Name" />
+            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="36%" FieldName="RoleDesc" TextAlignment="GridTextAlignment.Left" />
+
+            <DxGridDataColumn FieldName="CreatedAt"
+                              DisplayFormat="dd/MM/yyyy"
+                              Caption="Tarikh Data"
+                              MinWidth="100"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0">
+                <FilterMenuTemplate>
+                    <DateRange FilterContext="context" />
+                </FilterMenuTemplate>
+            </DxGridDataColumn>
+        </Columns>
+
+        <EditFormTemplate Context="EditFormContext">
+            @{
+                 var dtUserRole = (ApplicationUserRole)EditFormContext.EditModel;
+                // // valueRole = GetUserRole(dtData);
+
+                //For edit need to get all the role belong to selected user
+                List<ApplicationUserRole> arrItem = new List<ApplicationUserRole>();
+                ApplicationRole _item;
+
+                //Loop the main data to get all the role for selected user
+                // @foreach (var item in _lstUserRole)
+                // {
+                //     if (dtUserRole.UserId == item.UserId)
+                //     {
+                //         _item = new ApplicationRole();
+                //         _item.Id = item.RoleId;
+                //         _item.Name = item.Name;
+                //         _item.RoleDesc = item.RoleDesc;
+                //         //_item.role_select = true;
+                //         _item.CreatedAt = item.CreatedAt;
+                //         arrItem.Add(_item);
+                //     }
+                // }
+
+                // valueRole = arrItem;
+
+                // // This is to check whether in add new @ edit mode
+                boolLockDropDown = Grid.IsEditingNewRow();
+            }
+            <DxFormLayout CssClass="w-100">
+                <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                    <table class="layout_edit">
+                        <tr>
+                            <td nowrap>Pengguna</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
+                            <td width="50%">
+                                <DxComboBox Data="@dataUser"
+                                            NullText="Pilih pengguna ..."
+                                            ShowValidationIcon="true"
+                                            SearchMode="ListSearchMode.AutoSearch"
+                                            Enabled="@boolLockDropDown"
+                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                            TextFieldName="@nameof(system_user.Text)"
+                                            ValueFieldName="user_id"
+                                            CssClass="combo-width"
+                                            DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
+                                            @bind-Value="@dtUserRole.UserId">
+                                </DxComboBox>
+                            </td>
+                            <td width="100px">&nbsp;</td>
+                            <td nowrap></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td width="50%"></td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Peranan</td>
+                            <td nowrap>&nbsp;&nbsp;</td>
+                            <td width="50%" colspan="6">                               
+
+                                <div class="multiselect">
+                                    <div id="checkboxes">
+                                        @{
+                                            foreach (var item in dataRole)
+                                            {
+                                                bool blnSelected = false;
+                                                foreach (var value in valueRole)
+                                                {
+                                                    if (item.Id == value.Id)
+                                                    {
+                                                        blnSelected = true;
+                                                        item.IsSelect = true;
+                                                    }
+                                                }
+
+                                                if (blnSelected)
+                                                {
+                                                    <div>
+                                                        <label class="multiselect-container" for="@item.Id">
+                                                            @item.Name (@item.RoleDesc)
+                                                            <input type="checkbox" class="check_role" id="@item.Id" checked="checked" @onchange="@((e) => CheckboxChanged(e, item.Id))" />
+                                                            <span class="checkmark"></span>
+                                                        </label>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div>
+                                                        <label class="multiselect-container" for="@item.Id">
+                                                            @item.Name (@item.RoleDesc)
+                                                            <input type="checkbox" class="check_role" id="@item.Id" @onchange="@((e) => CheckboxChanged(e, item.Id))" />
+                                                            <span class="checkmark"></span>
+                                                        </label>
+                                                    </div>
+                                                }
+
+                                            }
+                                        }
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                    </table>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanMd="12">
+                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditFormTemplate>
+        <CustomValidators>
+            <MyCustomValidator DataItemValidating="ValidateGridData" />
+        </CustomValidators>
+
+        @*This is to count the summary*@
+        <TotalSummary>
+            <DxGridSummaryItem FooterColumnName="Name"
+                               Name="Custom"
+                               SummaryType=GridSummaryItemType.Count />
+        </TotalSummary>
+
+    </DxGrid>
+   
+</div>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+        <br />Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
+
+
+
+@code {
+    private List<ApplicationUserRole> _lstUserRole = new List<ApplicationUserRole>();
+    ApplicationUserRole dtData { get; set; }
+    IEnumerable<user_profile> dataUser;
+    IEnumerable<ApplicationRole> dataRole;
+    IEnumerable<ApplicationRole> valueRole;
+
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+    bool ConfirmationShown { get; set; } = false;
+    string strSelected { get; set; }
+    bool boolLockDropDown { get; set; } = false;
+    int intCurrentUserId { get; set; } = 0;
+
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    #region list
+    protected override async Task OnInitializedAsync()
+    {
+        _lstUserRole = await _UserRoleService.ListAll();
+        DataLoadedTcs.TrySetResult(true);
+    }
+
+    async Task UpdateDataAsync()
+    {
+        _lstUserRole = await _UserRoleService.Refresh();
+    }
+    #endregion
+
+    #region add/edit/delete
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        ReturnViewModel response = new ReturnViewModel();
+        bool blnSuccess = false;
+        var editModel = e.EditModel as ApplicationRole;
+        try
+        {
+            if (e.IsNew)
+            {
+                response = await _RoleService.Add(editModel);
+                blnSuccess = true;
+            }
+            else
+            {
+                response = await _RoleService.Update(editModel.Id, editModel);
+                blnSuccess = true;
+            }
+            if (blnSuccess)
+            {
+                await UpdateDataAsync();
+            }
+            else
+            {
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
+    }
+
+    async Task Delete(ApplicationUserRole item)
+    {
+        strSelected = item.Name;
+        dtData = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            response = await _RoleService.Delete(dtData.UserRoleId);
+
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                ConfirmationShown = false;
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                ConfirmationShown = false;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+    }
+
+    void OnNoButtonClick()
+    {
+        dtData = null;
+        ConfirmationShown = false;
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (ApplicationRole)e.EditModel;
+        if (_data.Name == null || _data.Name.Trim() == "")
+        {
+            e.AddError(nameof(_data.Name), "Medan Peranan perlu diisi.");
+        }
+    }
+
+    #endregion
+
+    #region response
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
+    #endregion
+
+    protected void CheckboxChanged(ChangeEventArgs e, int key)
+    {
+        var i = dataRole.FirstOrDefault(i => i.IsSelect == Convert.ToBoolean(key));
+        if (i != null)
+        {
+            i.IsSelect = (bool)e.Value;
+        }
+    }
+
+}
+
+

@@ -11,6 +11,7 @@ Changes Logs:
 06/11/2024 - initial create
 */
 using DevExpress.Data.ODataLinq.Helpers;
+using DevExpress.Utils.Filtering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -509,8 +510,6 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-
-
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<patrol_info>>> ListAll()
@@ -554,7 +553,6 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-
         public async Task<IActionResult> Add([FromBody] patrol_info InputModel)
         {
             try
@@ -709,7 +707,7 @@ namespace PBTPro.Api.Controllers
                     patrol_id = x.patrol_id,
                     patrol_status = x.patrol_status,
                     patrol_end_dtm = x.patrol_end_dtm
-                    
+
                 }).FirstOrDefaultAsync();
 
                 if (patrol == null)
@@ -721,9 +719,8 @@ namespace PBTPro.Api.Controllers
                                      join u in _dbContext.Users on pm.member_username equals u.UserName
                                      where pm.member_patrol_id == patrol.patrol_id && patrol.patrol_status == "Selesai"
                                      select new
-                                     {                                        
+                                     {
                                          pm.member_end_dtm,
-                                         //member_fullname = u.UserName
                                      })
                                     .AsNoTracking()
                                     .ToListAsync();
@@ -740,5 +737,81 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetListbyCurrentUser(string? crs = null)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                var patrol = await _dbContext.patrol_infos.Select(x => new
+                {
+                    patrol_id = x.patrol_id,
+                    patrol_cnt_notice = x.patrol_cnt_notice,
+                    patrol_cnt_compound = x.patrol_cnt_compound,
+                    patrol_cnt_notes = x.patrol_cnt_notes,
+                    patrol_cnt_seizure = x.patrol_cnt_seizure,
+                    patrol_status = x.patrol_status,
+                    patrol_start_dtm = x.patrol_start_dtm,
+                    patrol_end_dtm = x.patrol_end_dtm,
+                    active_flag = x.active_flag,
+                    created_by = x.created_by,
+                    created_date = x.created_date,
+                    updated_by = x.updated_by,
+                    patrol_officer_name = x.patrol_officer_name,
+                    patrol_location = x.patrol_location,
+                    updated_date = x.updated_date,
+                    patrol_dept_name = x.patrol_dept_name,
+                    patrol_scheduled = x.patrol_scheduled,
+                    patrol_start_location = x.patrol_start_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_start_location))
+                                    : null,
+
+                    patrol_end_location = x.patrol_end_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_end_location))
+                                    : null
+                }).AsNoTracking().ToListAsync();
+
+                var members = await (from pm in _dbContext.patrol_members
+                                               where pm.member_username == runUser
+                                               select new
+                                               {
+                                                   pm.member_id,
+                                                   pm.member_patrol_id,
+                                                   pm.member_username,
+                                                   pm.member_cnt_notice,
+                                                   pm.member_cnt_compound,
+                                                   pm.member_cnt_notes,
+                                                   pm.member_cnt_seizure,
+                                                   pm.member_leader_flag,
+                                                   pm.active_flag,
+                                                   pm.created_by,
+                                                   pm.created_date,
+                                                   pm.updated_by,
+                                                   pm.update_date,
+                                                   pm.member_start_dtm,
+                                                   pm.member_end_dtm
+                                               })
+                                                .AsNoTracking()
+                                                .ToListAsync();
+
+
+                var result = new
+                {
+                    info = patrol,
+                    members = members,
+                };
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, "Senarai rekod berjaya dijana"));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, "Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian."));
+            }
+        }
+
     }
 }

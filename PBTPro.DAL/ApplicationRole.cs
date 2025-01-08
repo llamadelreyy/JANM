@@ -36,5 +36,7 @@ namespace PBTPro.DAL
         public DateTime? ModifiedAt { get; set; }
         //modifier_id
         public int? ModifierId { get; set; }
+        //is_deleted
+        public bool IsSelect { get; set; }
     }        
 }

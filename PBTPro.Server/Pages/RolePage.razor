@@ -16,6 +16,7 @@
 
 @inject RoleService _RoleService
 @inject NavigationManager NavigationManager
+@inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 
@@ -34,33 +35,31 @@
 </div>
 
 <div class="item-container-x">
-
     <DxGrid @ref="Grid"
-            Data="@dataSource"
-        KeyFieldName="Id"
-        ShowGroupPanel="true"
-        ShowFilterRow="false"
-        TextWrapEnabled="true"
-        CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-        EditorRenderMode="GridEditorRenderMode.Integrated"
-        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-        ShowSearchBox="true"
-        AllowSelectRowByClick="true"
-        @bind-SearchText="@GridSearchText" 
-        PageSize="25"
-        @bind-PageIndex="@GridPageIndex"
-        PagerPosition="GridPagerPosition.Bottom"
-        PagerNavigationMode="PagerNavigationMode.InputBox"
-        EditModelSaving="Grid_EditModelSaving"
-        EditFormButtonsVisible="false"
-        PageSizeSelectorVisible="true"
-        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-        PageSizeSelectorAllRowsItemVisible="true"
-        PagerAutoHideNavButtons="false"
-        ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-        GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-        HighlightRowOnHover="true"
-        CssClass="mv-1000">
+            Data="@_lstRole"
+            KeyFieldName="Id"
+            ShowGroupPanel="true"
+            ShowFilterRow="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
 
         <Columns>
             <DxGridCommandColumn Width="55px">
@@ -72,41 +71,40 @@
                     <a @onclick="@(() => Delete((ApplicationRole)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" FieldName="Name" />
-            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="68%" FieldName="RoleDesc" TextAlignment="GridTextAlignment.Left" />
-        
-            <DxGridDataColumn FieldName="CreatedAt"
-                            DisplayFormat="dd/MM/yyyy"
-                            Caption="Tarikh Data"
-                            MinWidth="100"
-                            Width="12%"
-                            TextAlignment="GridTextAlignment.Center"
-                            SortOrder="GridColumnSortOrder.Ascending"
-                            SortIndex="0">
+            <DxGridDataColumn FieldName="@nameof(ApplicationRole.Name)" Caption="Peranan" Width="20%" />
+            <DxGridDataColumn FieldName="@nameof(ApplicationRole.RoleDesc)" Caption="Keterangan" Width="68%" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName=@nameof(ApplicationRole.CreatedAt)
+                              DisplayFormat="dd/MM/yyyy"
+                              Caption="Tarikh Data"
+                              MinWidth="100"
+                              Width="12%"
+                              TextAlignment="GridTextAlignment.Center"
+                              SortOrder="GridColumnSortOrder.Ascending"
+                              SortIndex="0">
                 <FilterMenuTemplate>
                     <DateRange FilterContext="context" />
                 </FilterMenuTemplate>
             </DxGridDataColumn>
         </Columns>
 
-        <EditFormTemplate Context="EditFormContext">
+        <EditFormTemplate Context="editFormContext">
             @{
-                var dtEdit = (ApplicationRole)EditFormContext.EditModel;
+                var dtData = (ApplicationRole)editFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
                     <table class="layout_edit">
                         <tr>
                             <td nowrap>Peranan</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
+                            <td valign="top">&nbsp;:&nbsp;</td>
                             <td width="50%">
-                                <DxTextBox @bind-Text="@dtEdit.Name"
-                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                       BindValueMode="BindValueMode.OnInput"
-                                       NullText="Peranan ..."
-                                       Maxlength="30"
-                                       ShowValidationIcon="true"
-                                       CssClass="cw-320" />
+                                <DxTextBox @bind-Text="@dtData.Name"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Peranan ..."
+                                           Maxlength="30"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" />
                             </td>
                             <td width="100px">&nbsp;</td>
                             <td nowrap></td>
@@ -117,15 +115,15 @@
                             <td nowrap>Keterangan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-                                <DxTextBox @bind-Text="@dtEdit.RoleDesc"
-                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                       BindValueMode="BindValueMode.OnInput"
-                                       NullText="Keterangan peranan ..."
-                                       Maxlength="120"
-                                       ShowValidationIcon="true"
-                                       CssClass="cw-320" />
+                                <DxTextBox @bind-Text="@dtData.RoleDesc"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           NullText="Keterangan peranan ..."
+                                           Maxlength="120"
+                                           ShowValidationIcon="true"
+                                           CssClass="cw-320" />
                             </td>
-                        </tr>
+                        </tr>                       
                     </table>
                 </DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
@@ -142,11 +140,11 @@
         @*This is to count the summary*@
         <TotalSummary>
             <DxGridSummaryItem FooterColumnName="Name"
-                            Name="Custom"
-                            SummaryType=GridSummaryItemType.Count />
+                               Name="Custom"
+                               SummaryType=GridSummaryItemType.Count />
         </TotalSummary>
 
-    </DxGrid>
+    </DxGrid>   
 </div>
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
@@ -161,54 +159,34 @@
     </BodyContentTemplate>
 </DxPopup>
 
-
 @code {
-    IEnumerable<ApplicationRole> dataSource;
+    private List<ApplicationRole> _lstRole = new List<ApplicationRole>();
+    ApplicationRole dtData { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
-
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
-    ApplicationRole dtData { get; set; }
 
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     #region list
     protected override async Task OnInitializedAsync()
     {
-        dataSource = await _RoleService.ListAll();
+        _lstRole = await _RoleService.ListAll();
         DataLoadedTcs.TrySetResult(true);
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await DataLoadedTcs.Task;
-            await Grid.CancelEditAsync();
-        }
     }
 
     async Task UpdateDataAsync()
     {
-        dataSource = await _RoleService.Refresh();
+        _lstRole = await _RoleService.Refresh();
     }
     #endregion
-   
-
-    void ValidateGridData(ValidationMessageStoreEventArgs e)
-    {
-        var _data = (ApplicationRole)e.EditModel;
-        if (_data.Name == null || _data.Name.Trim() == "")
-        {
-            e.AddError(nameof(_data.Name), "Medan Peranan perlu diisi.");
-        }
-    }
 
     #region add/edit/delete
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
-    {       
+    {
         ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
         var editModel = e.EditModel as ApplicationRole;
@@ -221,15 +199,18 @@
             }
             else
             {
-                response = await _RoleService.Update(Convert.ToInt32(editModel.Id), editModel);
+                response = await _RoleService.Update(editModel.Id, editModel);
                 blnSuccess = true;
             }
-
             if (blnSuccess)
             {
                 await UpdateDataAsync();
+                toastService.ShowInfo("Proses kemaskini selesai.");
             }
-            else { }
+            else
+            {
+                toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+            }
         }
         catch (Exception ex)
         {
@@ -245,7 +226,7 @@
     }
 
     async void OnYesButtonClick()
-    {        
+    {
         try
         {
             ReturnViewModel response = new ReturnViewModel();
@@ -271,6 +252,7 @@
 
     void OnNoButtonClick()
     {
+        dtData = null;
         ConfirmationShown = false;
     }
 
@@ -280,6 +262,15 @@
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (ApplicationRole)e.EditModel;
+        if (_data.Name == null || _data.Name.Trim() == "")
+        {
+            e.AddError(nameof(_data.Name), "Medan Peranan perlu diisi.");
+        }
+    }
+
     #endregion
 
     #region response
@@ -287,6 +278,7 @@
     {
         DataLoadedTcs.TrySetCanceled();
     }
+
     private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
