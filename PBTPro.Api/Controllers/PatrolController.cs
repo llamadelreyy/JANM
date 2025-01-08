@@ -49,33 +49,33 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var data = await _dbContext.patrol_infos.Where(x => x.active_flag == true).Select(x => new 
-                            {
-                                patrol_id = x.patrol_id,
-                                patrol_cnt_notice = x.patrol_cnt_notice,
-                                patrol_cnt_compound = x.patrol_cnt_compound,
-                                patrol_cnt_notes = x.patrol_cnt_notes,
-                                patrol_cnt_seizure = x.patrol_cnt_seizure,
-                                patrol_status = x.patrol_status,
-                                patrol_start_dtm = x.patrol_start_dtm,
-                                patrol_end_dtm = x.patrol_end_dtm,
-                                active_flag = x.active_flag,
-                                created_by = x.created_by,
-                                created_date = x.created_date,
-                                updated_by = x.updated_by,
-                                patrol_officer_name = x.patrol_officer_name,
-                                patrol_location = x.patrol_location,
-                                updated_date = x.updated_date,
-                                patrol_dept_name = x.patrol_dept_name,
-                                patrol_scheduled = x.patrol_scheduled,
-                                patrol_start_location = x.patrol_start_location != null
+                var data = await _dbContext.patrol_infos.Where(x => x.active_flag == true).Select(x => new
+                {
+                    patrol_id = x.patrol_id,
+                    patrol_cnt_notice = x.patrol_cnt_notice,
+                    patrol_cnt_compound = x.patrol_cnt_compound,
+                    patrol_cnt_notes = x.patrol_cnt_notes,
+                    patrol_cnt_seizure = x.patrol_cnt_seizure,
+                    patrol_status = x.patrol_status,
+                    patrol_start_dtm = x.patrol_start_dtm,
+                    patrol_end_dtm = x.patrol_end_dtm,
+                    active_flag = x.active_flag,
+                    created_by = x.created_by,
+                    created_date = x.created_date,
+                    updated_by = x.updated_by,
+                    patrol_officer_name = x.patrol_officer_name,
+                    patrol_location = x.patrol_location,
+                    updated_date = x.updated_date,
+                    patrol_dept_name = x.patrol_dept_name,
+                    patrol_scheduled = x.patrol_scheduled,
+                    patrol_start_location = x.patrol_start_location != null
                                     ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_start_location))
                                     : null,
 
-                                patrol_end_location = x.patrol_end_location != null
+                    patrol_end_location = x.patrol_end_location != null
                                     ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_end_location))
                                     : null
-                            }).AsNoTracking().ToListAsync();
+                }).AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -83,74 +83,75 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-        
+
         [HttpGet]
         //[Route("GetDetail")]
         public async Task<IActionResult> GetDetail(int Id)
         {
             try
             {
-                var patrol = await _dbContext.patrol_infos.Where(x => x.patrol_id == Id).Select(x => new 
-                            {
-                                patrol_id = x.patrol_id,
-                                patrol_cnt_notice = x.patrol_cnt_notice,
-                                patrol_cnt_compound = x.patrol_cnt_compound,
-                                patrol_cnt_notes = x.patrol_cnt_notes,
-                                patrol_cnt_seizure = x.patrol_cnt_seizure,
-                                patrol_status = x.patrol_status,
-                                patrol_start_dtm = x.patrol_start_dtm,
-                                patrol_end_dtm = x.patrol_end_dtm,
-                                active_flag = x.active_flag,
-                                created_by = x.created_by,
-                                created_date = x.created_date,
-                                updated_by = x.updated_by,
-                                patrol_officer_name = x.patrol_officer_name,
-                                patrol_location = x.patrol_location,
-                                updated_date = x.updated_date,
-                                patrol_dept_name = x.patrol_dept_name,
-                                patrol_scheduled = x.patrol_scheduled,
-                                patrol_start_location = x.patrol_start_location != null
+                var patrol = await _dbContext.patrol_infos.Where(x => x.patrol_id == Id).Select(x => new
+                {
+                    patrol_id = x.patrol_id,
+                    patrol_cnt_notice = x.patrol_cnt_notice,
+                    patrol_cnt_compound = x.patrol_cnt_compound,
+                    patrol_cnt_notes = x.patrol_cnt_notes,
+                    patrol_cnt_seizure = x.patrol_cnt_seizure,
+                    patrol_status = x.patrol_status,
+                    patrol_start_dtm = x.patrol_start_dtm,
+                    patrol_end_dtm = x.patrol_end_dtm,
+                    active_flag = x.active_flag,
+                    created_by = x.created_by,
+                    created_date = x.created_date,
+                    updated_by = x.updated_by,
+                    patrol_officer_name = x.patrol_officer_name,
+                    patrol_location = x.patrol_location,
+                    updated_date = x.updated_date,
+                    patrol_dept_name = x.patrol_dept_name,
+                    patrol_scheduled = x.patrol_scheduled,
+                    patrol_start_location = x.patrol_start_location != null
                                     ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_start_location))
                                     : null,
 
-                                patrol_end_location = x.patrol_end_location != null
+                    patrol_end_location = x.patrol_end_location != null
                                     ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_end_location))
                                     : null
-                            }).FirstOrDefaultAsync();
-                
-                if(patrol == null)
+                }).FirstOrDefaultAsync();
+
+                if (patrol == null)
                 {
                     return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
                 }
 
                 var members = await (from pm in _dbContext.patrol_members
-                                    join u in _dbContext.Users on pm.member_username equals u.UserName
-                                    where pm.member_patrol_id == patrol.patrol_id
-                                    select new
-                                    {
-                                        pm.member_id,
-                                        pm.member_patrol_id,
-                                        pm.member_username,
-                                        pm.member_cnt_notice,
-                                        pm.member_cnt_compound,
-                                        pm.member_cnt_notes,
-                                        pm.member_cnt_seizure,
-                                        pm.member_leader_flag,
-                                        pm.active_flag,
-                                        pm.created_by,
-                                        pm.created_date,
-                                        pm.updated_by,
-                                        pm.update_date,
-                                        pm.member_start_dtm,
-                                        pm.member_end_dtm,
-                                        member_fullname = u.UserName
-                                    })
+                                     join u in _dbContext.Users on pm.member_username equals u.UserName
+                                     where pm.member_patrol_id == patrol.patrol_id
+                                     select new
+                                     {
+                                         pm.member_id,
+                                         pm.member_patrol_id,
+                                         pm.member_username,
+                                         pm.member_cnt_notice,
+                                         pm.member_cnt_compound,
+                                         pm.member_cnt_notes,
+                                         pm.member_cnt_seizure,
+                                         pm.member_leader_flag,
+                                         pm.active_flag,
+                                         pm.created_by,
+                                         pm.created_date,
+                                         pm.updated_by,
+                                         pm.update_date,
+                                         pm.member_start_dtm,
+                                         pm.member_end_dtm,
+                                         member_fullname = u.UserName
+                                     })
                                     .AsNoTracking()
                                     .ToListAsync();
 
-                var result = new {
-                  info = patrol,
-                  members = members
+                var result = new
+                {
+                    info = patrol,
+                    members = members
                 };
 
                 return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
@@ -160,7 +161,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-        
+
         [HttpPost]
         //[Route("StartPatrol")]
         public async Task<IActionResult> StartPatrol([FromBody] StartPatrolModel InputModel)
@@ -174,16 +175,18 @@ namespace PBTPro.Api.Controllers
                 List<string> teamMembers = new List<string>();
                 teamMembers.Add(runUser);
                 teamMembers.AddRange(InputModel.usernames.Where(username => !string.IsNullOrWhiteSpace(username) && username != runUser));
-                
+
                 #region Validation
-                if(InputModel.patrol_id.HasValue)
+                if (InputModel.patrol_id.HasValue)
                 {
-                    patrol = await _dbContext.patrol_infos.Where(x=>x.patrol_id == InputModel.patrol_id).FirstOrDefaultAsync();
-                    if(patrol == null)
+                    patrol = await _dbContext.patrol_infos.Where(x => x.patrol_id == InputModel.patrol_id).FirstOrDefaultAsync();
+                    if (patrol == null)
                     {
                         isNew = true;
                     }
-                }else{
+                }
+                else
+                {
                     patrol = new patrol_info
                     {
                         created_by = runUserID,
@@ -194,14 +197,14 @@ namespace PBTPro.Api.Controllers
 
                     isNew = true;
                 }
-                
-                if(patrol.patrol_status.ToUpper() != "BELUM MULA")
+
+                if (patrol.patrol_status.ToUpper() != "BELUM MULA")
                 {
                     return Error("", SystemMesg(_feature, "PATROL_ISNOT_NEW", MessageTypeEnum.Error, string.Format("rondaan sedang aktif dilaksanakan atau telah selesai")));
                 }
 
                 var isActivePatrolling = await _dbContext.patrol_members
-                                        .AnyAsync(x => teamMembers.Contains(x.member_username) && x.member_end_dtm == null && 
+                                        .AnyAsync(x => teamMembers.Contains(x.member_username) && x.member_end_dtm == null &&
                                            _dbContext.patrol_infos.Any(y =>
                                                y.patrol_id == x.member_patrol_id &&
                                                y.patrol_status.ToUpper() == "RONDAAN"
@@ -220,17 +223,19 @@ namespace PBTPro.Api.Controllers
                 {
                     SRID = 4326
                 };
-                
+
                 patrol.patrol_status = "Rondaan";
                 patrol.patrol_start_dtm = DateTime.Now;
                 patrol.patrol_start_location = CurrentLocation;
                 patrol.updated_by = runUserID;
                 patrol.updated_date = DateTime.Now;
-                
-                if(isNew == true)
+
+                if (isNew == true)
                 {
                     _dbContext.patrol_infos.Add(patrol);
-                }else{
+                }
+                else
+                {
                     _dbContext.patrol_infos.Update(patrol);
                 }
                 await _dbContext.SaveChangesAsync();
@@ -338,7 +343,7 @@ namespace PBTPro.Api.Controllers
                     patrolDet.updated_by = runUserID;
                     patrolDet.update_date = DateTime.Now;
                     _dbContext.patrol_members.Update(patrolDet);
-                }                    
+                }
                 await _dbContext.SaveChangesAsync();
 
                 foreach (var patrolDet in patrolDets.Where(x => x.member_leader_flag != true))
@@ -369,7 +374,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-        
+
         [HttpPost]
         //[Route("AddMember")]
         public async Task<IActionResult> AddMember([FromBody] PatrolInputMemberModel InputModel)
@@ -380,7 +385,8 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                if(string.IsNullOrWhiteSpace(InputModel.username)){                    
+                if (string.IsNullOrWhiteSpace(InputModel.username))
+                {
                     return Error("", SystemMesg(_feature, "MEMBER_ISNULL", MessageTypeEnum.Error, string.Format("pegawai tidah sah")));
                 }
 
@@ -392,7 +398,7 @@ namespace PBTPro.Api.Controllers
                 }
 
                 var isActivePatrolling = await _dbContext.patrol_members
-                                        .AnyAsync(x => x.member_username == InputModel.username && x.member_end_dtm == null && 
+                                        .AnyAsync(x => x.member_username == InputModel.username && x.member_end_dtm == null &&
                                            _dbContext.patrol_infos.Any(y =>
                                                y.patrol_id == x.member_patrol_id &&
                                                y.patrol_status.ToUpper() == "RONDAAN"
@@ -417,7 +423,7 @@ namespace PBTPro.Api.Controllers
 
                 _dbContext.patrol_members.Add(patrolDet);
                 await _dbContext.SaveChangesAsync();
-                
+
                 var connectionId = PushDataHub.GetConnectedUsers().Where(kvp => kvp.Value == patrolDet.member_username).Select(kvp => kvp.Key).FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(connectionId))
                 {
@@ -463,7 +469,8 @@ namespace PBTPro.Api.Controllers
 
                 patrol_member patrolDet = await _dbContext.patrol_members.FirstOrDefaultAsync(x => x.member_patrol_id == InputModel.patrol_id && x.member_username == InputModel.username && x.member_end_dtm == null);
 
-                if(patrolDet == null){
+                if (patrolDet == null)
+                {
 
                     return Error("", SystemMesg(_feature, "PATROL_MEMBER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pegawai tidak dijumpai")));
                 }
@@ -473,9 +480,9 @@ namespace PBTPro.Api.Controllers
                 patrolDet.updated_by = runUserID;
                 patrolDet.update_date = DateTime.Now;
                 _dbContext.patrol_members.Update(patrolDet);
-                    
+
                 await _dbContext.SaveChangesAsync();
-                
+
                 var connectionId = PushDataHub.GetConnectedUsers().Where(kvp => kvp.Value == patrolDet.member_username).Select(kvp => kvp.Key).FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(connectionId))
                 {
@@ -503,7 +510,7 @@ namespace PBTPro.Api.Controllers
         }
 
 
-        
+
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<patrol_info>>> ListAll()
@@ -547,7 +554,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        
+
         public async Task<IActionResult> Add([FromBody] patrol_info InputModel)
         {
             try
@@ -690,5 +697,76 @@ namespace PBTPro.Api.Controllers
             }
         }
         #endregion
+
+        [AllowAnonymous]
+        [HttpGet("{Id}")]
+        public async Task<IActionResult> GetDateTimeByPatrolId(int Id)
+        {
+            try
+            {
+                var patrol = await _dbContext.patrol_infos.Where(x => x.patrol_id == Id).Select(x => new
+                {
+                    patrol_id = x.patrol_id,
+                    //patrol_cnt_notice = x.patrol_cnt_notice,
+                    //patrol_cnt_compound = x.patrol_cnt_compound,
+                    //patrol_cnt_notes = x.patrol_cnt_notes,
+                    //patrol_cnt_seizure = x.patrol_cnt_seizure,
+                    patrol_status = x.patrol_status,
+                    //patrol_start_dtm = x.patrol_start_dtm,
+                    patrol_end_dtm = x.patrol_end_dtm,
+                    //active_flag = x.active_flag,
+                    //created_by = x.created_by,
+                    //created_date = x.created_date,
+                    //updated_by = x.updated_by,
+                    //patrol_officer_name = x.patrol_officer_name,
+                    //patrol_location = x.patrol_location,
+                    //updated_date = x.updated_date,
+                    //patrol_dept_name = x.patrol_dept_name,
+                    //patrol_scheduled = x.patrol_scheduled,
+                    
+                }).FirstOrDefaultAsync();
+
+                if (patrol == null)
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
+                }
+
+                var members = await (from pm in _dbContext.patrol_members
+                                     join u in _dbContext.Users on pm.member_username equals u.UserName
+                                     where pm.member_patrol_id == patrol.patrol_id && patrol.patrol_status == "Selesai"
+                                     select new
+                                     {
+                                         //pm.member_id,
+                                         //pm.member_patrol_id,
+                                         //pm.member_username,
+                                         //pm.member_cnt_notice,
+                                         //pm.member_cnt_compound,
+                                         //pm.member_cnt_notes,
+                                         //pm.member_cnt_seizure,
+                                         //pm.member_leader_flag,
+                                         //pm.active_flag,
+                                         //pm.created_by,
+                                         //pm.created_date,
+                                         //pm.updated_by,
+                                         //pm.update_date,
+                                         //pm.member_start_dtm,
+                                         pm.member_end_dtm,
+                                         //member_fullname = u.UserName
+                                     })
+                                    .AsNoTracking()
+                                    .ToListAsync();
+
+                var result = new
+                {
+                    info = patrol,
+                    members = members
+                };
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
     }
 }
