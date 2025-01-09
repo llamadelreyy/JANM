@@ -57,18 +57,12 @@ namespace PBTPro.Data
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
-        [HttpGet]
-        public async Task<List<ApplicationUser>> ListAll()
-        {
-            var result = new List<ApplicationUser>();
-            string requestUrl = $"{_baseReqURL}/ListAll";
-            var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
         [HttpGet]
         public async Task<List<ApplicationUser>> ListAll()
         {
             var result = new List<ApplicationUser>();
-            string requestUrl = $"{_baseReqURL}/GetList";
+            string requestUrl = $"{_baseReqURL}/ListAll";
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
             try
