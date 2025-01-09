@@ -75,9 +75,9 @@
                     <a @onclick="@(() => Delete((ApplicationUser)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn Caption="Jabatan" MinWidth="100" Width="12%" FieldName="dept_name" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn Caption="Seksyen" MinWidth="120" Width="13%" FieldName="div_name" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn Caption="Unit" MinWidth="120" Width="12%" FieldName="unit_name" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Jabatan" MinWidth="100" Width="12%" FieldName="dept_id" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Seksyen" MinWidth="120" Width="13%" FieldName="div_id" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Unit" MinWidth="120" Width="12%" FieldName="unit_id" TextAlignment="GridTextAlignment.Left" />
             <DxGridDataColumn Caption="Id Pengguna" MinWidth="100" Width="10%" FieldName="UserName" />
             <DxGridDataColumn Caption="Nama Penuh" MinWidth="150" Width="20%" FieldName="full_name" TextAlignment="GridTextAlignment.Left" />
             <DxGridDataColumn Caption="No Mobile" MinWidth="100" Width="12%" FieldName="PhoneNumber" TextAlignment="GridTextAlignment.Left" />
@@ -171,7 +171,6 @@
                                             ShowValidationIcon="true"
                                             FilteringMode="DataGridFilteringMode.Contains"
                                             @bind-Value="@dtEdit.dept_id"
-                                            @bind-Text="@dtEdit.dept_name"
                                             TextFieldName="dept_name"
                                             ValueFieldName="dept_id">
                                 </DxComboBox>
@@ -189,8 +188,6 @@
                                             ShowValidationIcon="true"
                                             FilteringMode="DataGridFilteringMode.Contains" s
                                             @bind-Value="@dtEdit.div_id"
-                                            @bind-Text="@dtEdit.div_name"
-                                            TextFieldName="div_name"
                                             ValueFieldName="div_id">
                                 </DxComboBox>
                             </td>
@@ -206,9 +203,7 @@
                                             NullText="Pilih Unit ..."
                                             ShowValidationIcon="true"
                                             FilteringMode="DataGridFilteringMode.Contains" s
-                                            @bind-Value="@dtEdit.unit_id"
-                                            @bind-Text="@dtEdit.unit_name"
-                                            TextFieldName="unit_name"
+                                            @bind-Value="@dtEdit.unit_id"                                           
                                             ValueFieldName="unit_id">
                                 </DxComboBox>
                             </td>

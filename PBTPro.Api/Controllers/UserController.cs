@@ -666,7 +666,7 @@ namespace PBTPro.Api.Controllers
             }
         }
         #endregion
-
+        [HttpGet]
         public string GeneratePassword(PasswordOptions opts = null)
         {
             if (opts == null) opts = new PasswordOptions()

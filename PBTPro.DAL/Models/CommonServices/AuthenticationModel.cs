@@ -20,11 +20,8 @@ namespace PBTPro.DAL.Models.CommonServices
         //added by farhana
         public string? ICNo { get; set; }
         public int? DepartmentID { get; set; }
-        public string? DepartmentName { get; set; }
         public int? DivisionID { get; set; }
-        public string? DivisionName { get; set; }
         public int? UnitID { get; set; }
-        public string? UnitName { get; set; }
         public string? FullName { get; set; }
         public int? IdTypeId { get; set; }
     }
