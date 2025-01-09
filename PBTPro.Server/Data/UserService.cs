@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -125,7 +126,20 @@ namespace PBTPro.Data
             var result = new ReturnViewModel();
             try
             {
-                var reqData = JsonConvert.SerializeObject(inputModel);
+                RegisterModel rm = new RegisterModel();
+                rm.FullName = inputModel.full_name;
+                rm.ICNo = inputModel.IdNo;
+                rm.PhoneNo = inputModel.PhoneNumber;
+                rm.Email = inputModel.Email;
+                rm.DepartmentID = inputModel.dept_id;
+                rm.DivisionID = inputModel.div_id;
+                rm.UnitID = inputModel.unit_id;
+                rm.IdTypeId = 1;
+                rm.Password = GeneratePassword();
+                rm.Username = inputModel.IdNo;
+                rm.Name = inputModel.full_name;
+
+                var reqData = JsonConvert.SerializeObject(rm);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
                 string requestUrl = $"{_baseReqURL}/Add";
@@ -136,7 +150,8 @@ namespace PBTPro.Data
                 {
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data.", 1, LoggerName, "");
                 }
-                else {
+                else
+                {
                     await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "TIdak berjaya tambah data.", 1, LoggerName, "");
                 }
             }
@@ -226,7 +241,57 @@ namespace PBTPro.Data
             }
             return result;
         }
+        [HttpGet]
+        public string GeneratePassword(PasswordOptions opts = null)
+        {
+            if (opts == null) opts = new PasswordOptions()
+            {
+                RequiredLength = 8,
+                RequiredUniqueChars = 4,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireNonAlphanumeric = true,
+                RequireUppercase = true
+            };
 
+            string[] randomChars = new[] {
+            "ABCDEFGHJKLMNOPQRSTUVWXYZ",    // uppercase 
+            "abcdefghijkmnopqrstuvwxyz",    // lowercase
+            "0123456789",                   // digits
+            "!@$?_-"                        // non-alphanumeric
+            };
+
+            Random rand = new Random(System.Environment.TickCount);
+            List<char> chars = new List<char>();
+
+            if (opts.RequireUppercase)
+            {
+                chars.Insert(rand.Next(0, chars.Count), randomChars[0][rand.Next(0, randomChars[0].Length)]);
+            }
+
+            if (opts.RequireLowercase)
+            {
+                chars.Insert(rand.Next(0, chars.Count), randomChars[1][rand.Next(0, randomChars[1].Length)]);
+            }
+
+            if (opts.RequireDigit)
+            {
+                chars.Insert(rand.Next(0, chars.Count), randomChars[2][rand.Next(0, randomChars[2].Length)]);
+            }
+
+            if (opts.RequireNonAlphanumeric)
+            {
+                chars.Insert(rand.Next(0, chars.Count), randomChars[3][rand.Next(0, randomChars[3].Length)]);
+            }
+
+            for (int i = chars.Count; i < opts.RequiredLength || chars.Distinct().Count() < opts.RequiredUniqueChars; i++)
+            {
+                string rcs = randomChars[rand.Next(0, randomChars.Length)];
+                chars.Insert(rand.Next(0, chars.Count), rcs[rand.Next(0, rcs.Length)]);
+            }
+
+            return new string(chars.ToArray());
+        }
         #region 
         //private List<system_user> _User { get; set; }
         //public IConfiguration _configuration { get; }
