@@ -926,6 +926,12 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.profile_signfile).HasMaxLength(255);
             entity.Property(e => e.profile_telno).HasMaxLength(150);
             entity.Property(e => e.unit_code).HasMaxLength(10);
+            //entity.Property(e => e.dept_name)
+            //    .HasMaxLength(100);
+            //entity.Property(e => e.div_name)
+            //    .HasMaxLength(100);
+            //entity.Property(e => e.unit_name)
+            //    .HasMaxLength(100);
         });
 
         modelBuilder.Entity<ref_department>(entity =>
@@ -1131,8 +1137,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("Timestamp indicating when the user record was last modified.")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
-        });
-
+        });       
 
         OnModelCreatingPartial(modelBuilder);
     }

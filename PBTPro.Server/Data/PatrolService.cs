@@ -80,7 +80,7 @@ namespace PBTPro.Data
             var result = new List<patrol_info>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/ListAll";
+                string requestUrl = $"{_baseReqURL}/GetList";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)

@@ -1,8 +1,11 @@
 ﻿@page "/user_access"
 @attribute [AllowAnonymous]
 
+@using Microsoft.AspNetCore.Identity
+@using PBTPro.DAL
 @using PBTPro.Data
 @using PBTPro.DAL.Models
+
 @inject RoleMenuService _RoleMenuService
 @inject RoleService _RoleService
 @inject NavigationManager NavigationManager
@@ -293,7 +296,8 @@
 @code {
     [Inject] IToastNotificationService ToastService { get; set; }
     IEnumerable<role_menu> dataSource;
-    IEnumerable<system_role> dataRole;
+    IEnumerable<ApplicationRole> dataRole;
+    //IEnumerable<ApplicationRole> dataRole1;
     List<role_menu> _RoleMenu { get; set; }
 
     DxTreeView MyTreeView;
@@ -339,7 +343,7 @@
     protected override async Task OnInitializedAsync()
     {
         dataSource = await _RoleMenuService.GetRoleMenuAsync();
-        dataRole = await _RoleService.GetRoleAsync();
+        //dataRole = await _RoleService.ListAll();
         checkedMenus = new List<ITreeViewNodeInfo>();
 
         DataLoadedTcs.TrySetResult(true);

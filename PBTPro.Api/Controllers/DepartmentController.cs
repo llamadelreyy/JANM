@@ -92,7 +92,7 @@ namespace PBTPro.Api.Controllers
 
                 if (existingDepartment != null)
                 {
-                    return BadRequest(SystemMesg("COMMON", "DUPLICATE_DEPT_CODE", MessageTypeEnum.Error, "The dept_code already exists."));
+                    return Error("",SystemMesg("COMMON", "DUPLICATE_DEPT_CODE", MessageTypeEnum.Error, "The dept_code already exists."));
                 }
                 #endregion
 

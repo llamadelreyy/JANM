@@ -1,54 +1,52 @@
 ﻿/*
 Project: PBT Pro
-Description: Department API controller to handle department Form Field
-Author: Nurulfarhana
-Date: January 2025
+Description: user api, to handle user related action
+Author: ismail
+Date: November 2024
 Version: 1.0
 Additional Notes:
 - 
-Changes Logs:
-*/
 
-using Microsoft.AspNetCore.Authorization;
+Changes Logs:
+15/11/2024 - initial create
+18/11/2024 - add field & logic for signature
+20/11/2024 - add field & logic for profile avatar
+03/12/2024 - change hardcoded upload path & url to refer param table 
+*/
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
-using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
-using PBTPro.DAL.Models.PayLoads;
-using PBTPro.DAL.Services;
-using System.Reflection;
-
 
 namespace PBTPro.Api.Controllers
 {
     [Route("api/[controller]/[Action]")]
     [ApiController]
-    public class RaceController : IBaseController
-    {
-        protected readonly string? _dbConn;
-        private readonly IConfiguration _configuration;
-        private readonly IHubContext<PushDataHub> _hubContext;
-        private string LoggerName = "administrator";
-        private readonly string _feature = "RACE";
 
-        public RaceController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<RaceController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
+    public class RolesController : IBaseController
+    {
+        private readonly ILogger<RolesController> _logger;
+        private readonly RoleManager<ApplicationRole> _roleManager;
+        private readonly IdentityOptions _identityOptions;
+        private readonly string _feature = "ROLE";
+
+        public RolesController(PBTProDbContext dbContext, ILogger<RolesController> logger, RoleManager<ApplicationRole> roleManager, IOptions<IdentityOptions> identityOptions) : base(dbContext)
         {
-            _dbConn = configuration.GetConnectionString("DefaultConnection");
-            _configuration = configuration;
-            _hubContext = hubContext;
+            _logger = logger;
+            _roleManager = roleManager;
+            _identityOptions = identityOptions.Value;
         }
 
-        [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ref_race>>> ListAll()
+        public async Task<IActionResult> GetList()
         {
             try
             {
-                var data = await _dbContext.ref_races.AsNoTracking().ToListAsync();
-                return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                var roles = await _dbContext.Roles.AsNoTracking().ToListAsync();
+                return Ok(roles, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -56,13 +54,12 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> ViewDetail(int Id)
         {
             try
             {
-                var parFormfield = await _dbContext.ref_races.FirstOrDefaultAsync(x => x.race_id == Id);
+                var parFormfield = await _dbContext.Roles.FirstOrDefaultAsync(x => x.Id == Id);
 
                 if (parFormfield == null)
                 {
@@ -76,36 +73,47 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] ref_race InputModel)
+        public async Task<IActionResult> Add([FromBody] ApplicationRole InputModel)
         {
             try
             {
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
 
-                #region store data
-                ref_race ref_race = new ref_race
+                #region Validation
+                var formField = await _dbContext.Roles.FirstOrDefaultAsync();
+                
+                if (formField == null)
                 {
-                    race_name = InputModel.race_name,
-                    is_deleted = false,
-                    creator_id = runUserID,
-                    created_at = DateTime.Now,
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                if (formField.Name == InputModel.Name)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Peranan telah wujud.")));
+                }
+                #endregion
+
+                #region store data
+                ApplicationRole roles = new ApplicationRole
+                {
+                    Name = InputModel.Name,
+                    RoleDesc = InputModel.RoleDesc,
+                    CreatorId = runUserID,
+                    CreatedAt = DateTime.Now,
+                    ModifierId = runUserID,
+                    ModifiedAt = DateTime.Now,
+                    IsDeleted = false,
+                    IsTenant = false,
+                    IsDefaultRole = false,
                 };
 
-                _dbContext.ref_races.Add(ref_race);
+                _dbContext.Roles.Add(roles);
                 await _dbContext.SaveChangesAsync();
 
                 #endregion
 
-                var result = new
-                {
-                    race_name = ref_race.race_name,
-                    is_deleted = ref_race.is_deleted,
-                    created_at = ref_race.created_at
-                };
-                return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
+                return Ok(roles, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana.")));
             }
             catch (Exception ex)
             {
@@ -113,9 +121,8 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] ref_race InputModel)
+        public async Task<IActionResult> Update(int Id, [FromBody] ApplicationRole InputModel)
         {
             try
             {
@@ -123,28 +130,23 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.ref_races.FirstOrDefaultAsync(x => x.race_id == InputModel.race_id);
+                var formField = await _dbContext.Roles.FirstOrDefaultAsync(x => x.Id == Id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-
-                if (string.IsNullOrWhiteSpace(InputModel.race_name))
-                {
-                    return Error("", SystemMesg(_feature, "RACE_NAME", MessageTypeEnum.Error, string.Format("Ruangan nama bangsa diperlukan")));
-                }                
-
+                
                 #endregion
 
-                formField.race_name = InputModel.race_name;
-                formField.is_deleted = InputModel.is_deleted;
-                formField.modifier_id = runUserID;
-                formField.modified_at = DateTime.Now;
+                formField.Name = InputModel.Name;
+                formField.RoleDesc = InputModel.RoleDesc;
+                formField.ModifierId = runUserID;
+                formField.ModifiedAt = DateTime.Now;
 
-                _dbContext.ref_races.Update(formField);
+                _dbContext.Roles.Update(formField);
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
+                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
             catch (Exception ex)
             {
@@ -152,7 +154,6 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpDelete("{Id}")]
         public async Task<IActionResult> Delete(int Id)
         {
@@ -161,17 +162,17 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.ref_races.FirstOrDefaultAsync(x => x.race_id == Id);
+                var formField = await _dbContext.Roles.FirstOrDefaultAsync(x => x.Id == Id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
 
-                _dbContext.ref_races.Remove(formField);
+                _dbContext.Roles.Remove(formField);
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
             catch (Exception ex)
             {
@@ -179,10 +180,9 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        private bool UnitExists(int id)
+        private bool RolesExists(int id)
         {
-            return (_dbContext.ref_races?.Any(e => e.race_id == id)).GetValueOrDefault();
+            return (_dbContext.Roles?.Any(e => e.Id == id)).GetValueOrDefault();
         }
-
     }
 }
