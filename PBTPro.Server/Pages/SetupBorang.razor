@@ -258,6 +258,8 @@ else
             if (response.ReturnCode == 200)
             {
                 Data = await GetListDataAsync(formType);
+                itemToDelete = null;
+                ConfirmationShown = false;
                 StateHasChanged();
                 HandleResponse(response.ReturnMessage);
             }
@@ -270,9 +272,6 @@ else
         {
 
         }
-
-        itemToDelete = null;
-        ConfirmationShown = false;
     }
 
     void OnNoButtonClick()
