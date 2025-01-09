@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Npgsql.Internal.Postgres;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -528,62 +529,55 @@ namespace PBTPro.Api.Controllers
         #region crud
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] ApplicationUser model)
+        public async Task<IActionResult> Add([FromBody] RegisterModel model)
         {
             try
             {
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
 
+                #region validation
+                var userExists = await _userManager.FindByNameAsync(model.Username.Trim(new char[] { (char)39 }).Replace(" ", ""));
+                if (userExists != null) return Error(userExists, "Nama pengguna telah digunakan.");
+
+                var IdExist = await _dbContext.Users.Where(x => x.IdNo == model.ICNo || x.Email == model.Email).Select(x => new { x.IdNo, x.Email }).AsNoTracking().FirstOrDefaultAsync();
+                if (IdExist != null)
+                {
+                    if (IdExist.IdNo == model.ICNo)
+                    {
+                        return Error("", "Icno telah berdaftar dengan pengguna lain");
+                    }
+
+                    if (IdExist.Email == model.Email)
+                    {
+                        return Error("", "e-mel telah berdaftar dengan pengguna lain");
+                    }
+                }
+
+                #endregion
                 #region store data
                 ApplicationUser au = new ApplicationUser
                 {
-                    full_name = model.full_name,
-                    IdNo = model.IdNo,
-                    PhoneNumber = model.PhoneNumber,
-                    dept_id = (int)model.dept_id,
-                    dept_name = model.dept_name,
-                    div_id = (int)model.div_id,
-                    div_name = model.div_name,
-                    unit_id = (int)model.unit_id,
-                    unit_name = model.unit_name,
+                    full_name = model.FullName,
+                    PhoneNumber = model.PhoneNo,
+                    IdNo = model.ICNo,
+                    IdTypeId = model.IdTypeId,
                     Email = model.Email,
-                    IsDeleted = false,
-                    CreatorId = runUserID,
-                    CreatedAt = DateTime.Now,
-
-                    NormalizedEmail = model.Email.ToUpper(),
+                    dept_id = model.DepartmentID,
+                    div_id = model.DivisionID,
+                    unit_id = model.UnitID,
                     SecurityStamp = Guid.NewGuid().ToString(),
-                    UserName = model.UserName.ToLower(),
-                    EmailConfirmed = true,
-
-                    ModifiedAt = DateTime.Now,
-                    ModifierId = runUserID
+                    UserName = model.Username.Trim(new char[] { (char)39 }).Replace(" ", ""),
                 };
 
                 _dbContext.Users.Add(au);
                 await _dbContext.SaveChangesAsync();
 
                 #endregion
+                model.Password = GeneratePassword();
+                var result = await _userManager.CreateAsync(au, model.Password);
+                if (!result.Succeeded) return Error(result, "Gagal cipta pengguna.");
 
-                var result = new
-                {
-                    full_name = model.full_name,
-                    IdNo = model.IdNo,
-                    PhoneNumber = model.PhoneNumber,
-                    dept_id = (int)model.dept_id,
-                    dept_name = model.dept_name,
-                    div_id = (int)model.div_id,
-                    div_name = model.div_name,
-                    unit_id = (int)model.unit_id,
-                    unit_name = model.unit_name,
-                    Email = model.Email,
-                    IsDeleted = false,
-                    CreatorId = runUserID,
-                    CreatedAt = DateTime.Now,
-                    odifiedAt = DateTime.Now,
-                    ModifierId = runUserID
-                };
                 return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
             }
             catch (Exception ex)
@@ -593,28 +587,27 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] ApplicationUser model)
+        public async Task<IActionResult> Update(int Id, [FromBody] RegisterModel model)
         {
             try
             {
                 int runUserID = await getDefRunUserId();
 
                 #region Validation
-                var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == model.Id);
+                var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.IdNo == model.ICNo);
                 if (users == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
-                users.full_name = model.full_name;
-                users.IdNo = model.IdNo;
-                users.PhoneNumber = model.PhoneNumber;
-                users.dept_id = (int)model.dept_id;
-                users.dept_name = model.dept_name;
-                users.div_id = (int)model.div_id;
-                users.div_name = model.div_name;
-                users.unit_id = (int)model.unit_id;
-                users.unit_name = model.unit_name;
+
+                users.full_name = model.FullName;
+                users.IdNo = model.ICNo;
+                users.PhoneNumber = model.PhoneNo;
+                users.IdTypeId = model.IdTypeId;
+                users.dept_id = model.DepartmentID;
+                users.div_id = model.DivisionID;
+                users.unit_id = model.UnitID;
                 users.ModifiedAt = DateTime.Now;
                 users.ModifierId = runUserID;
 
@@ -673,5 +666,56 @@ namespace PBTPro.Api.Controllers
             }
         }
         #endregion
+
+        public string GeneratePassword(PasswordOptions opts = null)
+        {
+            if (opts == null) opts = new PasswordOptions()
+            {
+                RequiredLength = 8,
+                RequiredUniqueChars = 4,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireNonAlphanumeric = true,
+                RequireUppercase = true
+            };
+
+            string[] randomChars = new[] {
+            "ABCDEFGHJKLMNOPQRSTUVWXYZ",    // uppercase 
+            "abcdefghijkmnopqrstuvwxyz",    // lowercase
+            "0123456789",                   // digits
+            "!@$?_-"                        // non-alphanumeric
+            };
+
+            Random rand = new Random(System.Environment.TickCount);
+            List<char> chars = new List<char>();
+
+            if (opts.RequireUppercase)
+            {
+                chars.Insert(rand.Next(0, chars.Count), randomChars[0][rand.Next(0, randomChars[0].Length)]);
+            }
+
+            if (opts.RequireLowercase)
+            {
+                chars.Insert(rand.Next(0, chars.Count), randomChars[1][rand.Next(0, randomChars[1].Length)]);
+            }
+
+            if (opts.RequireDigit)
+            {
+                chars.Insert(rand.Next(0, chars.Count), randomChars[2][rand.Next(0, randomChars[2].Length)]);
+            }
+
+            if (opts.RequireNonAlphanumeric)
+            {
+                chars.Insert(rand.Next(0, chars.Count), randomChars[3][rand.Next(0, randomChars[3].Length)]);
+            }
+
+            for (int i = chars.Count; i < opts.RequiredLength || chars.Distinct().Count() < opts.RequiredUniqueChars; i++)
+            {
+                string rcs = randomChars[rand.Next(0, randomChars.Length)];
+                chars.Insert(rand.Next(0, chars.Count), rcs[rand.Next(0, rcs.Length)]);
+            }
+
+            return new string(chars.ToArray());
+        }
     }
 }

@@ -26,6 +26,7 @@ namespace PBTPro.DAL.Models.CommonServices
         public int? UnitID { get; set; }
         public string? UnitName { get; set; }
         public string? FullName { get; set; }
+        public int? IdTypeId { get; set; }
     }
 
     public class LoginResult
