@@ -54,4 +54,18 @@ public partial class user_profile
     public DateTime? modified_at { get; set; }
 
     public bool? is_deleted { get; set; }
+
+    //public int dept_id { get; set; }
+
+    //public string dept_name { get; set; }
+
+    //public int div_id { get; set; }
+
+    //public string div_name { get; set; }
+
+    //public int unit_id { get; set; }
+
+    //public string unit_name { get; set; }
+
+
 }
