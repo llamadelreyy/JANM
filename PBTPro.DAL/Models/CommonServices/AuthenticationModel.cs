@@ -102,4 +102,28 @@ namespace PBTPro.DAL.Models.CommonServices
         public bool can_import_data { get; set; }
         public bool can_approve_changes { get; set; }
     }
+
+    public class UserRoleModel
+    {
+        public int UserRoleId { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public int CreatorId { get; set; }
+        public DateTime ModifiedAt { get; set; }
+        public int ModifierId { get; set; }
+        public bool IsDeleted { get; set; }
+        //role_id
+        public int RoleId { get; set; }
+        //user_id
+        public int UserId { get; set; }
+        //user_name
+        public string UserName { get; set; }
+    }
+    public class RoleModel
+    {
+        public int? RoleId { get; set; }
+        public string? RoleName { get; set; }
+        public string? RoleDesc { get; set; }
+        public bool? IsDefaultRole { get; set; }
+        public bool? IsTenant { get; set; }
+    }
 }

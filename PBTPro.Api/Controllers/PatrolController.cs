@@ -697,40 +697,21 @@ namespace PBTPro.Api.Controllers
         #endregion
 
         [AllowAnonymous]
-        [HttpGet("{Id}")]
-        public async Task<IActionResult> GetDateTimeByPatrolId(int Id)
+        [HttpGet("{username}")]
+        public async Task<IActionResult> GetDateTimeByUserId(string username)
         {
             try
             {
-                var patrol = await _dbContext.patrol_infos.Where(x => x.patrol_id == Id).Select(x => new
-                {
-                    patrol_id = x.patrol_id,
-                    patrol_status = x.patrol_status,
-                    patrol_end_dtm = x.patrol_end_dtm
+                var patrol_member = await (from p in _dbContext.patrol_infos                                            
+                                           join pm in _dbContext.patrol_members on p.patrol_id equals pm.member_patrol_id
+                                           where p.patrol_status == "Selesai" && pm.member_username == username
+                                           select new
+                                           {
+                                               pm.member_end_dtm,
 
-                }).FirstOrDefaultAsync();
-
-                if (patrol == null)
-                {
-                    return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
-                }
-
-                var members = await (from pm in _dbContext.patrol_members
-                                     join u in _dbContext.Users on pm.member_username equals u.UserName
-                                     where pm.member_patrol_id == patrol.patrol_id && patrol.patrol_status == "Selesai"
-                                     select new
-                                     {
-                                         pm.member_end_dtm,
-                                     })
-                                    .AsNoTracking()
-                                    .ToListAsync();
-
-                var result = new
-                {
-                    info = patrol,
-                    members = members
-                };
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+                                           }).FirstOrDefaultAsync();
+                                
+                return Ok(patrol_member, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -740,14 +721,14 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetListbyCurrentUser(string? crs = null)
+        public async Task<IActionResult> GetListbyCurrentUser()
         {
             try
             {
                 int runUserID = await getDefRunUserId();
                 string runUser = await getDefRunUser();
 
-                var patrol = await _dbContext.patrol_infos.Select(x => new
+                var patrol = await _dbContext.patrol_infos.Where(x=> x.patrol_start_dtm == DateTime.Today && x.patrol_user_id == runUserID).Select(x => new
                 {
                     patrol_id = x.patrol_id,
                     patrol_cnt_notice = x.patrol_cnt_notice,
@@ -774,38 +755,8 @@ namespace PBTPro.Api.Controllers
                                     ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_end_location))
                                     : null
                 }).AsNoTracking().ToListAsync();
-
-                var members = await (from pm in _dbContext.patrol_members
-                                               where pm.member_username == runUser
-                                               select new
-                                               {
-                                                   pm.member_id,
-                                                   pm.member_patrol_id,
-                                                   pm.member_username,
-                                                   pm.member_cnt_notice,
-                                                   pm.member_cnt_compound,
-                                                   pm.member_cnt_notes,
-                                                   pm.member_cnt_seizure,
-                                                   pm.member_leader_flag,
-                                                   pm.active_flag,
-                                                   pm.created_by,
-                                                   pm.created_date,
-                                                   pm.updated_by,
-                                                   pm.update_date,
-                                                   pm.member_start_dtm,
-                                                   pm.member_end_dtm
-                                               })
-                                                .AsNoTracking()
-                                                .ToListAsync();
-
-
-                var result = new
-                {
-                    info = patrol,
-                    members = members,
-                };
-
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, "Senarai rekod berjaya dijana"));
+            
+                return Ok(patrol, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, "Senarai rekod berjaya dijana"));
             }
             catch (Exception ex)
             {
