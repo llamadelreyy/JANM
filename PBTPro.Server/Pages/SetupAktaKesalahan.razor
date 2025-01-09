@@ -1165,9 +1165,6 @@ else
                 await doDeleteAkta();
                 break;
         }
-
-        itemToDelete = null;
-        ConfirmationShown = false;
     }
 
     void OnNoButtonClick()
@@ -1187,6 +1184,8 @@ else
             if (response.ReturnCode == 200)
             {
                 await LoadGridData();
+                itemToDelete = null;
+                ConfirmationShown = false;
                 StateHasChanged();
                 HandleResponse(response.ReturnMessage);
             }
@@ -1212,6 +1211,8 @@ else
             if (response.ReturnCode == 200)
             {
                 await LoadGridData();
+                itemToDelete = null;
+                ConfirmationShown = false;
                 StateHasChanged();
                 HandleResponse(response.ReturnMessage);
             }
@@ -1237,6 +1238,8 @@ else
             if (response.ReturnCode == 200)
             {
                 await LoadGridData();
+                itemToDelete = null;
+                ConfirmationShown = false;
                 StateHasChanged();
                 HandleResponse(response.ReturnMessage);
             }
@@ -1262,6 +1265,8 @@ else
             if (response.ReturnCode == 200)
             {
                 await LoadGridData();
+                itemToDelete = null;
+                ConfirmationShown = false;
                 StateHasChanged();
                 HandleResponse(response.ReturnMessage);
             }
