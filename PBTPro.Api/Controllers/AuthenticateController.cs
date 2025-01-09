@@ -96,6 +96,14 @@ namespace PBTPro.Api.Controllers
                 user.CreatedAt = DateTime.Now;
                 user.ModifiedAt = DateTime.Now;
 
+                //added by farhana
+                user.full_name = model.FullName;
+                user.IdNo = model.ICNo;
+                user.dept_id = model.DepartmentID;
+                user.div_id = model.DivisionID;
+                user.unit_id = model.UnitID;
+                //end
+
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (!result.Succeeded)
                 {
