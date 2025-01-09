@@ -1,17 +1,14 @@
 ﻿/*
 Project: PBT Pro
-Description: user api, to handle user related action
-Author: ismail
-Date: November 2024
+Description: user api, to handle user role related action
+Author: farhana
+Date: january 2024
 Version: 1.0
 Additional Notes:
 - 
 
 Changes Logs:
-15/11/2024 - initial create
-18/11/2024 - add field & logic for signature
-20/11/2024 - add field & logic for profile avatar
-03/12/2024 - change hardcoded upload path & url to refer param table 
+09/01/2025 - adding crud for assigning user to role
 */
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -84,12 +81,18 @@ namespace PBTPro.Api.Controllers
                 var runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.UserRoles.FirstOrDefaultAsync();
-                
+                var formField = await _dbContext.UserRoles.FirstOrDefaultAsync();               
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
+
+                var userExists = await _dbContext.Users.Select(x => new { x.Id, x.UserName }).FirstOrDefaultAsync(x => x.Id == InputModel.UserId);
+                if (userExists == null)
+                {
+                    return Error("", "Pengguna tidak wujud.");
+                }
+
                 #endregion
 
                 #region store data
@@ -99,8 +102,8 @@ namespace PBTPro.Api.Controllers
                     UserId = InputModel.UserId,
                     CreatorId = runUserID,
                     CreatedAt = DateTime.Now,
-                    ModifierId = runUserID,
-                    ModifiedAt = DateTime.Now,
+                    //ModifierId = runUserID,
+                    //ModifiedAt = DateTime.Now,
                     IsDeleted = false,
                 };
 
@@ -118,7 +121,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] ApplicationUserRole InputModel)
+        public async Task<IActionResult> Update(int Id, [FromBody] UserRoleModel InputModel)
         {
             try
             {
