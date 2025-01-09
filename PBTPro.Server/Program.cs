@@ -22,10 +22,28 @@ using Blazored.Toast;
 using PBTPro.Services;
 using PBTPro.Data;
 using PBTPro.DAL.Services;
+using Serilog;
+using Serilog.Events;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.File("../logs/PBT-.log",
+                          rollingInterval: RollingInterval.Day,
+                          outputTemplate: "{Timestamp:dd-MMM-yyyy HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                          restrictedToMinimumLevel: LogEventLevel.Warning)
+            .WriteTo.File("../logs/info/PBT-.log",
+                          rollingInterval: RollingInterval.Hour,
+                          buffered: true,
+                          outputTemplate: "{Timestamp:dd-MMM-yyyy HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                          restrictedToMinimumLevel: LogEventLevel.Information)
+            .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Error)
+            .Enrich.FromLogContext()
+            .CreateLogger();
+builder.Logging.AddSerilog(Log.Logger);
 
 // Add this to configure Kestrel with the settings from appsettings.json
 // commented due to conflict on deploment

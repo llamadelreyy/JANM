@@ -30,5 +30,9 @@ namespace PBTPro.DAL
         public int? ModifierId { get; set; }
         public override string PasswordHash { get; set; }
         public override string SecurityStamp { get; set; }
+        public int? dept_id { get; set; }
+        public int? div_id { get; set; }
+        public int? unit_id { get; set; }
+        public string? full_name { get; set; }
     }
 }
