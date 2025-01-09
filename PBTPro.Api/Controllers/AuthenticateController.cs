@@ -212,6 +212,7 @@ namespace PBTPro.Api.Controllers
                 var LoginResult = await _signInManager.PasswordSignInAsync(user, model.Password, false, true);
                 if (LoginResult.Succeeded)
                 {
+                    bool isMobileUser = false;
                     user.LastLogin = DateTime.Now;
                     _dbContext.Users.Update(user);
                     await _dbContext.SaveChangesAsync();
@@ -223,6 +224,7 @@ namespace PBTPro.Api.Controllers
                     };
 
                     var roles = await _userManager.GetRolesAsync(user);
+                    if (roles.Any(x=> x.ToUpper() == "ANGOTA PENGUATKUASA")) { isMobileUser = true; }
 
                     foreach (var role in roles)
                     {
@@ -236,7 +238,7 @@ namespace PBTPro.Api.Controllers
                     }
 
                     var token = _tokenService.GenerateJwtToken(authClaims, model.RememberMe);
-                    return Ok(new LoginResult {Fullname = user.UserName, Userid = user.Id, Username = user.UserName, Token = token, Roles = roles.ToList() }, SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
+                    return Ok(new LoginResult {Fullname = user.UserName, Userid = user.Id, Username = user.UserName, Token = token, IsMobileUser = isMobileUser, Roles = roles.ToList() }, SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
                 }
                 else if (LoginResult.IsLockedOut)
                 {
