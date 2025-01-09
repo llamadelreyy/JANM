@@ -554,27 +554,32 @@ namespace PBTPro.Api.Controllers
                     }
                 }
 
-                #endregion
+                #endregion          
+
                 #region store data
                 ApplicationUser au = new ApplicationUser
                 {
                     full_name = model.FullName,
                     PhoneNumber = model.PhoneNo,
                     IdNo = model.ICNo,
-                    IdTypeId = model.IdTypeId,
+                    //IdTypeId = model.IdTypeId,
                     Email = model.Email,
                     dept_id = model.DepartmentID,
                     div_id = model.DivisionID,
                     unit_id = model.UnitID,
                     SecurityStamp = Guid.NewGuid().ToString(),
                     UserName = model.Username.Trim(new char[] { (char)39 }).Replace(" ", ""),
+                    CreatedAt = DateTime.Now,
+                    CreatorId  = runUserID,
+                    ModifiedAt = DateTime.Now,
+                    ModifierId = runUserID,
+                    PasswordHash = "AQAAAAIAAYagAAAAEPGX5Ds9agERax0qx8EOJNeHDJOrdURhb/Nwndx0lYbcXfz/yTYxLfyp/pJkW8GB1Q==",
                 };
 
                 _dbContext.Users.Add(au);
                 await _dbContext.SaveChangesAsync();
 
                 #endregion
-                model.Password = GeneratePassword();
                 var result = await _userManager.CreateAsync(au, model.Password);
                 if (!result.Succeeded) return Error(result, "Gagal cipta pengguna.");
 
@@ -666,56 +671,6 @@ namespace PBTPro.Api.Controllers
             }
         }
         #endregion
-        [HttpGet]
-        public string GeneratePassword(PasswordOptions opts = null)
-        {
-            if (opts == null) opts = new PasswordOptions()
-            {
-                RequiredLength = 8,
-                RequiredUniqueChars = 4,
-                RequireDigit = true,
-                RequireLowercase = true,
-                RequireNonAlphanumeric = true,
-                RequireUppercase = true
-            };
-
-            string[] randomChars = new[] {
-            "ABCDEFGHJKLMNOPQRSTUVWXYZ",    // uppercase 
-            "abcdefghijkmnopqrstuvwxyz",    // lowercase
-            "0123456789",                   // digits
-            "!@$?_-"                        // non-alphanumeric
-            };
-
-            Random rand = new Random(System.Environment.TickCount);
-            List<char> chars = new List<char>();
-
-            if (opts.RequireUppercase)
-            {
-                chars.Insert(rand.Next(0, chars.Count), randomChars[0][rand.Next(0, randomChars[0].Length)]);
-            }
-
-            if (opts.RequireLowercase)
-            {
-                chars.Insert(rand.Next(0, chars.Count), randomChars[1][rand.Next(0, randomChars[1].Length)]);
-            }
-
-            if (opts.RequireDigit)
-            {
-                chars.Insert(rand.Next(0, chars.Count), randomChars[2][rand.Next(0, randomChars[2].Length)]);
-            }
-
-            if (opts.RequireNonAlphanumeric)
-            {
-                chars.Insert(rand.Next(0, chars.Count), randomChars[3][rand.Next(0, randomChars[3].Length)]);
-            }
-
-            for (int i = chars.Count; i < opts.RequiredLength || chars.Distinct().Count() < opts.RequiredUniqueChars; i++)
-            {
-                string rcs = randomChars[rand.Next(0, randomChars.Length)];
-                chars.Insert(rand.Next(0, chars.Count), rcs[rand.Next(0, rcs.Length)]);
-            }
-
-            return new string(chars.ToArray());
-        }
+        
     }
 }
