@@ -100,15 +100,19 @@ namespace PBTPro.Api.Controllers
                     Name = InputModel.RoleName,
                     RoleDesc = InputModel.RoleDesc,
                     CreatorId = runUserID,
-                    CreatedAt = DateTime.Now,
+                    CreatedAt = DateTime.UtcNow,
                     ModifierId = runUserID,
-                    ModifiedAt = DateTime.Now,
+                    ModifiedAt = DateTime.UtcNow,
                     IsDeleted = false,
                     IsTenant = false,
                     IsDefaultRole = false,
                 };
+                var identityResult = await _roleManager.CreateAsync(roles);
 
-               // await _roleManager.CreateAsync(new IdentityRole(InputModel.RoleName));
+                if (!identityResult.Succeeded)
+                {
+                    return Error("", SystemMesg("COMMON", "IDENTITY_ERROR", MessageTypeEnum.Error,"Ralat pengurusan identiti berlaku. Sila cuba lagi."));
+                }
 
                 _dbContext.Roles.Add(roles);
                 await _dbContext.SaveChangesAsync();
