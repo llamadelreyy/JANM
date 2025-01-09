@@ -17,10 +17,10 @@ namespace PBTPro.DAL
     public class ApplicationUserRole : IdentityUserRole<int>
     {
         public int UserRoleId { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public int CreatorId { get; set; }
-        public DateTime ModifiedAt { get; set; }
-        public int ModifierId { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public int? CreatorId { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+        public int? ModifierId { get; set; }
         public bool IsDeleted { get; set; }
         //role_id
         public int RoleId { get; set; }        
