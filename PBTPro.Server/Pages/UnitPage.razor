@@ -3,6 +3,14 @@
 
 @implements IDisposable
 
+@using PBTPro
+@using PBTPro.Shared
+@using PBTPro.Data
+@using PBTPro.DAL
+@using PBTPro.DAL.Models
+@using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.CommonServices
+
 @inject UnitService _UnitService
 @inject DepartmentService _DepartmentService
 @inject SectionService _SectionService
@@ -350,15 +358,6 @@
         catch (Exception ex)
         {
         }
-        // bool blnSuccess = false;
-        // if (dtData != null)
-        // {
-        //     blnSuccess = await _UnitService.Delete(dtData.unit_id);
-        //     if (blnSuccess) await UpdateDataAsync();
-        // }
-
-        // ConfirmationShown = false;
-        // ShowToast(blnSuccess, blnSuccess ? "Proses hapus selesai" : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
     }
 
     void OnNoButtonClick()

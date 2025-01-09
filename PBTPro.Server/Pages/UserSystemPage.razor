@@ -1,14 +1,20 @@
 ﻿@page "/user_system"
 @attribute [AllowAnonymous]
 
+@using PBTPro
+@using PBTPro.Shared
 @using PBTPro.Data
+@using PBTPro.DAL
 @using PBTPro.DAL.Models
-@using Newtonsoft.Json
+@using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.CommonServices
+
 @inject UserService _UserService
 @inject UnitService _UnitService
 @inject DepartmentService _DepartmentService
 @inject SectionService _SectionService
 @inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastService
 
 <style>
     .dxbl-grid {
@@ -16,6 +22,12 @@
         max-height: 98.5%;
     }
 </style>
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
 
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -29,7 +41,7 @@
 
     <DxGrid @ref="Grid"
             Data="dataSource"
-            KeyFieldName="user_id"
+            KeyFieldName="Id"
             ShowGroupPanel="true"
             ShowFilterRow="false"
             TextWrapEnabled="true"
@@ -61,24 +73,24 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((system_user)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((ApplicationUser)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Jabatan" MinWidth="100" Width="12%" FieldName="dept_name" TextAlignment="GridTextAlignment.Left" />
             <DxGridDataColumn Caption="Seksyen" MinWidth="120" Width="13%" FieldName="div_name" TextAlignment="GridTextAlignment.Left" />
             <DxGridDataColumn Caption="Unit" MinWidth="120" Width="12%" FieldName="unit_name" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn Caption="Id Pengguna" MinWidth="100" Width="10%" FieldName="user_name" />
+            <DxGridDataColumn Caption="Id Pengguna" MinWidth="100" Width="10%" FieldName="UserName" />
             <DxGridDataColumn Caption="Nama Penuh" MinWidth="150" Width="20%" FieldName="full_name" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn Caption="No Mobile" MinWidth="100" Width="12%" FieldName="mobile_no" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn Caption="Emel" MinWidth="150" Width="15%" FieldName="user_email" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn FieldName="created_date"
-                              DisplayFormat="dd/MM/yyyy"
-                              Caption="Tarikh Data"
-                              MinWidth="100"
-                              Width="12%"
-                              TextAlignment="GridTextAlignment.Center"
-                              SortOrder="GridColumnSortOrder.Ascending"
-                              SortIndex="0">
+            <DxGridDataColumn Caption="No Mobile" MinWidth="100" Width="12%" FieldName="PhoneNumber" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Emel" MinWidth="150" Width="15%" FieldName="Email" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="CreatedAt"
+                                DisplayFormat="dd/MM/yyyy"
+                                Caption="Tarikh Data"
+                                MinWidth="100"
+                                Width="12%"
+                                TextAlignment="GridTextAlignment.Center"
+                                SortOrder="GridColumnSortOrder.Ascending"
+                                SortIndex="0">
                 <FilterMenuTemplate>
                     <DateRange FilterContext="context" />
                 </FilterMenuTemplate>
@@ -87,8 +99,11 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtEdit = (system_user)EditFormContext.EditModel;
-                //strIdPengguna = dtEdit.ic_no;
+                var dtEdit = (ApplicationUser)EditFormContext.EditModel;
+                if (Grid.IsEditingNewRow())
+                    strIdPengguna = string.Empty;
+                else
+                    strIdPengguna = dtEdit.IdNo;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="6" ColSpanLg="8" BeginRow="true">
@@ -109,43 +124,38 @@
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
                                 <DxTextBox @bind-Text="@dtEdit.full_name"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Masukkan nama penuh ..."
-                                           Maxlength="60"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:350px"  />
+                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                            BindValueMode="BindValueMode.OnInput"
+                                            NullText="Masukkan nama penuh ..."
+                                            Maxlength="60"
+                                            ShowValidationIcon="true"
+                                            CssClass="cw-320" style="width:350px"  />
                             </td>
                         </tr>
                         <tr>
                             <td nowrap>No Kad Pengenalan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%">
-                                @{
-                                    strIdPengguna = dtEdit.ic_no;
-                                }
-                                <DxMaskedInput @bind-Value="@strIdPengguna"
-                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                               NullText="cth: 701231161234"
-                                               Maxlength="12"
-                                               ShowValidationIcon="true"
-                                               CssClass="cw-320" style="width:170px"
-                                               Mask="000000000000" />
-                                       
+                                <DxMaskedInput @bind-Value="@dtEdit.IdNo"
+                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                NullText="cth: 701231161234"
+                                                Maxlength="12"
+                                                ShowValidationIcon="true"
+                                                CssClass="cw-320" style="width:170px"
+                                                Mask="000000000000" />            
                             </td>
                             <td width="100px">&nbsp;</td>
                             <td nowrap>No Tel. Bimbit</td>
                             <td>&nbsp;&nbsp;</td>
                             <td width="50%">
-
-                                <DxMaskedInput @bind-Value="@dtEdit.mobile_no"
-                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                               BindValueMode="BindValueMode.OnInput"
-                                               Maxlength="14"
-                                               ShowValidationIcon="true"
-                                               CssClass="cw-320" style="width:170px"
-                                               MaskMode=MaskMode.Text
-                                               Mask="99999999999999">
+                                <DxMaskedInput @bind-Value="@dtEdit.PhoneNumber"
+                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                BindValueMode="BindValueMode.OnInput"
+                                                Maxlength="14"
+                                                ShowValidationIcon="true"
+                                                CssClass="cw-320" style="width:170px"
+                                                MaskMode=MaskMode.Text
+                                                Mask="99999999999999">
                                     <DxTextMaskProperties SaveLiteral=false></DxTextMaskProperties>
                                 </DxMaskedInput>
 
@@ -170,7 +180,7 @@
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
                                 @{
-                                    var _dtSection = dtSection.Where(x => x.dept_id == dtEdit.dept_id);
+                                    var _dtSection = dtSection.Where(x => x.dept_id == dtEdit?.dept_id);
                                 }
                                 <DxComboBox Data="@_dtSection"
                                             NullText="Pilih Seksyen ..."
@@ -187,7 +197,7 @@
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
                                 @{
-                                    var _dtUnit = dtUnit.Where(x => x.dept_id == dtEdit.dept_id && x.div_id == dtEdit.div_id);
+                                    var _dtUnit = dtUnit.Where(x => x.dept_id == dtEdit?.dept_id && x.div_id == dtEdit?.div_id);
                                 }
                                 <DxComboBox Data="@_dtUnit"
                                             NullText="Pilih Unit ..."
@@ -203,28 +213,16 @@
                             <td nowrap>Emel</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-@*                                 <DxMaskedInput @bind-Value="@dtEdit.user_email"
-                                               CssClass="cw-320"
-                                               Mask="@EmailMask"
-                                               Maxlength="60"
-                                               ShowValidationIcon="true"
-                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                               MaskMode="MaskMode.RegEx" style="width:350px">
+                                <DxMaskedInput @bind-Value="@dtEdit.Email"
+                                                CssClass="cw-320"
+                                                NullText="@("_@_.__")"
+                                                Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"
+                                                Maxlength="60"
+                                                ShowValidationIcon="true"
+                                                MaskMode="MaskMode.RegEx">
                                     <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
-                                                           Placeholder="Placeholder"
-                                                           PlaceholdersVisible="PlaceholderVisible" />
-                                </DxMaskedInput> *@
-
-                                <DxMaskedInput @bind-Value="@dtEdit.user_email"
-                                               CssClass="cw-320"
-                                               NullText="@("_@_.__")"
-                                               Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"
-                                               Maxlength="60"
-                                               ShowValidationIcon="true"
-                                               MaskMode="MaskMode.RegEx">
-                                    <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
-                                                           Placeholder="Placeholder"
-                                                           PlaceholdersVisible="PlaceholderVisible" />
+                                                            Placeholder="Placeholder"
+                                                            PlaceholdersVisible="PlaceholderVisible" />
                                 </DxMaskedInput>
                             </td>
                         </tr>
@@ -240,16 +238,16 @@
         <CustomValidators>
             <MyCustomValidator DataItemValidating="ValidateGridData" />
         </CustomValidators>
-
-        
         <TotalSummary>
-            <DxGridSummaryItem FooterColumnName="user_name"
-                               Name="Custom"
-                               SummaryType=GridSummaryItemType.Count />
+            <DxGridSummaryItem FooterColumnName="UserName"
+                                Name="Custom"
+                                SummaryType=GridSummaryItemType.Count />
         </TotalSummary>
 
     </DxGrid>
+
 </div>
+</DxLoadingPanel>
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
@@ -265,8 +263,8 @@
 
 
 @code {
-    [Inject] IToastNotificationService ToastService { get; set; }
-    IEnumerable<system_user> dataSource;
+    bool PanelVisible { get; set; }
+    IEnumerable<ApplicationUser> dataSource;
     IEnumerable<ref_department> dtDepartment;
     IEnumerable<ref_division> dtSection;
     IEnumerable<ref_unit> dtUnit;
@@ -276,9 +274,9 @@
     string GridSearchText = "";
 
     bool ConfirmationShown { get; set; } = false;
-    string strSelected { get; set; }
-    system_user dtData { get; set; }
-    string strIdPengguna { get; set; }
+    string strSelected { get; set; } 
+    ApplicationUser dtData { get; set; }
+    string strIdPengguna { get; set; } = string.Empty;
 
     IEnumerable<char> PredefinedPlaceholders { get; set; } = new List<char>() { '_', '#' };
     // string Email { get; set; }
@@ -292,12 +290,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dataSource = await _UserService.GetUserAsync();
+        PanelVisible = true;
+
+        dataSource = await _UserService.ListAll();
         dtDepartment = await _DepartmentService.ListAll();
         dtSection = await _SectionService.ListAll();
         dtUnit = await _UnitService.ListAll();
 
         DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -311,31 +312,55 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (system_user)e.EditModel;
+        var _data = (ApplicationUser)e.EditModel;
         if (_data.full_name == null || _data.full_name.Trim() == "")
         {
             e.AddError(nameof(_data.full_name), "Nama Penuh perlu dimasukkan.");
         }
 
-        if (strIdPengguna == null)
+        if (_data.IdNo == null)
         {
-            e.AddError(nameof(strIdPengguna), "No Kad Pengenalan perlu dimasukkan.");
+            e.AddError(nameof(_data.IdNo), "No Kad Pengenalan perlu dimasukkan.");
         }
         else
         {
-            if (strIdPengguna.Trim() == "")
-                e.AddError(nameof(strIdPengguna), "No Kad Pengenalan perlu dimasukkan.");
+            if (_data.IdNo.Trim() == "")
+                e.AddError(nameof(_data.IdNo), "No Kad Pengenalan perlu dimasukkan.");
             else
             {
-                _data.ic_no = strIdPengguna;
-                _data.user_name = strIdPengguna;
-            }
 
+                if (Grid.IsEditingNewRow())
+                {
+                    var _dtAdd = dataSource.Where(x => x.IdNo == _data.IdNo).FirstOrDefault();
+
+                    if (_dtAdd != null)
+                        e.AddError(nameof(_data.IdNo), "No Kad Pengenalan telah wujud.");
+                    else
+                    {
+                        // _data.ic_no = strIdPengguna;
+                        strIdPengguna = _data.IdNo;
+                        _data.UserName = _data.IdNo;
+                    }
+                }
+                else
+                {
+                    var _dtEdit = dataSource.Where(x => x.Id != _data.Id && x.IdNo == _data.IdNo).FirstOrDefault();
+
+                    if (_dtEdit != null)
+                        e.AddError(nameof(_data.IdNo), "No Kad Pengenalan telah wujud.");
+                    else
+                    {
+                        // _data.ic_no = strIdPengguna;
+                        strIdPengguna = _data.IdNo;
+                        _data.UserName = _data.IdNo;
+                    }
+                }
+            }
         }
 
-        if (_data.mobile_no == null || _data.mobile_no.Trim() == "")
+        if (_data.PhoneNumber == null || _data.PhoneNumber.Trim() == "")
         {
-            e.AddError(nameof(_data.mobile_no), "No Telefon Bimbit perlu dimasukkan.");
+            e.AddError(nameof(_data.PhoneNumber), "No Telefon Bimbit perlu dimasukkan.");
         }
 
         if (_data.dept_id == 0)
@@ -353,38 +378,62 @@
             e.AddError(nameof(_data.unit_id), "Sila pilih Unit dari senarai.");
         }
 
-        if (_data.user_email == null || _data.user_email.Trim() == "")
+        if (_data.Email == null || _data.Email.Trim() == "")
         {
-            e.AddError(nameof(_data.user_email), "Alamat Emel perlu dimasukkan.");
+            e.AddError(nameof(_data.Email), "Alamat Emel perlu dimasukkan.");
+        }
+        else
+        {           
+            if (Grid.IsEditingNewRow())
+            {
+                var _dtAdd = dataSource.Where(x => x.Email == _data.Email).FirstOrDefault();
+
+                if (_dtAdd != null)
+                    e.AddError(nameof(_data.Email), "Alamat Emel telah wujud.");
+            }
+            else
+            {
+                var _dtEdit = dataSource.Where(x => x.Id != _data.Id && x.Email == _data.Email).FirstOrDefault();
+
+                if (_dtEdit != null)
+                    e.AddError(nameof(_data.Email), "Alamat Emel telah wujud.");
+            }
         }
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
-        bool blnSuccess = false;
-        string strMessage = "";
-        if (e.IsNew)
-        {
-            var jsonString = JsonConvert.SerializeObject((system_user)e.EditModel);
-            blnSuccess = await _UserService.AddUser(jsonString) > 0 ? true : false;
-            strMessage = "Proses tambah rekod selesai.";
-        }
-        else
-        {
-            blnSuccess = await _UserService.UpdateUser((system_user)e.EditModel) > 0 ? true : false;
-            strMessage = "Proses kemaskini selesai.";
-        }
+        ReturnViewModel response = new ReturnViewModel();
+        var editModel = e.EditModel as ApplicationUser;
 
-        if (blnSuccess)
-            await UpdateDataAsync();
+        try
+        {
+            if (e.IsNew)
+                response = await _UserService.Add(editModel);
+            else
+                response = await _UserService.Update(editModel.Id, editModel);
 
-        ShowToast(blnSuccess, blnSuccess ? strMessage : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                HandleResponse("Proses kemaskini selesai.");
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
     }
 
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _UserService.RefreshUserAsync();
+        dataSource = await _UserService.Refresh();
     }
 
     public void Dispose()
@@ -392,24 +441,37 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(system_user item)
+    async Task Delete(ApplicationUser item)
     {
-        strSelected = item.user_name;
+        strSelected = item.UserName;
         dtData = item;
         ConfirmationShown = true;
     }
 
     async void OnYesButtonClick()
     {
-        bool blnSuccess = false;
-        if (dtData != null)
+        try
         {
-            blnSuccess = await _UserService.DeleteUser(dtData.user_id);
-            if (blnSuccess) await UpdateDataAsync();
-        }
+            ReturnViewModel response = new ReturnViewModel();
+            response = await _UserService.Delete(dtData.Id);
 
-        ConfirmationShown = false;
-        ShowToast(blnSuccess, blnSuccess ? "Proses hapus selesai" : "Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                ConfirmationShown = false;
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                ConfirmationShown = false;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
     }
 
     void OnNoButtonClick()
@@ -423,15 +485,30 @@
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
-    void ShowToast(bool blnStatus, string strMessage)
+    private void HandleResponse(string message, string? status = "Success")
     {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
         ToastService.ShowToast(new ToastOptions()
-            {
-                ProviderName = "Overview",
-                ThemeMode = ToastThemeMode.Saturated,
-                RenderStyle = blnStatus ? ToastRenderStyle.Success : ToastRenderStyle.Danger,
-                Title = strMessage
-            });
+        {
+            ProviderName = "Overview",
+            ThemeMode = ToastThemeMode.Saturated,
+            RenderStyle = RenderStyle,
+            Title = message
+        });
     }
 
 }
