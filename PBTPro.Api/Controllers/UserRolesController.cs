@@ -76,7 +76,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] ApplicationUserRole InputModel)
+        public async Task<IActionResult> AssignUserRole([FromBody] UserRoleModel InputModel)
         {
             try
             {
@@ -94,7 +94,9 @@ namespace PBTPro.Api.Controllers
 
                 #region store data
                 ApplicationUserRole userroles = new ApplicationUserRole
-                {                    
+                {           
+                    RoleId = InputModel.RoleId,
+                    UserId = InputModel.UserId,
                     CreatorId = runUserID,
                     CreatedAt = DateTime.Now,
                     ModifierId = runUserID,

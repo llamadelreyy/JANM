@@ -44,4 +44,5 @@ public partial class patrol_info
     public Point? patrol_end_location { get; set; }
 
     public bool patrol_scheduled { get; set; }
+    public int patrol_user_id { get; set; }
 }

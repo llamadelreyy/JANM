@@ -23,16 +23,8 @@ namespace PBTPro.DAL
         public int ModifierId { get; set; }
         public bool IsDeleted { get; set; }
         //role_id
-        public int RoleId { get; set; }
-        //role_name
-        public string Name { get; set; }
-        //role_desc
-        public string RoleDesc { get; set; }
+        public int RoleId { get; set; }        
         //user_id
-        public int UserId { get; set; }
-        //user_name
-        public string UserName { get; set; }
-        //full_name
-        public string FullName { get; set; }
+        public int UserId { get; set; }       
     }
 }

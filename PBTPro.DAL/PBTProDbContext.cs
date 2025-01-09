@@ -780,6 +780,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.updated_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.patrol_user_id).HasDefaultValue(0);
         });
         
         modelBuilder.Entity<patrol_member>(entity =>
