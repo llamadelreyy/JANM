@@ -3,6 +3,14 @@
 
 @implements IDisposable
 
+@using PBTPro
+@using PBTPro.Shared
+@using PBTPro.Data
+@using PBTPro.DAL
+@using PBTPro.DAL.Models
+@using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.CommonServices
+
 @inject RoleService _RoleService
 @inject UserRoleService _UserRoleService
 @inject UserService _UserService
@@ -27,7 +35,7 @@
 
     <DxGrid @ref="Grid"
             Data="dataSource"
-            KeyFieldName="table_id"
+            KeyFieldName="UserRoleId"
             ShowGroupPanel="true"
             ShowFilterRow="false"
             TextWrapEnabled="true"
@@ -60,15 +68,15 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((user_role)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((ApplicationUserRole)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn Caption="Nama Pengguna" MinWidth="180" Width="28%" FieldName="user_name" />
-            <DxGridDataColumn Caption="Nama Penuh Pengguna" MinWidth="240" Width="32%" FieldName="user_full_name" />
-            <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" GroupIndex="0" FieldName="role_name" />
-            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="36%" FieldName="role_desc" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Nama Pengguna" MinWidth="180" Width="28%" FieldName="UserName" />
+            <DxGridDataColumn Caption="Nama Penuh Pengguna" MinWidth="240" Width="32%" FieldName="FullName" />
+            <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" GroupIndex="0" FieldName="Name" />
+            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="36%" FieldName="RoleDesc" TextAlignment="GridTextAlignment.Left" />
 
-            <DxGridDataColumn FieldName="created_date"
+            <DxGridDataColumn FieldName="CreatedAt"
                               DisplayFormat="dd/MM/yyyy"
                               Caption="Tarikh Data"
                               MinWidth="100"
@@ -84,7 +92,7 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtUserRole = (user_role)EditFormContext.EditModel;
+                var dtUserRole = (ApplicationUserRole)EditFormContext.EditModel;
 
                 // This is to check whether in add new @ edit mode
                 boolLockDropDown = Grid.IsEditingNewRow();
@@ -102,12 +110,12 @@
                                             SearchMode="ListSearchMode.AutoSearch"
                                             Enabled="@boolLockDropDown"
                                             ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                            TextFieldName="@nameof(system_user.Text)"
-                                            ValueFieldName="user_id"
+                                            TextFieldName="@nameof(ApplicationUser.Text)"
+                                            ValueFieldName="Id"
                                             CssClass="combo-width"
-                                            SelectedItemChanged="@((system_user x) => SelectedItemChanged(x))"
+                                            SelectedItemChanged="@((ApplicationUser x) => SelectedItemChanged(x))"
                                             DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
-                                            @bind-Value="@dtUserRole.user_id">
+                                            @bind-Value="@dtUserRole.UserId">
                                 </DxComboBox>
                             </td>
                             <td width="100px">&nbsp;</td>
@@ -129,7 +137,7 @@
                                                 bool blnSelected = false;
                                                 foreach (var value in valueRole)
                                                 {
-                                                    if (item.role_id == value.role_id)
+                                                    if (item.Id == value.Id)
                                                     {
                                                         blnSelected = value.role_select; // true;
                                                         item.role_select = value.role_select;  //true;
@@ -138,9 +146,9 @@
 
 
                                                 <div>
-                                                    <label class="multiselect-container" for="@item.role_id">
-                                                        @item.role_name (@item.role_desc)
-                                                        <input type="checkbox" class="check_role" id="@item.role_id" checked="@(blnSelected ? true : false)" @onchange="@((e) => CheckboxChanged(e, item.role_id))" />
+                                                    <label class="multiselect-container" for="@item.Id">
+                                                        @item.Name (@item.RoleDesc)
+                                                        <input type="checkbox" class="check_role" id="@item.Id" checked="@(blnSelected ? true : false)" @onchange="@((e) => CheckboxChanged(e, item.Id))" />
                                                         <span class="checkmark"></span>
                                                     </label>
                                                 </div>
@@ -167,7 +175,7 @@
 
         @*This is to count the summary*@
         <TotalSummary>
-            <DxGridSummaryItem FooterColumnName="role_name"
+            <DxGridSummaryItem FooterColumnName="Name"
                                Name="Custom"
                                SummaryType=GridSummaryItemType.Count />
         </TotalSummary>
@@ -191,10 +199,10 @@
 
 
 @code {
-    IEnumerable<user_role> dataSource;
-    IEnumerable<system_user> dataUser;
-    IEnumerable<system_role> dataRole;
-    IEnumerable<system_role> valueRole;
+    IEnumerable<ApplicationUserRole> dataSource;
+    IEnumerable<ApplicationUser> dataUser;
+    IEnumerable<ApplicationRole> dataRole;
+    IEnumerable<ApplicationRole> valueRole;
     
 
     IGrid Grid { get; set; }
@@ -206,22 +214,22 @@
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
 
-    user_role dtData { get; set; }
+    ApplicationUserRole dtData { get; set; }
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
         //intCurrentUserId = _AllocationAuthenticationStateProvider.CurrentUser.userID;
-        dataSource = await _UserRoleService.GetUserRoleAsync();
-        dataUser = await _UserService.GetUserAsync();
-        dataRole = await _RoleService.GetRoleAsync();
+        dataSource = await _UserRoleService.ListAll();
+        dataUser = await _UserService.ListAll();
+        dataRole = await _RoleService.ListAll();
         // // valueRole = dataRole;
         DataLoadedTcs.TrySetResult(true);
     }
 
     protected void CheckboxChanged(ChangeEventArgs e, int key)
     {
-        var i = dataRole.FirstOrDefault(i => i.role_id == key);
+        var i = dataRole.FirstOrDefault(i => i.Id == key);
         if (i != null)
         {
             i.role_select = (bool)e.Value;
@@ -230,38 +238,38 @@
         //Clear the selection
         foreach (var item in valueRole)
         {
-            if (item.role_id == key)
+            if (item.Id == key)
                 item.role_select = (bool)e.Value;
         }
 
     }
 
 
-    void SelectedItemChanged(system_user x)
+    void SelectedItemChanged(ApplicationUser x)
     {
 
         if (x != null)
         {
-            List<system_role> arrItem = new List<system_role>();
-            system_role _item;
+            List<ApplicationRole> arrItem = new List<ApplicationRole>();
+            ApplicationRole _item;
 
             //Loop the main data to get all the role for selected user
             @foreach (var item in dataSource)
             {
-                if (x.user_id == item.user_id)
+                if (x.Id == item.UserId)
                 {
-                    _item = new system_role();
-                    _item.role_id = item.role_id;
-                    _item.role_name = item.role_name;
-                    _item.role_desc = item.role_desc;
+                    _item = new ApplicationRole();
+                    _item.Id = item.RoleId;
+                    _item.Name = item.Name;
+                    _item.RoleDesc = item.RoleDesc;
                     _item.role_select = true;
-                    _item.created_date = item.created_date;
+                    _item.CreatedAt = item.CreatedAt;
                     arrItem.Add(_item);
 
                     //Mark that role is selected
                     foreach (var _role in dataRole)
                     {
-                        if (_role.role_id == item.role_id)
+                        if (_role.Id == item.RoleId)
                             _role.role_select = true;
                     }
                 }
@@ -274,22 +282,22 @@
 
     void OnCustomizeEditModel(GridCustomizeEditModelEventArgs e)
     {
-        var dtUserRole = (user_role)e.EditModel;
+        var dtUserRole = (ApplicationUserRole)e.EditModel;
 
-        List<system_role> arrItem = new List<system_role>();
-        system_role _item;
+        List<ApplicationRole> arrItem = new List<ApplicationRole>();
+        ApplicationRole _item;
 
         //Loop the main data to get all the role for selected user
         @foreach (var item in dataSource)
         {
-            if (dtUserRole.user_id == item.user_id)
+            if (dtUserRole.UserId == item.UserId)
             {
-                _item = new system_role();
-                _item.role_id = item.role_id;
-                _item.role_name = item.role_name;
-                _item.role_desc = item.role_desc;
+                _item = new ApplicationRole();
+                _item.Id = item.RoleId;
+                _item.Name = item.Name;
+                _item.RoleDesc = item.RoleDesc;
                 _item.role_select = true;
-                _item.created_date = item.created_date;
+                _item.CreatedAt = item.CreatedAt;
                 arrItem.Add(_item);
             }
         }
@@ -308,10 +316,10 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (user_role)e.EditModel;
-        if (_data.user_id == 0)
+        var _data = (ApplicationUserRole)e.EditModel;
+        if (_data.UserId == 0)
         {
-            e.AddError(nameof(_data.user_id), "Sila pilih pengguna dari senarai.");
+            e.AddError(nameof(_data.UserId), "Sila pilih pengguna dari senarai.");
         }
 
         int intCountRole = 0;
@@ -323,31 +331,30 @@
 
         if (intCountRole == 0)
         {
-            e.AddError(nameof(_data.user_id), "Sila pilih peranan bagi pengguna.");
+            e.AddError(nameof(_data.UserId), "Sila pilih peranan bagi pengguna.");
         }
-
 
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();
-        var editModel = e.EditModel as user_role;
+        var editModel = e.EditModel as ApplicationUserRole;
 
         //update selected user_id with selected role id
-        List<user_role> saveUserRole = new List<user_role>();
-        user_role _item;
+        List<ApplicationUserRole> saveUserRole = new List<ApplicationUserRole>();
+        ApplicationUserRole _item;
 
         //Loop the main data to get all the role for selected user
         @foreach (var item in dataRole)
         {
             if (item.role_select == true)
             {
-                _item = new user_role();
-                _item.role_id = item.role_id;
-                _item.role_name = item.role_name;
-                _item.role_desc = item.role_desc;
-                _item.user_id = editModel.user_id;
+                _item = new ApplicationUserRole();
+                _item.RoleId = item.Id;
+                _item.Name = item.Name;
+                _item.RoleDesc = item.RoleDesc;
+                _item.UserId = editModel.UserId;
                 saveUserRole.Add(_item);
             }
         }
@@ -370,7 +377,7 @@
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _UserRoleService.RefreshUserRoleAsync();
+        dataSource = await _UserRoleService.Refresh();
     }
 
     public void Dispose()
@@ -378,9 +385,9 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(user_role item)
+    async Task Delete(ApplicationUserRole item)
     {
-        strSelected = item.role_name;
+        strSelected = item.Name;
         dtData = item;
         ConfirmationShown = true;
     }
@@ -390,7 +397,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            // response = await _UserRoleService.Delete(dtData.user_id, dtData.role_id);
+            response = await _UserRoleService.Delete(dtData.UserRoleId);
 
             if (response.ReturnCode == 200)
             {

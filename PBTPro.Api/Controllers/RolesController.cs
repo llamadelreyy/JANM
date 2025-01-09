@@ -104,7 +104,7 @@ namespace PBTPro.Api.Controllers
                     ModifierId = runUserID,
                     ModifiedAt = DateTime.Now,
                     IsDeleted = false,
-                    IsTenant = false,
+                    //IsTenant = false,
                     IsDefaultRole = false,
                 };
 

@@ -18,7 +18,6 @@ namespace PBTPro.DAL
     {
         public string RoleDesc { get; set; }
         public bool IsDefaultRole { get; set; }
-        public bool IsTenant { get; set; }
         public bool role_select { get; set; }
         //is_deleted
         public bool IsDeleted { get; set; }
