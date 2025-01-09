@@ -11,23 +11,6 @@
     }
 </HeadContent>
 
-@* <BlazoredToasts Position="ToastPosition.BottomCenter"
-                Timeout="2"
-                IconType="IconType.Material"
-                ErrorIcon="error_outline"
-                InfoIcon="check_circle"
-                SuccessIcon="done_outline"
-                WarningIcon="warning"
-                ShowProgressBar="@true"
-                ShowCloseButton="@true"
-                MaxToastCount="3">
-    <CloseButtonContent>
-        <div>
-            <span class="myCloseButtonStyleClass">&times;</span>
-        </div>
-    </CloseButtonContent>
-</BlazoredToasts> *@
-
 <div class="d-flex align-items-center custom-toast-background">
     <DxToastProvider Name="Overview"
                      MaxToastCount="5"
@@ -42,55 +25,63 @@
 
 
 <div class="page">
-    <DxGridLayout CssClass="page-layout">
-        <Rows>
-            @if(IsMobileLayout) {
-                <DxGridLayoutRow Areas="header" Height="auto"></DxGridLayoutRow>
-                <DxGridLayoutRow Areas="sidebar" Height="auto"></DxGridLayoutRow>
-                <DxGridLayoutRow Areas="content" />
-            }
-            else {
-                <DxGridLayoutRow Areas="header header" Height="auto" />
-                <DxGridLayoutRow Areas="@(IsSidebarExpanded ? "sidebar content" : "content content")" />
-            }
-        </Rows>
-        <Columns>
-            @if(!IsMobileLayout) {
-                <DxGridLayoutColumn Width="auto" />
-                <DxGridLayoutColumn />
-            }
-        </Columns>
-        <Items>
-            <DxGridLayoutItem Area="header">
-                <Template>
-                    <Header @bind-ToggleOn="@IsSidebarExpanded" />
-                </Template>
-            </DxGridLayoutItem>
-            <DxGridLayoutItem Row="0" Column="1">
-                <Template>
-                    <ThemeSwitcherToggleButton @bind-Active=@_themeSwitcherShown />
-                    <div id="settingsbar" class="@(_themeSwitcherShown ? "" : "hidden-settings-bar")">
-                        <ThemeSwitcherSideView @bind-ActiveTheme="@_activeTheme" @bind-Visible="@_themeSwitcherShown" />
-                    </div>
-                </Template>
-            </DxGridLayoutItem>
-            <DxGridLayoutItem Area="sidebar">
-                <Template>
-                    <NavMenu StateCssClass="@NavMenuCssClass" />
-                </Template>
-            </DxGridLayoutItem>
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+                    IsContentBlocked="true"
+                    ApplyBackgroundShading="true"
+                    IndicatorAreaVisible="false"
+                    Text="Membenarkan akses...">
 
-            <DxGridLayoutItem Area="content" @key=@_activeTheme>
-                <Template>
-                    @Body
-                </Template>
-            </DxGridLayoutItem>
-        </Items>
-    </DxGridLayout>
+        <DxGridLayout CssClass="page-layout">
+            <Rows>
+                @if(IsMobileLayout) {
+                    <DxGridLayoutRow Areas="header" Height="auto"></DxGridLayoutRow>
+                    <DxGridLayoutRow Areas="sidebar" Height="auto"></DxGridLayoutRow>
+                    <DxGridLayoutRow Areas="content" />
+                }
+                else {
+                    <DxGridLayoutRow Areas="header header" Height="auto" />
+                    <DxGridLayoutRow Areas="@(IsSidebarExpanded ? "sidebar content" : "content content")" />
+                }
+            </Rows>
+            <Columns>
+                @if(!IsMobileLayout) {
+                    <DxGridLayoutColumn Width="auto" />
+                    <DxGridLayoutColumn />
+                }
+            </Columns>
+            <Items>
+                <DxGridLayoutItem Area="header">
+                    <Template>
+                        <Header @bind-ToggleOn="@IsSidebarExpanded" />
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="0" Column="1">
+                    <Template>
+                        <ThemeSwitcherToggleButton @bind-Active=@_themeSwitcherShown />
+                        <div id="settingsbar" class="@(_themeSwitcherShown ? "" : "hidden-settings-bar")">
+                            <ThemeSwitcherSideView @bind-ActiveTheme="@_activeTheme" @bind-Visible="@_themeSwitcherShown" />
+                        </div>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Area="sidebar">
+                    <Template>
+                        <NavMenu StateCssClass="@NavMenuCssClass" />
+                    </Template>
+                </DxGridLayoutItem>
+
+                <DxGridLayoutItem Area="content" @key=@_activeTheme>
+                    <Template>
+                        @Body
+                    </Template>
+                </DxGridLayoutItem>
+            </Items>
+        </DxGridLayout>
+    </DxLoadingPanel>
 </div>
 
-@code{
 
+@code{
+    bool PanelVisible { get; set; }
     bool _themeSwitcherShown = false;
     ThemeItem _activeTheme = ThemeItem.Default;
 
@@ -117,9 +108,13 @@
         }
     }
 
-    protected override void OnInitialized()
+    protected override async void OnInitialized()
     {
+
+        PanelVisible = true;
+        await Task.Delay(1000);
         NavigationManager.LocationChanged += OnLocationChanged;
+        PanelVisible = false;
     }
 
     async void OnLocationChanged(object? sender, LocationChangedEventArgs args) {

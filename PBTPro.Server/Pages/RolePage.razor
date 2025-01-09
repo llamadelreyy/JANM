@@ -3,6 +3,15 @@
 
 @implements IDisposable
 
+@using PBTPro
+@using PBTPro.Shared
+@using PBTPro.Data
+@using PBTPro.DAL
+@using PBTPro.DAL.Models
+@using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.CommonServices
+@using DevExpress.Blazor
+
 @inject RoleService _RoleService
 @inject NavigationManager NavigationManager
 @inject IToastNotificationService ToastService
@@ -25,7 +34,7 @@
 
     <DxGrid @ref="Grid"
         Data="dataSource"
-        KeyFieldName="role_id"
+        KeyFieldName="Id"
         ShowGroupPanel="true"
         ShowFilterRow="false"
         TextWrapEnabled="true"
@@ -57,19 +66,19 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     @{
-                        var intRoleID = ((system_role)context.DataItem).role_id;
+                        var intRoleID = ((ApplicationRole)context.DataItem).Id;
                         if ((intRoleID != 1) && (intRoleID != 2))
                         {
                             <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                            <a @onclick="@(() => Delete((system_role)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                            <a @onclick="@(() => Delete((ApplicationRole)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                         }
                     }
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" FieldName="role_name" />
-            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="68%" FieldName="role_desc" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" FieldName="Name" />
+            <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="68%" FieldName="RoleDesc" TextAlignment="GridTextAlignment.Left" />
         
-            <DxGridDataColumn FieldName="created_date"
+            <DxGridDataColumn FieldName="CreatedAt"
                             DisplayFormat="dd/MM/yyyy"
                             Caption="Tarikh Data"
                             MinWidth="100"
@@ -85,7 +94,7 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtEdit = (system_role)EditFormContext.EditModel;
+                var dtEdit = (ApplicationRole)EditFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
@@ -94,7 +103,7 @@
                             <td nowrap>Peranan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%">
-                                <DxTextBox @bind-Text="@dtEdit.role_name"
+                                <DxTextBox @bind-Text="@dtEdit.Name"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                        BindValueMode="BindValueMode.OnInput"
                                        NullText="Peranan ..."
@@ -111,7 +120,7 @@
                             <td nowrap>Keterangan</td>
                             <td nowrap>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="6">
-                                <DxTextBox @bind-Text="@dtEdit.role_desc"
+                                <DxTextBox @bind-Text="@dtEdit.RoleDesc"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                        BindValueMode="BindValueMode.OnInput"
                                        NullText="Keterangan peranan ..."
@@ -135,7 +144,7 @@
 
         @*This is to count the summary*@
         <TotalSummary>
-            <DxGridSummaryItem FooterColumnName="role_name"
+            <DxGridSummaryItem FooterColumnName="Name"
                             Name="Custom"
                             SummaryType=GridSummaryItemType.Count />
         </TotalSummary>
@@ -157,7 +166,7 @@
 
 
 @code {
-    IEnumerable<system_role> dataSource;
+    IEnumerable<ApplicationRole> dataSource;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -165,13 +174,13 @@
 
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
-    system_role dtData { get; set; }
+    ApplicationRole dtData { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
-        dataSource = await _RoleService.GetRoleAsync();
+        dataSource = await _RoleService.ListAll();
         DataLoadedTcs.TrySetResult(true);
     }
 
@@ -186,39 +195,39 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (system_role)e.EditModel;
-        if (_data.role_name == null || _data.role_name.Trim() == "")
+        var _data = (ApplicationRole)e.EditModel;
+        if (_data.Name == null || _data.Name.Trim() == "")
         {
-            e.AddError(nameof(_data.role_name), "Medan Peranan perlu diisi.");
+            e.AddError(nameof(_data.Name), "Medan Peranan perlu diisi.");
         }
 
 
         if (Grid.IsEditingNewRow())
         {
-            var _dtAdd = dataSource.Where(x => x.role_name == _data.role_name).FirstOrDefault();
+            var _dtAdd = dataSource.Where(x => x.Name == _data.Name).FirstOrDefault();
 
             if (_dtAdd != null)
-                e.AddError(nameof(_data.role_name), "Nama peranan telah wujud.");
+                e.AddError(nameof(_data.Name), "Nama peranan telah wujud.");
         }
         else
         {
-            var _dtEdit = dataSource.Where(x => x.role_id != _data.role_id && x.role_name == _data.role_name).FirstOrDefault();
+            var _dtEdit = dataSource.Where(x => x.Id != _data.Id && x.Name == _data.Name).FirstOrDefault();
 
             if (_dtEdit != null)
-                e.AddError(nameof(_data.role_name), "Nama peranan telah wujud.");
+                e.AddError(nameof(_data.Name), "Nama peranan telah wujud.");
         }
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();
-        var editModel = e.EditModel as system_role;
+        var editModel = e.EditModel as ApplicationRole;
         try
         {
-            // if (e.IsNew)
-                // response = await _RoleService.Add(editModel);
-            // else
-                // response = await _RoleService.Update(editModel.role_id, editModel);
+            if (e.IsNew)
+                response = await _RoleService.Add(editModel);
+            else
+                response = await _RoleService.Update(editModel.Id, editModel);
 
             if (response.ReturnCode == 200)
             {
@@ -240,7 +249,7 @@
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _RoleService.RefreshRoleAsync();
+        dataSource = await _RoleService.Refresh();
     }
 
     public void Dispose()
@@ -248,9 +257,9 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(system_role item)
+    async Task Delete(ApplicationRole item)
     {
-        strSelected = item.role_name;
+        strSelected = item.Name;
         dtData = item;
         ConfirmationShown = true;
     }
@@ -260,7 +269,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            // response = await _RoleService.Delete(dtData.role_id);
+            response = await _RoleService.Delete(dtData.Id);
 
             if (response.ReturnCode == 200)
             {

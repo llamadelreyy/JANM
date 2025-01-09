@@ -104,7 +104,7 @@ namespace PBTPro.Api.Controllers
                     ModifierId = runUserID,
                     ModifiedAt = DateTime.UtcNow,
                     IsDeleted = false,
-                    IsTenant = false,
+                    //IsTenant = false,
                     IsDefaultRole = false,
                 };
                 var identityResult = await _roleManager.CreateAsync(roles);

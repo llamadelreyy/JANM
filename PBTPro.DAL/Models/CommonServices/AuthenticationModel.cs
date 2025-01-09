@@ -6,24 +6,24 @@ namespace PBTPro.DAL.Models.CommonServices
 {
     public class RegisterModel
     {
-        public string? Name { get; set; } = null!;
-        public string? Username { get; set; } = null!;
+        public string Name { get; set; } = null!;
+        public string Username { get; set; } = null!;
 
         [EmailAddress]
         public string? Email { get; set; }
 
         [DataType(DataType.Password)]
-        public string? Password { get; set; } = null!;
+        public string Password { get; set; } = null!;
 
-        public string? PhoneNo { get; set; }
+        public string PhoneNo { get; set; }
 
         //added by farhana
         public string? ICNo { get; set; }
-        public int? DepartmentID { get; set; }
-        public int? DivisionID { get; set; }
-        public int? UnitID { get; set; }
-        public string? FullName { get; set; }
-        public int? IdTypeId { get; set; }
+        public int DepartmentID { get; set; }
+        public int DivisionID { get; set; }
+        public int UnitID { get; set; }
+        public string FullName { get; set; }
+        public int IdTypeId { get; set; }
     }
 
     public class LoginResult
