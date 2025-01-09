@@ -32,6 +32,7 @@ namespace PBTPro.DAL.Models.CommonServices
         public string Username { get; set; } = null!;
         public string Token { get; set; } = null!;
         public string Fullname { get; set; }
+        public bool IsMobileUser { get; set; } = false;
         public List<string?> Roles { get; set; }
     }
 
