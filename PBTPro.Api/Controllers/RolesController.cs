@@ -74,7 +74,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] ApplicationRole InputModel)
+        public async Task<IActionResult> Add([FromBody] RoleModel InputModel)
         {
             try
             {
@@ -83,12 +83,12 @@ namespace PBTPro.Api.Controllers
 
                 #region Validation
                 var formField = await _dbContext.Roles.FirstOrDefaultAsync();
-                
+
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-                if (formField.Name == InputModel.Name)
+                if (formField.Name == InputModel.RoleName)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Peranan telah wujud.")));
                 }
@@ -97,7 +97,7 @@ namespace PBTPro.Api.Controllers
                 #region store data
                 ApplicationRole roles = new ApplicationRole
                 {
-                    Name = InputModel.Name,
+                    Name = InputModel.RoleName,
                     RoleDesc = InputModel.RoleDesc,
                     CreatorId = runUserID,
                     CreatedAt = DateTime.Now,
@@ -107,6 +107,8 @@ namespace PBTPro.Api.Controllers
                     IsTenant = false,
                     IsDefaultRole = false,
                 };
+
+               // await _roleManager.CreateAsync(new IdentityRole(InputModel.RoleName));
 
                 _dbContext.Roles.Add(roles);
                 await _dbContext.SaveChangesAsync();
@@ -122,7 +124,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] ApplicationRole InputModel)
+        public async Task<IActionResult> Update(int Id, [FromBody] RoleModel InputModel)
         {
             try
             {
@@ -135,10 +137,10 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-                
+
                 #endregion
 
-                formField.Name = InputModel.Name;
+                formField.Name = InputModel.RoleName;
                 formField.RoleDesc = InputModel.RoleDesc;
                 formField.ModifierId = runUserID;
                 formField.ModifiedAt = DateTime.Now;

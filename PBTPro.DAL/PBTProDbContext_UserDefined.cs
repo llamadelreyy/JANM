@@ -193,10 +193,6 @@ namespace PBTPro.DAL
                 entity.Property(r => r.RoleId).HasColumnName("role_id");
                 entity.Property(r => r.UserId).HasColumnName("user_id");
                 entity.Property(r => r.IsDeleted).HasColumnName("is_deleted");
-                entity.Property(r => r.Name).HasColumnName("role_name");
-                entity.Property(r => r.RoleDesc).HasColumnName("role_desc");
-                entity.Property(r => r.UserName).HasColumnName("user_name");
-                entity.Property(r => r.FullName).HasColumnName("full_name");
 
 
                 // Auditing fields

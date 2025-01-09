@@ -129,7 +129,11 @@ namespace PBTPro.Data
             var result = new ReturnViewModel();
             try
             {
-                var reqData = JsonConvert.SerializeObject(inputModel);
+                RoleModel rm = new RoleModel();
+                rm.RoleName = inputModel.Name;
+                rm.RoleDesc = inputModel.RoleDesc;
+
+                var reqData = JsonConvert.SerializeObject(rm);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
                 string requestUrl = $"{_baseReqURL}/Add";
