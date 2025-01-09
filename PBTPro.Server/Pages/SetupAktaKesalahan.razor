@@ -12,191 +12,1113 @@ Changes Logs:
 17/12/2024 - initial create
 *@
 @page "/setup_akta_kesalahan"
-@attribute [Authorize(Roles = "Administrator")]
+@attribute [Authorize]
+@using PBTPro.DAL.Models
 @using PBTPro.DAL.Services
-@inject PBTAuthStateProvider _PBTAuthStateProvider
-@inject ConfigFormFieldService _ConfigFormField
+@inject PBTAuthPermissionService PermissionService
+@inject RefLawActService _RefLawActService
+@inject RefLawSectionService _RefLawSectionService
+@inject RefLawUUKService _RefLawUUKService
+@inject RefLawOffenseService _RefLawOffenseService
+@inject BkgrTaskSMService _BkgrTaskSMService
 @inject IToastNotificationService ToastService
+@inject NavigationManager Navigation
 @using Newtonsoft.Json
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
 @using PBTPro.DAL.Models.PayLoads
 @using System.Text
+@using System.Linq.Expressions
+@using System.ComponentModel.DataAnnotations
 
-<div class="d-lg-flex border-bottom mb-2">
-    <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons/information.png" />
-        <div class="textTitle">Setup Akta Kesalahan - Senarai Akta & Kesalahan</div>
+@if (!PermissionService.HasPermission("View"))
+{
+    Navigation.NavigateTo("/no-permission");
+}
+else
+{
+    <div class="d-lg-flex border-bottom mb-2">
+        <div class="col-md-12 py-1 dx-helptitle pageTitle">
+            <img class="imgTitle" src="/images/icons/information.png" />
+            <div class="textTitle">Setup Akta Kesalahan - Senarai Akta & Kesalahan</div>
+        </div>
     </div>
-</div>
 
-<div class="item-container-x">
-    <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
-        <DxTab Text="Akta"></DxTab>
-        <DxTab Text="Seksyen"></DxTab>
-        <DxTab Text="Undang-Undang Kecil (UUK)"></DxTab>
-        <DxTab Text="Kesalahan"></DxTab>
-    </DxTabs>
+    <div class="item-container-x">
+        <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+            <DxTab Text="Akta"></DxTab>
+            <DxTab Text="Seksyen"></DxTab>
+            <DxTab Text="Undang-Undang Kecil (UUK)"></DxTab>
+            <DxTab Text="Kesalahan"></DxTab>
+        </DxTabs>
+        <DxGrid @ref="Grid" Data="@GridData"
+        EditorRenderMode="GridEditorRenderMode.Integrated"
+        PageSize="25"
+        @bind-PageIndex="@GridPageIndex"
+        PagerPosition="GridPagerPosition.Bottom"
+        PagerNavigationMode="PagerNavigationMode.InputBox"
+        EditModelSaving="Grid_EditModelSaving"
+        EditFormTemplate="Form_AddEditTemplate"
+        EditFormButtonsVisible="true"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+        PageSizeSelectorAllRowsItemVisible="true"
+        PagerAutoHideNavButtons="false"
+        ColumnResizeMode="@ColumnResizeMode"
+        HighlightRowOnHover="true"
+        CssClass="mv-1000">
+            <Columns>
+                <DxGridCommandColumn Width="120px">
+                    <HeaderTemplate>
+                        @if (PermissionService.HasPermission("Add"))
+                        {
+                            <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" title="Tambah Baru" alt="Tambah Baru"/></a>
+                        }
+                        @if (PermissionService.HasPermission("ImportData"))
+                        {
+                            //@if (importingFiles == true)
+                            //{
+                            <DxWaitIndicator Visible="@importingFiles" AnimationType="WaitIndicatorAnimationType.Spin" />
+                            //}else{
+                            <a id="importIcon" style="text-decoration: none; @(importingFiles ? "display: none;" : "")"
+                            href="javascript:void(0);" @onclick="@(() => ImportStatementShown = true)"><img src="images/icons/document-import.png" title="Import Rekod" alt="Import Rekod" /></a>
+                            //}
+                        }
+                        @if (PermissionService.HasPermission("ExportData"))
+                        {
+                            <!--<a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/document-export.png" title="Eksport Rekod" alt="Eksport Rekod" /></a>-->
+                        }
+                    </HeaderTemplate>
+                    <CellDisplayTemplate>
+                        @if (PermissionService.HasPermission("Edit"))
+                        {
+                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        }
 
-    <DxGrid @ref="Grid" Data="@Data"
-            EditorRenderMode="GridEditorRenderMode.Integrated"
-            PageSize="25"
-            @bind-PageIndex="@GridPageIndex"
-            PagerPosition="GridPagerPosition.Bottom"
-            PagerNavigationMode="PagerNavigationMode.InputBox"
-            EditModelSaving="Grid_EditModelSaving"
-            EditFormButtonsVisible="true"
-            PageSizeSelectorVisible="true"
-            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-            PageSizeSelectorAllRowsItemVisible="true"
-            PagerAutoHideNavButtons="false"
-            ColumnResizeMode="@ColumnResizeMode"
-            HighlightRowOnHover="true"
-            CssClass="mv-1000">
-        <Columns>
-            <DxGridCommandColumn Width="120px">
-                <HeaderTemplate>
-                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                </HeaderTemplate>
-                <CellDisplayTemplate>
-                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((config_form_field_view)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                </CellDisplayTemplate>
-            </DxGridCommandColumn>
-            <DxGridDataColumn FieldName="field_name" Caption="Name" />
-            <DxGridDataColumn FieldName="field_label" Caption="Label" />
-            <DxGridDataColumn FieldName="field_type" Caption="Jenis" />
-            <DxGridDataColumn FieldName="field_orders" Caption="Susunan" />
-        </Columns>
-        <EditFormTemplate Context="EditFormContext">
+                        @if (PermissionService.HasPermission("Delete"))
+                        {
+                            <a @onclick="@(() => Delete(context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                        }
+                    </CellDisplayTemplate>
+                </DxGridCommandColumn>
+                @BuildColumnsGrid()
+            </Columns>
+            <!--
+            <EditFormTemplate Context="EditFormContext">
             @{
-                var field = (config_form_field_view)EditFormContext.EditModel;
-                var editContext = new EditContext(field);
+                var editContext = GetEditContextForActiveTab(EditFormContext);
             }
             <DxFormLayout EditContext="editContext" CssClass="w-100">
-                <DxFormLayoutItem Caption="field_id" ColSpanMd="6" Visible="false">
-                    <DxTextBox @bind-Value="@field.field_id" ReadOnly="true" />
-                </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Nama:" ColSpanMd="6">
-                    <DxTextBox @bind-Text="@field.field_name" ShowValidationIcon="true" />
-                </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Label:" ColSpanMd="6">
-                    <DxTextBox @bind-Text="@field.field_label" ShowValidationIcon="true" />
-                </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Jenis:" ColSpanMd="6">
-                    <DxComboBox Data="@fieldType"
-                                NullText="Pilih Jenis Medan.."
-                                FilteringMode="DataGridFilteringMode.Contains"
-                                @bind-Value="@field.field_type"
-                                TextFieldName="Text"
-                                ValueFieldName="Value"
-                                ShowValidationIcon="true" />
-                </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Pilihan:" ColSpanMd="6">
-                    <DxMemo @bind-Text="@field.field_option" ShowValidationIcon="true" />
-                </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Diperlukan:" ColSpanMd="6">
-                    <DxCheckBox @bind-Checked="@field.field_required" />
-                </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Susunan:" ColSpanMd="6">
-                    <DxSpinEdit @bind-Value="@field.field_orders" ShowValidationIcon="true" />
-                </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Dari API:" ColSpanMd="6">
-                    <DxCheckBox @bind-Checked="@field.field_api_seeded" />
-                </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="URL Sumber:" ColSpanMd="6">
-                    <DxTextBox @bind-Text="@field.field_source_url" ShowValidationIcon="true" />
-                </DxFormLayoutItem>
             </DxFormLayout>
-        </EditFormTemplate>
-    </DxGrid>
-</div>
+            </EditFormTemplate>
+            -->
+        </DxGrid>
+    </div>
 
-<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
-    <BodyContentTemplate>
-        <br />Anda pasti untuk menghapuskan rekod ini?
-        <br /><br />
-        <div class="confirm-dialog-buttons">
-            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
-        </div>
-    </BodyContentTemplate>
-</DxPopup>
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            <br />Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
+
+
+    <!-- DxPopup for file upload -->
+    <DxPopup 
+    @bind-Visible="@ImportStatementShown"
+    CssClass="popup-demo-events"
+    ShowFooter="true"
+    CloseOnEscape="false"
+    CloseOnOutsideClick="false"
+    ShowCloseButton="false"
+    HeaderText="Penerangan Bagi Import Rekod">
+        <BodyContentTemplate>
+            Sistem hanya menerima fail berjenis <strong>.csv</strong> dan bersaiz tidak lebih dari <strong>15MB</strong>
+            <br /><br />
+            Fail yang dimuat naik harus mempunyai kandungan lajur pengepala :-
+            <br /><br />
+            <strong>@importFileHeader</strong>
+        </BodyContentTemplate>
+        <FooterContentTemplate Context="Context">
+            <div class="popup-demo-events-footer">
+                <DxButton Id="ImportFileBtn" CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="Teruskan" Click="@OnButtonClick" /><!--</DxButton> Click="Context.CloseCallback"/>-->
+                <DxButton CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Secondary" Text="Batal" Click="Context.CloseCallback"/>
+            </div>
+        </FooterContentTemplate>
+    </DxPopup>
+
+    <!-- DxFileInput for file upload -->
+    <PBTProDxUpload AllowMultiFileUpload="false"
+    ShowFileList="false"
+    ShowSelectButton="true"
+    ExternalSelectButtonCssSelector="#ImportFileBtn"
+    FilesUploading="@OnFilesUploading" @ref="fileInputRef" />
+}
 
 @code {
     int ActiveTabIndex;
-    bool ConfirmationShown { get; set; } = false;
-    IGrid Grid { get; set; }
-    int GridPageIndex { get; set; } = 0;
-    IEnumerable<config_form_field_view> Data;
-    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
-    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-    private string formType = "Notis";
-    private config_form_field_view itemToDelete;
-    private List<dynamic> fieldType;
 
     protected override async Task OnInitializedAsync()
     {
-        fieldType = _ConfigFormField.fieldType;
-        Data = await GetListDataAsync(formType);
-        DataLoadedTcs.TrySetResult(true);
+        await CheckBackgroundImportTask();
+        await LoadGridData();
+        getImportFileHeader();
+        StateHasChanged();
     }
 
     private async Task OnActiveTabIndexChanged(int index)
     {
         ActiveTabIndex = index;
+        await Grid.CancelEditAsync();
+        await CheckBackgroundImportTask();
+        await LoadGridData();
+        getImportFileHeader();
+        /*
+        var args = new GridCustomizeEditModelEventArgs
+            {
+            EditModel = GetEditModelForActiveTab()
+        };
 
-        switch (ActiveTabIndex)
-        {
-            case 0:
-                formType = "Notice";
-                break;
-            case 1:
-                formType = "Compound";
-                break;
-            case 2:
-                formType = "Conficate";
-                break;
-            case 3:
-                formType = "Note";
-                break;
-            default:
-                formType = "Notice";
-                break;
-        }
-
-        Data = await GetListDataAsync(formType);
+        OnCustomizeEditModel(args);
+        */
         StateHasChanged();
     }
 
-    private async Task<IEnumerable<config_form_field_view>> GetListDataAsync(string? formType = "Compound")
+    #region BackgroundTask
+    private System.Threading.Timer? _timer;
+    private bool timerStarted = false;
+    bool importingFiles { get; set; } = false;
+
+    private async Task CheckBackgroundImportTask()
     {
-        IEnumerable<config_form_field_view> result = await _ConfigFormField.ListByFormType(formType);
-        return result;
+        string serviceName = "RefLawActImport";
+        switch (ActiveTabIndex)
+        {
+            case 0:
+                serviceName = "RefLawActImport";
+                break;
+            case 1:
+                serviceName = "RefLawSectionImport";
+                break;
+            case 2:
+                serviceName = "RefLawUUKImport";
+                break;
+            case 3:
+                serviceName = "RefLawOffenseImport";
+                break;
+            default:
+                serviceName = "RefLawActImport";
+                break;
+        }
+
+        int? queueCnt = await _BkgrTaskSMService.getQueueBkgrService(serviceName);
+        bool activeImportingFiles = queueCnt != null;
+
+        if (activeImportingFiles != importingFiles)
+        {
+            importingFiles = activeImportingFiles;
+
+            if (importingFiles && !timerStarted)
+            {
+                StartCheckingImport();
+            }
+            else if (!importingFiles && timerStarted)
+            {
+                StopCheckingImport();
+                await LoadGridData();
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
     }
+
+    private void StartCheckingImport()
+    {
+        if (_timer != null)
+        {
+            _timer.Dispose();
+        }
+
+        _timer = new System.Threading.Timer(async _ =>
+        {
+            if (importingFiles)
+            {
+                await InvokeAsync(async () => await CheckBackgroundImportTask());
+            }
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+    }
+
+    private void StopCheckingImport()
+    {
+        _timer?.Dispose();
+    }
+    #endregion
+
+    #region Grid
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    // initial data for each tab
+    private List<ref_law_act> AktaData { get; set; } = new List<ref_law_act>();
+    private List<ref_law_section> SeksyenData { get; set; } = new List<ref_law_section>();
+    private List<ref_law_uuk> UUKData { get; set; } = new List<ref_law_uuk>();
+    private List<ref_law_offense> KesalahanData { get; set; } = new List<ref_law_offense>();
+
+    // Columns for each tab
+    private List<DxGridDataColumn> AktaColumns { get; set; }
+    private List<DxGridDataColumn> SeksyenColumns { get; set; }
+    private List<DxGridDataColumn> UUKColumns { get; set; }
+    private List<DxGridDataColumn> KesalahanColumns { get; set; }
+
+    private List<object> GridColumns { get; set; } = new List<object>();
+    private List<dynamic> GridData { get; set; } = new List<dynamic>();
+
+    // Method to load data and columns based on the active tab
+    private async Task LoadGridData()
+    {
+        switch (ActiveTabIndex)
+        {
+            case 0:
+                AktaData = await _RefLawActService.ListAll();
+                GridData = AktaData.Cast<dynamic>().ToList();                
+                GridColumns = new List<object>
+                {
+                    new { FieldName = "act_code", Caption = "Kod" },
+                    new { FieldName = "act_name", Caption = "Nama" },
+                    new { FieldName = "act_description", Caption = "Penerangan" },
+                };
+                break;
+            case 1:
+                SeksyenData = await _RefLawSectionService.ListAll();
+                GridData = SeksyenData.Cast<dynamic>().ToList();
+                GridColumns = new List<object>
+                {
+                    new { FieldName = "act_code", Caption = "Akta" },
+                    new { FieldName = "section_code", Caption = "Kod" },
+                    new { FieldName = "section_name", Caption = "Nama" },
+                    new { FieldName = "section_description", Caption = "Penerangan" },
+                };
+                break;
+            case 2:
+                UUKData = await _RefLawUUKService.ListAll();
+                GridData = UUKData.Cast<dynamic>().ToList();
+                GridColumns = new List<object>
+                {
+                    new { FieldName = "act_code", Caption = "Akta" },
+                    new { FieldName = "section_code", Caption = "Seksyen" },
+                    new { FieldName = "uuk_code", Caption = "Kod" },
+                    new { FieldName = "uuk_name", Caption = "Nama" },
+                    new { FieldName = "uuk_description", Caption = "Penerangan" },
+                };
+                break;
+            case 3:
+                KesalahanData = await _RefLawOffenseService.ListAll();
+                GridData = KesalahanData.Cast<dynamic>().ToList();
+                GridColumns = new List<object>
+                {
+                    new { FieldName = "act_code", Caption = "Akta" },
+                    new { FieldName = "section_code", Caption = "Seksyen" },
+                    new { FieldName = "uuk_code", Caption = "UUK" },
+                    new { FieldName = "offense_code", Caption = "Kod" },
+                    new { FieldName = "offense_name", Caption = "Nama" },
+                    new { FieldName = "offense_description", Caption = "Penerangan" },
+                };
+                break;
+            default:
+                AktaData = await _RefLawActService.ListAll();
+                GridData = AktaData.Cast<dynamic>().ToList();
+                GridColumns = new List<object>
+                {
+                    new { FieldName = "act_code", Caption = "Kod" },
+                    new { FieldName = "act_name", Caption = "Nama" },
+                    new { FieldName = "act_description", Caption = "Penerangan" },
+                };
+                break;
+        }
+
+        StateHasChanged();
+    }
+
+    // Method to dinamically render grid columns
+    private RenderFragment BuildColumnsGrid()
+    {
+        RenderFragment columns = b =>
+        {
+            GridColumns.Cast<dynamic>()
+                   .ToList()
+                   .ForEach(column => {
+                       b.OpenComponent(0, typeof(DxGridDataColumn));
+                       b.AddAttribute(0, "FieldName", column.FieldName);
+                       b.AddAttribute(0, "Caption", column.Caption);
+                       b.CloseComponent();
+                   });
+        };
+        return columns;
+    }
+    #endregion
+
+    #region Feeder
+    private async Task<IEnumerable<ref_law_act>> GetActCodeOptionsAsync(CancellationToken cancellationToken)
+    {
+        var data =  await _RefLawActService.ListAll();
+        return data;
+    }
+
+    private async Task<IEnumerable<ref_law_section>> GetSectionCodeOptionsAsync(CancellationToken cancellationToken, string? act_code)
+    {
+        List<ref_law_section> data = new List<ref_law_section>();
+        if (!string.IsNullOrWhiteSpace(act_code))
+        {
+            data = await _RefLawSectionService.GetListByAct(act_code);
+        }
+        return data;
+    }
+
+    private async Task<IEnumerable<ref_law_uuk>> GetUUKCodeOptionsAsync(CancellationToken cancellationToken, string? act_code, string? section_code)
+    {
+        List<ref_law_uuk> data = new List<ref_law_uuk>();
+        if (!string.IsNullOrWhiteSpace(act_code))
+        {
+            data = await _RefLawUUKService.GetListByAct(act_code);
+        }
+        else if (!string.IsNullOrWhiteSpace(section_code))
+        {
+            data = await _RefLawUUKService.GetListBySection(section_code);
+        }
+        return data;
+    }
+    #endregion
+
+    #region Form
+    // Form models for each tab
+    private ref_law_act _aktaModel = new ref_law_act();
+    private ref_law_section _seksyenModel = new ref_law_section();
+    private ref_law_uuk _uukModel = new ref_law_uuk();
+    private ref_law_offense _kesalahanModel = new ref_law_offense();
+
+    private RenderFragment<GridEditFormTemplateContext> Form_AddEditTemplate => context =>
+    {
+        return builder =>
+        {
+            switch (ActiveTabIndex)
+            {
+                case 0:
+                    RenderAktaFields(builder, context.EditModel as ref_law_act);
+                    break;
+                case 1:
+                    RenderSeksyenFields(builder, context.EditModel as ref_law_section);
+                    break;
+                case 2:
+                    RenderUUKFields(builder, context.EditModel as ref_law_uuk);
+                    break;
+                case 3:
+                    RenderOffenseFields(builder, context.EditModel as ref_law_offense);
+                    break;
+                default:
+                    RenderAktaFields(builder, context.EditModel as ref_law_act);
+                    break;
+            }
+        };
+    };
+
+    // Get the correct EditContext for the active tab
+    private EditContext GetEditContextForActiveTab(GridEditFormTemplateContext formContext)
+    {
+        switch (ActiveTabIndex)
+        {
+            case 0:
+                return new EditContext(_aktaModel);
+            case 1:
+                return new EditContext(_seksyenModel);
+            case 2:
+                return new EditContext(_uukModel);
+            case 3:
+                return new EditContext(_kesalahanModel);
+            default:
+                return new EditContext(_aktaModel);
+        }
+    }
+
+    private void RenderAktaFields(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, ref_law_act model)
+    {
+        var propertyList = model.GetType().GetProperties();
+        int e = 0;
+
+        //initiate DxFormLayout
+        builder.OpenComponent<DxFormLayout>(0);
+        builder.AddAttribute(e++, "CssClass", "w-100");
+        builder.AddAttribute(e++, "ChildContent", (RenderFragment)((itemBuilder) =>
+        {
+            int i = 0;
+
+            #region act_code
+            var propActCode = model.GetType().GetProperty("act_code");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Kod:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsActCode = Expression.Property(Expression.Constant(model), propActCode.Name);
+            var lmdActCode = Expression.Lambda(typeof(Func<>).MakeGenericType(propActCode.PropertyType), acsActCode);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxTextBox>(o++);
+                editor.AddAttribute(o++, "Text", propActCode.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdActCode);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { propActCode.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            /* -- if need validation message, this will massed-up UI design
+            itemBuilder.OpenElement(i++, "div");
+            itemBuilder.AddAttribute(i++, "class", "text-danger");
+            itemBuilder.OpenComponent(i++, typeof(ValidationMessage<>).MakeGenericType(property.PropertyType));
+            itemBuilder.AddAttribute(i++, "For", lambda);
+            itemBuilder.CloseComponent();
+            itemBuilder.CloseElement();
+            */
+            #endregion
+
+            #region act_name
+            var prpActName = model.GetType().GetProperty("act_name");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Nama:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsActName = Expression.Property(Expression.Constant(model), prpActName.Name);
+            var lmdActName = Expression.Lambda(typeof(Func<>).MakeGenericType(prpActName.PropertyType), acsActName);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxTextBox>(o++);
+                editor.AddAttribute(o++, "Text", prpActName.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdActName);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpActName.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region act_desc
+            var prpActDesc = model.GetType().GetProperty("act_description");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Penerangan:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsActDesc = Expression.Property(Expression.Constant(model), prpActDesc.Name);
+            var lmdActDesce = Expression.Lambda(typeof(Func<>).MakeGenericType(prpActDesc.PropertyType), acsActDesc);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxMemo>(o++);
+                editor.AddAttribute(o++, "Text", prpActDesc.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdActDesce);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpActDesc.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+        }));
+        builder.CloseComponent();
+    }
+
+    private void RenderSeksyenFields(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, ref_law_section model)
+    {
+        var propertyList = model.GetType().GetProperties();
+        int e = 0;
+
+        //initiate DxFormLayout
+        builder.OpenComponent<DxFormLayout>(0);
+        builder.AddAttribute(e++, "CssClass", "w-100");
+        builder.AddAttribute(e++, "ChildContent", (RenderFragment)((itemBuilder) =>
+        {
+            int i = 0;
+
+            #region section_code
+            var prpSectionCode = model.GetType().GetProperty("section_code");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Kod:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsSectionCode = Expression.Property(Expression.Constant(model), prpSectionCode.Name);
+            var lmdSectionCode = Expression.Lambda(typeof(Func<>).MakeGenericType(prpSectionCode.PropertyType), acsSectionCode);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxTextBox>(o++);
+                editor.AddAttribute(o++, "Text", prpSectionCode.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdSectionCode);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpSectionCode.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region section_name
+            var prpSectionName = model.GetType().GetProperty("section_name");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Nama:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsSectionName = Expression.Property(Expression.Constant(model), prpSectionName.Name);
+            var lmbSectionName = Expression.Lambda(typeof(Func<>).MakeGenericType(prpSectionName.PropertyType), acsSectionName);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxTextBox>(o++);
+                editor.AddAttribute(o++, "Text", prpSectionName.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmbSectionName);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpSectionName.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region section_desc
+            var prpSectionDesc = model.GetType().GetProperty("section_description");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Penerangan:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsSectionDesc = Expression.Property(Expression.Constant(model), prpSectionDesc.Name);
+            var lmbSectionDesc = Expression.Lambda(typeof(Func<>).MakeGenericType(prpSectionDesc.PropertyType), acsSectionDesc);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxMemo>(o++);
+                editor.AddAttribute(o++, "Text", prpSectionDesc.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmbSectionDesc);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpSectionDesc.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region act_code
+            var propActCode = model.GetType().GetProperty("act_code");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Akta:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsActCode = Expression.Property(Expression.Constant(model), propActCode.Name);
+            var lmdActCode = Expression.Lambda(typeof(Func<>).MakeGenericType(propActCode.PropertyType), acsActCode);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxComboBox<ref_law_act, String>>(o++);
+                editor.AddAttribute(o++, "Value", propActCode.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "ValueExpression", lmdActCode);
+                editor.AddAttribute(o++, "ValueChanged", EventCallback.Factory.Create<System.String>(this, str => { propActCode.SetValue(model, str); }));
+                editor.AddAttribute(o++, "DataAsync", (Func<CancellationToken, Task<IEnumerable<ref_law_act>>>)GetActCodeOptionsAsync);
+                editor.AddAttribute(o++, "TextFieldName", "act_name");
+                editor.AddAttribute(o++, "ValueFieldName", "act_code");
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+        }));
+        builder.CloseComponent();
+    }
+
+    private void RenderUUKFields(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, ref_law_uuk model)
+    {
+        var propertyList = model.GetType().GetProperties();
+        int e = 0;
+
+        //initiate DxFormLayout
+        builder.OpenComponent<DxFormLayout>(0);
+        builder.AddAttribute(e++, "CssClass", "w-100");
+        builder.AddAttribute(e++, "ChildContent", (RenderFragment)((itemBuilder) =>
+        {
+            int i = 0;
+
+            #region uuk_code
+            var prpUUKCode = model.GetType().GetProperty("uuk_code");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Kod:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsUUKCode = Expression.Property(Expression.Constant(model), prpUUKCode.Name);
+            var lmdUUKCode = Expression.Lambda(typeof(Func<>).MakeGenericType(prpUUKCode.PropertyType), acsUUKCode);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxTextBox>(o++);
+                editor.AddAttribute(o++, "Text", prpUUKCode.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdUUKCode);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpUUKCode.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region uuk_name
+            var prpUUKName = model.GetType().GetProperty("uuk_name");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Nama:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsUUKName = Expression.Property(Expression.Constant(model), prpUUKName.Name);
+            var lmdUUKName = Expression.Lambda(typeof(Func<>).MakeGenericType(prpUUKName.PropertyType), acsUUKName);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxTextBox>(o++);
+                editor.AddAttribute(o++, "Text", prpUUKName.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdUUKName);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpUUKName.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region uuk_desc
+            var prpUUKDesc = model.GetType().GetProperty("uuk_description");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Penerangan:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsUUKDesc = Expression.Property(Expression.Constant(model), prpUUKDesc.Name);
+            var lmdUUKDesc = Expression.Lambda(typeof(Func<>).MakeGenericType(prpUUKDesc.PropertyType), acsUUKDesc);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxMemo>(o++);
+                editor.AddAttribute(o++, "Text", prpUUKDesc.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdUUKDesc);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpUUKDesc.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region act_code
+            var propActCode = model.GetType().GetProperty("act_code");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Akta:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsActCode = Expression.Property(Expression.Constant(model), propActCode.Name);
+            var lmdActCode = Expression.Lambda(typeof(Func<>).MakeGenericType(propActCode.PropertyType), acsActCode);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxComboBox<ref_law_act, String>>(o++);
+                editor.AddAttribute(o++, "Value", propActCode.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "ValueExpression", lmdActCode);
+                editor.AddAttribute(o++, "ValueChanged", EventCallback.Factory.Create<System.String>(this, str =>
+                {
+                    propActCode.SetValue(model, str);
+
+                    var prpSectionCode = model.GetType().GetProperty("section_code");
+                    prpSectionCode.SetValue(model, null);
+
+                    var prpUUKCode = model.GetType().GetProperty("uuk_code");
+                    prpUUKCode.SetValue(model, null);
+                    StateHasChanged();
+                }));
+                editor.AddAttribute(o++, "DataAsync", (Func<CancellationToken, Task<IEnumerable<ref_law_act>>>)GetActCodeOptionsAsync);
+                editor.AddAttribute(o++, "TextFieldName", "act_name");
+                editor.AddAttribute(o++, "ValueFieldName", "act_code");
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region section_code
+            var prpSectionCode = model.GetType().GetProperty("section_code");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Seksyen:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsSectionCode = Expression.Property(Expression.Constant(model), prpSectionCode.Name);
+            var lmdSectionCode = Expression.Lambda(typeof(Func<>).MakeGenericType(prpSectionCode.PropertyType), acsSectionCode);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxComboBox<ref_law_section, String>>(o++);
+                editor.AddAttribute(o++, "Value", prpSectionCode.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "ValueExpression", lmdActCode);
+                editor.AddAttribute(o++, "ValueChanged", EventCallback.Factory.Create<System.String>(this, str => { prpSectionCode.SetValue(model, str); }));
+                editor.AddAttribute(o++, "DataAsync", (Func<CancellationToken, Task<IEnumerable<ref_law_section>>>)((cancellationToken) =>
+                {
+                    string actCode = propActCode.GetValue(model)?.ToString();
+                    return GetSectionCodeOptionsAsync(cancellationToken, actCode);
+                }));
+                editor.AddAttribute(o++, "TextFieldName", "section_name");
+                editor.AddAttribute(o++, "ValueFieldName", "section_code");
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+        }));
+        builder.CloseComponent();
+    }
+
+    private void RenderOffenseFields(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, ref_law_offense model)
+    {
+        var propertyList = model.GetType().GetProperties();
+        int e = 0;
+
+        //initiate DxFormLayout
+        builder.OpenComponent<DxFormLayout>(0);
+        builder.AddAttribute(e++, "CssClass", "w-100");
+        builder.AddAttribute(e++, "ChildContent", (RenderFragment)((itemBuilder) =>
+        {
+            int i = 0;
+
+            #region offense_code
+            var prpOffenseCode = model.GetType().GetProperty("offense_code");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Kod:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsOffenseCode = Expression.Property(Expression.Constant(model), prpOffenseCode.Name);
+            var lmdOffenseCode = Expression.Lambda(typeof(Func<>).MakeGenericType(prpOffenseCode.PropertyType), acsOffenseCode);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxTextBox>(o++);
+                editor.AddAttribute(o++, "Text", prpOffenseCode.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdOffenseCode);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpOffenseCode.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region offense_name
+            var prpOffenseName = model.GetType().GetProperty("offense_name");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Nama:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsOffenseName = Expression.Property(Expression.Constant(model), prpOffenseName.Name);
+            var lmdOffenseName = Expression.Lambda(typeof(Func<>).MakeGenericType(prpOffenseName.PropertyType), acsOffenseName);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxTextBox>(o++);
+                editor.AddAttribute(o++, "Text", prpOffenseName.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdOffenseName);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpOffenseName.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region offense_description
+            var prpOffenseDesc = model.GetType().GetProperty("offense_description");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Penerangan:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsOffenseDesc = Expression.Property(Expression.Constant(model), prpOffenseDesc.Name);
+            var lmdOffenseDesc = Expression.Lambda(typeof(Func<>).MakeGenericType(prpOffenseDesc.PropertyType), acsOffenseDesc);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxMemo>(o++);
+                editor.AddAttribute(o++, "Text", prpOffenseDesc.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdOffenseDesc);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpOffenseDesc.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region offense_content
+            var prpOffenseContent = model.GetType().GetProperty("offense_content");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Kandungan:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsOffenseContent = Expression.Property(Expression.Constant(model), prpOffenseContent.Name);
+            var lmdOffenseContent = Expression.Lambda(typeof(Func<>).MakeGenericType(prpOffenseContent.PropertyType), acsOffenseContent);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxMemo>(o++);
+                editor.AddAttribute(o++, "Text", prpOffenseContent.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "TextExpression", lmdOffenseContent);
+                editor.AddAttribute(o++, "TextChanged", EventCallback.Factory.Create<System.String>(this, str => { prpOffenseContent.SetValue(model, str); }));
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region act_code
+            var propActCode = model.GetType().GetProperty("act_code");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Akta:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsActCode = Expression.Property(Expression.Constant(model), propActCode.Name);
+            var lmdActCode = Expression.Lambda(typeof(Func<>).MakeGenericType(propActCode.PropertyType), acsActCode);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxComboBox<ref_law_act, String>>(o++);
+                editor.AddAttribute(o++, "Value", propActCode.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "ValueExpression", lmdActCode);
+                editor.AddAttribute(o++, "ValueChanged", EventCallback.Factory.Create<System.String>(this, str => { 
+                    propActCode.SetValue(model, str);
+
+                    var prpSectionCode = model.GetType().GetProperty("section_code");
+                    prpSectionCode.SetValue(model, null);
+
+                    var prpUUKCode = model.GetType().GetProperty("uuk_code");
+                    prpUUKCode.SetValue(model, null);
+                    StateHasChanged();
+                }));
+                editor.AddAttribute(o++, "DataAsync", (Func<CancellationToken, Task<IEnumerable<ref_law_act>>>)GetActCodeOptionsAsync);
+                editor.AddAttribute(o++, "TextFieldName", "act_name");
+                editor.AddAttribute(o++, "ValueFieldName", "act_code");
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region section_code
+            var prpSectionCode = model.GetType().GetProperty("section_code");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "Seksyen:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsSectionCode = Expression.Property(Expression.Constant(model), prpSectionCode.Name);
+            var lmdSectionCode = Expression.Lambda(typeof(Func<>).MakeGenericType(prpSectionCode.PropertyType), acsSectionCode);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxComboBox<ref_law_section, String>>(o++);
+                editor.AddAttribute(o++, "Value", prpSectionCode.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "ValueExpression", lmdActCode);
+                editor.AddAttribute(o++, "ValueChanged", EventCallback.Factory.Create<System.String>(this, str => { 
+                    prpSectionCode.SetValue(model, str);
+
+                    var prpUUKCode = model.GetType().GetProperty("uuk_code");
+                    prpUUKCode.SetValue(model, null);
+                    StateHasChanged();
+                }));
+                editor.AddAttribute(o++, "DataAsync", (Func<CancellationToken, Task<IEnumerable<ref_law_section>>>)((cancellationToken) =>
+                {
+                    string actCode = propActCode.GetValue(model)?.ToString();
+                    return GetSectionCodeOptionsAsync(cancellationToken, actCode);
+                }));
+                editor.AddAttribute(o++, "TextFieldName", "section_name");
+                editor.AddAttribute(o++, "ValueFieldName", "section_code");
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region uuk_code
+            var prpUUKCode = model.GetType().GetProperty("uuk_code");
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "Caption", "UUK:");
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 6);
+
+            var acsUUKCode = Expression.Property(Expression.Constant(model), prpUUKCode.Name);
+            var lmdUUKCode = Expression.Lambda(typeof(Func<>).MakeGenericType(prpUUKCode.PropertyType), acsUUKCode);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxComboBox<ref_law_uuk, String>>(o++);
+                editor.AddAttribute(o++, "Value", prpUUKCode.GetValue(model));
+                editor.AddAttribute(o++, "ShowValidationIcon", true);
+                editor.AddAttribute(o++, "ValueExpression", lmdActCode);
+                editor.AddAttribute(o++, "ValueChanged", EventCallback.Factory.Create<System.String>(this, str => { 
+                    prpUUKCode.SetValue(model, str);                 
+                }));
+                editor.AddAttribute(o++, "DataAsync", (Func<CancellationToken, Task<IEnumerable<ref_law_uuk>>>)((cancellationToken) =>
+                {
+                    string actCode = propActCode.GetValue(model)?.ToString();
+                    string sectionCode = prpSectionCode.GetValue(model)?.ToString();
+                    return GetUUKCodeOptionsAsync(cancellationToken, actCode, sectionCode);
+                }));
+                editor.AddAttribute(o++, "TextFieldName", "uuk_name");
+                editor.AddAttribute(o++, "ValueFieldName", "uuk_code");
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+        }));
+        builder.CloseComponent();
+    }
+    #endregion
 
     #region Add/Edit
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
+        switch (ActiveTabIndex)
+        {
+            case 0:
+                await doSubmitFormAkta(e);
+                break;
+            case 1:
+                await doSubmitFormSeksyen(e);
+                break;
+            case 2:
+                await doSubmitFormUUK(e);
+                break;
+            case 3:
+                await doSubmitFormKesalahan(e);
+                break;
+            default:
+                await doSubmitFormAkta(e);
+                break;
+        }
+    }
+
+    async Task doSubmitFormAkta(GridEditModelSavingEventArgs e)
+    {
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            var inputModel = e.EditModel as config_form_field_view;
-            inputModel.field_form_type = formType;
+            var inputModel = e.EditModel as ref_law_act;
 
             if (e.IsNew)
             {
-                response = await _ConfigFormField.Add(inputModel);
+                response = await _RefLawActService.Add(inputModel);
             }
             else
             {
-                response = await _ConfigFormField.Update(inputModel);
+                response = await _RefLawActService.Update(inputModel);
             }
 
             if (response.ReturnCode == 200)
             {
-                Data = await GetListDataAsync(formType);
+                await LoadGridData();
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                e.Cancel = true;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    async Task doSubmitFormSeksyen(GridEditModelSavingEventArgs e)
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            var inputModel = e.EditModel as ref_law_section;
+
+            if (e.IsNew)
+            {
+                response = await _RefLawSectionService.Add(inputModel);
+            }
+            else
+            {
+                response = await _RefLawSectionService.Update(inputModel);
+            }
+
+            if (response.ReturnCode == 200)
+            {
+                await LoadGridData();
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                e.Cancel = true;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    async Task doSubmitFormUUK(GridEditModelSavingEventArgs e)
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            var inputModel = e.EditModel as ref_law_uuk;
+
+            if (e.IsNew)
+            {
+                response = await _RefLawUUKService.Add(inputModel);
+            }
+            else
+            {
+                response = await _RefLawUUKService.Update(inputModel);
+            }
+
+            if (response.ReturnCode == 200)
+            {
+                await LoadGridData();
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                e.Cancel = true;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    async Task doSubmitFormKesalahan(GridEditModelSavingEventArgs e)
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            var inputModel = e.EditModel as ref_law_offense;
+
+            if (e.IsNew)
+            {
+                response = await _RefLawOffenseService.Add(inputModel);
+            }
+            else
+            {
+                response = await _RefLawOffenseService.Update(inputModel);
+            }
+
+            if (response.ReturnCode == 200)
+            {
+                await LoadGridData();
                 StateHasChanged();
                 HandleResponse(response.ReturnMessage);
             }
@@ -214,33 +1136,34 @@ Changes Logs:
     #endregion
 
     #region Delete
-    async Task Delete(config_form_field_view item)
+    bool ConfirmationShown { get; set; } = false;
+    private dynamic itemToDelete;
+
+    async Task Delete(dynamic item)
     {
         itemToDelete = item;
         ConfirmationShown = true;
     }
 
-    async void OnYesButtonClick()
+    async Task OnYesButtonClick()
     {
-        try
+        switch (ActiveTabIndex)
         {
-            ReturnViewModel response = new ReturnViewModel();
-            response = await _ConfigFormField.Delete(itemToDelete.field_id);
-
-            if (response.ReturnCode == 200)
-            {
-                Data = await GetListDataAsync(formType);
-                StateHasChanged();
-                HandleResponse(response.ReturnMessage);
-            }
-            else
-            {
-                HandleResponse(response.ReturnMessage, "Error");
-            }
-        }
-        catch (Exception ex)
-        {
-
+            case 0:
+                await doDeleteAkta();
+                break;
+            case 1:
+                await doDeleteSeksyen();
+                break;
+            case 2:
+                await doDeleteUUK();
+                break;
+            case 3:
+                await doDeleteKesalahan();
+                break;
+            default:
+                await doDeleteAkta();
+                break;
         }
 
         itemToDelete = null;
@@ -252,8 +1175,200 @@ Changes Logs:
         itemToDelete = null;
         ConfirmationShown = false;
     }
+
+    async Task doDeleteAkta()
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            var itd = itemToDelete as ref_law_act;
+            response = await _RefLawActService.Delete(itd.act_id);
+
+            if (response.ReturnCode == 200)
+            {
+                await LoadGridData();
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            //do nothing
+        }
+    }
+
+    async Task doDeleteSeksyen()
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            var itd = itemToDelete as ref_law_section;
+            response = await _RefLawSectionService.Delete(itd.section_id);
+
+            if (response.ReturnCode == 200)
+            {
+                await LoadGridData();
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            //do nothing
+        }
+    }
+
+    async Task doDeleteUUK()
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            var itd = itemToDelete as ref_law_uuk;
+            response = await _RefLawUUKService.Delete(itd.uuk_id);
+
+            if (response.ReturnCode == 200)
+            {
+                await LoadGridData();
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            //do nothing
+        }
+    }
+
+    async Task doDeleteKesalahan()
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            var itd = itemToDelete as ref_law_offense;
+            response = await _RefLawOffenseService.Delete(itd.offense_id);
+
+            if (response.ReturnCode == 200)
+            {
+                await LoadGridData();
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            //do nothing
+        }
+    }
     #endregion
 
+    #region Import
+    long MaxFileSize = 15 * 1024 * 1024;
+    List<string> AllowedFileExtensions = new List<string> { ".csv" };
+    bool ImportStatementShown { get; set; } = false;
+    private DxButton ImportButton;
+    private PBTProDxUpload fileInputRef { get; set; }
+    private string importFileHeader;
+
+    private void getImportFileHeader()
+    {
+        switch (ActiveTabIndex)
+        {
+            case 0:
+                importFileHeader = "act_code, act_name, act_description";
+                break;
+            case 1:
+                importFileHeader = "act_code, section_code, section_name, section_description";
+                break;
+            case 2:
+                importFileHeader = "act_code, section_code, uuk_code, uuk_name, uuk_description";
+                break;
+            case 3:
+                importFileHeader = "act_code, section_code, uuk_code, offense_code, offense_name, offense_description, offense_description";
+                break;
+            default:
+                importFileHeader = "act_code, act_name, act_description";
+                break;
+        }
+    }
+
+    private void OnButtonClick()
+    {
+        ImportStatementShown = false;
+        fileInputRef.ShowDialog();
+    }
+
+    protected async Task OnFilesUploading(FilesUploadingEventArgs args)
+    {
+        var file = args.Files[0];
+        #region Validation
+        if (file.Size > MaxFileSize)
+        {
+            string errorMessage = "Saiz fail melebihi had maksimum yang dibenarkan iaitu 15MB. Sila kurangkan saiz fail dan cuba lagi.";
+            HandleResponse(errorMessage, "Error");
+            return;
+        }
+
+        var fileExtension = Path.GetExtension(file.Name).ToLower();
+        if (!AllowedFileExtensions.Contains(fileExtension))
+        {
+            string errorMessage = "Jenis fail tidak sah. Hanya fail .csv dibenarkan.";
+            HandleResponse(errorMessage, "Error");
+            return;
+        }
+        #endregion
+
+
+        ReturnViewModel response = new ReturnViewModel();
+
+        switch (ActiveTabIndex)
+        {
+            case 0:
+                response = await _RefLawActService.Import(file);
+                break;
+            case 1:
+                response = await _RefLawSectionService.Import(file);
+                break;
+            case 2:
+                response = await _RefLawUUKService.Import(file);
+                break;
+            case 3:
+                response = await _RefLawOffenseService.Import(file);
+                break;
+            default:
+                response = await _RefLawActService.Import(file);
+                break;
+        }
+
+        if (response.ReturnCode == 200)
+        {
+            importingFiles = true;
+            StateHasChanged();
+            HandleResponse(response.ReturnMessage);
+            StartCheckingImport();
+        }
+        else
+        {
+            HandleResponse(response.ReturnMessage, "Error");
+        }
+    }
+
+    #endregion
     private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
