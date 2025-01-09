@@ -78,7 +78,11 @@ builder.Services.AddTransient<UnitService>();
 builder.Services.AddTransient<AuditService>();
 builder.Services.AddTransient<ArchiveAuditService>();
 builder.Services.AddTransient<PatrolService>();
-
+builder.Services.AddTransient<RefLawActService>();
+builder.Services.AddTransient<RefLawSectionService>();
+builder.Services.AddTransient<RefLawUUKService>();
+builder.Services.AddTransient<RefLawOffenseService>();
+builder.Services.AddTransient<BkgrTaskSMService>();
 
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();
