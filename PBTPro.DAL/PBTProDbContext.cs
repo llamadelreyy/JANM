@@ -95,6 +95,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<ref_gender> ref_genders { get; set; }
 
+    public virtual DbSet<contact_us> contact_us { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -927,12 +928,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.profile_signfile).HasMaxLength(255);
             entity.Property(e => e.profile_telno).HasMaxLength(150);
             entity.Property(e => e.unit_code).HasMaxLength(10);
-            //entity.Property(e => e.dept_name)
-            //    .HasMaxLength(100);
-            //entity.Property(e => e.div_name)
-            //    .HasMaxLength(100);
-            //entity.Property(e => e.unit_name)
-            //    .HasMaxLength(100);
+
         });
 
         modelBuilder.Entity<ref_department>(entity =>
@@ -1138,7 +1134,35 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("Timestamp indicating when the user record was last modified.")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
-        });       
+        });
+
+        modelBuilder.Entity<contact_us>(entity =>
+        {
+            entity.HasKey(e => e.contact_id).HasName("contact_us_pkey");
+
+            entity.ToTable("contact_us", "core");
+
+            entity.Property(e => e.contact_id)
+                .HasDefaultValueSql("nextval('core.contact_us_contact_id_seq'::regclass)");
+            entity.Property(e => e.contact_email).HasColumnType("character varying");
+            entity.Property(e => e.contact_inq_no).HasColumnType("character varying");
+            entity.Property(e => e.contact_message).HasColumnType("character varying");
+            entity.Property(e => e.contact_name).HasColumnType("character varying");
+            entity.Property(e => e.contact_subject).HasColumnType("character varying");
+            entity.Property(e => e.contact_telno).HasColumnType("character varying");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.contact_status).HasColumnType("character varying");
+            entity.Property(e => e.response_message).HasColumnType("character varying");
+            entity.Property(e => e.creator_id).HasComment("User ID of the creator ");
+            entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
+        });
+
 
         OnModelCreatingPartial(modelBuilder);
     }

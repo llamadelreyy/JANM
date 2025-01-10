@@ -2,15 +2,14 @@
 Project: PBT Pro
 Description: Page of Soalan Lazim
 Author: Farhana
-Date: November 2024
+Date: January 2025
 Version: 1.0
 
 Changes Logs:
-14/11/2024 - initial create
-10/01/2025 - fix ui based on standard and allow anonymous
+10/01/2025 - initial create
 *@
 
-@page "/senarai_faq"
+@page "/senarai_hubungikami"
 @attribute [Authorize(Roles = "Administrator")]
 
 @implements IDisposable
@@ -24,7 +23,7 @@ Changes Logs:
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
 
-@inject FaqService _faq
+@inject ContactUsService _contactus
 @inject NavigationManager NavigationManager
 @inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
@@ -40,15 +39,15 @@ Changes Logs:
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="\images\icons-small\hard-hat.png" />
-        <div class="textTitle">Soalan Lazim</div>
+        <div class="textTitle">Hubungi Kami</div>
     </div>
 </div>
 
 <div class="item-container-x">
 
     <DxGrid @ref="Grid"
-            Data="@_lstFaqs"
-            KeyFieldName="faq_id"
+            Data="@_lstcontact"
+            KeyFieldName="contact_id"
             ShowGroupPanel="true"
             ShowFilterRow="true"
             TextWrapEnabled="true"
@@ -81,18 +80,18 @@ Changes Logs:
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((faq_info)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((contact_us)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_category)" Caption="Kategori" Width="20%" TextAlignment="GridTextAlignment.Left"/>
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_question)" Caption="Soalan" Width="40%" TextAlignment="GridTextAlignment.Left"/>
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_answer)" Caption="Jawapan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_status)" Caption="Status Aktif" Width="40%" TextAlignment="GridTextAlignment.Center">
+            <DxGridDataColumn FieldName="@nameof(contact_us.contact_inq_no)" Caption="Tiket No" Width="20%" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(contact_us.contact_name)" Caption="Nama" Width="40%" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(contact_us.contact_email)" Caption="Emel" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(contact_us.contact_status)" Caption="Status Tiket" Width="40%" TextAlignment="GridTextAlignment.Center">
                 <CellDisplayTemplate>
-                    <div>@GetStatusFAQIconHtml(((faq_info)context.DataItem).faq_status)</div>
+                    <div>@GetStatusIconHtml(((contact_us)context.DataItem).contact_status)</div>
                 </CellDisplayTemplate>
             </DxGridDataColumn>
-            <DxGridDataColumn FieldName=@nameof(faq_info.created_date)
+            <DxGridDataColumn FieldName=@nameof(contact_us.created_at)
                               DisplayFormat="dd/MM/yyyy"
                               Caption="Tarikh Data"
                               MinWidth="120"
@@ -104,55 +103,58 @@ Changes Logs:
 
         <EditFormTemplate Context="editFormContext">
             @{
-                var dtData = (faq_info)editFormContext.EditModel;
+                var dtData = (contact_us)editFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                 <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
                     <table class="layout_edit">
                         <tr>
-                            <td nowrap>Status Paparan</td>
+                            <td nowrap>Nama</td>
                             <td>&nbsp;:&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxComboBox Data="@faqStatusOptions"
+                                <DxTextBox @bind-Text="@dtData.contact_name" ReadOnly/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Emel</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.contact_email" ReadOnly/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>No Telefon</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.contact_telno" ReadOnly/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Subjek</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.contact_subject" ReadOnly/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Catatan</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxTextBox @bind-Text="@dtData.contact_message" ReadOnly/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td nowrap>Status Tiket</td>
+                            <td>&nbsp;:&nbsp;</td>
+                            <td width="50%" colspan="7">
+                                <DxComboBox Data="@StatusOptions"
                                             ShowValidationIcon="true"
                                             NullText="Pilih Status..."
-                                            @bind-Value="@dtData.faq_status"
-                                            @bind-Text="@dtData.faq_status"
+                                            @bind-Value="@dtData.contact_status"
                                             CssClass="cw-320" style="width:350px;">
                                 </DxComboBox>
                             </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Kategori Soalan Lazim</td>
-                            <td>&nbsp;:&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxComboBox Data="@faqCategory"
-                                            ShowValidationIcon="true"
-                                            NullText="Pilih Kategori..."
-                                            @bind-Value="@dtData.faq_category"
-                                            @bind-Text="@dtData.faq_category"
-                                            CssClass="cw-320" style="width:350px;">
-                                </DxComboBox>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap valign="top">Soalan</td>
-                            <td valign="top">&nbsp;:&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxMemo @bind-Text="@dtData.faq_question"
-                                        CssClass="cw-480"
-                                        Rows="3" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap valign="top">Jawapan</td>
-                            <td valign="top">&nbsp;:&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxMemo @bind-Text="@dtData.faq_answer"
-                                        CssClass="cw-480"
-                                        Rows="3" />
-                            </td>
-                        </tr>                       
+                        </tr>                                                
                     </table>
                 </DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
@@ -165,6 +167,14 @@ Changes Logs:
         <CustomValidators>
             <MyCustomValidator DataItemValidating="ValidateGridData" />
         </CustomValidators>
+
+        @*This is to count the summary*@
+        <TotalSummary>
+            <DxGridSummaryItem FooterColumnName="contact_status"
+                               Name="Custom"
+                               SummaryType=GridSummaryItemType.Count />
+        </TotalSummary>
+
     </DxGrid>
     <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
         <BodyContentTemplate>
@@ -179,8 +189,8 @@ Changes Logs:
 </div>
 
 @code {
-    private List<faq_info> _lstFaqs = new List<faq_info>();
-    faq_info dtData { get; set; }
+    private List<contact_us> _lstcontact = new List<contact_us>();
+    contact_us dtData { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
@@ -192,9 +202,9 @@ Changes Logs:
     #region list
     protected override async Task OnInitializedAsync()
     {
-        _lstFaqs = await _faq.GetFAQAsync();
+        _lstcontact = await _contactus.GetContactUsAsync();
         try
-        { _lstFaqs = await _faq.ListAll(); }
+        { _lstcontact = await _contactus.ListAll(); }
         catch (Exception ex)
         { Console.Error.WriteLine($"Error loading actions: {ex.Message}"); }
         DataLoadedTcs.TrySetResult(true);
@@ -202,7 +212,7 @@ Changes Logs:
 
     async Task UpdateDataAsync()
     {
-        _lstFaqs = await _faq.Refresh();
+        _lstcontact = await _contactus.Refresh();
     }
     #endregion
 
@@ -211,17 +221,17 @@ Changes Logs:
     {
         ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
-        var editModel = e.EditModel as faq_info;
+        var editModel = e.EditModel as contact_us;
         try
         {
             if (e.IsNew)
             {
-                response = await _faq.Add(editModel);
+                response = await _contactus.Add(editModel);
                 blnSuccess = true;
             }
             else
             {
-                response = await _faq.Update(editModel.faq_id, editModel);
+                response = await _contactus.Update(editModel.contact_id, editModel);
                 blnSuccess = true;
             }
             if (blnSuccess)
@@ -240,7 +250,7 @@ Changes Logs:
         }
     }
 
-    async Task Delete(faq_info item)
+    async Task Delete(contact_us item)
     {
         dtData = item;
         ConfirmationShown = true;
@@ -251,7 +261,7 @@ Changes Logs:
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _faq.Delete(dtData.faq_id);
+            response = await _contactus.Delete(dtData.contact_id);
 
             if (response.ReturnCode == 200)
             {
@@ -279,67 +289,48 @@ Changes Logs:
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (faq_info)e.EditModel;
-        if (_data.faq_status == null || _data.faq_status.Trim() == "")
+        var _data = (contact_us)e.EditModel;
+        if (_data.contact_status == null)
         {
-            e.AddError(nameof(_data.faq_status), "Status tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.faq_category == null || _data.faq_category == "")
-        {
-            e.AddError(nameof(_data.faq_category), "Kategori tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.faq_question == null || _data.faq_question == "")
-        {
-            e.AddError(nameof(_data.faq_question), "Pertanyaana soalan lazim tidak sah. Medan perlu diisi.");
-        }
-
-        if (_data.faq_answer == null || _data.faq_answer == "")
-        {
-            e.AddError(nameof(_data.faq_answer), "Catatan soalan lazim tidak sah. Medan perlu diisi.");
-        }
+            e.AddError(nameof(_data.contact_status), "Status tidak sah. Medan perlu diisi.");
+        }      
     }
     #endregion
 
     #region lookup
-    public MarkupString GetStatusFAQIconHtml(string status)
+    public MarkupString GetStatusIconHtml(string status)
     {
         string priorytyClass = "";
         string title = "";
 
-        if (status == "Aktif")
-        {
-            priorytyClass = "info";
-            title = " AKTIF ";
-        }
-        else if (status == "Tidak Aktif")
+        if (status == "Menunggu")
         {
             priorytyClass = "danger";
-            title = " TIDAK AKTIF ";
+            title = " MENUNGGU ";
+        }
+        else if (status == "Dalam Proses")
+        {
+            priorytyClass = "warning";
+            title = " DALAM PROSES ";
+        }
+        else if (status == "Selesai")
+        {
+            priorytyClass = "info";
+            title = " SELESAI ";
         }
 
         string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
         title);
         return new MarkupString(html);
     }
-    public MarkupString CombineText(string strStatus, string strNama)
+  
+    private List<string> StatusOptions = new List<string>
     {
-        string html = string.Format("{0} <br/> {1}", strStatus, strNama.ToUpper());
-        return new MarkupString(html);
-    }
-    private List<string> faqStatusOptions = new List<string>
-    {
-        "Aktif",
-        "Tidak Aktif"
-    };
-
-    private List<string> faqCategory = new List<string>
-    {
-        "Umum",
-        "PBT Mobile",
-        "PBT Web"
-    };
+        "Menunggu",
+        "Dalam Proses",
+        "Selesai"
+    };   
+    
     #endregion
 
     #region response

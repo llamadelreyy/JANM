@@ -2,13 +2,12 @@
 Project: PBT Pro
 Description: Faq service to handle FAQ form field
 Author: Nurulfarhana
-Date: November 2024
+Date: January 2025
 Version: 1.0
 Additional Notes:
 - 
 Changes Logs:
-14/11/2024 - initial create
-10/01/2025 - add audit log
+10/01/2025 - initial create
 */
 
 using Microsoft.AspNetCore.Authorization;
@@ -20,11 +19,12 @@ using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 using System.Reflection;
 using System.Text;
+using static DevExpress.Utils.Filtering.ExcelFilterOptions;
 
 namespace PBTPro.Data
 {
     [AllowAnonymous]
-    public partial class FaqService : IDisposable
+    public partial class ContactUsService : IDisposable
     {
 
         private bool disposed = false;
@@ -53,15 +53,15 @@ namespace PBTPro.Data
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         protected readonly AuditLogger _cf;
-        private readonly ILogger<FaqService> _logger;
+        private readonly ILogger<ContactUsService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
 
-        private string _baseReqURL = "/api/Faq";
+        private string _baseReqURL = "/api/ContactUs";
         private string LoggerName = "";
-        private List<faq_info> _Faq { get; set; }
+        private List<contact_us> _Contact_us { get; set; }
 
-        public FaqService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<FaqService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
+        public ContactUsService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<ContactUsService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
             _PBTAuthStateProvider = PBTAuthStateProvider;
@@ -71,9 +71,9 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<faq_info>> ListAll()
+        public async Task<List<contact_us>> ListAll()
         {
-            var result = new List<faq_info>();
+            var result = new List<contact_us>();
             string requestUrl = $"{_baseReqURL}/ListAll";
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
@@ -84,9 +84,9 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<faq_info>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<contact_us>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya jana senarai soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya jana senarai hubungi kami.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -96,15 +96,15 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<faq_info>();
+                result = new List<contact_us>();
             }
             return result;
         }
 
         [HttpGet]
-        public async Task<List<faq_info>> Refresh()
+        public async Task<List<contact_us>> Refresh()
         {
-            var result = new List<faq_info>();
+            var result = new List<contact_us>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/ListAll";
@@ -115,9 +115,9 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<faq_info>>(dataString); 
+                        result = JsonConvert.DeserializeObject<List<contact_us>>(dataString); 
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya jana senarai soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya jana senarai hubungi kami.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -128,16 +128,34 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<faq_info>();
+                result = new List<contact_us>();
             }
             return result;
         }
 
-        public async Task<ReturnViewModel> Add(faq_info inputModel)
+        public async Task<ReturnViewModel> Add(contact_us inputModel)
         {
             var result = new ReturnViewModel();
             try
             {
+                switch (inputModel.contact_status)
+                {
+                    case "Menunggu":
+                        inputModel.response_message = "Terima kasih atas pertanyaan anda.";
+                        break;
+                    case "Dalam Proses":
+                        inputModel.response_message = "Kami sedang memprosesnya. Terima kasih atas kesabaran anda.";
+                        break;
+                    case "Selesai":
+                        inputModel.response_message = "Pertanyaan anda telah selesai diproses. Terima kasih atas kesabaran anda.";
+                        break;
+                    default:
+                        inputModel.response_message = "Status tidak dikenali.";
+                        break;
+                }   
+                
+                inputModel.contact_inq_no= "TIKET-" + GenerateRandomString(9);
+
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
@@ -147,7 +165,7 @@ namespace PBTPro.Data
                 result = response;
                 if (response.ReturnCode == 200)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk hubungi kami.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -162,21 +180,37 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, faq_info inputModel)
+        public async Task<ReturnViewModel> Update(int id, contact_us inputModel)
         {
             var result = new ReturnViewModel();
             try
             {
+                switch (inputModel.contact_status)
+                {
+                    case "Menunggu":
+                        inputModel.response_message = "Terima kasih atas pertanyaan anda.";
+                        break;
+                    case "Dalam Proses":
+                        inputModel.response_message = "Kami sedang memprosesnya. Terima kasih atas kesabaran anda.";
+                        break;
+                    case "Selesai":
+                        inputModel.response_message = "Pertanyaan anda telah selesai diproses. Terima kasih atas kesabaran anda.";
+                        break;
+                    default:
+                        inputModel.response_message = "Status tidak dikenali.";
+                        break;
+                }
+
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/Update/{inputModel.faq_id}";
+                string requestUrl = $"{_baseReqURL}/Update/{inputModel.contact_id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
                 if (response.ReturnCode == 200)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk hubungi kami.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -203,7 +237,7 @@ namespace PBTPro.Data
                 result = response;
                 if (response.ReturnCode == 200)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk hubungi kami.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -218,15 +252,15 @@ namespace PBTPro.Data
             return result;
         }
 
-        public Task<List<faq_info>> GetFAQAsync(CancellationToken ct = default)
+        public Task<List<contact_us>> GetContactUsAsync(CancellationToken ct = default)
         {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk soalan lazim.", 1, LoggerName, "");
-            return Task.FromResult(_Faq);
+            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk hubungi kami.", 1, LoggerName, "");
+            return Task.FromResult(_Contact_us);
         }
 
-        public async Task<faq_info> ViewDetail(int id)
+        public async Task<contact_us> ViewDetail(int id)
         {
-            var result = new faq_info();
+            var result = new contact_us();
             try
             {
                 string requestquery = $"/{id}";
@@ -238,9 +272,9 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<faq_info>(dataString);
+                        result = JsonConvert.DeserializeObject<contact_us>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci hubungi kami.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -249,10 +283,22 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new faq_info(); 
+                result = new contact_us(); 
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;
+        }
+
+        static string GenerateRandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            Random random = new Random();
+            char[] stringChars = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                stringChars[i] = chars[random.Next(chars.Length)];
+            }
+            return new String(stringChars);
         }
     }
 }
