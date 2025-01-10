@@ -203,7 +203,7 @@
     IEnumerable<ApplicationUser> dataUser;
     IEnumerable<ApplicationRole> dataRole;
     IEnumerable<ApplicationRole> valueRole;
-    
+
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -212,7 +212,7 @@
     int intCurrentUserId { get; set; } = 0;
     bool boolLockDropDown { get; set; } = false;
     bool ConfirmationShown { get; set; } = false;
-    string strSelected { get; set; }
+    string strSelected { get; set; } = "";
 
     ApplicationUserRole dtData { get; set; }
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -260,10 +260,10 @@
                 {
                     _item = new ApplicationRole();
                     _item.Id = item.RoleId;
-                    _item.Name = item.Name;
-                    _item.RoleDesc = item.RoleDesc;
+                    //_item.Name = item.Name;
+                    //_item.RoleDesc = item.RoleDesc;
                     _item.role_select = true;
-                    _item.CreatedAt = item.CreatedAt;
+                    _item.CreatedAt = (DateTime)item.CreatedAt;
                     arrItem.Add(_item);
 
                     //Mark that role is selected
@@ -294,10 +294,10 @@
             {
                 _item = new ApplicationRole();
                 _item.Id = item.RoleId;
-                _item.Name = item.Name;
-                _item.RoleDesc = item.RoleDesc;
+                //_item.Name = item.Name;
+                //_item.RoleDesc = item.RoleDesc;
                 _item.role_select = true;
-                _item.CreatedAt = item.CreatedAt;
+                _item.CreatedAt = (DateTime)item.CreatedAt;
                 arrItem.Add(_item);
             }
         }
@@ -352,8 +352,8 @@
             {
                 _item = new ApplicationUserRole();
                 _item.RoleId = item.Id;
-                _item.Name = item.Name;
-                _item.RoleDesc = item.RoleDesc;
+                //_item.Name = item.Name;
+                //_item.RoleDesc = item.RoleDesc;
                 _item.UserId = editModel.UserId;
                 saveUserRole.Add(_item);
             }
@@ -387,7 +387,7 @@
 
     async Task Delete(ApplicationUserRole item)
     {
-        strSelected = item.Name;
+        //strSelected = item.Name;
         dtData = item;
         ConfirmationShown = true;
     }

@@ -31,11 +31,8 @@ namespace PBTPro.DAL
         public override string PasswordHash { get; set; }
         public override string SecurityStamp { get; set; }
         public int dept_id { get; set; }
-        public string dept_name { get; set; }
         public int div_id { get; set; }
-        public string div_name { get; set; }
         public int unit_id { get; set; }
-        public string unit_name { get; set; }
         public string? full_name { get; set; }
 
         public string Text => $"{UserName} ({full_name})";
