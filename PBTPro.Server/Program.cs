@@ -96,6 +96,7 @@ builder.Services.AddTransient<UnitService>();
 builder.Services.AddTransient<AuditService>();
 builder.Services.AddTransient<ArchiveAuditService>();
 builder.Services.AddTransient<PatrolService>();
+builder.Services .AddTransient<ContactUsService>();
 
 
 builder.Services.AddSingleton<FileUrlStorageService>();

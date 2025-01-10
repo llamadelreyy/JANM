@@ -1,0 +1,140 @@
+﻿@*
+Project: PBT Pro
+Description: Page of Soalan Lazim
+Author: Farhana
+Date: January 2025
+Version: 1.0
+
+Changes Logs:
+10/01/2025 - initial create
+*@
+
+@page "/hubungikami"
+@attribute [AllowAnonymous]
+
+@implements IDisposable
+
+@using System.Globalization
+@using Blazored.Toast.Services
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+@using PBTPro.DAL.Services
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+
+@inject ContactUsService _contactus
+@inject NavigationManager NavigationManager
+@inject IToastService toastService
+@inject PBTAuthStateProvider _PBTAuthStateProvider
+@inject IToastNotificationService ToastService
+
+<div class="item-container-x">
+    <div class="layout_edit">
+
+        <DxFormLayout CssClass="w-100">
+            <DxFormLayoutItem Caption="Nama:" ColSpanMd="12">
+                <DxTextBox @bind-Text="@dtData.contact_name" ShowValidationIcon="true">
+                    <ValidationSettings Required="true" />
+                </DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Email:">
+                <DxTextBox @bind-Text="@dtData.contact_email" ShowValidationIcon="true">
+                    <ValidationSettings Required="true" />
+                </DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="No Telefon:" BeginRow="true">
+                <DxTextBox @bind-Text="@dtData.contact_telno" ShowValidationIcon="true">
+                    <ValidationSettings Required="true" />
+                </DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Subjek:" BeginRow="true">
+                <DxComboBox Data="@JenisSubjek"
+                            ShowValidationIcon="true"
+                            NullText="Pilih Subjek..."
+                            @bind-Value="@dtData.contact_subject"
+                            CssClass="cw-320" style="width:350px;">
+                    <ValidationSettings Required="true" />
+                </DxComboBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Catatan/Aduan:" BeginRow="true">
+                <DxTextBox @bind-Text="@dtData.contact_message" ShowValidationIcon="true">
+                    <ValidationSettings Required="true" />
+                </DxTextBox>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+
+        <DxButton Text="Hantar" Click="Add" />
+
+    </div>
+</div>
+
+@code {
+    contact_us dtData { get; set; } = new contact_us();
+
+    bool IsValidForm => !string.IsNullOrEmpty(dtData.contact_name) &&
+                        !string.IsNullOrEmpty(dtData.contact_email) &&
+                        !string.IsNullOrEmpty(dtData.contact_telno) &&
+                        !string.IsNullOrEmpty(dtData.contact_subject) &&
+                        !string.IsNullOrEmpty(dtData.contact_message);
+
+    protected override async Task OnInitializedAsync()
+    {
+        dtData = new contact_us();
+    }
+    #region response
+
+    public void Dispose()
+    {
+    }
+    public async Task Add()
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+
+            dtData.contact_status = "Menunggu";
+            
+            response = await _contactus.Add(dtData);
+            StateHasChanged();
+            HandleResponse(response.ReturnMessage);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
+    }
+
+    private List<string> JenisSubjek = new List<string>
+    {
+        "Catatan",
+        "Aduan"
+    };
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
+    #endregion
+}
