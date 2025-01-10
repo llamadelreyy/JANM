@@ -8,19 +8,16 @@ Additional Notes:
 - 
 Changes Logs:
 14/11/2024 - initial create
+10/01/2025 - remove allow anonymous for certain method
 */
 
-using DevExpress.Data.ODataLinq.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
-using PBTPro.DAL.Services;
-using System.Reflection;
 
 namespace PBTPro.Api.Controllers
 {
@@ -54,7 +51,6 @@ namespace PBTPro.Api.Controllers
             }
         }
         
-        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> ViewDetail(int Id)
         {
@@ -74,7 +70,6 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] faq_info InputModel)
         {
@@ -131,7 +126,6 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpPut("{Id}")]
         public async Task<IActionResult> Update(int Id, [FromBody] faq_info InputModel)
         {
@@ -183,7 +177,6 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpDelete("{Id}")]
         public async Task<IActionResult> Delete(int Id)
         {

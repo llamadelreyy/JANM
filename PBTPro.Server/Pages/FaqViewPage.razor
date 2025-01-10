@@ -1,5 +1,19 @@
-﻿@page "/faq"
-@attribute [Authorize(Roles = "Administrator")]
+﻿@*
+Project: PBT Pro
+Description: Page of Soalan Lazim
+Author: Farhana
+Date: November 2024
+Version: 1.0
+
+
+Changes Logs:
+14/11/2024 - initial create
+10/01/2025 - fix ui based on standard and allow anonymous
+
+*@
+
+@page "/faq"
+@attribute [AllowAnonymous]
 
 @implements IDisposable
 
