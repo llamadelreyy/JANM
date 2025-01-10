@@ -1,35 +1,35 @@
 ﻿/*
 Project: PBT Pro
-Description: Shared service to handle Param Form Field
+Description: Shared service to handle ref law uuk
 Author: Ismail
-Date: November 2024
+Date: January 2025
 Version: 1.0
 
 Additional Notes:
 - 
 
 Changes Logs:
-13/11/2024 - initial create
-09/01/2025 - apply audit features
+03/01/2025 - initial create
 */
-using DevExpress.CodeParser;
-using Microsoft.AspNetCore.Components.Authorization;
+using DevExpress.Blazor;
+using DevExpress.Xpo.Logger;
 using Newtonsoft.Json;
+using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
-using PBTPro.DAL.Models.PayLoads;
 using PBTPro.DAL.Services;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 
 namespace PBTPro.Data
 {
-    public partial class ConfigFormFieldService : IDisposable
+    public partial class RefLawUUKService : IDisposable
     {
         public IConfiguration _configuration { get; }
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
         protected readonly AuditLogger _cf;
-        private string _baseReqURL = "/api/ConfigFormField";
+        private string _baseReqURL = "/api/RefLawUUK";
         private bool disposed = false;
         private string LoggerName = "";
 
@@ -53,19 +53,7 @@ namespace PBTPro.Data
             GC.SuppressFinalize(this);
         }
 
-        public List<dynamic> fieldType = new List<dynamic>
-        {
-            new { Value = "hidden", Text = "Hidden Box" },
-            new { Value = "text", Text = "Text Box" },
-            new { Value = "datetime", Text = "Date Time" },
-            new { Value = "file", Text = "File Upload" },
-            new { Value = "textarea", Text = "Text Area" },
-            new { Value = "dropdown", Text = "Drop Down" },
-            new { Value = "radio", Text = "Radio Button" },
-            new { Value = "checkbox", Text = "Check Box" }
-        };
-
-        public ConfigFormFieldService(IConfiguration configuration, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
+        public RefLawUUKService(IConfiguration configuration, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
             _PBTAuthStateProvider = PBTAuthStateProvider;
@@ -74,9 +62,9 @@ namespace PBTPro.Data
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
 
-        public async Task<List<config_form_field_view>> ListAll()
+        public async Task<List<ref_law_uuk>> ListAll()
         {
-            var result = new List<config_form_field_view>();
+            var result = new List<ref_law_uuk>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/GetList";
@@ -87,9 +75,9 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<config_form_field_view>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_law_uuk>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai medan borang.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai undang-undang kecil (UUK).", 1, LoggerName, "");
                 }
                 else
                 {
@@ -99,19 +87,18 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<config_form_field_view>();
+                result = new List<ref_law_uuk>();
             }
 
             return result;
         }
 
-        public async Task<List<config_form_field_view>> ListByFormType(string formType)
+        public async Task<List<ref_law_uuk>> GetListByAct(string act_code)
         {
-            var result = new List<config_form_field_view>();
+            var result = new List<ref_law_uuk>();
             try
             {
-                string requestquery = $"?formType={formType}";
-                string requestUrl = $"{_baseReqURL}/GetListByFormType{requestquery}";
+                string requestUrl = $"{_baseReqURL}/GetListByAct?act_code={act_code}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -119,9 +106,9 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<config_form_field_view>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_law_uuk>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai medan borang berdasarkan jenis (" + formType + ").", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai undang-undang kecil (UUK) berdasarkan akta (" + act_code + ").", 1, LoggerName, "");
                 }
                 else
                 {
@@ -131,15 +118,46 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<config_form_field_view>();
+                result = new List<ref_law_uuk>();
             }
 
             return result;
         }
 
-        public async Task<config_form_field_view> ViewDetail(int id)
+        public async Task<List<ref_law_uuk>> GetListBySection(string section_code)
         {
-            var result = new config_form_field_view();
+            var result = new List<ref_law_uuk>();
+            try
+            {
+                string requestUrl = $"{_baseReqURL}/GetListBySection?section_code={section_code}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<ref_law_uuk>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai undang-undang kecil (UUK) berdasarkan seksyen (" + section_code + ").", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<ref_law_uuk>();
+            }
+
+            return result;
+        }
+
+        public async Task<ref_law_uuk> ViewDetail(int id)
+        {
+            var result = new ref_law_uuk();
             try
             {
                 string requestquery = $"/{id}";
@@ -151,9 +169,9 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<config_form_field_view>(dataString);
+                        result = JsonConvert.DeserializeObject<ref_law_uuk>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci medan borang.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci undang-undang kecil (UUK).", 1, LoggerName, "");
                 }
                 else
                 {
@@ -163,13 +181,13 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new config_form_field_view();
+                result = new ref_law_uuk();
             }
 
             return result;
         }
-        
-        public async Task<ReturnViewModel> Add(config_form_field_view inputModel)
+
+        public async Task<ReturnViewModel> Add(ref_law_uuk inputModel)
         {
 
             var result = new ReturnViewModel();
@@ -183,7 +201,7 @@ namespace PBTPro.Data
 
                 if (response.ReturnCode == 200)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk medan borang.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk undang-undang kecil (UUK).", 1, LoggerName, "");
                 }
                 else
                 {
@@ -201,12 +219,12 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(config_form_field_view inputModel)
+        public async Task<ReturnViewModel> Update(ref_law_uuk inputModel)
         {
             var result = new ReturnViewModel();
             try
             {
-                int id = inputModel.field_id;
+                int id = inputModel.uuk_id;
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
@@ -215,7 +233,7 @@ namespace PBTPro.Data
 
                 if (response.ReturnCode == 200)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk medan borang.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk undang-undang kecil (UUK).", 1, LoggerName, "");
                 }
                 else
                 {
@@ -243,7 +261,46 @@ namespace PBTPro.Data
 
                 if (response.ReturnCode == 200)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk medan borang.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk undang-undang kecil (UUK).", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
+
+                result = response;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new ReturnViewModel();
+            }
+
+            return result;
+        }
+
+        public async Task<ReturnViewModel> Import(IFileInputSelectedFile file)
+        {
+            var result = new ReturnViewModel();
+            try
+            {
+                //var reqData = JsonConvert.SerializeObject(inputModel);
+                var reqContent = new MultipartFormDataContent(); //new StringContent(reqData, Encoding.UTF8, "application/json");
+
+                var streamContent = new StreamContent(file.OpenReadStream());
+                streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "file",
+                    FileName = file.Name
+                };
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.Type);
+                reqContent.Add(streamContent);
+                string requestUrl = $"{_baseReqURL}/Import";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
+
+                if (response.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat naik data untuk undang-undang kecil (UUK).", 1, LoggerName, "");
                 }
                 else
                 {

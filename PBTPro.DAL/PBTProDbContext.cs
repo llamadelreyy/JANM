@@ -85,6 +85,14 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<ref_division> ref_divisions { get; set; }
 
+    public virtual DbSet<ref_law_act> ref_law_acts { get; set; }
+
+    public virtual DbSet<ref_law_offense> ref_law_offenses { get; set; }
+
+    public virtual DbSet<ref_law_section> ref_law_sections { get; set; }
+
+    public virtual DbSet<ref_law_uuk> ref_law_uuks { get; set; }
+
     public virtual DbSet<ref_unit> ref_units { get; set; }
 
     public virtual DbSet<ref_id_type> ref_id_types { get; set; }
@@ -997,6 +1005,80 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
             entity.Property(e => e.dept_name)
                 .HasMaxLength(100);               
+        });
+
+        modelBuilder.Entity<ref_law_act>(entity =>
+        {
+            entity.HasKey(e => e.act_id).HasName("ref_law_acts_pkey");
+
+            entity.ToTable("ref_law_acts", "core");
+
+            entity.Property(e => e.act_code).HasMaxLength(20);
+            entity.Property(e => e.act_name).HasMaxLength(40);
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+        });
+
+        modelBuilder.Entity<ref_law_offense>(entity =>
+        {
+            entity.HasKey(e => e.offense_id).HasName("ref_law_offenses_pkey");
+
+            entity.ToTable("ref_law_offenses", "core");
+
+            entity.Property(e => e.act_code).HasMaxLength(20);
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.offense_code).HasMaxLength(20);
+            entity.Property(e => e.offense_name).HasMaxLength(40);
+            entity.Property(e => e.section_code).HasMaxLength(20);
+            entity.Property(e => e.uuk_code).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<ref_law_section>(entity =>
+        {
+            entity.HasKey(e => e.section_id).HasName("ref_law_sections_pkey");
+
+            entity.ToTable("ref_law_sections", "core");
+
+            entity.Property(e => e.act_code).HasMaxLength(20);
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.section_code).HasMaxLength(20);
+            entity.Property(e => e.section_name).HasMaxLength(40);
+        });
+
+        modelBuilder.Entity<ref_law_uuk>(entity =>
+        {
+            entity.HasKey(e => e.uuk_id).HasName("ref_law_uuks_pkey");
+
+            entity.ToTable("ref_law_uuks", "core");
+
+            entity.Property(e => e.act_code).HasMaxLength(20);
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.section_code).HasMaxLength(20);
+            entity.Property(e => e.uuk_code).HasMaxLength(20);
+            entity.Property(e => e.uuk_name).HasMaxLength(40);
         });
 
         modelBuilder.Entity<ref_unit>(entity =>

@@ -114,14 +114,14 @@ namespace PBTPro.Api.Controllers
 
                 if (isExists == null)
                 {
-                    var dbOptions = _dbContext.GetService<IDbContextServices>().ContextOptions;
+                    //var dbOptions = _dbContext.GetService<IDbContextServices>().ContextOptions;
 
                     _bkgdSM.StartBackgroundService(ServiceName);
                     _bkgdSM.EnqueueWorkItem(ServiceName, async token =>
                     {
                         try
                         {
-                            using (PBTProDbContext _dbcontext = new PBTProDbContext((DbContextOptions<PBTProDbContext>)dbOptions))
+                            using (PBTProDbContext _dbcontext = new PBTProDbContext())
                             {
                                 List<notification_email_queue> QueueLists = await _dbcontext.notification_email_queues.Where(x => x.queue_status != "Successful" && x.queue_cnt_retry < _maxRetry).OrderBy(x => x.created_date).ToListAsync();
 
