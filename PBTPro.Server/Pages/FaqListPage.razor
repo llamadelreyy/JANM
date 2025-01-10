@@ -1,4 +1,16 @@
-﻿@page "/senarai_faq"
+﻿@*
+Project: PBT Pro
+Description: Page of Soalan Lazim
+Author: Farhana
+Date: November 2024
+Version: 1.0
+
+Changes Logs:
+14/11/2024 - initial create
+10/01/2025 - fix ui based on standard and allow anonymous
+*@
+
+@page "/senarai_faq"
 @attribute [Authorize(Roles = "Administrator")]
 
 @implements IDisposable
@@ -18,29 +30,34 @@
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 
-<div class="d-lg-flex border-bottom mb-2">
-    <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons/information.png" />
-        <div class="textTitle">Soalan Lazim - Senarai Soalan Lazim</div>
-    </div>
-</div>
-
 <style>
     .dxbl-grid {
-        height: 79vh;
-        max-height: 79vh;
+        height: 98.5%;
+        max-height: 98.5%;
     }
 </style>
 
-<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+<div class="d-lg-flex border-bottom">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="\images\icons-small\hard-hat.png" />
+        <div class="textTitle">Jabatan</div>
+    </div>
+</div>
+
 <div class="item-container-x">
+
     <DxGrid @ref="Grid"
             Data="@_lstFaqs"
             KeyFieldName="faq_id"
             ShowGroupPanel="true"
             ShowFilterRow="true"
+            TextWrapEnabled="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
             EditorRenderMode="GridEditorRenderMode.Integrated"
             FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
             PageSize="25"
             @bind-PageIndex="@GridPageIndex"
             PagerPosition="GridPagerPosition.Bottom"
@@ -51,31 +68,33 @@
             PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
             PageSizeSelectorAllRowsItemVisible="true"
             PagerAutoHideNavButtons="false"
-            ColumnResizeMode="@ColumnResizeMode"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
             HighlightRowOnHover="true"
             CssClass="mv-1000">
 
         <Columns>
-            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
+
+            <DxGridCommandColumn Width="55px">
                 <HeaderTemplate>
                     <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
                 </HeaderTemplate>
                 <CellDisplayTemplate>
-                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((faq_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((faq_info)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_category)" Caption="Kategori" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_question)" Caption="Soalan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(faq_info.faq_category)" Caption="Kategori" Width="20%" TextAlignment="GridTextAlignment.Left"/>
+            <DxGridDataColumn FieldName="@nameof(faq_info.faq_question)" Caption="Soalan" Width="40%" TextAlignment="GridTextAlignment.Left"/>
             <DxGridDataColumn FieldName="@nameof(faq_info.faq_answer)" Caption="Jawapan" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_status)" Caption="Status Aktif" Width="40%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+            <DxGridDataColumn FieldName="@nameof(faq_info.faq_status)" Caption="Status Aktif" Width="40%" TextAlignment="GridTextAlignment.Center">
                 <CellDisplayTemplate>
                     <div>@GetStatusFAQIconHtml(((faq_info)context.DataItem).faq_status)</div>
                 </CellDisplayTemplate>
             </DxGridDataColumn>
             <DxGridDataColumn FieldName=@nameof(faq_info.created_date)
                               DisplayFormat="dd/MM/yyyy"
-                              Caption="Tarikh Cipta"
+                              Caption="Tarikh Data"
                               MinWidth="120"
                               Width="12%"
                               TextAlignment="GridTextAlignment.Center"
@@ -88,9 +107,8 @@
                 var dtData = (faq_info)editFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
-                <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
-                    <table>
-
+                <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
+                    <table class="layout_edit">
                         <tr>
                             <td nowrap>Status Paparan</td>
                             <td>&nbsp;:&nbsp;</td>
@@ -99,7 +117,8 @@
                                             ShowValidationIcon="true"
                                             NullText="Pilih Status..."
                                             @bind-Value="@dtData.faq_status"
-                                            @bind-Text="@dtData.faq_status">
+                                            @bind-Text="@dtData.faq_status"
+                                            CssClass="cw-320" style="width:350px;">
                                 </DxComboBox>
                             </td>
                         </tr>
@@ -111,7 +130,8 @@
                                             ShowValidationIcon="true"
                                             NullText="Pilih Kategori..."
                                             @bind-Value="@dtData.faq_category"
-                                            @bind-Text="@dtData.faq_category">
+                                            @bind-Text="@dtData.faq_category"
+                                            CssClass="cw-320" style="width:350px;">
                                 </DxComboBox>
                             </td>
                         </tr>
@@ -132,20 +152,19 @@
                                         CssClass="cw-480"
                                         Rows="3" />
                             </td>
-                        </tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-
+                        </tr>                       
                     </table>
                 </DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12">
-                    <DxButton SubmitFormOnClick="true" Text="Simpan" />
-                    <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
+                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
                 </DxFormLayoutItem>
             </DxFormLayout>
         </EditFormTemplate>
+        <CustomValidators>
+            <MyCustomValidator DataItemValidating="ValidateGridData" />
+        </CustomValidators>
     </DxGrid>
     <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
         <BodyContentTemplate>
@@ -258,6 +277,29 @@
         ConfirmationShown = false;
     }
 
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (faq_info)e.EditModel;
+        if (_data.faq_status == null || _data.faq_status.Trim() == "")
+        {
+            e.AddError(nameof(_data.faq_status), "Status tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.faq_category == null || _data.faq_category == "")
+        {
+            e.AddError(nameof(_data.faq_category), "Kategori tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.faq_question == null || _data.faq_question == "")
+        {
+            e.AddError(nameof(_data.faq_question), "Pertanyaana soalan lazim tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.faq_answer == null || _data.faq_answer == "")
+        {
+            e.AddError(nameof(_data.faq_answer), "Catatan soalan lazim tidak sah. Medan perlu diisi.");
+        }
+    }
     #endregion
 
     #region lookup
@@ -301,6 +343,12 @@
     #endregion
 
     #region response
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
     public void Dispose()
     {
         DataLoadedTcs.TrySetCanceled();
