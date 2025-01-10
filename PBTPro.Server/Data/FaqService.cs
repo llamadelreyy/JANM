@@ -8,7 +8,9 @@ Additional Notes:
 - 
 Changes Logs:
 14/11/2024 - initial create
+10/01/2025 - add audit log
 */
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -84,11 +86,11 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<faq_info>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya jana senarai soalan lazim.", 1, LoggerName, "");
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
                 }
             }
             catch (Exception ex)
@@ -115,11 +117,11 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<faq_info>>(dataString); 
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya jana senarai soalan lazim.", 1, LoggerName, "");
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
                 }
 
             }
@@ -143,7 +145,14 @@ namespace PBTPro.Data
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk soalan lazim.", 1, LoggerName, "");
+                if (response.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk soalan lazim.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
+                }
             }
             catch (Exception ex)
             {
@@ -165,7 +174,14 @@ namespace PBTPro.Data
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
+                if (response.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
+                }
 
             }
             catch (Exception ex)
@@ -184,8 +200,15 @@ namespace PBTPro.Data
                 string requestUrl = $"{_baseReqURL}/Delete/{id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
-                result = response;
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk soalan lazim.", 1, LoggerName, "");
+                result = response;.
+                if (response.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk soalan lazim.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
+                }
             }
             catch (Exception ex)
             {
@@ -221,7 +244,7 @@ namespace PBTPro.Data
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
                 }
             }
             catch (Exception ex)
