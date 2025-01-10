@@ -101,6 +101,7 @@ builder.Services.AddTransient<RefLawSectionService>();
 builder.Services.AddTransient<RefLawUUKService>();
 builder.Services.AddTransient<RefLawOffenseService>();
 builder.Services.AddTransient<BkgrTaskSMService>();
+builder.Services.AddTransient<ContactUsService>();
 
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();
