@@ -47,8 +47,18 @@ else
             <DxTab Text="Nota Pemeriksaan"></DxTab>
         </DxTabs>
 
-        <DxGrid @ref="Grid" Data="@Data"
+        <DxGrid @ref="Grid" 
+        Data="@Data"
+        KeyFieldName="field_id"
+        ShowGroupPanel="true"
+        ShowFilterRow="false"
+        TextWrapEnabled="true"
+        CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
         EditorRenderMode="GridEditorRenderMode.Integrated"
+        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        ShowSearchBox="true"
+        AllowSelectRowByClick="true"
+        @bind-SearchText="@GridSearchText"
         PageSize="25"
         @bind-PageIndex="@GridPageIndex"
         PagerPosition="GridPagerPosition.Bottom"
@@ -59,7 +69,8 @@ else
         PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
         PageSizeSelectorAllRowsItemVisible="true"
         PagerAutoHideNavButtons="false"
-        ColumnResizeMode="@ColumnResizeMode"
+        ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+        GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
         HighlightRowOnHover="true"
         CssClass="mv-1000">
             <Columns>
@@ -128,6 +139,11 @@ else
                     </DxFormLayoutItem>
                 </DxFormLayout>
             </EditFormTemplate>
+
+            @*This is to count the summary*@
+            <TotalSummary>
+                <DxGridSummaryItem Name="Custom" SummaryType=GridSummaryItemType.Count />
+            </TotalSummary>
         </DxGrid>
     </div>
 
@@ -148,8 +164,8 @@ else
     bool ConfirmationShown { get; set; } = false;
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
     IEnumerable<config_form_field_view> Data;
-    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private string formType = "Notis";
@@ -169,6 +185,12 @@ else
         path = path.TrimStart('/');
 
         var menu_path = path;
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
     private async Task OnActiveTabIndexChanged(int index)

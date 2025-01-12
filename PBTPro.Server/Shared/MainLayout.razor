@@ -115,6 +115,7 @@
         await Task.Delay(1000);
         NavigationManager.LocationChanged += OnLocationChanged;
         PanelVisible = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     async void OnLocationChanged(object? sender, LocationChangedEventArgs args) {
