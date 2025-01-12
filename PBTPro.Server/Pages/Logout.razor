@@ -1,13 +1,17 @@
 ﻿@page "/logout"
 @using PBTPro.DAL.Services
-@using PBTPro.Data
 @inject PBTAuthStateProvider PBTAuthStateProvider
 @inject NavigationManager NavigationManager
-
+<!--
 <h3>Logout</h3>
 <button type="button" class="btn btn-success" @onclick="LogoutAsync">Logout</button>
-
+-->
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        LogoutAsync();
+    }
+
     public async Task LogoutAsync()
     {
         await PBTAuthStateProvider.LogoutAsync();

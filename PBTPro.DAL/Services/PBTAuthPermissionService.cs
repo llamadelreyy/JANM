@@ -34,7 +34,7 @@ namespace PBTPro.DAL.Services
         {
             var menuPath = GetCurrentMenuPath();
             var permissions = _authStateProvider.Permissions;
-            var menu = permissions.FirstOrDefault(p =>
+            var menu = permissions.FirstOrDefault(p => p.menu_path != null && 
                 p.menu_path.Equals(menuPath, StringComparison.OrdinalIgnoreCase));
 
             return menu != null && action switch

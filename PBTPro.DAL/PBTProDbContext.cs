@@ -543,7 +543,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("User ID of the creator.");
             entity.Property(e => e.icon_path)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("'0'::character varying")
                 .HasComment("Path to the icon associated with the core.menu item.");
             entity.Property(e => e.is_deleted)
                 .HasDefaultValue(false)

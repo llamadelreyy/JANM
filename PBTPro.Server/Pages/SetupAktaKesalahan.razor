@@ -51,8 +51,17 @@ else
             <DxTab Text="Undang-Undang Kecil (UUK)"></DxTab>
             <DxTab Text="Kesalahan"></DxTab>
         </DxTabs>
-        <DxGrid @ref="Grid" Data="@GridData"
+        <DxGrid @ref="Grid"
+        Data="@GridData"
+        ShowGroupPanel="true"
+        ShowFilterRow="false"
+        TextWrapEnabled="true"
+        CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
         EditorRenderMode="GridEditorRenderMode.Integrated"
+        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        ShowSearchBox="true"
+        AllowSelectRowByClick="true"
+        @bind-SearchText="@GridSearchText"
         PageSize="25"
         @bind-PageIndex="@GridPageIndex"
         PagerPosition="GridPagerPosition.Bottom"
@@ -64,7 +73,8 @@ else
         PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
         PageSizeSelectorAllRowsItemVisible="true"
         PagerAutoHideNavButtons="false"
-        ColumnResizeMode="@ColumnResizeMode"
+        ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+        GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
         HighlightRowOnHover="true"
         CssClass="mv-1000">
             <Columns>
@@ -103,15 +113,11 @@ else
                 </DxGridCommandColumn>
                 @BuildColumnsGrid()
             </Columns>
-            <!--
-            <EditFormTemplate Context="EditFormContext">
-            @{
-                var editContext = GetEditContextForActiveTab(EditFormContext);
-            }
-            <DxFormLayout EditContext="editContext" CssClass="w-100">
-            </DxFormLayout>
-            </EditFormTemplate>
-            -->
+
+            @*This is to count the summary*@
+            <TotalSummary>
+                <DxGridSummaryItem Name="Custom" SummaryType=GridSummaryItemType.Count />
+            </TotalSummary>
         </DxGrid>
     </div>
 
@@ -261,8 +267,7 @@ else
     #region Grid
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
-
-    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+    string GridSearchText = "";
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     // initial data for each tab
@@ -344,6 +349,13 @@ else
         }
 
         StateHasChanged();
+    }
+
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
     // Method to dinamically render grid columns
