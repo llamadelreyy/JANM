@@ -1,0 +1,561 @@
+﻿@*
+Project: PBT Pro
+Description: Page of Menu & Permission Configuration
+Author: Ismail
+Date: January 2025
+Version: 1.0
+
+Additional Notes:
+- 
+
+Changes Logs:
+09/01/2025 - initial create
+*@
+@page "/setup_menu"
+@attribute [Authorize]
+@using PBTPro.DAL
+@using PBTPro.DAL.Services
+@inject PBTAuthPermissionService PermissionService
+@inject MenuService _MenuService
+@inject PermissionService _PermissionService
+@inject RoleService _RoleService
+@inject IToastNotificationService ToastService
+@inject NavigationManager Navigation
+@using Newtonsoft.Json
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+@using PBTPro.DAL.Models.PayLoads
+@using System.Text
+
+
+@if (!PermissionService.HasPermission("View"))
+{
+    Navigation.NavigateTo("/no-permission");
+}
+else
+{
+
+<style>
+    .dxbl-grid {
+        height: 98.5%;
+        max-height: 98.5%;
+    }
+</style>
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+    <div class="d-lg-flex border-bottom">
+        <div class="col-md-12 py-1 dx-helptitle pageTitle">
+            <img class="imgTitle" src="\images\icons-small\document-hf.png" />
+            <div class="textTitle">Setup Menu - Senarai Menu</div>
+        </div>
+    </div>
+
+    <div class="item-container-x">
+        <DxGrid @ref="Grid"
+        Data="@Data"
+        KeyFieldName="menu_id" 
+        ShowGroupPanel="true"
+        ShowFilterRow="false"
+        TextWrapEnabled="true"
+        CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+        EditorRenderMode="GridEditorRenderMode.Integrated"
+        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        ShowSearchBox="true"
+        AllowSelectRowByClick="true"
+        @bind-SearchText="@GridSearchText"
+        PageSize="25"
+        @bind-PageIndex="@GridPageIndex"
+        PagerPosition="GridPagerPosition.Bottom"
+        PagerNavigationMode="PagerNavigationMode.InputBox"
+        EditModelSaving="Grid_EditModelSaving"
+        EditFormButtonsVisible="false"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+        PageSizeSelectorAllRowsItemVisible="true"
+        PagerAutoHideNavButtons="false"
+        ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+        GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+        HighlightRowOnHover="true"
+        CssClass="mv-1000">
+            <Columns>
+                <DxGridCommandColumn Width="80px">
+                    <HeaderTemplate>
+                        @if (PermissionService.HasPermission("Add"))
+                        {
+                            <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                        }
+                    </HeaderTemplate>
+                    <CellDisplayTemplate>
+                        @if (PermissionService.HasPermission("Edit"))
+                        {
+                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        }
+
+                        @if (PermissionService.HasPermission("Authorize"))
+                        {
+                            <a @onclick="@(() => OpenPermission((menu)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/user-share.png" /></a>
+                        }
+
+                        @if (PermissionService.HasPermission("Delete"))
+                        {
+                            <a @onclick="@(() => Delete((menu)context.DataItem))" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                        }
+                    </CellDisplayTemplate>
+                </DxGridCommandColumn>
+                    <DxGridDataColumn FieldName="menu_name" Caption="Nama" MinWidth="250" Width="25%" />
+                    <DxGridDataColumn FieldName="menu_path" Caption="Laluan" MinWidth="300" Width="40%" />
+                    <DxGridDataColumn FieldName="menu_sequence" Caption="Urutan" MinWidth="100" Width="10%"  />
+                    <DxGridDataColumn FieldName="parent_id" Caption="Menu Induk" MinWidth="200" Width="25%">
+                    <EditSettings>
+                        <DxComboBoxSettings Data="@parents"
+                        ValueFieldName="menu_id"
+                        TextFieldName="menu_name"
+                        FilteringMode="DataGridFilteringMode.Contains"
+                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    </EditSettings>
+                </DxGridDataColumn>
+            </Columns>
+@*             <EditFormTemplate Context="EditFormContext">
+                @{
+                    var field = (menu)EditFormContext.EditModel;
+                    var editContext = new EditContext(field);
+                }
+                <DxFormLayout EditContext="editContext" CssClass="w-100">
+                    <DxFormLayoutItem Caption="menu_id" ColSpanMd="6" Visible="false">
+                        <DxTextBox @bind-Value="@field.menu_id" ReadOnly="true" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Nama:" ColSpanMd="6">
+                        <DxTextBox @bind-Text="@field.menu_name" ShowValidationIcon="true" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Laluan:" ColSpanMd="6">
+                        <DxTextBox @bind-Text="@field.menu_path" ShowValidationIcon="true" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Menu Induk:" ColSpanMd="6">
+                        <DxComboBox Data="@parents"
+                        NullText="Pilih Menu Induk.."
+                        FilteringMode="DataGridFilteringMode.Contains"
+                        @bind-Value="@field.parent_id"
+                        TextFieldName="menu_name"
+                        ValueFieldName="menu_id"
+                        ShowValidationIcon="true"/>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Urutan:" ColSpanMd="6">
+                        <DxSpinEdit @bind-Value="@field.menu_sequence" ShowValidationIcon="true" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Ikon:" ColSpanMd="6">
+                        <DxTextBox @bind-Text="@field.icon_path" ShowValidationIcon="true" />
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+            </EditFormTemplate>  *@
+
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var field = (menu)EditFormContext.EditModel;
+                        var editContext = new EditContext(field);
+                    }
+                    <DxFormLayout CssClass="w-100">
+                        <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                            <table class="layout_edit">
+                                <tr>
+                                    <td nowrap>Nama</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@field.menu_name"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Masukkan nama menu..."
+                                                   Maxlength="60"
+                                                   ShowValidationIcon="true"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap>Laluan</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@field.menu_path"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Masukkan laluan menu..."
+                                                   Maxlength="120"
+                                                   ShowValidationIcon="true"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Menu Induk</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="7">
+                                        <DxComboBox Data="@parents"
+                                                    NullText="Pilih Menu Induk.."
+                                                    FilteringMode="DataGridFilteringMode.Contains"
+                                                    @bind-Value="@field.parent_id"
+                                                    TextFieldName="menu_name"
+                                                    ValueFieldName="menu_id"
+                                                    ShowValidationIcon="true" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Urutan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxSpinEdit @bind-Value="@field.menu_sequence" 
+                                                    ShowValidationIcon="true" style="width:100px;" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap>Ikon</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@field.icon_path"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Masukkan ikon menu..."
+                                                   Maxlength="120"
+                                                   ShowValidationIcon="false"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                </tr>
+
+                            </table>
+                        </DxFormLayoutItem>
+
+                        <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                            <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditFormTemplate>
+                <CustomValidators>
+                    <MyCustomValidator DataItemValidating="ValidateGridData" />
+                </CustomValidators>
+
+
+            @*This is to count the summary*@
+            <TotalSummary>
+                <DxGridSummaryItem Name="Custom" SummaryType=GridSummaryItemType.Count />
+            </TotalSummary>
+        </DxGrid>
+    </div>
+
+    </DxLoadingPanel>
+
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            <br />Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
+
+    <DxPopup @ref="PermissionPopup" ShowFooter="true"
+    CloseOnEscape="false"
+    CloseOnOutsideClick="false"
+    ShowCloseButton="false"
+    Width="auto"
+    HeaderText=@($"Kebenaran Akses - {SelectedMenu}")>
+        <BodyContentTemplate>
+            <DxGrid 
+            ref="@PermissionGrid" 
+            Data="@Permissions"
+            EditMode="GridEditMode.EditCell"
+            EditModelSaving="PermissionGrid_EditModelSaving">
+                <Columns>
+                    <DxGridDataColumn FieldName="role_id" Caption="Peranan" ReadOnly="true">
+                        <EditSettings>
+                            <DxComboBoxSettings Data="@Roles"
+                            ValueFieldName="Id"
+                            TextFieldName="Name"
+                            FilteringMode="DataGridFilteringMode.Contains"
+                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                        </EditSettings>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn FieldName="can_view" Caption="Lihat" />
+                    <DxGridDataColumn FieldName="can_add" Caption="Tambah" />
+                    <DxGridDataColumn FieldName="can_edit" Caption="Sunting" />
+                    <DxGridDataColumn FieldName="can_delete" Caption="Padam" />
+                    <DxGridDataColumn FieldName="can_print" Caption="Cetak" />
+                    <DxGridDataColumn FieldName="can_upload" Caption="Muat Naik" />
+                    <DxGridDataColumn FieldName="can_download" Caption="Muat Turun" />
+                    <DxGridDataColumn FieldName="can_import_data" Caption="Import Data" />
+                    <DxGridDataColumn FieldName="can_export_data" Caption="Eksport Data" />
+                    <DxGridDataColumn FieldName="can_authorize" Caption="Beri Kebenarkan" />
+                    <DxGridDataColumn FieldName="can_approve_changes" Caption="Luluskan Perubahan" />
+                    <DxGridDataColumn FieldName="can_execute" Caption="Laksanakan" />
+                </Columns>
+            </DxGrid>
+        </BodyContentTemplate>
+        <FooterContentTemplate Context="Context">
+            <div class="popup-demo-events-footer">
+                <DxButton Id="ImportFileBtn" CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="Simpan" Click="@OnSavePermission" /><!--</DxButton> Click="Context.CloseCallback"/>-->
+                <DxButton CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Secondary" Text="Batal" Click="@OnCancelPermission" />
+            </div>
+        </FooterContentTemplate>
+    </DxPopup>
+}
+
+@code {
+        bool PanelVisible { get; set; }
+
+        int ActiveTabIndex;
+        bool ConfirmationShown { get; set; } = false;
+        IGrid Grid { get; set; }
+        int GridPageIndex { get; set; } = 0;
+        string GridSearchText = "";
+        IEnumerable<menu> Data;
+        GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+        TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private menu itemToDelete;
+    private List<menu> parents;
+
+    protected override async Task OnInitializedAsync()
+    {
+        PanelVisible = true;
+        Data = await GetListDataAsync();
+        DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
+    }
+
+    protected void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    private async Task<IEnumerable<menu>> GetListDataAsync()
+    {
+        IEnumerable<menu> result = await _MenuService.ListAll();
+        parents = result.Where(x => x.parent_id == 0).ToList();
+        parents.Add(new menu { menu_id = 0, menu_name = ""});
+        return result;
+    }
+
+    #region Add/Edit
+
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (menu)e.EditModel;
+
+
+        if (_data.menu_name == null || _data.menu_name.Trim() == "")
+        {
+            e.AddError(nameof(_data.menu_name), "Nama menu tidak sah. Medan perlu diisi.");
+        }
+    }
+
+
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        try
+        {            
+            ReturnViewModel response = new ReturnViewModel();
+            var inputModel = e.EditModel as menu;
+
+            if (e.IsNew)
+            {
+                response = await _MenuService.Add(inputModel);
+            }
+            else
+            {
+                response = await _MenuService.Update(inputModel);
+            }
+
+            if (response.ReturnCode == 200)
+            {
+                Data = await GetListDataAsync();
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                e.Cancel = true;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch(Exception ex)
+        {
+
+        }
+    }
+    #endregion
+
+    #region Delete
+    async Task Delete(menu item)
+    {
+        itemToDelete = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        try
+        {            
+            ReturnViewModel response = new ReturnViewModel();
+            response = await _MenuService.Delete(itemToDelete.menu_id);
+
+            if (response.ReturnCode == 200)
+            {
+                Data = await GetListDataAsync();
+                itemToDelete = null;
+                ConfirmationShown = false;
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch(Exception ex)
+        {
+
+        }
+    }
+
+    void OnNoButtonClick()
+    {
+        itemToDelete = null;
+        ConfirmationShown = false;
+    }
+    #endregion
+
+    #region Permission
+    IGrid PermissionGrid { get; set; }
+    List<permission> UnsavedChanges { get; set; } = new List<permission>();
+    private List<ApplicationRole> Roles;
+    private List<permission> Permissions;
+    private DxPopup PermissionPopup;
+    string SelectedMenu = string.Empty;
+
+    void PermissionGrid_EditModelSaving(GridEditModelSavingEventArgs e) {
+        var editablePermission = (permission)e.EditModel;
+        var permission = (permission)e.DataItem;
+        var changedFields = ApplyModifiedFields(editablePermission, permission);
+
+        var existingPermission = UnsavedChanges.FirstOrDefault(p => p.role_id == editablePermission.role_id);
+        if (existingPermission != null)
+        {
+            UnsavedChanges.Remove(existingPermission);
+        }
+
+        UnsavedChanges.Add(editablePermission);
+    }
+
+    static HashSet<string> ApplyModifiedFields<T>(T from, T to, IEnumerable<string> fieldNamesToWatch = null) where T: class {
+        HashSet<string> modifiedFields = new();
+        ForEachFieldOf<T>(fieldProperty => {
+            var sourceValue = fieldProperty.GetValue(to);
+            var value = fieldProperty.GetValue(from);
+            if(!Equals(value, sourceValue)) {
+                fieldProperty.SetValue(to, value);
+                modifiedFields.Add(fieldProperty.Name);
+            }
+        }, fieldNamesToWatch);
+        return modifiedFields;
+    }
+    static void ForEachFieldOf<T>(Action<PropertyDescriptor> func, IEnumerable<string> fieldNames = null) {
+        var properties = TypeDescriptor.GetProperties(typeof(T));
+        if(fieldNames == null)
+            fieldNames = properties.OfType<PropertyDescriptor>().Select(x => x.Name);
+        foreach(string field in fieldNames) {
+            var fieldProperty = properties[field];
+            func(fieldProperty);
+        }
+    }
+
+    async Task OpenPermission(menu item)
+    {
+        SelectedMenu = item.menu_name;
+        if (!string.IsNullOrWhiteSpace(item.menu_path)){
+            SelectedMenu = $"{SelectedMenu} ({item.menu_path})";
+        }
+
+        var existPermissions = await _PermissionService.GetListByMenu(item.menu_id);
+        Roles = await _RoleService.ListAll();
+
+        var newPermissions = Roles
+            .Where(role => !existPermissions.Any(p => p.role_id == role.Id))
+            .Select(role => new permission
+                {
+                    role_id = role.Id,
+                    menu_id = item.menu_id
+                })
+            .ToList();
+
+        Permissions = existPermissions.Concat(newPermissions)
+            .OrderBy(p => p.role_id)
+            .ToList();
+
+        PermissionPopup.ShowAsync();
+    }
+
+    private void OnCancelPermission()
+    {
+        UnsavedChanges.Clear();
+        PermissionPopup.CloseAsync();
+    }
+
+    async void OnSavePermission()
+    {
+        try
+        {
+            if (UnsavedChanges.Any())
+            {
+                ReturnViewModel response = new ReturnViewModel();
+                response = await _PermissionService.BulkSaveByMenu(UnsavedChanges);
+
+                if (response.ReturnCode == 200)
+                {
+                    UnsavedChanges.Clear();
+                    PermissionPopup.CloseAsync();
+                    HandleResponse(response.ReturnMessage);
+                }
+                else
+                {
+                    HandleResponse(response.ReturnMessage, "Error");
+                }
+            }else{
+                UnsavedChanges.Clear();
+                PermissionPopup.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            // do nothing
+        }
+    }
+    #endregion
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if(status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if(status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }else if(status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+        {
+            ProviderName = "Overview",
+            ThemeMode = ToastThemeMode.Saturated,
+            RenderStyle = RenderStyle,
+            Title = message
+        });
+    }
+}

@@ -93,6 +93,10 @@ builder.Services.AddTransient<ConfigFormFieldService>();
 builder.Services.AddTransient<DepartmentService>();
 builder.Services.AddTransient<SectionService>();
 builder.Services.AddTransient<UnitService>();
+builder.Services.AddTransient<CountryService>(); 
+builder.Services.AddTransient<StateService>();
+builder.Services.AddTransient<DistrictService>();
+builder.Services.AddTransient<TownService>();
 builder.Services.AddTransient<AuditService>();
 builder.Services.AddTransient<ArchiveAuditService>();
 builder.Services.AddTransient<PatrolService>();
@@ -102,6 +106,9 @@ builder.Services.AddTransient<RefLawUUKService>();
 builder.Services.AddTransient<RefLawOffenseService>();
 builder.Services.AddTransient<BkgrTaskSMService>();
 builder.Services.AddTransient<ContactUsService>();
+builder.Services.AddTransient<MenuService>();
+builder.Services.AddTransient<PermissionService>();
+
 
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();

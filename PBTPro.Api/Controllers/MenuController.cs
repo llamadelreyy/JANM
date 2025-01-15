@@ -11,12 +11,14 @@ Additional Notes:
 Changes Logs:
 02/01/2025 - initial create
 */
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using System.Collections.Generic;
 
 namespace PBTPro.Api.Controllers
 {
@@ -49,11 +51,13 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetListByAuth()
         {
             try
@@ -91,6 +95,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -121,9 +126,73 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetItemByAuth()
+        {
+            try
+            {
+                List<menu> menus = new List<menu>();
+                int runUserID = await getDefRunUserId();
+                if (runUserID > 0)
+                {
+                    menus = await (from ur in _dbContext.UserRoles
+                                   join p in _dbContext.permissions on ur.RoleId equals p.role_id
+                                   join m in _dbContext.menus on p.menu_id equals m.menu_id
+                                   where m.is_deleted != true && p.can_view == true && ur.UserId == runUserID
+                                   select m)
+                    .AsNoTracking()
+                    .ToListAsync();
+                }
+                else
+                {
+                    //Public Menu
+                    menus = await (from p in _dbContext.permissions
+                                   join m in _dbContext.menus on p.menu_id equals m.menu_id
+                                   where m.is_deleted != true && p.can_view == true && p.role_id == 0
+                                   select m)
+                    .AsNoTracking()
+                    .ToListAsync();
+                }
+
+                menus = menus.GroupBy(m => m.menu_id)
+                       .Select(g => g.First())
+                       .OrderBy(x => x.menu_sequence)
+                       .ThenBy(x => x.menu_name)
+                       .ToList();
+
+                List<MenuViewItem> uniqueMenus = new List<MenuViewItem>();
+
+                foreach(var menu in menus.Where(x=>x.parent_id == 0).ToList())
+                {
+                    string CssClass = "singleNodesClass";
+                    var SubMenu = GetSubMenu(menu.menu_id, menus);
+                    var uniqueMenu = new MenuViewItem
+                    {
+                        Text = menu.menu_name,
+                        NavigateUrl = menu.menu_path,
+                        IconUrl = menu.icon_path,
+                        BadgeText = null,
+                        SubMenu = SubMenu
+                    };
+
+                    uniqueMenus.Add(uniqueMenu);
+                }
+
+                return Ok(uniqueMenus, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
 
         [HttpGet("{Id}")]
         //[Route("GetDetail")]
@@ -142,6 +211,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -181,6 +251,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -223,6 +294,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -248,9 +320,33 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
 
+
+        #region Private Logic
+        private List<MenuViewItem>? GetSubMenu(int MenuId, List<menu> menus)
+        {
+            List<MenuViewItem> SubMenu = new List<MenuViewItem>();
+            try
+            {
+                SubMenu = menus.Where(x => x.parent_id == MenuId).Select(x => new MenuViewItem 
+                {
+                    Text = x.menu_name,
+                    NavigateUrl = x.menu_path,
+                    IconUrl = x.icon_path,
+                    BadgeText = null,
+                    SubMenu = GetSubMenu(x.menu_id, menus)
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+            }
+            return SubMenu;
+        }
+        #endregion
     }
 }

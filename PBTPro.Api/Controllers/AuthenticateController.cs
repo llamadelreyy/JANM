@@ -497,7 +497,7 @@ namespace PBTPro.Api.Controllers
                     body = "Hai [0], Anda telah mohon set semula kata laluan.<br/><br/>" +
                     "Untuk set semula kata laluan anda sila klik pada pautan berikut: <a href=\"[1]\">Set Semula Kata Laluan</a><br/><br/>" +
                     "Jika anda tidak memohon set semula kata laluan, sila abaikan emel ini.<br/><br/>" +
-                    "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir MasjidKita<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
+                    "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBTPro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
                 };
 
                 string[] param = { username, resetPasswordUrl };
