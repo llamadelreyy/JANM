@@ -83,7 +83,7 @@ else
         HighlightRowOnHover="true"
         CssClass="mv-1000">
             <Columns>
-                <DxGridCommandColumn Width="120px">
+                <DxGridCommandColumn Width="80px">
                     <HeaderTemplate>
                         @if (PermissionService.HasPermission("Add"))
                         {
@@ -103,14 +103,14 @@ else
 
                         @if (PermissionService.HasPermission("Delete"))
                         {
-                            <a @onclick="@(() => Delete((menu)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                            <a @onclick="@(() => Delete((menu)context.DataItem))" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                         }
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
-                <DxGridDataColumn FieldName="menu_name" Caption="Nama" />
-                <DxGridDataColumn FieldName="menu_path" Caption="Laluan" />
-                <DxGridDataColumn FieldName="menu_sequence" Caption="Urutan" />
-                <DxGridDataColumn FieldName="parent_id" Caption="Menu Induk">
+                    <DxGridDataColumn FieldName="menu_name" Caption="Nama" MinWidth="250" Width="25%" />
+                    <DxGridDataColumn FieldName="menu_path" Caption="Laluan" MinWidth="300" Width="40%" />
+                    <DxGridDataColumn FieldName="menu_sequence" Caption="Urutan" MinWidth="100" Width="10%"  />
+                    <DxGridDataColumn FieldName="parent_id" Caption="Menu Induk" MinWidth="200" Width="25%">
                     <EditSettings>
                         <DxComboBoxSettings Data="@parents"
                         ValueFieldName="menu_id"
@@ -204,7 +204,7 @@ else
                                     <td nowrap>&nbsp;&nbsp;</td>
                                     <td width="50%">
                                         <DxSpinEdit @bind-Value="@field.menu_sequence" 
-                                                    ShowValidationIcon="true" style="width:80px;" />
+                                                    ShowValidationIcon="true" style="width:100px;" />
                                     </td>
                                     <td width="100px">&nbsp;</td>
                                     <td nowrap>Ikon</td>

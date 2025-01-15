@@ -13,6 +13,8 @@ public partial class mst_district
 
     public string state_code { get; set; } = null!;
 
+    public string state_name { get; set; } = null!;
+
     public DateTime? created_at { get; set; }
 
     public int? creator_id { get; set; }
