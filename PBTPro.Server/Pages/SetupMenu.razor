@@ -34,9 +34,23 @@ Changes Logs:
 }
 else
 {
-    <div class="d-lg-flex border-bottom mb-2">
+
+<style>
+    .dxbl-grid {
+        height: 98.5%;
+        max-height: 98.5%;
+    }
+</style>
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+    <div class="d-lg-flex border-bottom">
         <div class="col-md-12 py-1 dx-helptitle pageTitle">
-            <img class="imgTitle" src="/images/icons/information.png" />
+            <img class="imgTitle" src="\images\icons-small\document-hf.png" />
             <div class="textTitle">Setup Menu - Senarai Menu</div>
         </div>
     </div>
@@ -59,7 +73,7 @@ else
         PagerPosition="GridPagerPosition.Bottom"
         PagerNavigationMode="PagerNavigationMode.InputBox"
         EditModelSaving="Grid_EditModelSaving"
-        EditFormButtonsVisible="true"
+        EditFormButtonsVisible="false"
         PageSizeSelectorVisible="true"
         PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
         PageSizeSelectorAllRowsItemVisible="true"
@@ -106,7 +120,7 @@ else
                     </EditSettings>
                 </DxGridDataColumn>
             </Columns>
-            <EditFormTemplate Context="EditFormContext">
+@*             <EditFormTemplate Context="EditFormContext">
                 @{
                     var field = (menu)EditFormContext.EditModel;
                     var editContext = new EditContext(field);
@@ -137,7 +151,89 @@ else
                         <DxTextBox @bind-Text="@field.icon_path" ShowValidationIcon="true" />
                     </DxFormLayoutItem>
                 </DxFormLayout>
-            </EditFormTemplate>
+            </EditFormTemplate>  *@
+
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var field = (menu)EditFormContext.EditModel;
+                        var editContext = new EditContext(field);
+                    }
+                    <DxFormLayout CssClass="w-100">
+                        <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                            <table class="layout_edit">
+                                <tr>
+                                    <td nowrap>Nama</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@field.menu_name"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Masukkan nama menu..."
+                                                   Maxlength="60"
+                                                   ShowValidationIcon="true"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap>Laluan</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@field.menu_path"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Masukkan laluan menu..."
+                                                   Maxlength="120"
+                                                   ShowValidationIcon="true"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Menu Induk</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="7">
+                                        <DxComboBox Data="@parents"
+                                                    NullText="Pilih Menu Induk.."
+                                                    FilteringMode="DataGridFilteringMode.Contains"
+                                                    @bind-Value="@field.parent_id"
+                                                    TextFieldName="menu_name"
+                                                    ValueFieldName="menu_id"
+                                                    ShowValidationIcon="true" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Urutan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxSpinEdit @bind-Value="@field.menu_sequence" 
+                                                    ShowValidationIcon="true" style="width:80px;" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap>Ikon</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@field.icon_path"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Masukkan ikon menu..."
+                                                   Maxlength="120"
+                                                   ShowValidationIcon="false"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                </tr>
+
+                            </table>
+                        </DxFormLayoutItem>
+
+                        <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                            <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditFormTemplate>
+                <CustomValidators>
+                    <MyCustomValidator DataItemValidating="ValidateGridData" />
+                </CustomValidators>
+
 
             @*This is to count the summary*@
             <TotalSummary>
@@ -145,6 +241,8 @@ else
             </TotalSummary>
         </DxGrid>
     </div>
+
+    </DxLoadingPanel>
 
     <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
         <BodyContentTemplate>
@@ -204,6 +302,8 @@ else
 }
 
 @code {
+        bool PanelVisible { get; set; }
+
         int ActiveTabIndex;
         bool ConfirmationShown { get; set; } = false;
         IGrid Grid { get; set; }
@@ -218,8 +318,10 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         Data = await GetListDataAsync();
         DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
 
     protected void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
@@ -237,6 +339,19 @@ else
     }
 
     #region Add/Edit
+
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (menu)e.EditModel;
+
+
+        if (_data.menu_name == null || _data.menu_name.Trim() == "")
+        {
+            e.AddError(nameof(_data.menu_name), "Nama menu tidak sah. Medan perlu diisi.");
+        }
+    }
+
+
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         try
