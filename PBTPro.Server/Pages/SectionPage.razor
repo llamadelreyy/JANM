@@ -24,6 +24,12 @@
     }
 </style>
 
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="\images\icons-small\hard-hat--plus.png" />
@@ -32,12 +38,6 @@
 </div>
 
 <div class="item-container-x">
-    @if (dataSource == null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else
-    {
         <DxGrid @ref="Grid"
         Data="dataSource"
         KeyFieldName="div_id"
@@ -180,8 +180,9 @@
         </TotalSummary>
 
     </DxGrid>
-    }
+
 </div>
+</DxLoadingPanel>
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
@@ -197,6 +198,7 @@
 
 
 @code {
+    bool PanelVisible { get; set; }
     IEnumerable<ref_department> dtDepartment;
     IEnumerable<ref_division> dataSource;
 
@@ -212,10 +214,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         dataSource = await _SectionService.ListAll();
         dtDepartment = await _DepartmentService.ListAll();
 
         DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

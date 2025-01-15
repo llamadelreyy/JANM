@@ -27,6 +27,12 @@
     }
 </style>
 
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
 <!-- Filter & Search Premise panel -->
 <div id="mySidenav" class="sidenav">
 
@@ -373,7 +379,7 @@
         </div>
     </div>
 </div>
-
+</DxLoadingPanel>
 
 <link rel="stylesheet" href="./css/style-sideNav.css">
 <link rel="stylesheet" href="./css/firepanel/style.css">
