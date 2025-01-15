@@ -28,7 +28,7 @@ namespace PBTPro.Pages
 {
     public partial class TaburanLesenPage
     {
-
+        bool PanelVisible { get; set; }
         //For check box ===========
         public List<FilterData> FilterList { get; set; }
         protected List<string> SelectedIds = new List<string>();
@@ -130,6 +130,7 @@ namespace PBTPro.Pages
         */
         protected override async Task OnInitializedAsync()
         {
+            PanelVisible = true;
             //Show legend
             intLegend = 0;
             //Map
@@ -228,6 +229,8 @@ namespace PBTPro.Pages
                 await ProcessMapAPIData();
                 await this.map1.InteropObject.AddListener("dragend", async () => await ProcessMapAPIData());
                 await this.map1.InteropObject.AddListener("zoom_changed", async () => await ProcessMapAPIData());
+
+                PanelVisible = false;
             }
             catch (Exception ex)
             {
