@@ -74,7 +74,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] RoleModel InputModel)
+        public async Task<IActionResult> Add([FromBody] ApplicationRole InputModel)
         {
             try
             {
@@ -88,7 +88,7 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-                if (formField.Name == InputModel.RoleName)
+                if (formField.Name == InputModel.Name)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Peranan telah wujud.")));
                 }
@@ -97,7 +97,7 @@ namespace PBTPro.Api.Controllers
                 #region store data
                 ApplicationRole roles = new ApplicationRole
                 {
-                    Name = InputModel.RoleName,
+                    Name = InputModel.Name,
                     RoleDesc = InputModel.RoleDesc,
                     CreatorId = runUserID,
                     CreatedAt = DateTime.UtcNow,
@@ -128,7 +128,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] RoleModel InputModel)
+        public async Task<IActionResult> Update(int Id, [FromBody] ApplicationRole InputModel)
         {
             try
             {
@@ -144,7 +144,7 @@ namespace PBTPro.Api.Controllers
 
                 #endregion
 
-                formField.Name = InputModel.RoleName;
+                formField.Name = InputModel.Name;
                 formField.RoleDesc = InputModel.RoleDesc;
                 formField.ModifierId = runUserID;
                 formField.ModifiedAt = DateTime.Now;

@@ -9,9 +9,11 @@ public partial class mst_state
 
     public string state_code { get; set; } = null!;
 
+    public string state_name { get; set; } = null!;
+
     public string country_code { get; set; } = null!;
 
-    public string state_name { get; set; } = null!;
+    public string country_name { get; set; } = null!;
 
     public DateTime? created_at { get; set; }
 
