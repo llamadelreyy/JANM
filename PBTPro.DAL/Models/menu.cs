@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace PBTPro.DAL.Models;
 
@@ -26,6 +27,7 @@ public partial class menu
     /// <summary>
     /// Name of the core.menu item.
     /// </summary>
+    [Required(ErrorMessage = "Ruangan Nama diperlukan.")]
     public string menu_name { get; set; } = null!;
 
     /// <summary>
@@ -36,7 +38,7 @@ public partial class menu
     /// <summary>
     /// Path to the icon associated with the core.menu item.
     /// </summary>
-    public string icon_path { get; set; } = null!;
+    public string? icon_path { get; set; }
 
     /// <summary>
     /// Indicates whether the core.menu is associated with tenant modules.

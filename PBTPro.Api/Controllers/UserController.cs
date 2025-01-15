@@ -25,6 +25,8 @@ using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using System.Data;
+using static System.Collections.Specialized.BitVector32;
+using System.Reactive;
 
 namespace PBTPro.Api.Controllers
 {
@@ -53,7 +55,35 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var users = await _dbContext.Users.AsNoTracking().ToListAsync();
-                return Ok(users, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                var dtDepartment = await _dbContext.ref_departments.AsNoTracking().ToListAsync();
+                var dtSection = await _dbContext.ref_divisions.AsNoTracking().ToListAsync();
+                var dtUnit = await _dbContext.ref_units.AsNoTracking().ToListAsync();
+                List<RegisterModel> registerModels = new List<RegisterModel>();
+
+                if (users.Count() != 0)
+                {
+                    registerModels = (from user in users
+                                      join dept in dtDepartment on user.dept_id equals dept.dept_id
+                                      join div in dtSection on user.div_id equals div.div_id
+                                      join unit in dtUnit on user.unit_id equals unit.unit_id
+                                      where user.IsDeleted == false
+                                      select new RegisterModel
+                                      {
+                                          Id = user.Id,
+                                          FullName = user.full_name,
+                                          Username = user.UserName,
+                                          Email = user.Email,
+                                          PhoneNo = user.PhoneNumber,
+                                          DepartmentName = dept.dept_name,
+                                          DivisionName = div.div_name,
+                                          UnitName = unit.unit_name,
+                                          CreatedAt = user.CreatedAt,
+                                          ICNo = user.IdNo,
+
+                                      }).ToList();
+                }
+
+                return Ok(registerModels, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -561,19 +591,25 @@ namespace PBTPro.Api.Controllers
                 {
                     full_name = model.FullName,
                     PhoneNumber = model.PhoneNo,
+                    PhoneNumberConfirmed = true,
                     IdNo = model.ICNo,
-                    //IdTypeId = model.IdTypeId,
                     Email = model.Email,
+                    EmailConfirmed = true,
                     dept_id = model.DepartmentID,
                     div_id = model.DivisionID,
                     unit_id = model.UnitID,
                     SecurityStamp = Guid.NewGuid().ToString(),
                     UserName = model.Username.Trim(new char[] { (char)39 }).Replace(" ", ""),
                     CreatedAt = DateTime.Now,
-                    CreatorId  = runUserID,
+                    CreatorId = runUserID,
+                    PasswordHash = "AQAAAAIAAYagAAAAEPGX5Ds9agERax0qx8EOJNeHDJOrdURhb/Nwndx0lYbcXfz/yTYxLfyp/pJkW8GB1Q==",
+                    PhotoFilename = "",
+                    PhotoPathUrl = "",
+                    SignFilename = "",
+                    IsDeleted = false,
                     ModifiedAt = DateTime.Now,
                     ModifierId = runUserID,
-                    PasswordHash = "AQAAAAIAAYagAAAAEPGX5Ds9agERax0qx8EOJNeHDJOrdURhb/Nwndx0lYbcXfz/yTYxLfyp/pJkW8GB1Q==",
+
                 };
 
                 _dbContext.Users.Add(au);
@@ -599,24 +635,43 @@ namespace PBTPro.Api.Controllers
                 int runUserID = await getDefRunUserId();
 
                 #region Validation
-                var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.IdNo == model.ICNo);
+                //var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.IdNo == model.ICNo);
+
+                var users = await (from user in _dbContext.Users
+                                   join dept in _dbContext.ref_departments on user.dept_id equals dept.dept_id
+                                   join div in _dbContext.ref_divisions on user.div_id equals div.div_id
+                                   join unit in _dbContext.ref_units on user.unit_id equals unit.unit_id
+                                   where user.IdNo == model.ICNo
+                                   select new RegisterModel
+                                   {
+                                       Id = user.Id,
+                                       FullName = user.full_name,
+                                       Username = user.UserName,
+                                       Email = user.Email,
+                                       PhoneNo = user.PhoneNumber,
+                                       DepartmentName = dept.dept_name,
+                                       DivisionName = div.div_name,
+                                       UnitName = unit.unit_name,
+                                       ICNo = user.IdNo
+                                   }).FirstOrDefaultAsync();
+
                 if (users == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
+                ApplicationUser au = new ApplicationUser();
+                au.full_name = model.FullName;
+                au.IdNo = model.ICNo;
+                au.PhoneNumber = model.PhoneNo;
+                au.dept_id = model.DepartmentID;
+                au.div_id = model.DivisionID;
+                au.unit_id = model.UnitID;
+                au.ModifiedAt = DateTime.Now;
+                au.ModifierId = runUserID;
+                au.UserName = model.Username;
 
-                users.full_name = model.FullName;
-                users.IdNo = model.ICNo;
-                users.PhoneNumber = model.PhoneNo;
-                users.IdTypeId = model.IdTypeId;
-                users.dept_id = model.DepartmentID;
-                users.div_id = model.DivisionID;
-                users.unit_id = model.UnitID;
-                users.ModifiedAt = DateTime.Now;
-                users.ModifierId = runUserID;
-
-                _dbContext.Users.Update(users);
+                _dbContext.Users.Update(au);
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(users, SystemMesg(_feature, "Update", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
@@ -632,15 +687,18 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                int runUserID = await getDefRunUserId();
+
                 #region Validation
                 var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == Id);
+                users.IsDeleted = true;
                 if (users == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
 
-                _dbContext.Users.Remove(users);
+                _dbContext.Users.Update(users);
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(users, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
@@ -671,6 +729,6 @@ namespace PBTPro.Api.Controllers
             }
         }
         #endregion
-        
+
     }
 }

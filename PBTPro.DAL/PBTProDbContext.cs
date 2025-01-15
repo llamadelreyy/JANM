@@ -55,17 +55,17 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<menu> menus { get; set; }
 
-    public virtual DbSet<mst_area> mst_areas { get; set; }
-
-    public virtual DbSet<mst_daerah> mst_daerahs { get; set; }
+    public virtual DbSet<mst_country> mst_countries { get; set; }
 
     public virtual DbSet<mst_district> mst_districts { get; set; }
 
     public virtual DbSet<mst_lot> mst_lots { get; set; }
 
-    public virtual DbSet<mst_mukim> mst_mukims { get; set; }
-
     public virtual DbSet<mst_premis> mst_premis { get; set; }
+
+    public virtual DbSet<mst_state> mst_states { get; set; }
+
+    public virtual DbSet<mst_town> mst_towns { get; set; }
 
     public virtual DbSet<notification_email_history> notification_email_histories { get; set; }
 
@@ -543,7 +543,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("User ID of the creator.");
             entity.Property(e => e.icon_path)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("'0'::character varying")
                 .HasComment("Path to the icon associated with the core.menu item.");
             entity.Property(e => e.is_deleted)
                 .HasDefaultValue(false)
@@ -574,69 +573,43 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("Identifier linking the core.menu item to its parent core.menu item (if applicable).");
         });
 
-        modelBuilder.Entity<mst_area>(entity =>
+        modelBuilder.Entity<mst_country>(entity =>
         {
-            entity.HasKey(e => e.gid).HasName("mst_area_pkey");
+            entity.HasKey(e => e.country_id).HasName("mst_countries_pkey");
 
-            entity.ToTable("mst_area");
+            entity.ToTable("mst_countries", "core");
 
-            entity.HasIndex(e => e.geom, "mst_area_geom_idx").HasMethod("gist");
+            entity.HasIndex(e => e.country_code, "mst_countries_country_code_key").IsUnique();
 
-            entity.Property(e => e.acc).HasMaxLength(50);
-            entity.Property(e => e.ark).HasMaxLength(50);
-            entity.Property(e => e.bds).HasMaxLength(50);
-            entity.Property(e => e.fcd).HasMaxLength(7);
-            entity.Property(e => e.fnm).HasMaxLength(100);
-            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,3375)");
-            entity.Property(e => e.keluasan).HasMaxLength(50);
-            entity.Property(e => e.kemaskini).HasMaxLength(50);
-            entity.Property(e => e.kod_daerah).HasMaxLength(50);
-            entity.Property(e => e.kod_negeri).HasMaxLength(50);
-            entity.Property(e => e.nam).HasMaxLength(50);
-        });
-
-        modelBuilder.Entity<mst_daerah>(entity =>
-        {
-            entity.HasKey(e => e.gid).HasName("mst_daerah_pkey");
-
-            entity.ToTable("mst_daerah");
-
-            entity.HasIndex(e => e.geom, "mst_daerah_geom_idx").HasMethod("gist");
-
-            entity.Property(e => e.acc).HasMaxLength(50);
-            entity.Property(e => e.ark).HasMaxLength(50);
-            entity.Property(e => e.bds).HasMaxLength(50);
-            entity.Property(e => e.fcd).HasMaxLength(7);
-            entity.Property(e => e.fnm).HasMaxLength(100);
-            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,3375)");
-            entity.Property(e => e.keluasan).HasMaxLength(50);
-            entity.Property(e => e.kemaskini).HasMaxLength(50);
-            entity.Property(e => e.kod_daerah).HasMaxLength(50);
-            entity.Property(e => e.kod_negeri).HasMaxLength(50);
-            entity.Property(e => e.nam).HasMaxLength(50);
+            entity.Property(e => e.country_code).HasMaxLength(10);
+            entity.Property(e => e.country_name).HasMaxLength(50);
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
         });
 
         modelBuilder.Entity<mst_district>(entity =>
         {
-            entity.HasKey(e => e.gid).HasName("mst_district_pkey");
+            entity.HasKey(e => e.district_id).HasName("mst_districts_pkey");
 
-            entity.ToTable("mst_district");
+            entity.ToTable("mst_districts", "core");
 
-            entity.HasIndex(e => e.geom, "mst_district_geom_idx").HasMethod("gist");
+            entity.HasIndex(e => new { e.district_code, e.state_code }, "unique_district_code_state_code").IsUnique();
 
-            entity.Property(e => e.acc).HasMaxLength(50);
-            entity.Property(e => e.ark).HasMaxLength(50);
-            entity.Property(e => e.bds).HasMaxLength(50);
-            entity.Property(e => e.dasdas).HasMaxLength(50);
-            entity.Property(e => e.fcd).HasMaxLength(10);
-            entity.Property(e => e.fnm).HasMaxLength(50);
-            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,3375)");
-            entity.Property(e => e.globalid).HasMaxLength(38);
-            entity.Property(e => e.keluasan).HasMaxLength(50);
-            entity.Property(e => e.kod_daerah).HasMaxLength(50);
-            entity.Property(e => e.kod_mukim).HasMaxLength(50);
-            entity.Property(e => e.kod_negeri).HasMaxLength(50);
-            entity.Property(e => e.nam).HasMaxLength(50);
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.district_code).HasMaxLength(10);
+            entity.Property(e => e.district_name).HasMaxLength(50);
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.state_code).HasMaxLength(10);
         });
 
         modelBuilder.Entity<mst_lot>(entity =>
@@ -665,29 +638,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.upi).HasMaxLength(16);
         });
 
-        modelBuilder.Entity<mst_mukim>(entity =>
-        {
-            entity.HasKey(e => e.gid).HasName("mst_mukim_pkey");
-
-            entity.ToTable("mst_mukim");
-
-            entity.HasIndex(e => e.geom, "mst_mukim_geom_idx").HasMethod("gist");
-
-            entity.Property(e => e.acc).HasMaxLength(50);
-            entity.Property(e => e.ark).HasMaxLength(50);
-            entity.Property(e => e.bds).HasMaxLength(50);
-            entity.Property(e => e.dasdas).HasMaxLength(50);
-            entity.Property(e => e.fcd).HasMaxLength(10);
-            entity.Property(e => e.fnm).HasMaxLength(50);
-            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,3375)");
-            entity.Property(e => e.globalid).HasMaxLength(38);
-            entity.Property(e => e.keluasan).HasMaxLength(50);
-            entity.Property(e => e.kod_daerah).HasMaxLength(50);
-            entity.Property(e => e.kod_mukim).HasMaxLength(50);
-            entity.Property(e => e.kod_negeri).HasMaxLength(50);
-            entity.Property(e => e.nam).HasMaxLength(50);
-        });
-
         modelBuilder.Entity<mst_premis>(entity =>
         {
             entity.HasKey(e => e.gid).HasName("mst_premis_pkey");
@@ -704,6 +654,46 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.negeri).HasMaxLength(2);
             entity.Property(e => e.no_akaun).HasMaxLength(20);
             entity.Property(e => e.seksyen).HasMaxLength(3);
+        });
+
+        modelBuilder.Entity<mst_state>(entity =>
+        {
+            entity.HasKey(e => e.state_id).HasName("mst_states_pkey");
+
+            entity.ToTable("mst_states", "core");
+
+            entity.HasIndex(e => new { e.state_code, e.country_code }, "unique_state_code_country_code").IsUnique();
+
+            entity.Property(e => e.country_code).HasMaxLength(10);
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.state_code).HasMaxLength(10);
+            entity.Property(e => e.state_name).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<mst_town>(entity =>
+        {
+            entity.HasKey(e => e.town_id).HasName("mst_towns_pkey");
+
+            entity.ToTable("mst_towns", "core");
+
+            entity.HasIndex(e => new { e.town_code, e.district_code }, "unique_town_code_district_code").IsUnique();
+
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.district_code).HasMaxLength(10);
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.town_code).HasMaxLength(10);
+            entity.Property(e => e.town_name).HasMaxLength(50);
         });
 
         modelBuilder.Entity<notification_email_history>(entity =>

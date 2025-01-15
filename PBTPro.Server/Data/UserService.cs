@@ -90,9 +90,40 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<ApplicationUser>> Refresh()
+        public async Task<List<RegisterModel>> ListsAll()
         {
-            var result = new List<ApplicationUser>();
+            var result = new List<RegisterModel>();
+            string requestUrl = $"{_baseReqURL}/GetList";
+            var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+            try
+            {
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<RegisterModel>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai tetapan bangsa.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<RegisterModel>();
+            }
+            return result;
+        }
+
+        [HttpGet]
+        public async Task<List<RegisterModel>> Refresh()
+        {
+            var result = new List<RegisterModel>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/GetList";
@@ -103,7 +134,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<ApplicationUser>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<RegisterModel>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai tetapan bangsa.", 1, LoggerName, "");
                 }
@@ -116,30 +147,20 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<ApplicationUser>();
+                result = new List<RegisterModel>();
             }
             return result;
         }
 
-        public async Task<ReturnViewModel> Add(ApplicationUser inputModel)
+        public async Task<ReturnViewModel> Add(RegisterModel inputModel)
         {
             var result = new ReturnViewModel();
             try
             {
-                RegisterModel rm = new RegisterModel();
-                rm.FullName = inputModel.full_name;
-                rm.ICNo = inputModel.IdNo;
-                rm.PhoneNo = inputModel.PhoneNumber;
-                rm.Email = inputModel.Email;
-                rm.DepartmentID = inputModel.dept_id;
-                rm.DivisionID = inputModel.div_id;
-                rm.UnitID = inputModel.unit_id;
-                rm.IdTypeId = 1;
-                rm.Password = GeneratePassword();
-                rm.Username = inputModel.IdNo;
-                rm.Name = inputModel.full_name;
-
-                var reqData = JsonConvert.SerializeObject(rm);
+                inputModel.Password = GeneratePassword();
+                inputModel.Name = inputModel.FullName;
+               
+                var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
                 string requestUrl = $"{_baseReqURL}/Add";
@@ -163,21 +184,21 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, ApplicationUser inputModel)
+        public async Task<ReturnViewModel> Update(int id, RegisterModel inputModel)
         {
             var result = new ReturnViewModel();
             try
             {
-                RegisterModel rm = new RegisterModel();
-                rm.FullName = inputModel.full_name;
-                rm.ICNo = inputModel.IdNo;
-                rm.PhoneNo = inputModel.PhoneNumber;
-                rm.Email = inputModel.Email;
-                rm.DepartmentID = inputModel.dept_id;
-                rm.DivisionID = inputModel.div_id;
-                rm.UnitID = inputModel.unit_id;
+                //RegisterModel rm = new RegisterModel();
+                //rm.FullName = inputModel.full_name;
+                //rm.ICNo = inputModel.IdNo;
+                //rm.PhoneNo = inputModel.PhoneNumber;
+                //rm.Email = inputModel.Email;
+                //rm.DepartmentID = inputModel.dept_id;
+                //rm.DivisionID = inputModel.div_id;
+                //rm.UnitID = inputModel.unit_id;
 
-                var reqData = JsonConvert.SerializeObject(rm);
+                var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
                 string requestUrl = $"{_baseReqURL}/Update/{inputModel.Id}";

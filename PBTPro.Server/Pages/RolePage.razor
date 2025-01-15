@@ -18,10 +18,16 @@
 
 <style>
     .dxbl-grid {
-        height: 88vh;
-        max-height: 88vh;
+        height: 98.5%;
+        max-height: 98.5%;
     }
 </style>
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
 
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -151,6 +157,7 @@
 
     </DxGrid>
 </div>
+</DxLoadingPanel>
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
@@ -166,6 +173,7 @@
 
 
 @code {
+    bool PanelVisible { get; set; }
     IEnumerable<ApplicationRole> dataSource;
 
     IGrid Grid { get; set; }
@@ -180,8 +188,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         dataSource = await _RoleService.ListAll();
         DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

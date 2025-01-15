@@ -1,21 +1,15 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PBTPro.DAL;
-using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
-using System.Net.Http.Headers;
+using PBTPro.DAL;
 using System.Reflection;
 using System.Text;
-using static System.Net.WebRequestMethods;
 
 namespace PBTPro.Data
 {
-    public class RoleService : IDisposable
+    public class TownService : IDisposable
     {
         private bool disposed = false;
 
@@ -45,13 +39,13 @@ namespace PBTPro.Data
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         protected readonly AuditLogger _cf;
-        private readonly ILogger<RoleService> _logger;
+        private readonly ILogger<TownService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
-        private string _baseReqURL = "/api/Roles";
+        private string _baseReqURL = "/api/Towns";
         private string LoggerName = "";
 
-        public RoleService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<RoleService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
+        public TownService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<TownService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
             _PBTAuthStateProvider = PBTAuthStateProvider;
@@ -59,11 +53,11 @@ namespace PBTPro.Data
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
-        
+
         [HttpGet]
-        public async Task<List<ApplicationRole>> ListAll()
+        public async Task<List<mst_town>> ListAll()
         {
-            var result = new List<ApplicationRole>();
+            var result = new List<mst_town>();
             string requestUrl = $"{_baseReqURL}/GetList";
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
@@ -74,9 +68,9 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<ApplicationRole>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<mst_town>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai peranan.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai data.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -86,15 +80,15 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<ApplicationRole>();
+                result = new List<mst_town>();
             }
             return result;
         }
 
         [HttpGet]
-        public async Task<List<ApplicationRole>> Refresh()
+        public async Task<List<mst_town>> Refresh()
         {
-            var result = new List<ApplicationRole>();
+            var result = new List<mst_town>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/GetList";
@@ -105,9 +99,9 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<ApplicationRole>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<mst_town>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai peranan.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai data.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -118,20 +112,20 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<ApplicationRole>();
+                result = new List<mst_town>();
             }
             return result;
         }
 
         [HttpPost]
-        public async Task<ReturnViewModel> Add(ApplicationRole inputModel)
+        public async Task<ReturnViewModel> Add(mst_town inputModel)
         {
             var result = new ReturnViewModel();
             try
             {
-                //ApplicationRole rm = new ApplicationRole();
-                //rm.Name = inputModel.Name;
-                //rm.RoleDesc = inputModel.RoleDesc;
+                ////RoleModel rm = new RoleModel();
+                ////rm.RoleName = inputModel.Name;
+                ////rm.RoleDesc = inputModel.RoleDesc;
 
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
@@ -147,7 +141,7 @@ namespace PBTPro.Data
                 else
                 {
                     await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status kod : " + response.ReturnCode + " - " + response.ReturnMessage, 1, LoggerName, "");
-                }                
+                }
             }
             catch (HttpRequestException ex)
             {
@@ -156,7 +150,7 @@ namespace PBTPro.Data
                     ReturnCode = 500,
                     ReturnMessage = $"Request failed: {ex.Message}"
                 };
-                await _cf.CreateAuditLog((int)AuditType.Error,GetType().Name + " - " + MethodBase.GetCurrentMethod().Name,$"Request failed: {ex.Message}",1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, $"Request failed: {ex.Message}", 1, LoggerName, "");
             }
             catch (Exception ex)
             {
@@ -165,8 +159,8 @@ namespace PBTPro.Data
             }
             return result;
         }
-        
-        public async Task<ReturnViewModel> Update(int id, ApplicationRole inputModel)
+
+        public async Task<ReturnViewModel> Update(int id, mst_town inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -174,7 +168,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/Update/{inputModel.Id}";
+                string requestUrl = $"{_baseReqURL}/Update/{inputModel.town_id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
@@ -206,15 +200,15 @@ namespace PBTPro.Data
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;
-        }       
+        }
 
-        public async Task<ApplicationRole> ViewDetail(int id)
+        public async Task<mst_town> ViewDetail(int id)
         {
-            var result = new ApplicationRole();
+            var result = new mst_town();
             try
             {
                 string requestquery = $"/{id}";
-                string requestUrl = $"{_baseReqURL}/ViewDetail{requestquery}";
+                string requestUrl = $"{_baseReqURL}/GetDetail{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -222,7 +216,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<ApplicationRole>(dataString);
+                        result = JsonConvert.DeserializeObject<mst_town>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci.", 1, LoggerName, "");
                 }
@@ -233,10 +227,73 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new ApplicationRole();
+                result = new mst_town();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;
         }
+
+        public async Task<mst_town> ViewListByDistrict(string DistrictCode)
+        {
+            var result = new mst_town();
+            try
+            {
+                string requestquery = $"/{DistrictCode}";
+                string requestUrl = $"{_baseReqURL}/GetListByDistrict{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<mst_town>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai mengikut daerah.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                result = new mst_town();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+            }
+            return result;
+        }
+
+        public async Task<mst_town> ViewDetailByCode(string Code)
+        {
+            var result = new mst_town();
+            try
+            {
+                string requestquery = $"/{Code}";
+                string requestUrl = $"{_baseReqURL}/GetDetailByCode{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<mst_town>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar data mengikut kod.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                result = new mst_town();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+            }
+            return result;
+        }
+
     }
 }

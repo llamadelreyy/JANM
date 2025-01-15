@@ -23,6 +23,12 @@
     }
 </style>
 
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="\images\icons-small\hard-hat.png" />
@@ -71,9 +77,9 @@
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
 
-            <DxGridDataColumn FieldName="@nameof(ref_department.dept_code)" Caption="Kod Jabatan" Width="10%" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn FieldName="@nameof(ref_department.dept_name)" Caption="Nama Jabatan" Width="25%" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn FieldName="@nameof(ref_department.dept_desc)" Caption="Catatan" Width="28%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(ref_department.dept_code)" Caption="Kod Jabatan" Width="15%" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(ref_department.dept_name)" Caption="Nama Jabatan" Width="35%" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(ref_department.dept_desc)" Caption="Catatan" Width="38%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             @* <DxGridDataColumn FieldName="@nameof(ref_department.dept_status)" Caption="Status Aktif" Width="25%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                 <CellDisplayTemplate>
                     <div>@GetStatusDepartmentIconHtml(((ref_department)context.DataItem).dept_status)</div>
@@ -157,21 +163,23 @@
             <MyCustomValidator DataItemValidating="ValidateGridData" />
         </CustomValidators>
     </DxGrid>
-
-
-    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
-        <BodyContentTemplate>
-            Anda pasti untuk menghapuskan rekod ini?
-            <br /><br />
-            <div class="confirm-dialog-buttons">
-                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
-            </div>
-        </BodyContentTemplate>
-    </DxPopup>
 </div>
+</DxLoadingPanel>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
 
 @code {
+    bool PanelVisible { get; set; }
+
     private List<ref_department> _lstDepartment = new List<ref_department>();
     ref_department dtData { get; set; }
     IGrid Grid { get; set; }
@@ -186,6 +194,8 @@
     #region list
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
+
         _lstDepartment = await _department.GetDepartmentAsync();
         try
         {
@@ -195,6 +205,7 @@
         {
         }
         DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

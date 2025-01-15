@@ -3,17 +3,13 @@ using System.Collections.Generic;
 
 namespace PBTPro.DAL.Models;
 
-public partial class mst_district
+public partial class mst_country
 {
-    public int district_id { get; set; }
+    public int country_id { get; set; }
 
-    public string district_code { get; set; } = null!;
+    public string country_code { get; set; } = null!;
 
-    public string district_name { get; set; } = null!;
-
-    public string state_code { get; set; } = null!;
-
-    public string state_name { get; set; } = null!;
+    public string country_name { get; set; } = null!;
 
     public DateTime? created_at { get; set; }
 
