@@ -6,6 +6,7 @@ namespace PBTPro.DAL.Models.CommonServices
 {
     public class RegisterModel
     {
+        public int Id { get; set; }
         public string Name { get; set; } = null!;
         public string Username { get; set; } = null!;
 
@@ -22,8 +23,11 @@ namespace PBTPro.DAL.Models.CommonServices
         public int DepartmentID { get; set; }
         public int DivisionID { get; set; }
         public int UnitID { get; set; }
-        public string FullName { get; set; }
-        public int IdTypeId { get; set; }
+        public string? DepartmentName { get; set; }
+        public string? DivisionName { get; set; }
+        public string? UnitName { get; set; }
+        public string? FullName { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     public class LoginResult

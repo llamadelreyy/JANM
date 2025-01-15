@@ -96,13 +96,14 @@ namespace PBTPro.DAL
                 // Default Identity fields
                 entity.Property(u => u.Id).HasColumnName("user_id");
                 entity.Property(u => u.UserName).HasColumnName("user_name");
+                entity.Property(u => u.Email).HasColumnName("email");
+                entity.Property(u => u.EmailConfirmed).HasColumnName("email_confirmed");
+                entity.Property(u => u.PhoneNumber).HasColumnName("phone_number");
+                entity.Property(u => u.PhoneNumberConfirmed).HasColumnName("phone_number_confirmed");
                 entity.Property(u => u.PasswordHash).HasColumnName("pwd_hash");
+                entity.Property(u => u.Salt).HasColumnName("salt");
                 entity.Property(u => u.SecurityStamp).HasColumnName("security_stamp");
                 entity.Property(u => u.ConcurrencyStamp).HasColumnName("concurrency_stamp");
-                entity.Property(u => u.Email).HasColumnName("email");
-                entity.Property(u => u.Salt).HasColumnName("salt");
-                entity.Property(u => u.EmailConfirmed).HasColumnName("email_confirmed");
-                entity.Property(u => u.PhoneNumberConfirmed).HasColumnName("phone_number_confirmed");
                 entity.Property(u => u.TwoFactorEnabled).HasColumnName("two_factor_enabled"); 
                 entity.Property(e => e.LockoutEnd)
                 .HasPrecision(6)
@@ -111,20 +112,21 @@ namespace PBTPro.DAL
                 .HasColumnName("lockout_end");
                 entity.Property(u => u.LockoutEnabled).HasColumnName("lockout_enabled");
                 entity.Property(u => u.AccessFailedCount).HasColumnName("access_failed_count");
-                entity.Property(u => u.PhoneNumber).HasColumnName("phoneno");
 
                 // Custom fields
+                entity.Property(u => u.full_name).HasColumnName("full_name");
                 entity.Property(u => u.IdNo).HasColumnName("idno");
-                entity.Property(u => u.IdTypeId).HasColumnName("id_type_id");
+                entity.Property(u => u.unit_id).HasColumnName("unit_id");
+                entity.Property(u => u.div_id).HasColumnName("div_id");
+                entity.Property(u => u.dept_id).HasColumnName("dept_id");
                 entity.Property(u => u.PwdUpdateAt).HasColumnName("pwd_update_at").HasColumnType("timestamp without time zone");
                 entity.Property(u => u.LastLogin).HasColumnName("last_login").HasColumnType("timestamp without time zone");
                 entity.Property(u => u.VerificationCode).HasColumnName("verification_code");
-                entity.Property(u => u.UserStatusId).HasColumnName("user_status_id");
+                entity.Property(u => u.PhotoFilename).HasColumnName("photo_filename");
+                entity.Property(u => u.PhotoPathUrl).HasColumnName("photo_pathurl");
+                entity.Property(u => u.SignFilename).HasColumnName("sign_filename");
                 entity.Property(u => u.IsDeleted).HasColumnName("is_deleted");
-                entity.Property(u => u.dept_id).HasColumnName("dept_id");
-                entity.Property(u => u.div_id).HasColumnName("div_id");
-                entity.Property(u => u.unit_id).HasColumnName("unit_id");
-                entity.Property(u => u.full_name).HasColumnName("full_name");
+
 
                 // Auditing fields
                 entity.Property(e => e.CreatedAt)
