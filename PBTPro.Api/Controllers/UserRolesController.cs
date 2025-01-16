@@ -56,6 +56,7 @@ namespace PBTPro.Api.Controllers
                                  join user in users on userrole.UserId equals user.Id
                                  select new UserRoleModel
                                  {
+                                     UserId = user.Id,
                                      UserRoleId = userrole.UserId,
                                      FullName = user.full_name,
                                      UserName = user.UserName,

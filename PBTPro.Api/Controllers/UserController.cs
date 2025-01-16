@@ -59,7 +59,7 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var users = await _dbContext.Users.AsNoTracking().ToListAsync();
-               
+
                 return Ok(users, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -98,6 +98,10 @@ namespace PBTPro.Api.Controllers
                                           UnitName = unit.unit_name,
                                           CreatedAt = user.CreatedAt,
                                           ICNo = user.IdNo,
+                                          DepartmentID = dept.dept_id,
+                                          DivisionID = div.div_id,
+                                          UnitID = unit.unit_id,
+                                    
 
                                       }).ToList();
                 }
@@ -636,8 +640,8 @@ namespace PBTPro.Api.Controllers
 
                 #endregion
                 var result = await _userManager.CreateAsync(au, model.Password);
-                if (!result.Succeeded) 
-                { 
+                if (!result.Succeeded)
+                {
                     return Error(result, "Gagal cipta pengguna.");
                 }
                 else
@@ -768,7 +772,7 @@ namespace PBTPro.Api.Controllers
                             "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBT Pro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
                 };
 
-                string[] param = {fullname, username, password };
+                string[] param = { fullname, username, password };
 
                 var emailHelper = new EmailHelper(_dbContext, _emailSender);
                 EmailContent emailContent = await emailHelper.getEmailContent("CREATE_USER", param, defaultContent);
