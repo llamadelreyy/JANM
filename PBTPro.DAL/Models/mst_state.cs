@@ -13,8 +13,6 @@ public partial class mst_state
 
     public string country_code { get; set; } = null!;
 
-    public string country_name { get; set; } = null!;
-
     public DateTime? created_at { get; set; }
 
     public int? creator_id { get; set; }
@@ -24,4 +22,9 @@ public partial class mst_state
     public int? modifier_id { get; set; }
 
     public bool? is_deleted { get; set; }
+
+    #region Virtual Field
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public virtual string? country_name { get; set; }
+    #endregion
 }
