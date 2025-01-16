@@ -83,6 +83,7 @@ builder.Services
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 //builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddTransient<CompoundService>();
+builder.Services.AddTransient<UserProfileService>();
 builder.Services.AddTransient<RoleService>();
 builder.Services.AddTransient<UserRoleService>();
 builder.Services.AddTransient<UserService>();

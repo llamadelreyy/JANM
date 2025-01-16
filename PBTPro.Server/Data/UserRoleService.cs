@@ -149,7 +149,7 @@ namespace PBTPro.Data
         }
 
         [HttpPost]
-        public async Task<ReturnViewModel> Add(UserRoleModel InputModel)
+        public async Task<ReturnViewModel> Add(List<UserRoleModel> InputModel)
         {
             var result = new ReturnViewModel();
             try

@@ -24,6 +24,12 @@
     }
 </style>
 
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="\images\icons-small\xfn-friend.png" />
@@ -184,6 +190,8 @@
 
 </div>
 
+</DxLoadingPanel>
+
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
         <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
@@ -199,6 +207,7 @@
 
 
 @code {
+    bool PanelVisible { get; set; }
     IEnumerable<ApplicationUserRole> dataSource;
     IEnumerable<ApplicationUser> dataUser;
     IEnumerable<ApplicationRole> dataRole;
@@ -219,6 +228,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         //intCurrentUserId = _AllocationAuthenticationStateProvider.CurrentUser.userID;
         dataSource = await _UserRoleService.ListAll();
         dataUser = await _UserService.ListAll();
@@ -226,6 +236,7 @@
         dataUserRole = await _UserRoleService.ListsAll();
         // // valueRole = dataRole;
         DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
 
     protected void CheckboxChanged(ChangeEventArgs e, int key)
@@ -359,7 +370,7 @@
                 saveUserRole.Add(_item);
             }
         }
-        response = await _UserRoleService.Add(editModel);
+        response = await _UserRoleService.Add(saveUserRole);
         //Insert user with role
         // response = await _UserRoleService.SaveUserRole(saveUserRole);
 
