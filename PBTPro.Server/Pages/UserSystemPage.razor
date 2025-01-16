@@ -270,7 +270,8 @@
     IEnumerable<ref_department> dtDepartment;
     IEnumerable<ref_division> dtSection;
     IEnumerable<ref_unit> dtUnit;
-    private List<RegisterModel> dataSource; //registerModels;
+    List<RegisterModel> dataSource; //registerModels;
+    IEnumerable<ApplicationUser> dataUser;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -295,10 +296,11 @@
     {
         PanelVisible = true;
 
-        dataSource = await _UserService.ListsAll();
+        dataSource = await _UserService.ListsAll(); //populate in view model
         dtDepartment = await _DepartmentService.ListAll();
         dtSection = await _SectionService.ListAll();
         dtUnit = await _UnitService.ListAll();
+        dataUser = await _UserService.ListAll(); //get all user 
 
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;

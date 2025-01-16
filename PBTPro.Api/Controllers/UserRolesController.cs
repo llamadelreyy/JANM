@@ -17,6 +17,8 @@ using Microsoft.Extensions.Options;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models.CommonServices;
+using static System.Collections.Specialized.BitVector32;
+using System.Reactive;
 
 namespace PBTPro.Api.Controllers
 {
@@ -44,8 +46,26 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                var users = await _dbContext.Users.AsNoTracking().ToListAsync();
+                var roles = await _dbContext.Roles.AsNoTracking().ToListAsync();
                 var userroles = await _dbContext.UserRoles.AsNoTracking().ToListAsync();
-                return Ok(userroles, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                List<UserRoleModel> UserRoleModel = new List<UserRoleModel>();
+
+                UserRoleModel = (from userrole in userroles
+                                 join role in roles on userrole.RoleId equals role.Id
+                                 join user in users on userrole.UserId equals user.Id
+                                 select new UserRoleModel
+                                 {
+                                     UserRoleId = userrole.UserId,
+                                     FullName = user.full_name,
+                                     UserName = user.UserName,
+                                     RoleName = role.Name,
+                                     RoleDesc = role.RoleDesc,
+                                     CreatedAt = userrole.CreatedAt,
+
+                                 }).ToList();
+
+                return Ok(UserRoleModel, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -58,7 +78,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfield = await _dbContext.UserRoles.FirstOrDefaultAsync(x => x.UserId == Id);
+                var parFormfield = await _dbContext.UserRoles.FirstOrDefaultAsync(x => x.UserRoleId == Id);
 
                 if (parFormfield == null)
                 {
@@ -81,7 +101,7 @@ namespace PBTPro.Api.Controllers
                 var runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.UserRoles.FirstOrDefaultAsync();               
+                var formField = await _dbContext.UserRoles.FirstOrDefaultAsync();
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
@@ -97,14 +117,11 @@ namespace PBTPro.Api.Controllers
 
                 #region store data
                 ApplicationUserRole userroles = new ApplicationUserRole
-                {           
+                {
                     RoleId = InputModel.RoleId,
                     UserId = InputModel.UserId,
                     CreatorId = runUserID,
                     CreatedAt = DateTime.Now,
-                    //ModifierId = runUserID,
-                    //ModifiedAt = DateTime.Now,
-                    IsDeleted = false,
                 };
 
                 _dbContext.UserRoles.Add(userroles);
@@ -129,15 +146,14 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.UserRoles.FirstOrDefaultAsync(x => x.UserId == Id);
+                var formField = await _dbContext.UserRoles.FirstOrDefaultAsync(x => x.UserRoleId == InputModel.UserRoleId);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-                
                 #endregion
 
-                formField.UserRoleId = InputModel.UserRoleId;                
+                formField.RoleId = InputModel.RoleId;
                 formField.ModifierId = runUserID;
                 formField.ModifiedAt = DateTime.Now;
 
@@ -160,15 +176,20 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.UserRoles.FirstOrDefaultAsync(x => x.UserId == Id);
+                var formField = await _dbContext.UserRoles.FirstOrDefaultAsync(x => x.UserRoleId == Id);
+                formField.IsDeleted = true;
+
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
 
-                _dbContext.UserRoles.Remove(formField);
+                _dbContext.UserRoles.Update(formField);
                 await _dbContext.SaveChangesAsync();
+
+                //_dbContext.UserRoles.Remove(formField);
+                //await _dbContext.SaveChangesAsync();
 
                 return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
@@ -180,7 +201,7 @@ namespace PBTPro.Api.Controllers
 
         private bool RolesExists(int id)
         {
-            return (_dbContext.UserRoles?.Any(e => e.UserId == id)).GetValueOrDefault();
+            return (_dbContext.UserRoles?.Any(e => e.UserRoleId == id)).GetValueOrDefault();
         }
     }
 }

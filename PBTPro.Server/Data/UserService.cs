@@ -62,7 +62,7 @@ namespace PBTPro.Data
         public async Task<List<ApplicationUser>> ListAll()
         {
             var result = new List<ApplicationUser>();
-            string requestUrl = $"{_baseReqURL}/GetList";
+            string requestUrl = $"{_baseReqURL}/GetListUser";
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
             try

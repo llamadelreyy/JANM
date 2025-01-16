@@ -34,7 +34,7 @@
 <div class="item-container-x">
 
     <DxGrid @ref="Grid"
-            Data="dataSource"
+            Data="dataUserRole"
             KeyFieldName="UserRoleId"
             ShowGroupPanel="true"
             ShowFilterRow="false"
@@ -68,12 +68,12 @@
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((ApplicationUserRole)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Delete((UserRoleModel)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn Caption="Nama Pengguna" MinWidth="180" Width="28%" FieldName="UserName" />
             <DxGridDataColumn Caption="Nama Penuh Pengguna" MinWidth="240" Width="32%" FieldName="FullName" />
-            <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" GroupIndex="0" FieldName="Name" />
+            <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" GroupIndex="0" FieldName="RoleName" />
             <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="36%" FieldName="RoleDesc" TextAlignment="GridTextAlignment.Left" />
 
             <DxGridDataColumn FieldName="CreatedAt"
@@ -92,7 +92,7 @@
 
         <EditFormTemplate Context="EditFormContext">
             @{
-                var dtUserRole = (ApplicationUserRole)EditFormContext.EditModel;
+                var dtUserRole = (UserRoleModel)EditFormContext.EditModel;
 
                 // This is to check whether in add new @ edit mode
                 boolLockDropDown = Grid.IsEditingNewRow();
@@ -203,7 +203,7 @@
     IEnumerable<ApplicationUser> dataUser;
     IEnumerable<ApplicationRole> dataRole;
     IEnumerable<ApplicationRole> valueRole;
-
+    IEnumerable<UserRoleModel> dataUserRole;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -214,7 +214,7 @@
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; } = "";
 
-    ApplicationUserRole dtData { get; set; }
+    UserRoleModel dtData { get; set; }
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
@@ -223,6 +223,7 @@
         dataSource = await _UserRoleService.ListAll();
         dataUser = await _UserService.ListAll();
         dataRole = await _RoleService.ListAll();
+        dataUserRole = await _UserRoleService.ListsAll();
         // // valueRole = dataRole;
         DataLoadedTcs.TrySetResult(true);
     }
@@ -282,7 +283,7 @@
 
     void OnCustomizeEditModel(GridCustomizeEditModelEventArgs e)
     {
-        var dtUserRole = (ApplicationUserRole)e.EditModel;
+        var dtUserRole = (UserRoleModel)e.EditModel;
 
         List<ApplicationRole> arrItem = new List<ApplicationRole>();
         ApplicationRole _item;
@@ -316,7 +317,7 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (ApplicationUserRole)e.EditModel;
+        var _data = (UserRoleModel)e.EditModel;
         if (_data.UserId == 0)
         {
             e.AddError(nameof(_data.UserId), "Sila pilih pengguna dari senarai.");
@@ -339,18 +340,18 @@
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();
-        var editModel = e.EditModel as ApplicationUserRole;
+        var editModel = e.EditModel as UserRoleModel;
 
         //update selected user_id with selected role id
-        List<ApplicationUserRole> saveUserRole = new List<ApplicationUserRole>();
-        ApplicationUserRole _item;
+        List<UserRoleModel> saveUserRole = new List<UserRoleModel>();
+        UserRoleModel _item;
 
         //Loop the main data to get all the role for selected user
         @foreach (var item in dataRole)
         {
             if (item.role_select == true)
             {
-                _item = new ApplicationUserRole();
+                _item = new UserRoleModel();
                 _item.RoleId = item.Id;
                 //_item.Name = item.Name;
                 //_item.RoleDesc = item.RoleDesc;
@@ -358,7 +359,7 @@
                 saveUserRole.Add(_item);
             }
         }
-
+        response = await _UserRoleService.Add(editModel);
         //Insert user with role
         // response = await _UserRoleService.SaveUserRole(saveUserRole);
 
@@ -377,7 +378,7 @@
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _UserRoleService.Refresh();
+        dataUserRole = await _UserRoleService.Refresh();
     }
 
     public void Dispose()
@@ -385,7 +386,7 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(ApplicationUserRole item)
+    async Task Delete(UserRoleModel item)
     {
         //strSelected = item.Name;
         dtData = item;
