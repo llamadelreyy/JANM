@@ -30,7 +30,6 @@ namespace PBTPro.Data
                 disposed = true;
             }
         }
-
         public void Dispose()
         {
             Dispose(true);
@@ -72,11 +71,11 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<ApplicationUserRole>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai peranan.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai pengguna dan peranan.", 1, LoggerName, "");
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " - " + response.ReturnMessage, 1, LoggerName, "");
                 }
             }
             catch (Exception ex)
@@ -88,9 +87,40 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<ApplicationUserRole>> Refresh()
+        public async Task<List<UserRoleModel>> ListsAll()
         {
-            var result = new List<ApplicationUserRole>();
+            var result = new List<UserRoleModel>();
+            string requestUrl = $"{_baseReqURL}/GetList";
+            var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+            try
+            {
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<UserRoleModel>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai pengguna dan peranan.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " - " + response.ReturnMessage, 1, LoggerName, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<UserRoleModel>();
+            }
+            return result;
+        }
+
+        [HttpGet]
+        public async Task<List<UserRoleModel>> Refresh()
+        {
+            var result = new List<UserRoleModel>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/GetList";
@@ -101,43 +131,39 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<ApplicationUserRole>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<UserRoleModel>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai peranan.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai pengguna dan peranan.", 1, LoggerName, "");
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode + response.ReturnMessage, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " - "+ response.ReturnMessage, 1, LoggerName, "");
                 }
             }
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<ApplicationUserRole>();
+                result = new List<UserRoleModel>();
             }
             return result;
         }
 
         [HttpPost]
-        public async Task<ReturnViewModel> Add(ApplicationUserRole InputModel)
+        public async Task<ReturnViewModel> Add(UserRoleModel InputModel)
         {
             var result = new ReturnViewModel();
             try
             {
-                UserRoleModel urm = new UserRoleModel();
-                urm.RoleId = InputModel.RoleId;
-                urm.UserId = InputModel.UserId;
-
-                var reqData = JsonConvert.SerializeObject(urm);
+                var reqData = JsonConvert.SerializeObject(InputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/Add";
+                string requestUrl = $"{_baseReqURL}/AssignUserRole";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;
                 if (response.ReturnCode == 200)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data senarai pengguna dan peranan.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -161,24 +187,26 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, ApplicationUserRole InputModel)
+        public async Task<ReturnViewModel> Update(int id, UserRoleModel InputModel)
         {
             var result = new ReturnViewModel();
             try
             {
-                UserRoleModel urm = new UserRoleModel();
-                urm.RoleId = InputModel.RoleId;
-                urm.UserId = InputModel.UserId;
-
-                var reqData = JsonConvert.SerializeObject(urm);
+                var reqData = JsonConvert.SerializeObject(InputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/Update/{urm.UserRoleId}";
+                string requestUrl = $"{_baseReqURL}/Update/{InputModel.UserRoleId}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data.", 1, LoggerName, "");
-
+                if (response.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data senarai pengguna dan peranan.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " - " + response.ReturnMessage, 1, LoggerName, "");
+                }
             }
             catch (Exception ex)
             {
@@ -197,7 +225,7 @@ namespace PBTPro.Data
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
                 result = response;
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data.", 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data pengguna dan peranan.", 1, LoggerName, "");
             }
             catch (Exception ex)
             {
@@ -207,9 +235,9 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ApplicationUserRole> ViewDetail(int id)
+        public async Task<UserRoleModel> ViewDetail(int id)
         {
-            var result = new ApplicationUserRole();
+            var result = new UserRoleModel();
             try
             {
                 string requestquery = $"/{id}";
@@ -221,18 +249,18 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<ApplicationUserRole>(dataString);
+                        result = JsonConvert.DeserializeObject<UserRoleModel>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci.", 1, LoggerName, "");
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " - " + response.ReturnMessage, 1, LoggerName, "");
                 }
             }
             catch (Exception ex)
             {
-                result = new ApplicationUserRole();
+                result = new UserRoleModel();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;

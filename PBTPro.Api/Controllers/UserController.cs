@@ -27,6 +27,8 @@ using PBTPro.DAL.Models.PayLoads;
 using System.Data;
 using static System.Collections.Specialized.BitVector32;
 using System.Reactive;
+using PBTPro.Api.Services;
+using DevExpress.XtraPrinting.Export;
 
 namespace PBTPro.Api.Controllers
 {
@@ -41,12 +43,29 @@ namespace PBTPro.Api.Controllers
         private readonly string _feature = "USER";
         private readonly long _maxFileSize = 5 * 1024 * 1024;
         private readonly List<string> _imageFileExt = new List<string> { ".jpg", ".jpeg", ".png" };
+        private readonly IEmailSender _emailSender;
 
-        public UserController(PBTProDbContext dbContext, ILogger<UserController> logger, UserManager<ApplicationUser> userManager, IOptions<IdentityOptions> identityOptions) : base(dbContext)
+        public UserController(PBTProDbContext dbContext, ILogger<UserController> logger, UserManager<ApplicationUser> userManager, IOptions<IdentityOptions> identityOptions, IEmailSender emailSender) : base(dbContext)
         {
             _logger = logger;
             _userManager = userManager;
             _identityOptions = identityOptions.Value;
+            _emailSender = emailSender;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetListUser()
+        {
+            try
+            {
+                var users = await _dbContext.Users.AsNoTracking().ToListAsync();
+               
+                return Ok(users, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
         }
 
         [HttpGet]
@@ -617,7 +636,14 @@ namespace PBTPro.Api.Controllers
 
                 #endregion
                 var result = await _userManager.CreateAsync(au, model.Password);
-                if (!result.Succeeded) return Error(result, "Gagal cipta pengguna.");
+                if (!result.Succeeded) 
+                { 
+                    return Error(result, "Gagal cipta pengguna.");
+                }
+                else
+                {
+                    await SendEmailCreateUser(model.Email, model.Username, model.FullName, model.Password);
+                }
 
                 return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
             }
@@ -729,6 +755,33 @@ namespace PBTPro.Api.Controllers
             }
         }
         #endregion
+        private async Task<bool> SendEmailCreateUser(string recipient, string username, string fullname, string password)
+        {
+            try
+            {
+                EmailContent defaultContent = new EmailContent
+                {
+                    subject = "Nama pengguna dan Katalaluan anda.",
+                    body = "Hai [0], berikut ialah maklumat nama pengguna dan katalaluan anda.<br/><br/>" +
+                            "Nama pengguna: [1]<br/>" +
+                            "Kata laluan: [2]<br/><br/>" +
+                            "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBT Pro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
+                };
+
+                string[] param = {fullname, username, password };
+
+                var emailHelper = new EmailHelper(_dbContext, _emailSender);
+                EmailContent emailContent = await emailHelper.getEmailContent("CREATE_USER", param, defaultContent);
+
+                var emailRs = await emailHelper.QueueEmail(emailContent.subject, emailContent.body, recipient);
+                var sentRs = await emailHelper.ForceProcessQueue(emailRs);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
 
     }
 }
