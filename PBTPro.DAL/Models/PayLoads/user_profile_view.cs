@@ -12,6 +12,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? profile_employee_no { get; set; }
 
         public string? profile_role { get; set; }
+        public string? user_name { get; set; }
 
         public string? dept_name { get; set; }
 

@@ -14,8 +14,6 @@
 @inject UnitService _UnitService
 @inject UserRoleService _UserRoleService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
-
-@* @inject AllocationAuthenticationStateProvider AllocationAuthenticationStateProvider *@
 @inject NavigationManager NavigationManager
 
 <div class="d-lg-flex border-bottom">
@@ -108,7 +106,7 @@
                         <div>ID Pengguna</div>
                         <DxTextBox 
                                    NullText="ID Pengguna ..."
-                                  @*  @bind-Text="@userInfo.profile_user_id" *@
+                                   @bind-Text="@userInfo.user_name"
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
                                    Enabled="false" />
@@ -220,7 +218,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dataSource = await _UserProfileService.Retrieve(Convert.ToString(_PBTAuthStateProvider.CurrentUser.Userid));
+        intCurrentUserId = _PBTAuthStateProvider.CurrentUser.Userid;
+        dataSource = await _UserProfileService.Retrieve(Convert.ToString(intCurrentUserId));
         //dataSource = await _UserProfileService.Retrieve("1");
         if (dataSource != null)
             userInfo = dataSource.FirstOrDefault();
@@ -244,13 +243,13 @@
     public async Task HandleValidSubmit()
     {
         FormValidationState = @"Maklumat yang dimasukkan sah.";
-        // bool blnSuccess = await _userService.UpdateUserPasswordAsync(userInfo, intCurrentUserId);
+        ReturnViewModel response = new ReturnViewModel();
 
-        // if (blnSuccess)
-        // {
-        //     toastService.ShowInfo("Proses kemaskini katalaluan selesai.");
+        response = await _UserProfileService.UpdateProfile(intCurrentUserId, userInfo);
 
-        ToastService.ShowToast(new ToastOptions()
+        if (response.ReturnCode == 200)
+        {
+            ToastService.ShowToast(new ToastOptions()
             {
                 ProviderName = "Overview",
                 ThemeMode = ToastThemeMode.Saturated,
@@ -259,23 +258,23 @@
             });
 
 
-        //     await AllocationAuthenticationStateProvider.LogoutAsync();
-        //     //You actually need to NavigateTo your current Uri with force load. I use simple extension method for this
-        //     NavigationManager.NavigateTo("login", true);
+            await _PBTAuthStateProvider.LogoutAsync();
 
-        // }
-        // else
-        // {
+            //You actually need to NavigateTo your current Uri with force load. I use simple extension method for this
+            NavigationManager.NavigateTo("login", true);
 
-        //     ToastService.ShowToast(new ToastOptions()
-        //         {
-        //             ProviderName = "Overview",
-        //             ThemeMode = ToastThemeMode.Saturated,
-        //             RenderStyle = ToastRenderStyle.Danger,
-        //             Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
-        //         });
-        // //     toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
-        // }
+        }
+        else
+        {
+
+            ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = ToastRenderStyle.Danger,
+                Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
+            });
+        }
     }
 
     void HandleInvalidSubmit()
