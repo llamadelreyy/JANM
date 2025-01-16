@@ -63,6 +63,7 @@ namespace PBTPro.Api.Controllers
                                      RoleName = role.Name,
                                      RoleDesc = role.RoleDesc,
                                      CreatedAt = userrole.CreatedAt,
+                                     RoleId = role.Id,
 
                                  }).ToList();
 
