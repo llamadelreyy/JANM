@@ -19,22 +19,27 @@
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 
-<div class="d-lg-flex border-bottom mb-2">
+<style>
+    .dxbl-grid {
+        height: 82.5vh;
+        max-height: 82.5vh;
+    }
+</style>
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+<div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons/information.png" />
+            <img class="imgTitle" src="/images/icons-small/table-heatmap.png" />
         <div class="textTitle">Rondaan - Senarai Jadual Rondaan</div>
     </div>
 </div>
 
-<style>
-    .dxbl-grid {
-        height: 79vh;
-        max-height: 79vh;
-    }
-</style>
-
-<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
-<div class="item-container-x">
+    <div class="item-container-x" style="padding-top:2px;">
     <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="@OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
         @{
             // var combine = "";
@@ -61,9 +66,13 @@
     <DxGrid @ref="Grid"
             Data="@DataSource"
             ShowGroupPanel="true"
-            ShowFilterRow="true"
+            ShowFilterRow="false"
+            TextWrapEnabled="true"
             EditorRenderMode="GridEditorRenderMode.Integrated"
             FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
             PageSize="25"
             @bind-PageIndex="@GridPageIndex"
             PagerPosition="GridPagerPosition.Bottom"
@@ -75,35 +84,39 @@
             PageSizeSelectorAllRowsItemVisible="true"
             PagerAutoHideNavButtons="false"
             ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
             HighlightRowOnHover="true"
             CssClass="mv-1000">
 
         <Columns>
-            <DxGridCommandColumn EditButtonVisible="true" DeleteButtonVisible="true" NewButtonVisible="true" Width="120px">
+            <DxGridCommandColumn Width="55px">
                 <HeaderTemplate>
                     <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
                 </HeaderTemplate>
                 <CellDisplayTemplate>
-                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((patrol_info)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    <a @onclick="@(() => Delete((patrol_info)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+@*             <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_officer_name)" Caption="Nama Pegawai" Width="35%" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
                 <CellDisplayTemplate>
                     <div>
                         @CombineTextPegawai(((patrol_info)context.DataItem).patrol_officer_name, ((patrol_info)context.DataItem).patrol_dept_name)
                     </div>
                 </CellDisplayTemplate>
-            </DxGridDataColumn>
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_location)" Caption="Lokasi Rondaan" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn Caption="Tarikh & Masa Mula dan Tamat Rondaan" MinWidth="200" Width="40%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+            </DxGridDataColumn> *@
+
+            <DxGridDataColumn Caption="Pegawai" MinWidth="100" Width="20%" FieldName="patrol_officer_name" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn Caption="Jabatan" MinWidth="100" Width="18%" FieldName="patrol_dept_name" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_location)" Caption="Lokasi" Width="20%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn Caption="Tarikh & Masa Rondaan" MinWidth="200" Width="30%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
                 <CellDisplayTemplate>
                     <div>
                         @CombineText(Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_start_dtm), Convert.ToDateTime(((patrol_info)context.DataItem).patrol_end_dtm))
                     </div>
                 </CellDisplayTemplate>
             </DxGridDataColumn>
-            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_status)" Caption="Status Rondaan" Width="20%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+            <DxGridDataColumn FieldName="@nameof(patrol_info.patrol_status)" Caption="Status" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                 <CellDisplayTemplate>
                     <div>@GetStatusRondaanIconHtml(((patrol_info)context.DataItem).patrol_status)</div>
                 </CellDisplayTemplate>
@@ -119,11 +132,11 @@
                 <DxFormLayoutItem Caption="patrol_id" ColSpanMd="6" Visible="false">
                     <DxTextBox @bind-Value="@dtData.patrol_id" ReadOnly="true" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem ColSpanMd="3" BeginRow="true">
+                <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
                     <table class="">
                         <tr>
                             <td nowrap>Jabatan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxComboBox Data="@dtDept"
                                             ShowValidationIcon="true"
@@ -134,7 +147,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Nama Pegawai</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxComboBox Data="@namapegawai"
                                             ShowValidationIcon="true"
@@ -153,7 +166,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Lokasi Rondaan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxComboBox Data="@lokasirondaan"
                                             ShowValidationIcon="true"
@@ -171,7 +184,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Masa Mula Rondaan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxDateEdit @bind-Date="@dtData.patrol_start_dtm"
                                             TimeSectionVisible="true"
@@ -185,7 +198,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Masa Tamat Rondaan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%">
                                 <DxDateEdit @bind-Date="@dtData.patrol_end_dtm"
                                             TimeSectionVisible="true"
@@ -199,7 +212,7 @@
                         </tr>
                         <tr>
                             <td nowrap>Status Rondaan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxComboBox Data="@patrollingStatusOptions"
                                             ShowValidationIcon="true"
@@ -209,34 +222,34 @@
                                 </DxComboBox>
                             </td>
                         </tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-
                     </table>
                 </DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanMd="12">
-                    <DxButton SubmitFormOnClick="true" Text="Simpan" />
-                    <DxButton Click="@(() => Grid.CancelEditAsync())" Text="Batal" />
+                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                    <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
                 </DxFormLayoutItem>
             </DxFormLayout>
         </EditFormTemplate>
     </DxGrid>
 
-    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
-        <BodyContentTemplate>
-            Anda pasti untuk menghapuskan rekod ini?
-            <br /><br />
-            <div class="confirm-dialog-buttons">
-                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
-            </div>
-        </BodyContentTemplate>
-    </DxPopup>
-
 </div>
+</DxLoadingPanel>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
+
 @code {
+    bool PanelVisible { get; set; }
+
     private List<patrol_info> lstActiveIndex = new List<patrol_info>();
     public List<(patrol_info, int)> Items { get; set; } = new List<(patrol_info, int)>();
     IEnumerable<patrol_info> DataSource;
@@ -245,6 +258,8 @@
     ref_department SelectedDepartment { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
     bool ConfirmationShown { get; set; } = false;
     private string tabType = "Belum Mula";
     int ActiveTabIndex;
@@ -256,6 +271,8 @@
     #region List
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
+
         DataSource = await GetListDataAsync(tabType);
 
         #region get all and count by patrol status
@@ -271,6 +288,7 @@
         #endregion
 
         DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
 
     private async Task OnActiveTabIndexChanged(int index)

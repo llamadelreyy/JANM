@@ -36,9 +36,15 @@ Changes Logs:
     }
 </style>
 
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="\images\icons-small\hard-hat.png" />
+        <img class="imgTitle" src="\images\icons-small\document-task.png" />
         <div class="textTitle">Hubungi Kami</div>
     </div>
 </div>
@@ -49,7 +55,7 @@ Changes Logs:
             Data="@_lstcontact"
             KeyFieldName="contact_id"
             ShowGroupPanel="true"
-            ShowFilterRow="true"
+            ShowFilterRow="false"
             TextWrapEnabled="true"
             CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
             EditorRenderMode="GridEditorRenderMode.Integrated"
@@ -84,9 +90,9 @@ Changes Logs:
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
             <DxGridDataColumn FieldName="@nameof(contact_us.contact_inq_no)" Caption="Tiket No" Width="20%" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn FieldName="@nameof(contact_us.contact_name)" Caption="Nama" Width="40%" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn FieldName="@nameof(contact_us.contact_email)" Caption="Emel" Width="40%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(contact_us.contact_status)" Caption="Status Tiket" Width="40%" TextAlignment="GridTextAlignment.Center">
+            <DxGridDataColumn FieldName="@nameof(contact_us.contact_name)" Caption="Nama" Width="23%" TextAlignment="GridTextAlignment.Left" />
+            <DxGridDataColumn FieldName="@nameof(contact_us.contact_email)" Caption="Emel" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            <DxGridDataColumn FieldName="@nameof(contact_us.contact_status)" Caption="Status Tiket" Width="20%" TextAlignment="GridTextAlignment.Center">
                 <CellDisplayTemplate>
                     <div>@GetStatusIconHtml(((contact_us)context.DataItem).contact_status)</div>
                 </CellDisplayTemplate>
@@ -110,42 +116,42 @@ Changes Logs:
                     <table class="layout_edit">
                         <tr>
                             <td nowrap>Nama</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxTextBox @bind-Text="@dtData.contact_name" ReadOnly/>
                             </td>
                         </tr>
                         <tr>
                             <td nowrap>Emel</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxTextBox @bind-Text="@dtData.contact_email" ReadOnly/>
                             </td>
                         </tr>
                         <tr>
                             <td nowrap>No Telefon</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.contact_telno" ReadOnly/>
+                                <DxTextBox @bind-Text="@dtData.contact_telno" ReadOnly style="width:120px"/>
                             </td>
                         </tr>
                         <tr>
                             <td nowrap>Subjek</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxTextBox @bind-Text="@dtData.contact_subject" ReadOnly/>
                             </td>
                         </tr>
                         <tr>
                             <td nowrap>Catatan</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxTextBox @bind-Text="@dtData.contact_message" ReadOnly/>
                             </td>
                         </tr>
                         <tr>
                             <td nowrap>Status Tiket</td>
-                            <td>&nbsp;:&nbsp;</td>
+                            <td>&nbsp;&nbsp;</td>
                             <td width="50%" colspan="7">
                                 <DxComboBox Data="@StatusOptions"
                                             ShowValidationIcon="true"
@@ -170,25 +176,30 @@ Changes Logs:
 
         @*This is to count the summary*@
         <TotalSummary>
-            <DxGridSummaryItem FooterColumnName="contact_status"
+                <DxGridSummaryItem FooterColumnName="contact_inq_no"
                                Name="Custom"
                                SummaryType=GridSummaryItemType.Count />
         </TotalSummary>
 
     </DxGrid>
-    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
-        <BodyContentTemplate>
-            Anda pasti untuk menghapuskan rekod ini?
-            <br /><br />
-            <div class="confirm-dialog-buttons">
-                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
-            </div>
-        </BodyContentTemplate>
-    </DxPopup>
+
 </div>
+</DxLoadingPanel>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
 
 @code {
+    bool PanelVisible { get; set; }
+
     private List<contact_us> _lstcontact = new List<contact_us>();
     contact_us dtData { get; set; }
     IGrid Grid { get; set; }
@@ -202,12 +213,18 @@ Changes Logs:
     #region list
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         _lstcontact = await _contactus.GetContactUsAsync();
         try
-        { _lstcontact = await _contactus.ListAll(); }
+        { 
+            _lstcontact = await _contactus.ListAll(); 
+            DataLoadedTcs.TrySetResult(true);
+        }
         catch (Exception ex)
-        { Console.Error.WriteLine($"Error loading actions: {ex.Message}"); }
-        DataLoadedTcs.TrySetResult(true);
+        { 
+            Console.Error.WriteLine($"Error loading actions: {ex.Message}"); 
+        }
+        PanelVisible = false;
     }
 
     async Task UpdateDataAsync()

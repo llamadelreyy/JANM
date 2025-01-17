@@ -1196,10 +1196,10 @@ label {
 }
 
 .layout_edit .dxbl-text-edit, .dxbl-text-edit {
-    border: 0.12rem solid #efeded !important;
+    border: 0.12rem solid #9d9c9c !important;
     border-radius: 3px !important;
-    background-color: #fbf9f9;
-/*    font-size: 0.95rem !important;*/
+    background-color: #fff;
+/*    font-size: 0.8rem !important;*/
     font-weight: bold !important;
 }
 
