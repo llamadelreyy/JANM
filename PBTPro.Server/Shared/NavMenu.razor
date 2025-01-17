@@ -11,7 +11,7 @@
 
 
                 @*<img class="avatar shadow-0 img-fluid rounded-circle" src="https://d19m59y37dris4.cloudfront.net/admin/2-2-0/img/avatar-1.ce912d90.jpg" alt="...">*@
-                <a href="" class="avatar-text online"><span class="avatar-text-initial">R</span></a>
+                <a href="" class="avatar-text online"><span class="avatar-text-initial">@GetInitial(PBTAuthStateProvider.CurrentUser.Fullname)</span></a>
                 <div class="ms-3 title">
                     <span class="loginuser mb-2">@PBTAuthStateProvider.CurrentUser.Fullname </span> [ <a href="user_profile" alt="ubah profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="reset_password" alt="ubah profail"><i class="ri-lock-password-line ri-1x"></i></a> ]
                     <p class="text-sm text-gray-500 fw-light mb-0 lh-1">
@@ -46,6 +46,28 @@
         await Task.Delay(300);
         await _MenuService.ReInitializeAsync();
         Menus = await _MenuService.GetItemByAuth();
+    }
+
+    string GetInitial(string userName)
+    {
+        string[] words = userName.Split(' ');
+        int count = 0;
+        int intStrLength = 1;
+        string initialUserName = "";
+
+        if (words.Length > 1)
+            intStrLength = 2;
+
+        foreach (string word in words) 
+        { 
+            if (word.Length > 0 && count < intStrLength)
+            { 
+                initialUserName = word[0].ToString();
+                count++; 
+            } 
+        }
+
+        return initialUserName;
     }
 
     private RenderFragment RenderMenus(IEnumerable<MenuViewItem> menus) => builder =>
