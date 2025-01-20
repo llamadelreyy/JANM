@@ -39,7 +39,24 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var mst_states = await _dbContext.mst_states.Where(x => x.is_deleted != true).AsNoTracking().ToListAsync();
+                var mst_states = await _dbContext.mst_states.Where(x => x.is_deleted != true).Join(
+                    _dbContext.mst_countries,
+                    state => state.country_code,
+                    country => country.country_code,
+                    (state, country) => new mst_state {
+                        state_id = state.state_id,
+                        state_code = state.state_code,
+                        state_name = state.state_name,
+                        country_code = state.country_code,
+                        is_deleted = state.is_deleted,
+                        creator_id = state.creator_id,
+                        created_at = state.created_at,
+                        modifier_id = state.modifier_id,
+                        modified_at = state.modified_at,
+                        //virtual field
+                        country_name = country.country_name
+                    }
+                ).AsNoTracking().ToListAsync();
 
                 if (mst_states.Count == 0)
                 {
@@ -60,7 +77,24 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var mst_states = await _dbContext.mst_states.Where(x => x.country_code == CountryCode && x.is_deleted != true).AsNoTracking().ToListAsync();
+                var mst_states = await _dbContext.mst_states.Where(x => x.country_code == CountryCode && x.is_deleted != true).Join(
+                    _dbContext.mst_countries,
+                    state => state.country_code,
+                    country => country.country_code,
+                    (state, country) => new mst_state
+                    {
+                        state_id = state.state_id,
+                        state_code = state.state_code,
+                        state_name = state.state_name,
+                        country_code = state.country_code,
+                        is_deleted = state.is_deleted,
+                        creator_id = state.creator_id,
+                        created_at = state.created_at,
+                        modifier_id = state.modifier_id,
+                        modified_at = state.modified_at,
+                        //virtual field
+                        country_name = country.country_name
+                    }).AsNoTracking().ToListAsync();
 
                 if (mst_states.Count == 0)
                 {
@@ -81,7 +115,24 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var state = await _dbContext.mst_states.FirstOrDefaultAsync(x => x.state_id == Id);
+                var state = await _dbContext.mst_states.Join(
+                    _dbContext.mst_countries,
+                    state => state.country_code,
+                    country => country.country_code,
+                    (state, country) => new mst_state
+                    {
+                        state_id = state.state_id,
+                        state_code = state.state_code,
+                        state_name = state.state_name,
+                        country_code = state.country_code,
+                        is_deleted = state.is_deleted,
+                        creator_id = state.creator_id,
+                        created_at = state.created_at,
+                        modifier_id = state.modifier_id,
+                        modified_at = state.modified_at,
+                        //virtual field
+                        country_name = country.country_name
+                    }).FirstOrDefaultAsync(x => x.state_id == Id);
 
                 if (state == null)
                 {
@@ -102,7 +153,24 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var state = await _dbContext.mst_states.FirstOrDefaultAsync(x => x.state_code == Code);
+                var state = await _dbContext.mst_states.Join(
+                    _dbContext.mst_countries,
+                    state => state.country_code,
+                    country => country.country_code,
+                    (state, country) => new mst_state
+                    {
+                        state_id = state.state_id,
+                        state_code = state.state_code,
+                        state_name = state.state_name,
+                        country_code = state.country_code,
+                        is_deleted = state.is_deleted,
+                        creator_id = state.creator_id,
+                        created_at = state.created_at,
+                        modifier_id = state.modifier_id,
+                        modified_at = state.modified_at,
+                        //virtual field
+                        country_name = country.country_name
+                    }).FirstOrDefaultAsync(x => x.state_code == Code);
 
                 if (state == null)
                 {
@@ -220,6 +288,8 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                int runUserID = await getDefRunUserId();
+
                 #region Validation
                 var state = await _dbContext.mst_states.FirstOrDefaultAsync(x => x.state_id == Id);
                 if (state == null)
@@ -228,8 +298,22 @@ namespace PBTPro.Api.Controllers
                 }
                 #endregion
 
-                _dbContext.mst_states.Remove(state);
-                await _dbContext.SaveChangesAsync();
+                try
+                {
+                    _dbContext.mst_states.Remove(state);
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    state.is_deleted = true;
+                    state.modifier_id = runUserID;
+                    state.modified_at = DateTime.Now;
+
+                    _dbContext.mst_states.Update(state);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                }
 
                 return Ok(state, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang negeri")));
             }
