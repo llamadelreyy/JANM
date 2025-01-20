@@ -19,23 +19,25 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<auditlog_info> auditlog_infos { get; set; }
 
+    public virtual DbSet<app_email_tmpl> app_email_tmpls { get; set; }
+
+    public virtual DbSet<app_form_field> app_form_fields { get; set; }
+
+    public virtual DbSet<app_system_msg> app_system_msgs { get; set; }
+
+    public virtual DbSet<app_system_param> app_system_params { get; set; }
+
     public virtual DbSet<config_building> config_buildings { get; set; }
 
     public virtual DbSet<config_department> config_departments { get; set; }
 
-    public virtual DbSet<config_email_template> config_email_templates { get; set; }
-
-    public virtual DbSet<config_form_field> config_form_fields { get; set; }
-
     public virtual DbSet<config_pbt> config_pbts { get; set; }
-
-    public virtual DbSet<config_system_message> config_system_messages { get; set; }
-
-    public virtual DbSet<config_system_param> config_system_params { get; set; }
 
     public virtual DbSet<department_info> department_infos { get; set; }
 
-    public virtual DbSet<faq_info> faq_infos { get; set; }
+    public virtual DbSet<faq_info> faq_infos { get; set; } 
+
+    public virtual DbSet<his_email_history> his_email_histories { get; set; }
 
     public virtual DbSet<license_address_swap> license_address_swaps { get; set; }
 
@@ -66,10 +68,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
     public virtual DbSet<mst_state> mst_states { get; set; }
 
     public virtual DbSet<mst_town> mst_towns { get; set; }
-
-    public virtual DbSet<notification_email_history> notification_email_histories { get; set; }
-
-    public virtual DbSet<notification_email_queue> notification_email_queues { get; set; }
 
     public virtual DbSet<patrol_info> patrol_infos { get; set; }
 
@@ -104,6 +102,8 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
     public virtual DbSet<ref_gender> ref_genders { get; set; }
 
     public virtual DbSet<contact_us> contact_us { get; set; }
+
+    public virtual DbSet<trn_email_queue> trn_email_queues { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -154,6 +154,165 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasColumnType("timestamp without time zone");
         });
 
+        modelBuilder.Entity<app_email_tmpl>(entity =>
+        {
+            entity.HasKey(e => e.tmpl_id).HasName("app_email_tmpl_pkey");
+
+            entity.ToTable("app_email_tmpl", "core", tb => tb.HasComment("Table to store email templates for various messages"));
+
+            entity.Property(e => e.tmpl_id).HasComment("Unique identifier for each email template");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the template record was created")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created the template record");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the email template record is marked as deleted (true/false)");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the template record was last modified")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified the template record");
+            entity.Property(e => e.tmpl_code)
+                .HasMaxLength(50)
+                .HasComment("Code representing the type of email template");
+            entity.Property(e => e.tmpl_content).HasComment("Content/body of the email template");
+            entity.Property(e => e.tmpl_subject)
+                .HasMaxLength(255)
+                .HasComment("Subject line of the email template");
+        });
+
+        modelBuilder.Entity<app_form_field>(entity =>
+        {
+            entity.HasKey(e => e.field_id).HasName("app_form_field_pkey");
+
+            entity.ToTable("app_form_field", "core", tb => tb.HasComment("Table to store form templates (e.g., sitaan)"));
+
+            entity.Property(e => e.field_id).HasComment("Unique identifier for each form field");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was created")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created the record");
+            entity.Property(e => e.field_api_seeded)
+                .HasDefaultValue(false)
+                .HasComment("Indicates if this field is populated by an API (true/false)");
+            entity.Property(e => e.field_form_type)
+                .HasMaxLength(50)
+                .HasComment("Type of the form that this field belongs to");
+            entity.Property(e => e.field_label)
+                .HasMaxLength(50)
+                .HasComment("Label displayed for the form field");
+            entity.Property(e => e.field_name)
+                .HasMaxLength(50)
+                .HasComment("Name of the form field");
+            entity.Property(e => e.field_option).HasComment("Options available for this field, if applicable");
+            entity.Property(e => e.field_orders)
+                .HasDefaultValue(0)
+                .HasComment("Order in which this field appears in the form");
+            entity.Property(e => e.field_required)
+                .HasDefaultValue(false)
+                .HasComment("Indicates whether this field is mandatory (true/false)");
+            entity.Property(e => e.field_source_url)
+                .HasMaxLength(255)
+                .HasDefaultValueSql("NULL::character varying")
+                .HasComment("URL for fetching data for this field, if applicable");
+            entity.Property(e => e.field_type)
+                .HasMaxLength(10)
+                .HasComment("Data type of the form field (e.g., text, number)");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the record is marked as deleted (true/false)");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was last modified")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified the record");
+        });
+
+        modelBuilder.Entity<app_system_msg>(entity =>
+        {
+            entity.HasKey(e => e.message_id).HasName("app_system_msg_pkey");
+
+            entity.ToTable("app_system_msg", "core", tb => tb.HasComment("Table to store return messages from API related to changes"));
+
+            entity.Property(e => e.message_id).HasComment("Unique identifier for each message");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was created")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created the record");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the record is marked as deleted (true/false)");
+            entity.Property(e => e.message_body).HasComment("The actual content of the message");
+            entity.Property(e => e.message_code)
+                .HasMaxLength(255)
+                .HasComment("Code representing the type of message");
+            entity.Property(e => e.message_feature)
+                .HasMaxLength(50)
+                .HasComment("Feature or component associated with the message");
+            entity.Property(e => e.message_type)
+                .HasMaxLength(1)
+                .HasComment("Type of message (e.g., info, warning, error)");
+            entity.Property(e => e.modified_date)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was last modified")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified the record");
+        });
+
+        modelBuilder.Entity<app_system_param>(entity =>
+        {
+            entity.HasKey(e => e.param_id).HasName("app_system_param_pkey");
+
+            entity.ToTable("app_system_param", "core", tb => tb.HasComment("Table to store configuration parameters for applications in the core layer"));
+
+            entity.Property(e => e.param_id).HasComment("Unique identifier for each configuration parameter");
+            entity.Property(e => e.app_layer)
+                .HasMaxLength(10)
+                .HasComment("Layer of the application (e.g., frontend, backend)");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was created")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created the record");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether the record is marked as deleted (true/false)");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was last modified")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified the record");
+            entity.Property(e => e.param_group)
+                .HasMaxLength(50)
+                .HasComment("Group categorizing the parameter (e.g., database, API)");
+            entity.Property(e => e.param_name)
+                .HasMaxLength(50)
+                .HasComment("Name of the configuration parameter");
+            entity.Property(e => e.param_value)
+                .HasMaxLength(1000)
+                .HasComment("Value assigned to the configuration parameter");
+        });
+
         modelBuilder.Entity<config_building>(entity =>
         {
             entity.HasKey(e => e.building_id).HasName("config_building_pkey");
@@ -185,52 +344,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasConstraintName("pbt_code");
         });
 
-        modelBuilder.Entity<config_email_template>(entity =>
-        {
-            entity.HasKey(e => e.template_id).HasName("config_email_template_pkey");
-
-            entity.ToTable("config_email_template", "config");
-
-            entity.Property(e => e.active_flag).HasDefaultValue(true);
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.update_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.template_code).HasMaxLength(50);
-            entity.Property(e => e.template_subject).HasMaxLength(255);
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-        });
-
-        modelBuilder.Entity<config_form_field>(entity =>
-        {
-            entity.HasKey(e => e.field_id).HasName("config_form_field_pkey");
-
-            entity.ToTable("config_form_field", "config");
-
-            entity.Property(e => e.active_flag).HasDefaultValue(true);
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.field_api_seeded).HasDefaultValue(false);
-            entity.Property(e => e.field_form_type).HasMaxLength(50);
-            entity.Property(e => e.field_label).HasMaxLength(50);
-            entity.Property(e => e.field_name).HasMaxLength(50);
-            entity.Property(e => e.field_orders).HasDefaultValue(0);
-            entity.Property(e => e.field_required).HasDefaultValue(false);
-            entity.Property(e => e.field_source_url)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.field_type).HasMaxLength(10);
-            entity.Property(e => e.update_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-        });
-
         modelBuilder.Entity<config_pbt>(entity =>
         {
             entity.HasKey(e => e.pbt_id).HasName("config_pbt_pkey");
@@ -246,47 +359,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.pbt_notel).HasMaxLength(25);
             entity.Property(e => e.pbt_pcode).HasPrecision(5);
             entity.Property(e => e.pbt_state).HasMaxLength(30);
-        });
-
-        modelBuilder.Entity<config_system_message>(entity =>
-        {
-            entity.HasKey(e => e.message_id).HasName("config_system_message_pkey");
-
-            entity.ToTable("config_system_message", "config");
-
-            entity.Property(e => e.active_flag).HasDefaultValue(true);
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.message_code).HasMaxLength(255);
-            entity.Property(e => e.message_feature).HasMaxLength(50);
-            entity.Property(e => e.message_type).HasMaxLength(1);
-            entity.Property(e => e.update_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-        });
-
-        modelBuilder.Entity<config_system_param>(entity =>
-        {
-            entity.HasKey(e => e.param_id).HasName("config_system_param_pkey");
-
-            entity.ToTable("config_system_param", "config");
-
-            entity.Property(e => e.active_flag).HasDefaultValue(true);
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.param_app_layer).HasMaxLength(10);
-            entity.Property(e => e.param_group).HasMaxLength(50);
-            entity.Property(e => e.param_name).HasMaxLength(50);
-            entity.Property(e => e.param_value).HasMaxLength(1000);
-            entity.Property(e => e.update_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<department_info>(entity =>
@@ -328,6 +400,51 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.updated_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
+        });
+
+        modelBuilder.Entity<his_email_history>(entity =>
+        {
+            entity.HasKey(e => e.hist_id).HasName("his_email_history_pkey");
+
+            entity.ToTable("his_email_history", "core", tb => tb.HasComment("Table to store history of emails that have been sent"));
+
+            entity.Property(e => e.hist_id).HasComment("Unique identifier for each email history record");
+            entity.Property(e => e.cnt_retry)
+                .HasDefaultValue(0)
+                .HasComment("Count of how many times sending this email has been retried");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was created")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created this record");
+            entity.Property(e => e.date_sent)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the email was sent")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.hist_content).HasComment("Content/body of the sent email");
+            entity.Property(e => e.hist_recipient)
+                .HasMaxLength(255)
+                .HasComment("Email address of the recipient");
+            entity.Property(e => e.hist_remark).HasComment("Additional remarks related to the email sending process");
+            entity.Property(e => e.hist_status)
+                .HasMaxLength(30)
+                .HasDefaultValueSql("'New'::character varying")
+                .HasComment("Status of the email (e.g., New, Sent, Failed)");
+            entity.Property(e => e.hist_subject)
+                .HasMaxLength(255)
+                .HasComment("Subject line of the sent email");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether this record is marked as deleted (true/false)");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was last modified")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified this record");
         });
 
         modelBuilder.Entity<license_address_swap>(entity =>
@@ -695,58 +812,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.town_code).HasMaxLength(10);
             entity.Property(e => e.town_name).HasMaxLength(50);
         });
-
-        modelBuilder.Entity<notification_email_history>(entity =>
-        {
-            entity.HasKey(e => e.history_id).HasName("notification_email_history_pkey");
-
-            entity.ToTable("notification_email_history", "notification");
-
-            entity.Property(e => e.active_flag).HasDefaultValue(true);
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.history_cnt_retry).HasDefaultValue(0);
-            entity.Property(e => e.history_date_sent)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.history_recipient).HasMaxLength(255);
-            entity.Property(e => e.history_status)
-                .HasMaxLength(30)
-                .HasDefaultValueSql("'New'::character varying");
-            entity.Property(e => e.history_subject).HasMaxLength(255);
-            entity.Property(e => e.update_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-        });
-
-        modelBuilder.Entity<notification_email_queue>(entity =>
-        {
-            entity.HasKey(e => e.queue_id).HasName("notification_email_queue_pkey");
-
-            entity.ToTable("notification_email_queue", "notification");
-
-            entity.Property(e => e.active_flag).HasDefaultValue(true);
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.update_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.queue_cnt_retry).HasDefaultValue(0);
-            entity.Property(e => e.queue_date_sent)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.queue_recipient).HasMaxLength(255);
-            entity.Property(e => e.queue_status)
-                .HasMaxLength(30)
-                .HasDefaultValueSql("'New'::character varying");
-            entity.Property(e => e.queue_subject).HasMaxLength(255);
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-        });        
 
         modelBuilder.Entity<patrol_info>(entity =>
         {
@@ -1235,6 +1300,50 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
         });
 
+        modelBuilder.Entity<trn_email_queue>(entity =>
+        {
+            entity.HasKey(e => e.queue_id).HasName("trn_email_queue_pkey");
+
+            entity.ToTable("trn_email_queue", "core", tb => tb.HasComment("Table to manage a queue for sending emails"));
+
+            entity.Property(e => e.queue_id).HasComment("Unique identifier for each email queue record");
+            entity.Property(e => e.cnt_retry)
+                .HasDefaultValue(0)
+                .HasComment("Count of how many times sending this email has been retried");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was created")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created this record");
+            entity.Property(e => e.date_sent)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the email was sent or scheduled to be sent")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether this record is marked as deleted (true/false)");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was last modified")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified this record");
+            entity.Property(e => e.queue_content).HasComment("Content/body of the email in the queue");
+            entity.Property(e => e.queue_recipient)
+                .HasMaxLength(255)
+                .HasComment("Email address of the recipient in the queue");
+            entity.Property(e => e.queue_remark).HasComment("Additional remarks related to this email queue entry");
+            entity.Property(e => e.queue_status)
+                .HasMaxLength(30)
+                .HasDefaultValueSql("'New'::character varying")
+                .HasComment("Current status of the email in the queue (e.g., New, Sent, Failed)");
+            entity.Property(e => e.queue_subject)
+                .HasMaxLength(255)
+                .HasComment("Subject line of the email in the queue");
+        });
 
         OnModelCreatingPartial(modelBuilder);
     }

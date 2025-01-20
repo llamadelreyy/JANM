@@ -39,7 +39,25 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var mst_districts = await _dbContext.mst_districts.Where(x => x.is_deleted != true).AsNoTracking().ToListAsync();
+                var mst_districts = await _dbContext.mst_districts.Where(x => x.is_deleted != true).Join(
+                    _dbContext.mst_states,
+                    district => district.state_code,
+                    state => state.state_code,
+                    (district, state) => new mst_district
+                    {
+                        district_id = district.district_id,
+                        district_code = district.district_code,
+                        district_name = district.district_name,
+                        state_code = district.state_code,
+                        is_deleted = district.is_deleted,
+                        creator_id = district.creator_id,
+                        created_at = district.created_at,
+                        modifier_id = district.modifier_id,
+                        modified_at = district.modified_at,
+                        //virtual field
+                        state_name = state.state_name
+                    }
+                ).AsNoTracking().ToListAsync();
 
                 if (mst_districts.Count == 0)
                 {
@@ -60,7 +78,25 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var mst_districts = await _dbContext.mst_districts.Where(x => x.state_code == StateCode && x.is_deleted != true).AsNoTracking().ToListAsync();
+                var mst_districts = await _dbContext.mst_districts.Where(x => x.state_code == StateCode && x.is_deleted != true).Join(
+                    _dbContext.mst_states,
+                    district => district.state_code,
+                    state => state.state_code,
+                    (district, state) => new mst_district
+                    {
+                        district_id = district.district_id,
+                        district_code = district.district_code,
+                        district_name = district.district_name,
+                        state_code = district.state_code,
+                        is_deleted = district.is_deleted,
+                        creator_id = district.creator_id,
+                        created_at = district.created_at,
+                        modifier_id = district.modifier_id,
+                        modified_at = district.modified_at,
+                        //virtual field
+                        state_name = state.state_name
+                    }
+                ).AsNoTracking().ToListAsync();
 
                 if (mst_districts.Count == 0)
                 {
@@ -81,7 +117,25 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var district = await _dbContext.mst_districts.FirstOrDefaultAsync(x => x.district_id == Id);
+                var district = await _dbContext.mst_districts.Join(
+                    _dbContext.mst_states,
+                    district => district.state_code,
+                    state => state.state_code,
+                    (district, state) => new mst_district
+                    {
+                        district_id = district.district_id,
+                        district_code = district.district_code,
+                        district_name = district.district_name,
+                        state_code = district.state_code,
+                        is_deleted = district.is_deleted,
+                        creator_id = district.creator_id,
+                        created_at = district.created_at,
+                        modifier_id = district.modifier_id,
+                        modified_at = district.modified_at,
+                        //virtual field
+                        state_name = state.state_name
+                    }
+                ).FirstOrDefaultAsync(x => x.district_id == Id);
 
                 if (district == null)
                 {
@@ -102,7 +156,25 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var district = await _dbContext.mst_districts.FirstOrDefaultAsync(x => x.district_code == Code);
+                var district = await _dbContext.mst_districts.Join(
+                    _dbContext.mst_states,
+                    district => district.state_code,
+                    state => state.state_code,
+                    (district, state) => new mst_district
+                    {
+                        district_id = district.district_id,
+                        district_code = district.district_code,
+                        district_name = district.district_name,
+                        state_code = district.state_code,
+                        is_deleted = district.is_deleted,
+                        creator_id = district.creator_id,
+                        created_at = district.created_at,
+                        modifier_id = district.modifier_id,
+                        modified_at = district.modified_at,
+                        //virtual field
+                        state_name = state.state_name
+                    }
+                ).FirstOrDefaultAsync(x => x.district_code == Code);
 
                 if (district == null)
                 {
@@ -220,6 +292,8 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                int runUserID = await getDefRunUserId();
+
                 #region Validation
                 var district = await _dbContext.mst_districts.FirstOrDefaultAsync(x => x.district_id == Id);
                 if (district == null)
@@ -228,8 +302,22 @@ namespace PBTPro.Api.Controllers
                 }
                 #endregion
 
-                _dbContext.mst_districts.Remove(district);
-                await _dbContext.SaveChangesAsync();
+                try
+                {
+                    _dbContext.mst_districts.Remove(district);
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    district.is_deleted = true;
+                    district.modifier_id = runUserID;
+                    district.modified_at = DateTime.Now;
+
+                    _dbContext.mst_districts.Update(district);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                }
 
                 return Ok(district, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang daerah")));
             }

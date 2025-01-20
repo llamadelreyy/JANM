@@ -205,7 +205,7 @@ namespace PBTPro.Api.Controllers.Base
             var name = ".";
             code = "." + code.ToUpper().Replace(" ", "_");
 
-            config_system_message model = new config_system_message();
+            app_system_msg model = new app_system_msg();
             model.message_feature = features.ToUpper();
             switch (type) //S-Success, W-Warning, E-Error
             {
@@ -247,24 +247,25 @@ namespace PBTPro.Api.Controllers.Base
             return msg;
         }
 
-        private config_system_message? GetSysMesg(string code, config_system_message? model)
+        private app_system_msg? GetSysMesg(string code, app_system_msg? model)
         {
-            config_system_message? appSystemMessage = null;
+            app_system_msg? appSystemMessage = null;
             try
             {
-                appSystemMessage = _dbContext.config_system_messages.Where(m => m.message_code == code).FirstOrDefault();
+                int runUserId = getDefRunUserId().GetAwaiter().GetResult();
+                appSystemMessage = _dbContext.app_system_msgs.Where(m => m.message_code == code).FirstOrDefault();
                 if (appSystemMessage == null && model != null)
                 {
-                    appSystemMessage = new config_system_message
+                    appSystemMessage = new app_system_msg
                     {
                         message_feature = model.message_feature,
                         message_code = model.message_code,
                         message_type = model.message_type,
                         message_body = model.message_body,
-                        //created_by = User?.Identity?.Name! ?? "anonymous",
-                        created_date = DateTime.Now
+                        creator_id= runUserId,
+                        created_at = DateTime.Now
                     };
-                    _dbContext.config_system_messages.Add(appSystemMessage);
+                    _dbContext.app_system_msgs.Add(appSystemMessage);
                     _dbContext.SaveChanges(false);
                 }
             }
