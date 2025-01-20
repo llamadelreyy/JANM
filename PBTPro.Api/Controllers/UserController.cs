@@ -526,7 +526,7 @@ namespace PBTPro.Api.Controllers
 
             using (PBTProDbContext _iwkContext = new PBTProDbContext())
             {
-                result = await _dbContext.config_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "BaseUploadPath").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
+                result = await _dbContext.app_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "BaseUploadPath").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
 
                 if (!string.IsNullOrEmpty(lv1))
                 {
@@ -556,7 +556,7 @@ namespace PBTPro.Api.Controllers
 
             using (PBTProDbContext _iwkContext = new PBTProDbContext())
             {
-                result = await _dbContext.config_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "ImageViewUrl").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
+                result = await _dbContext.app_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "ImageViewUrl").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
 
                 if (!string.IsNullOrEmpty(lv1))
                 {

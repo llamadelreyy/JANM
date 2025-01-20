@@ -36,9 +36,9 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                List<notification_email_queue> QueueList = new List<notification_email_queue>();
+                List<trn_email_queue> QueueList = new List<trn_email_queue>();
 
-                IQueryable<notification_email_queue> InitQuery = _dbContext.notification_email_queues;
+                IQueryable<trn_email_queue> InitQuery = _dbContext.trn_email_queues;
                 if (!string.IsNullOrWhiteSpace(ListType))
                 {
                     switch (ListType)
@@ -57,7 +57,7 @@ namespace PBTPro.Api.Controllers
                     }
                 }
 
-                QueueList = await InitQuery.OrderByDescending(x => x.created_date).AsNoTracking().ToListAsync();
+                QueueList = await InitQuery.OrderByDescending(x => x.created_at).AsNoTracking().ToListAsync();
 
                 if (QueueList.Count > 0)
                 {
@@ -70,6 +70,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -82,7 +83,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                EmailContent template = await _dbContext.config_email_templates.Where(x => x.template_code == Code).Select(x => new EmailContent { subject = x.template_subject, body = x.template_content }).AsNoTracking().FirstOrDefaultAsync();
+                EmailContent template = await _dbContext.app_email_tmpls.Where(x => x.tmpl_code == Code).Select(x => new EmailContent { subject = x.tmpl_subject, body = x.tmpl_content }).AsNoTracking().FirstOrDefaultAsync();
 
                 if (template != null)
                 {
@@ -95,6 +96,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -123,7 +125,7 @@ namespace PBTPro.Api.Controllers
                         {
                             using (PBTProDbContext _dbcontext = new PBTProDbContext())
                             {
-                                List<notification_email_queue> QueueLists = await _dbcontext.notification_email_queues.Where(x => x.queue_status != "Successful" && x.queue_cnt_retry < _maxRetry).OrderBy(x => x.created_date).ToListAsync();
+                                List<trn_email_queue> QueueLists = await _dbcontext.trn_email_queues.Where(x => x.queue_status != "Successful" && x.cnt_retry < _maxRetry).OrderBy(x => x.created_at).ToListAsync();
 
                                 if (QueueLists.Count > 0)
                                 {
@@ -131,30 +133,30 @@ namespace PBTPro.Api.Controllers
                                     {
                                         EmailSenderRs emailRs = await _emailSender.SendEmail(queue.queue_subject, queue.queue_content, queue.queue_recipient);
 
-                                        queue.queue_cnt_retry = queue.queue_cnt_retry + 1;
+                                        queue.cnt_retry = queue.cnt_retry + 1;
                                         queue.queue_status = emailRs.Status;
                                         queue.queue_remark = emailRs.Remars;
-                                        queue.update_date = DateTime.Now;
-                                        queue.updated_by = runUserID;
+                                        queue.modified_at = DateTime.Now;
+                                        queue.modifier_id = runUserID;
 
                                         if (emailRs.isSuccess == true)
                                         {
-                                            queue.queue_date_sent = DateTime.Now;
+                                            queue.date_sent = DateTime.Now;
                                             if (await ArchiveQueue(queue))
                                             {
-                                                _dbcontext.notification_email_queues.Remove(queue);
+                                                _dbcontext.trn_email_queues.Remove(queue);
                                             }
                                         }
-                                        else if(emailRs.isSuccess != true && queue.queue_cnt_retry >= _maxRetry)
+                                        else if(emailRs.isSuccess != true && queue.cnt_retry >= _maxRetry)
                                         {
                                             if (await ArchiveQueue(queue))
                                             {
-                                                _dbcontext.notification_email_queues.Remove(queue);
+                                                _dbcontext.trn_email_queues.Remove(queue);
                                             }
                                         }
                                         else
                                         {
-                                            _dbcontext.notification_email_queues.Update(queue);
+                                            _dbcontext.trn_email_queues.Update(queue);
                                         }
                                         await _dbcontext.SaveChangesAsync();
                                         token.ThrowIfCancellationRequested();
@@ -164,11 +166,11 @@ namespace PBTPro.Api.Controllers
                         }
                         catch (OperationCanceledException OCex)
                         {
-                            Console.WriteLine("Service Stoped");
+                            _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, OCex.Message, OCex.InnerException));
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("Error : " + ex.Message);
+                            _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                         }
 
                         try
@@ -177,7 +179,7 @@ namespace PBTPro.Api.Controllers
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("Error : " + ex.Message);
+                            _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                         }
                     });
                 }
@@ -186,41 +188,43 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
 
 
         #region Private Logic
-        private async Task<bool> ArchiveQueue(notification_email_queue queue)
+        private async Task<bool> ArchiveQueue(trn_email_queue queue)
         {
             bool result = true;
             try
             {
                 using (PBTProDbContext tmpDBcontext = new PBTProDbContext())
                 {
-                    var history = new notification_email_history
+                    var history = new his_email_history
                     {
-                        history_recipient = queue.queue_recipient,
-                        history_subject = queue.queue_subject,
-                        history_content = queue.queue_content,
-                        history_status = queue.queue_status,
-                        history_remark = queue.queue_remark,
-                        history_date_sent = queue.queue_date_sent,
-                        history_cnt_retry = queue.queue_cnt_retry,
-                        active_flag = queue.active_flag,
-                        created_by = queue.created_by,
-                        created_date = queue.created_date,
-                        updated_by = queue.updated_by,
-                        update_date = queue.update_date
+                        hist_recipient = queue.queue_recipient,
+                        hist_subject = queue.queue_subject,
+                        hist_content = queue.queue_content,
+                        hist_status = queue.queue_status,
+                        hist_remark = queue.queue_remark,
+                        date_sent = queue.date_sent,
+                        cnt_retry = queue.cnt_retry,
+                        is_deleted = queue.is_deleted,
+                        creator_id = queue.creator_id,
+                        created_at = queue.created_at,
+                        modifier_id = queue.modifier_id,
+                        modified_at = queue.modified_at
                     };
 
-                    tmpDBcontext.notification_email_histories.Add(history);
+                    tmpDBcontext.his_email_histories.Add(history);
                     await tmpDBcontext.SaveChangesAsync(false);
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 result = false;
             }
 

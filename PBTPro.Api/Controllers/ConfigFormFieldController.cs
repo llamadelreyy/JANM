@@ -27,7 +27,7 @@ namespace PBTPro.Api.Controllers
     public class ConfigFormFieldController : IBaseController
     {
         private readonly ILogger<ConfigFormFieldController> _logger;
-        private readonly string _feature = "CONFIG_FORM_FIELD";
+        private readonly string _feature = "app_form_field";
 
         public ConfigFormFieldController(PBTProDbContext dbContext, ILogger<ConfigFormFieldController> logger) : base(dbContext)
         {
@@ -40,7 +40,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfields = await _dbContext.config_form_fields.Where(x => x.active_flag == true).OrderBy(x => x.field_orders).ThenBy(x => x.field_name).AsNoTracking().ToListAsync();
+                var parFormfields = await _dbContext.app_form_fields.Where(x => x.is_deleted != true).OrderBy(x => x.field_orders).ThenBy(x => x.field_name).AsNoTracking().ToListAsync();
 
                 if (parFormfields.Count == 0)
                 {
@@ -62,7 +62,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfields = await _dbContext.config_form_fields.Where(x => x.active_flag == true && x.field_form_type.ToUpper() == formType.ToUpper()).OrderBy(x => x.field_orders).ThenBy(x=> x.field_name)
+                var parFormfields = await _dbContext.app_form_fields.Where(x => x.is_deleted != true && x.field_form_type.ToUpper() == formType.ToUpper()).OrderBy(x => x.field_orders).ThenBy(x=> x.field_name)
                                     .Select(x => new config_form_field_view{
                                         field_id = x.field_id,
                                         field_name = x.field_name,
@@ -97,7 +97,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfield = await _dbContext.config_form_fields.FirstOrDefaultAsync(x => x.field_id == Id);
+                var parFormfield = await _dbContext.app_form_fields.FirstOrDefaultAsync(x => x.field_id == Id);
                 
                 if(parFormfield == null)
                 {
@@ -135,14 +135,14 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "SOURCE_URL_ISREQUIRED", MessageTypeEnum.Error, string.Format("Ruangan URL Sumber diperlukan")));
                 }
 
-                var isExists = await _dbContext.config_form_fields.FirstOrDefaultAsync(x => x.field_name.ToUpper() == InputModel.field_name.ToUpper() && x.field_form_type == InputModel.field_type);
+                var isExists = await _dbContext.app_form_fields.FirstOrDefaultAsync(x => x.field_name.ToUpper() == InputModel.field_name.ToUpper() && x.field_form_type == InputModel.field_type);
                 if (isExists != null)
                 {
                     return Error("", SystemMesg(_feature, "FIELD_NAME_ISEXISTS", MessageTypeEnum.Error, string.Format("Nama telah wujud")));
                 }
                 #endregion
 
-                config_form_field formField = new config_form_field
+                app_form_field formField = new app_form_field
                 {
                     field_form_type = InputModel.field_form_type,
                     field_name = InputModel.field_name,
@@ -153,12 +153,12 @@ namespace PBTPro.Api.Controllers
                     field_required = InputModel.field_required,
                     field_api_seeded = InputModel.field_api_seeded,
                     field_orders = InputModel.field_orders,
-                    active_flag = true,
-                    created_by = runUserID,
-                    created_date = DateTime.Now
+                    is_deleted = false,
+                    creator_id = runUserID,
+                    created_at = DateTime.Now
                 };
 
-                _dbContext.config_form_fields.Add(formField);
+                _dbContext.app_form_fields.Add(formField);
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(formField, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya menambah medan")));
@@ -180,7 +180,7 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.config_form_fields.FirstOrDefaultAsync(x => x.field_id == Id);
+                var formField = await _dbContext.app_form_fields.FirstOrDefaultAsync(x => x.field_id == Id);
                 if(formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
@@ -199,7 +199,7 @@ namespace PBTPro.Api.Controllers
                 }
                 if (formField.field_name.ToUpper() != InputModel.field_name.ToUpper())
                 {
-                    var isExists = await _dbContext.config_form_fields.FirstOrDefaultAsync(x => x.field_name.ToUpper() == InputModel.field_name.ToUpper() && x.field_form_type == InputModel.field_type && x.field_id != Id);
+                    var isExists = await _dbContext.app_form_fields.FirstOrDefaultAsync(x => x.field_name.ToUpper() == InputModel.field_name.ToUpper() && x.field_form_type == InputModel.field_type && x.field_id != Id);
                     if (isExists != null)
                     {
                         return Error("", SystemMesg(_feature, "FIELD_NAME_ISEXISTS", MessageTypeEnum.Error, string.Format("Nama telah wujud")));
@@ -216,10 +216,10 @@ namespace PBTPro.Api.Controllers
                 formField.field_required = InputModel.field_required;
                 formField.field_api_seeded = InputModel.field_api_seeded;
                 formField.field_orders = InputModel.field_orders;
-                formField.updated_by = runUserID;
-                formField.update_date = DateTime.Now;
+                formField.modifier_id = runUserID;
+                formField.modified_at = DateTime.Now;
     
-                _dbContext.config_form_fields.Update(formField);
+                _dbContext.app_form_fields.Update(formField);
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(formField, SystemMesg(_feature, "Update", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
@@ -236,18 +236,32 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                string runUser = await getDefRunUser();
+                int runUserID = await getDefRunUserId();
 
                 #region Validation
-                var formField = await _dbContext.config_form_fields.FirstOrDefaultAsync(x => x.field_id == Id);
+                var formField = await _dbContext.app_form_fields.FirstOrDefaultAsync(x => x.field_id == Id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
 
-                _dbContext.config_form_fields.Remove(formField);
-                await _dbContext.SaveChangesAsync();
+                try
+                {
+                    _dbContext.app_form_fields.Remove(formField);
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    formField.is_deleted = true;
+                    formField.modifier_id = runUserID;
+                    formField.modified_at = DateTime.Now;
+
+                    _dbContext.app_form_fields.Update(formField);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                }
 
                 return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
