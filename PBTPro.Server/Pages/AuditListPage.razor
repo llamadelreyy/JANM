@@ -18,24 +18,28 @@
 @inject NavigationManager NavigationManager
 @inject IToastService toastService
 
+<style>
+    .dxbl-grid {
+        height: 92%;
+        max-height: 92%;
+    }
+</style>
 
-<div class="d-lg-flex border-bottom mb-2">
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+<div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons/information.png" />
+            <img class="imgTitle" src="\images\icons-small\wrench-screwdriver.png" />
         <div class="textTitle">Log Audit - Senarai Log Audit</div>
     </div>
 </div>
 
-<style>
-    .dxbl-grid {
-        height: 79vh;
-        max-height: 79vh;
-    }
-</style>
-
-<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 <div class="item-container-x">
-    <DxGrid @ref="Grid"
+@*     <DxGrid @ref="Grid"
             Data="@_lstAudits"
             KeyFieldName="audit_id"
             ShowGroupPanel="true"
@@ -51,23 +55,56 @@
             PagerAutoHideNavButtons="false"
             ColumnResizeMode="@ColumnResizeMode"
             HighlightRowOnHover="true"
-            CssClass="mv-1000">
+            CssClass="mv-1000"> *@
 
-        <Columns>
-            <DxGridDataColumn FieldName="@nameof(auditlog_info.created_date)"
-                              Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center"
-                              AllowGroup="false"
-                              SortOrder="GridColumnSortOrder.Descending"
-                              DisplayFormat="dd/MM/yyyy HH:mm:ss" />
-            <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_username)" Caption="Nama Pengguna" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_type)" Caption="Jenis Maklumat" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
-                <CellDisplayTemplate>
-                    <div>@GetStatusAuditIconHtml(((auditlog_info)context.DataItem).audit_type)</div>
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-            <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_method)" Caption="Method" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_description)" Caption="Penerangan" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-        </Columns>
+        <DxGrid @ref="Grid"
+                Data="_lstAudits"
+                KeyFieldName="audit_id"
+                ShowGroupPanel="true"
+                ShowFilterRow="false"
+                TextWrapEnabled="true"
+                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                EditorRenderMode="GridEditorRenderMode.Integrated"
+                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                ShowSearchBox="true"
+                AllowSelectRowByClick="false"
+                @bind-SearchText="@GridSearchText"
+                PageSize="25"
+                @bind-PageIndex="@GridPageIndex"
+                PagerPosition="GridPagerPosition.Bottom"
+                PagerNavigationMode="PagerNavigationMode.InputBox"
+                EditFormButtonsVisible="false"
+                PageSizeSelectorVisible="true"
+                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                PageSizeSelectorAllRowsItemVisible="true"
+                PagerAutoHideNavButtons="false"
+                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                HighlightRowOnHover="true"
+                CssClass="mv-1000">
+
+            <Columns>
+                <DxGridDataColumn FieldName="@nameof(auditlog_info.created_date)"
+                                  Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center"
+                                  MinWidth="120" Width="14%"
+                                  AllowGroup="false"
+                                  SortOrder="GridColumnSortOrder.Descending"
+                                  DisplayFormat="dd/MM/yyyy HH:mm:ss" />
+                <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_username)" Caption="Nama Pengguna" MinWidth="150" Width="13%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
+                <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_type)" Caption="Jenis Maklumat" MinWidth="120" Width="13%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                    <CellDisplayTemplate>
+                        <div>@GetStatusAuditIconHtml(((auditlog_info)context.DataItem).audit_type)</div>
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_method)" Caption="Method" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
+                <DxGridDataColumn FieldName="@nameof(auditlog_info.audit_description)" Caption="Penerangan" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            </Columns>
+
+            <TotalSummary>
+                <DxGridSummaryItem FooterColumnName="audit_username"
+                                   Name="Custom"
+                                   SummaryType=GridSummaryItemType.Count />
+            </TotalSummary>
     </DxGrid>
     <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
     <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
@@ -75,15 +112,16 @@
     <DxButton Text="Export CSV" Click="ExportCsv_Click" />
     <DxButton Text="Arkib" @onclick="RedirectToPage" />
     @* <DxButton Text="Archive Audit Log within 6 months data" Click="InsertArchiveAudit_Click" />  *@  
-    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 </div>
+</DxLoadingPanel>
 
 @code {
-
+    bool PanelVisible { get; set; }
     private List<auditlog_info> _lstAudits = new List<auditlog_info>();
     auditlog_info dtData { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -91,13 +129,19 @@
     #region list
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         _lstAudits = await _audit.GetAuditAsync();
         try
-        { _lstAudits = await _audit.ListAll(); }
+        { 
+            _lstAudits = await _audit.ListAll(); 
+            DataLoadedTcs.TrySetResult(true);
+            PanelVisible = false;
+        }
         catch (Exception ex)
         {
+            PanelVisible = false;
         }
-        DataLoadedTcs.TrySetResult(true);
+
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -136,6 +180,12 @@
         string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
         title);
         return new MarkupString(html);
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
     #endregion
