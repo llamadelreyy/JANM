@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DevExpress.ClipboardSource.SpreadsheetML;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
 using Newtonsoft.Json;
@@ -149,11 +150,11 @@ namespace PBTPro.Data
         }
 
         [HttpPost]
-        public async Task<ReturnViewModel> Add(UserRoleModel InputModel)
+        public async Task<ReturnViewModel> Add(List<UserRoleModel> InputModel)
         {
             var result = new ReturnViewModel();
             try
-            {
+            {               
                 var reqData = JsonConvert.SerializeObject(InputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
@@ -187,34 +188,6 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, UserRoleModel InputModel)
-        {
-            var result = new ReturnViewModel();
-            try
-            {
-                var reqData = JsonConvert.SerializeObject(InputModel);
-                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
-
-                string requestUrl = $"{_baseReqURL}/Update/{InputModel.UserRoleId}";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
-
-                result = response;
-                if (response.ReturnCode == 200)
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data senarai pengguna dan peranan.", 1, LoggerName, "");
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " - " + response.ReturnMessage, 1, LoggerName, "");
-                }
-            }
-            catch (Exception ex)
-            {
-                result = new ReturnViewModel();
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-            }
-            return result;
-        }
 
         public async Task<ReturnViewModel> Delete(int id)
         {

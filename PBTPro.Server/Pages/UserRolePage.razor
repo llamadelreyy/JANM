@@ -148,11 +148,11 @@
                                                 <div>
                                                     <label class="multiselect-container" for="@item.Id">
                                                         @item.Name (@item.RoleDesc)
-                                                        <input type="checkbox" class="check_role" id="@item.Id" checked="@(blnSelected ? true : false)" @onchange="@((e) => CheckboxChanged(e, item.Id))" />
+                                                        <input type="checkbox" class="check_role" id="@item.Id" checked="@(blnSelected ? true : false)" @onchange="@((e) => CheckboxChanged(e, item.Id))" name="Roles" />
                                                         <span class="checkmark"></span>
                                                     </label>
                                                 </div>
-       
+
 
                                             }
                                         }
@@ -204,6 +204,7 @@
     IEnumerable<ApplicationRole> dataRole;
     IEnumerable<ApplicationRole> valueRole;
     IEnumerable<UserRoleModel> dataUserRole;
+    public List<int>? Roles { get; set; }
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -215,6 +216,7 @@
     string strSelected { get; set; } = "";
 
     UserRoleModel dtData { get; set; }
+    ApplicationRole dtDataRole { get; set; }
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
@@ -302,7 +304,6 @@
                 arrItem.Add(_item);
             }
         }
-
         valueRole = arrItem;
     }
 
@@ -344,24 +345,32 @@
 
         //update selected user_id with selected role id
         List<UserRoleModel> saveUserRole = new List<UserRoleModel>();
-        UserRoleModel _item;
+        UserRoleModel _item = new UserRoleModel();
 
         //Loop the main data to get all the role for selected user
         @foreach (var item in dataRole)
         {
             if (item.role_select == true)
             {
-                _item = new UserRoleModel();
+
                 _item.RoleId = item.Id;
-                //_item.Name = item.Name;
-                //_item.RoleDesc = item.RoleDesc;
+                _item.RoleName = item.Name;
+                _item.RoleDesc = item.RoleDesc;
                 _item.UserId = editModel.UserId;
-                saveUserRole.Add(_item);
+                _item.FullName = "";
+                _item.UserName = "";
+
+                if (_item.Roles == null)
+                {
+                    _item.Roles = new List<int>();
+                }
+
+                _item.Roles.Add(item.Id);
             }
+            saveUserRole.Add(_item);
         }
-        response = await _UserRoleService.Add(editModel);
-        //Insert user with role
-        // response = await _UserRoleService.SaveUserRole(saveUserRole);
+        response = await _UserRoleService.Add(saveUserRole);
+
 
         if (response.ReturnCode == 200)
         {
@@ -372,7 +381,6 @@
         {
             HandleResponse(response.ReturnMessage, "Error");
         }
-
     }
 
     async Task UpdateDataAsync()
@@ -388,7 +396,7 @@
 
     async Task Delete(UserRoleModel item)
     {
-        //strSelected = item.Name;
+        strSelected = item.FullName;
         dtData = item;
         ConfirmationShown = true;
     }
