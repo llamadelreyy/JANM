@@ -19,6 +19,7 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models.CommonServices;
 using static System.Collections.Specialized.BitVector32;
 using System.Reactive;
+using System.Data;
 
 namespace PBTPro.Api.Controllers
 {
@@ -54,10 +55,11 @@ namespace PBTPro.Api.Controllers
                 UserRoleModel = (from userrole in userroles
                                  join role in roles on userrole.RoleId equals role.Id
                                  join user in users on userrole.UserId equals user.Id
+                                 where userrole.IsDeleted == false
                                  select new UserRoleModel
                                  {
                                      UserId = user.Id,
-                                     UserRoleId = userrole.UserId,
+                                     UserRoleId = userrole.UserRoleId,
                                      FullName = user.full_name,
                                      UserName = user.UserName,
                                      RoleName = role.Name,
@@ -95,80 +97,105 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AssignUserRole([FromBody] UserRoleModel InputModel)
+        public async Task<IActionResult> AssignUserRole([FromBody] List<UserRoleModel> InputModel)
         {
             try
             {
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
 
-                #region Validation
-                var formField = await _dbContext.UserRoles.FirstOrDefaultAsync();
-                if (formField == null)
+                foreach (var userRoleModel in InputModel)
                 {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                    var userExists = await _dbContext.Users
+                        .Where(x => x.Id == userRoleModel.UserId)
+                        .FirstOrDefaultAsync();
+
+                    if (userExists == null)
+                    {
+                        return Error("", $"Pengguna dengan ID {userRoleModel.UserId} tidak wujud.");
+                    }
+
+                    if (userRoleModel.Roles == null || userRoleModel.Roles.Count == 0)
+                    {
+                        return Error("", "Peranan tidak sah.");
+                    }
+
+                    // Validate roles
+                    HashSet<int> roleIdsSet = new HashSet<int>(userRoleModel.Roles);
+                    var validRoleIds = await _dbContext.Roles
+                        .Where(r => roleIdsSet.Contains(r.Id) && !r.IsDeleted)
+                        .Select(r => r.Id)
+                        .ToListAsync();
+
+                    var invalidRoleIds = roleIdsSet.Except(validRoleIds).ToList();
+                    if (invalidRoleIds.Any())
+                    {
+                        return Error("", "Peranan tidak sah.");
+                    }
+
+                    var userRoleIds = await _dbContext.UserRoles
+                        .Where(x => x.UserId == userExists.Id)
+                        .ToListAsync();
+
+                    var newRoles = roleIdsSet
+                        .Except(userRoleIds.Select(r => r.RoleId))
+                        .ToList();
+
+                    var delRoles = userRoleIds
+                        .Where(x => !roleIdsSet.Contains(x.RoleId))
+                        .ToList();
+
+                    // If roles need to be updated
+                    if (newRoles.Any() || delRoles.Any())
+                    {
+                        foreach (var newRoleId in newRoles)
+                        {
+                            var newRole = await _dbContext.Roles
+                                .FirstOrDefaultAsync(r => r.Id == newRoleId);
+
+                            if (newRole != null && !await _roleManager.RoleExistsAsync(newRole.Name))
+                            {
+                                var applicationRole = new ApplicationRole
+                                {
+                                    Name = newRole.Name
+                                };
+                                await _roleManager.CreateAsync(applicationRole);
+                            }
+
+                            var newUcUserRole = new ApplicationUserRole
+                            {
+                                UserId = userExists.Id,
+                                RoleId = newRoleId,
+                                CreatedAt = DateTime.Now,
+                                CreatorId = runUserID
+                            };
+
+                            _dbContext.UserRoles.Add(newUcUserRole);
+                            await _userManager.AddToRoleAsync(userExists, newRole.Name);
+                        }
+
+                        foreach (var delRole in delRoles)
+                        {
+                            _dbContext.UserRoles.Remove(delRole);
+                            var role = await _dbContext.Roles
+                                .FirstOrDefaultAsync(r => r.Id == delRole.RoleId);
+                            if (role != null)
+                            {
+                                await _userManager.RemoveFromRoleAsync(userExists, role.Name);
+                            }
+                        }
+
+                        await _dbContext.SaveChangesAsync();
+                    }
                 }
 
-                var userExists = await _dbContext.Users.Select(x => new { x.Id, x.UserName }).FirstOrDefaultAsync(x => x.Id == InputModel.UserId);
-                if (userExists == null)
-                {
-                    return Error("", "Pengguna tidak wujud.");
-                }
-
-                #endregion
-
-                #region store data
-                ApplicationUserRole userroles = new ApplicationUserRole
-                {
-                    RoleId = InputModel.RoleId,
-                    UserId = InputModel.UserId,
-                    CreatorId = runUserID,
-                    CreatedAt = DateTime.Now,
-                };
-
-                _dbContext.UserRoles.Add(userroles);
-                await _dbContext.SaveChangesAsync();
-
-                #endregion
-
-                return Ok(userroles, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana.")));
+                return Ok(new { message = "Roles successfully assigned/removed." });
             }
             catch (Exception ex)
             {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+                return Error("", "An unexpected error occurred. Please try again later.");
             }
-        }
-
-        [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] UserRoleModel InputModel)
-        {
-            try
-            {
-                int runUserID = await getDefRunUserId();
-                string runUser = await getDefRunUser();
-
-                #region Validation
-                var formField = await _dbContext.UserRoles.FirstOrDefaultAsync(x => x.UserRoleId == InputModel.UserRoleId);
-                if (formField == null)
-                {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
-                #endregion
-
-                formField.RoleId = InputModel.RoleId;
-                formField.ModifierId = runUserID;
-                formField.ModifiedAt = DateTime.Now;
-
-                _dbContext.UserRoles.Update(formField);
-                await _dbContext.SaveChangesAsync();
-
-                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
+        }       
 
         [HttpDelete("{Id}")]
         public async Task<IActionResult> Delete(int Id)
