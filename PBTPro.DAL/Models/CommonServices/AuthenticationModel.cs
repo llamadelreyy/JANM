@@ -125,6 +125,9 @@ namespace PBTPro.DAL.Models.CommonServices
         public string FullName { get; set; }
         public string RoleName { get; set; }
         public string RoleDesc { get; set; }
+
+        public List<int>? Roles { get; set; }
+
     }
     public class RoleModel
     {
