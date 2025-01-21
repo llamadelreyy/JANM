@@ -37,20 +37,36 @@ Changes Logs:
 }
 else
 {
-    <div class="d-lg-flex border-bottom mb-2">
+    <style>
+        .dxbl-grid {
+            height: 82.5vh;
+            max-height: 82.5vh;
+        }
+    </style>
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+
+    <div class="d-lg-flex border-bottom">
         <div class="col-md-12 py-1 dx-helptitle pageTitle">
-            <img class="imgTitle" src="/images/icons/information.png" />
+            <img class="imgTitle" src="/images/icons-small/table--exclamation.png" />
             <div class="textTitle">Setup Akta Kesalahan - Senarai Akta & Kesalahan</div>
         </div>
     </div>
 
-    <div class="item-container-x">
+    <div class="item-container-x" style="padding-top:2px;">
+
         <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
             <DxTab Text="Akta"></DxTab>
             <DxTab Text="Seksyen"></DxTab>
             <DxTab Text="Undang-Undang Kecil (UUK)"></DxTab>
             <DxTab Text="Kesalahan"></DxTab>
         </DxTabs>
+
         <DxGrid @ref="Grid"
         Data="@GridData"
         ShowGroupPanel="true"
@@ -78,7 +94,7 @@ else
         HighlightRowOnHover="true"
         CssClass="mv-1000">
             <Columns>
-                <DxGridCommandColumn Width="120px">
+                <DxGridCommandColumn Width="80px">
                     <HeaderTemplate>
                         @if (PermissionService.HasPermission("Add"))
                         {
@@ -120,6 +136,7 @@ else
             </TotalSummary>
         </DxGrid>
     </div>
+    </DxLoadingPanel>
 
     <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
         <BodyContentTemplate>
@@ -166,14 +183,17 @@ else
 }
 
 @code {
+    bool PanelVisible { get; set; }
     int ActiveTabIndex;
 
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         await CheckBackgroundImportTask();
         await LoadGridData();
         getImportFileHeader();
         StateHasChanged();
+        PanelVisible = false;
     }
 
     private async Task OnActiveTabIndexChanged(int index)
