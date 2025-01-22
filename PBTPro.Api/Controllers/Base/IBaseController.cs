@@ -17,11 +17,14 @@ namespace PBTPro.Api.Controllers.Base
     {
         protected readonly PBTProDbContext _dbContext;
         protected readonly string? _apiBaseUrl;
+        protected readonly PBTProTenantDbContext _tntDbContext;
 
-        public IBaseController(PBTProDbContext dbContext)
+        public IBaseController(PBTProDbContext dbContext = null, PBTProTenantDbContext tntdbContext = null)
         {
-            _dbContext = dbContext;
+            _dbContext = dbContext; 
+            _tntDbContext = tntdbContext;
         }
+      
         /// <summary>
         /// OK data - 200
         /// </summary>

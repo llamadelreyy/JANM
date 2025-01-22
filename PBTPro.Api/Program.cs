@@ -18,6 +18,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PBTPro.DAL.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -62,6 +63,9 @@ builder.Services.AddSignalR(hubOptions =>
 #region DB
 builder.Services.AddDbContext<PBTProDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
+
+//builder.Services.AddDbContext<PBTProTenantDbContext>(options =>
+//        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
 #endregion
 
 #region Interface

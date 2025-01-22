@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PBTPro.DAL.Tenant.Models;
+using System;
 using System.Collections.Generic;
 
 namespace PBTPro.DAL.Models;

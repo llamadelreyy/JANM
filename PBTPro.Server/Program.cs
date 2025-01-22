@@ -24,6 +24,7 @@ using PBTPro.Data;
 using PBTPro.DAL.Services;
 using Serilog;
 using Serilog.Events;
+using PBTPro.DAL.Models;
 
 
 
@@ -116,6 +117,9 @@ builder.Services.AddHostedService<EmailNotificationService>();
 
 builder.Services.AddDbContext<PBTProDbContext>(options =>
        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
+
+//builder.Services.AddDbContext<PBTProTenantDbContext>(options =>
+//        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
 
 var dataDirectory = fileProvider.GetFileInfo("App_Data").PhysicalPath; //Path.Combine(hostingEnvironment.ContentRootPath, "App_Data");
 

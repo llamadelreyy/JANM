@@ -105,7 +105,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<trn_email_queue> trn_email_queues { get; set; }
 
-    public virtual DbSet<ref_license_status> ref_license_statuses { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1347,32 +1346,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("Subject line of the email in the queue");
         });
 
-        modelBuilder.Entity<ref_license_status>(entity =>
-        {
-            entity.HasKey(e => e.status_id).HasName("license_status_pk");
-
-            entity.ToTable("ref_license_status", "tenant", tb => tb.HasComment("This table stores the different statuses for each license (e.g., Aktif, Tidak Aktif, Batal)."));
-
-            entity.Property(e => e.status_id)
-                .HasDefaultValueSql("nextval('tenant.license_status_license_status_id_seq'::regclass)")
-                .HasComment("Unique identifier for each license status record (Primary Key).");
-            entity.Property(e => e.created_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was created.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.creator_id).HasComment("User who created the record.");
-            entity.Property(e => e.is_deleted)
-                .HasDefaultValue(false)
-                .HasComment("Flag indicating if the status record is active or inactive.");
-            entity.Property(e => e.modified_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was last updated.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
-            entity.Property(e => e.status_name)
-                .HasMaxLength(40)
-                .HasComment("Name of the license status (e.g., Aktif, Tidak Aktif, Batal).");
-        });
 
         OnModelCreatingPartial(modelBuilder);
     }
