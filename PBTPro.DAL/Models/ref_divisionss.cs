@@ -4,31 +4,35 @@ using System.Collections.Generic;
 namespace PBTPro.DAL.Models;
 
 /// <summary>
-/// This table stores information about unit under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri).
+/// This table stores information about divisions under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri).
 /// </summary>
-public partial class ref_unit
+public partial class ref_divisionss
 {
     /// <summary>
-    /// Unique identifier for each unit under division
+    /// Unique identifier for each division record (Primary Key).
     /// </summary>
-    public int unit_id { get; set; }
-
-    public int? div_id { get; set; }
+    public int div_id { get; set; }
 
     /// <summary>
-    /// Code of the unit (e.g., PL-TR).
+    /// Code of the division (e.g., PL-TR).
     /// </summary>
-    public string? unit_code { get; set; }
+    public string? div_code { get; set; }
+
+    public int? dept_id { get; set; }
+
+    public string? dept_code { get; set; }
+
+    public string? dept_name { get; set; }
 
     /// <summary>
-    /// Name of unit (e.g., Unit Kaunter).
+    /// Name of division (e.g., Bahagian TRED dan Perniagaan dan Industri).
     /// </summary>
-    public string unit_name { get; set; } = null!;
+    public string? div_name { get; set; }
 
     /// <summary>
-    /// Description about the unit (e.g., Roles, Job Description, etc.).
+    /// Description about the division (e.g., Roles, Job Description, etc.).
     /// </summary>
-    public string? unit_desc { get; set; }
+    public string? div_desc { get; set; }
 
     /// <summary>
     /// User who created the record.
@@ -55,13 +59,7 @@ public partial class ref_unit
     /// </summary>
     public bool? is_deleted { get; set; }
 
-    public int? dept_id { get; set; }
+    public virtual ref_departmentss? dept { get; set; }
 
-    public string? dept_name { get; set; }
-
-    public string? div_name { get; set; }
-
-    public virtual ref_department? dept { get; set; }
-
-    public virtual ref_division? div { get; set; }
+    public virtual ICollection<ref_unitss> ref_unitsses { get; set; } = new List<ref_unitss>();
 }

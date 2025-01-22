@@ -19,7 +19,7 @@ namespace PBTPro.DAL
             _currentUser = RunUser;
         }
 
-        public PBTProDbContext(DbContextOptions options) : base(options)
+        public PBTProDbContext(DbContextOptions<PBTProDbContext> options) : base(options)
         {
         }
 
@@ -104,7 +104,7 @@ namespace PBTPro.DAL
                 entity.Property(u => u.Salt).HasColumnName("salt");
                 entity.Property(u => u.SecurityStamp).HasColumnName("security_stamp");
                 entity.Property(u => u.ConcurrencyStamp).HasColumnName("concurrency_stamp");
-                entity.Property(u => u.TwoFactorEnabled).HasColumnName("two_factor_enabled"); 
+                entity.Property(u => u.TwoFactorEnabled).HasColumnName("two_factor_enabled");
                 entity.Property(e => e.LockoutEnd)
                 .HasPrecision(6)
                 .HasDefaultValueSql("NULL::timestamp with time zone")

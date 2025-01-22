@@ -51,7 +51,8 @@ builder.Services.AddSignalR(hubOptions =>
     hubOptions.EnableDetailedErrors = true;
     hubOptions.KeepAliveInterval = TimeSpan.FromMinutes(1);
 })
-.AddJsonProtocol(options => {
+.AddJsonProtocol(options =>
+{
     options.PayloadSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
     //options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
     options.PayloadSerializerOptions.PropertyNamingPolicy = null;
@@ -59,6 +60,9 @@ builder.Services.AddSignalR(hubOptions =>
 
 #region DB
 builder.Services.AddDbContext<PBTProDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
+
+builder.Services.AddDbContext<PBTProTenantDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
 #endregion
 
@@ -146,7 +150,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     {
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15); 
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         options.Lockout.MaxFailedAccessAttempts = 3;
         options.Lockout.AllowedForNewUsers = true;
     })
