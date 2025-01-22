@@ -20,6 +20,7 @@ using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -92,7 +93,7 @@ namespace PBTPro.Api.Controllers
         [HttpGet]
         [Route("GetListByBound")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, int? crs = null)
+        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, int? crs = null, List<String> filterType = null)
         {
             try
             {
@@ -111,6 +112,8 @@ namespace PBTPro.Api.Controllers
                         .Where(x => PostGISFunctions.ST_Within(x.geom, PostGISFunctions.ST_Transform(PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value), _defCRS)))
                         .Select(x => new mst_premis { gid = x.gid, geom = (NetTopologySuite.Geometries.Point)PostGISFunctions.ST_Transform(x.geom,crs.Value) });
                 }
+
+               
 
                 var mst_premis = await initQuery
                 .Select(x => new PremisMarkerViewModel
@@ -131,6 +134,11 @@ namespace PBTPro.Api.Controllers
                     geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.geom)),
                 })
                 .ToListAsync();
+
+                if (filterType != null && filterType.Any())
+                {
+                    mst_premis = (List<PremisMarkerViewModel>)initQuery.Where(x => filterType.Contains(Convert.ToString(x.tempoh_sah_cukai)));
+                }
 
                 if (mst_premis.Count == 0)
                 {
