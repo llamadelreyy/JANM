@@ -36,9 +36,10 @@ namespace PBTPro.Api.Services
             try
             {
                 var Configs = await _dbContext.app_system_params.Where(x => x.param_group == "Emailer").AsNoTracking().ToListAsync();
-                if(Configs == null || Configs.Count == 0)
+                if (Configs == null || Configs.Count == 0)
                 {
-                    Result = DefaultConfiguration ?? new EmailConfiguration()   ;
+                    Result = DefaultConfiguration ?? new EmailConfiguration();
+                    return Result;
                 }
                 foreach (var Config in Configs)
                 {
