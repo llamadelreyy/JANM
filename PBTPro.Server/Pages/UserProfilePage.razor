@@ -31,7 +31,8 @@
                 <DxFormLayout>
                     <DxFormLayoutItem ColSpanMd="2">
                         <div class="align-items-center align-content-center">
-                            <img class="profile-photo" src="images/profile/avatar-user-profile-icon.jpg" alt="" />
+                            @* <img class="profile-photo" src="images/profile/avatar-user-profile-icon.jpg" alt="" /> *@
+                            <img class="profile-photo" src="@userInfo.profile_photo_url" alt="@userInfo.profile_photoname" />
                         </div>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="10">
@@ -183,13 +184,14 @@
     [Inject] IToastNotificationService ToastService { get; set; }
     user_profile_view userInfo = new user_profile_view();
 
-    IEnumerable<user_profile_view> dataSource;
+    // IEnumerable<user_profile_view> dataSource;
     // IEnumerable<department_info> dtDepartment;
     // IEnumerable<section_info> dtSection;
     // IEnumerable<unit_info> dtUnit;
     // IEnumerable<user_role> dtRoles;
 
     //Get current user id
+    // string strPhotoPath { get; set; } = "images/profile/avatar-user-profile-icon.jpg";
     int intCurrentUserId { get; set; } = 0;
     string FormValidationState = @"Sila tekan butang ""Simpan"" untuk sahkan data.";
 
@@ -219,10 +221,14 @@
     protected override async Task OnInitializedAsync()
     {
         intCurrentUserId = _PBTAuthStateProvider.CurrentUser.Userid;
-        dataSource = await _UserProfileService.Retrieve(Convert.ToString(intCurrentUserId));
+        userInfo = await _UserProfileService.Retrieve();
+
+        // if (!string.IsNullOrWhiteSpace(userInfo.profile_photo_url))
+        //     strPhotoPath = userInfo.profile_photo_url;
+
         //dataSource = await _UserProfileService.Retrieve("1");
-        if (dataSource != null)
-            userInfo = dataSource.FirstOrDefault();
+        // if (dataSource != null)
+        //     userInfo = dataSource.FirstOrDefault();
 
         // dtDepartment = await _DepartmentService.GetAllDepartment();
         // dtSection = await _SectionService.GetAllSection();
