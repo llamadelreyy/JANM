@@ -328,6 +328,14 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+        
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("ForgotPasswordModel")]
+        public async Task<IActionResult> ForgotPasswordModel(ForgetPasswordInput model)
+        {
+            return await ForgotPassword(model.Username);
+        }
 
         [HttpPost]
         [AllowAnonymous]
