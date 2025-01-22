@@ -50,6 +50,12 @@ namespace PBTPro.DAL.Models.CommonServices
         public bool RememberMe { get; set; }
     }
 
+    public class ForgetPasswordInput
+    {
+        [Required(ErrorMessage = "Nama Pengguna diperlukan.")]
+        public string Username { get; set; } = null!;
+    }
+
     public class ResetPasswordInput
     {
         [Required(ErrorMessage = "Nama Pengguna diperlukan.")]

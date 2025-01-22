@@ -191,7 +191,6 @@ namespace PBTPro.Api.Services
             return result;
         }
 
-
         private async Task<bool> ArchiveQueue(trn_email_queue queue)
         {
             bool result = true;

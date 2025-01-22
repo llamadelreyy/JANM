@@ -41,7 +41,7 @@ public partial class his_email_history
     /// <summary>
     /// Timestamp when the email was sent
     /// </summary>
-    public DateTime date_sent { get; set; }
+    public DateTime? date_sent { get; set; }
 
     /// <summary>
     /// Count of how many times sending this email has been retried
