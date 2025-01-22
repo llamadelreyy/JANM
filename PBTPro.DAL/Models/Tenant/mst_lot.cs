@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 
-namespace PBTPro.DAL.Models;
+namespace PBTPro.DAL.Tenant.Models;
 
 public partial class mst_lot
 {

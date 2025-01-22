@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Operation.Overlay;
+using Newtonsoft.Json;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -93,12 +94,11 @@ namespace PBTPro.Api.Controllers
         [HttpGet]
         [Route("GetListByBound")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, int? crs = null, List<String> filterType = null)
+        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat,  string? filterType, int? crs = null)
         {
             try
             {
                 IQueryable<mst_premis> initQuery = _dbContext.mst_premis.Where(x => PostGISFunctions.ST_IsValid(x.geom));
-
 
                 if (crs == null || crs == _defCRS)
                 {
@@ -135,9 +135,14 @@ namespace PBTPro.Api.Controllers
                 })
                 .ToListAsync();
 
+                List<String> ft = JsonConvert.DeserializeObject<List<String>>(filterType);
+
                 if (filterType != null && filterType.Any())
                 {
-                    mst_premis = (List<PremisMarkerViewModel>)initQuery.Where(x => filterType.Contains(Convert.ToString(x.tempoh_sah_cukai)));
+                    mst_premis = mst_premis.Where(x =>
+                                    filterType.Contains(Convert.ToString(x.status_lesen)) ||
+                                    filterType.Contains(Convert.ToString(x.status_cukai))
+                                ).ToList();
                 }
 
                 if (mst_premis.Count == 0)

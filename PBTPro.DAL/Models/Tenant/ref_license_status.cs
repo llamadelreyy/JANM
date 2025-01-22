@@ -1,7 +1,8 @@
-﻿using System;
+﻿using PBTPro.DAL.Models;
+using System;
 using System.Collections.Generic;
 
-namespace PBTPro.DAL.Models;
+namespace PBTPro.DAL.Tenant.Models;
 
 /// <summary>
 /// This table stores the different statuses for each license (e.g., Aktif, Tidak Aktif, Batal).
