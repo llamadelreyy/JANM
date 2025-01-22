@@ -65,7 +65,7 @@ namespace PBTPro.Data
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
 
-        private string _baseReqURL = "/api/Profile";
+        private string _baseReqURL = "/api/User";
         private string LoggerName = "";
         private List<user_profile> _Profile { get; set; }
 
@@ -125,11 +125,11 @@ namespace PBTPro.Data
         //    }
         //}
 
-        public async Task<List<user_profile_view>> Retrieve(string userId)
+        public async Task<user_profile_view> Retrieve()
         {
-            var result = new List<user_profile_view>();
-            string requestquery = $"/{userId}";
-            string requestUrl = $"{_baseReqURL}/Retrieve{requestquery}";            
+            //var result = new List<user_profile_view>();
+            var result = new user_profile_view();
+            string requestUrl = $"{_baseReqURL}/GetProfile";            
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
             try
@@ -139,7 +139,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<user_profile_view>>(dataString);
+                        result = JsonConvert.DeserializeObject<user_profile_view>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
                 }
@@ -151,7 +151,7 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<user_profile_view>();
+                result = new user_profile_view();
             }
             return result;
         }
