@@ -41,7 +41,7 @@ public partial class trn_email_queue
     /// <summary>
     /// Timestamp when the email was sent or scheduled to be sent
     /// </summary>
-    public DateTime date_sent { get; set; }
+    public DateTime? date_sent { get; set; }
 
     /// <summary>
     /// Count of how many times sending this email has been retried

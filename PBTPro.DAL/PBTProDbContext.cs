@@ -420,7 +420,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasDefaultValue(0)
                 .HasComment("ID of the user who created this record");
             entity.Property(e => e.date_sent)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasComment("Timestamp when the email was sent")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.hist_content).HasComment("Content/body of the sent email");
@@ -1318,7 +1317,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasDefaultValue(0)
                 .HasComment("ID of the user who created this record");
             entity.Property(e => e.date_sent)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasComment("Timestamp when the email was sent or scheduled to be sent")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.is_deleted)
