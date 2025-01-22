@@ -4,31 +4,29 @@ using System.Collections.Generic;
 namespace PBTPro.DAL.Models;
 
 /// <summary>
-/// This table stores information about unit under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri).
+/// This table stores information about departments under PBT (e.g., Jabatan Pelesenan).
 /// </summary>
-public partial class ref_unit
+public partial class ref_departmentss
 {
     /// <summary>
-    /// Unique identifier for each unit under division
+    /// Unique identifier for each department record (Primary Key).
     /// </summary>
-    public int unit_id { get; set; }
-
-    public int? div_id { get; set; }
+    public int dept_id { get; set; }
 
     /// <summary>
-    /// Code of the unit (e.g., PL-TR).
+    /// Code of the department (e.g., PL).
     /// </summary>
-    public string? unit_code { get; set; }
+    public string? dept_code { get; set; }
 
     /// <summary>
-    /// Name of unit (e.g., Unit Kaunter).
+    /// Name of the department (e.g., Jabatan Pelesenan).
     /// </summary>
-    public string unit_name { get; set; } = null!;
+    public string dept_name { get; set; } = null!;
 
     /// <summary>
-    /// Description about the unit (e.g., Roles, Job Description, etc.).
+    /// Description about the department (e.g., Roles, Job Description, etc.).
     /// </summary>
-    public string? unit_desc { get; set; }
+    public string? dept_desc { get; set; }
 
     /// <summary>
     /// User who created the record.
@@ -55,13 +53,9 @@ public partial class ref_unit
     /// </summary>
     public bool? is_deleted { get; set; }
 
-    public int? dept_id { get; set; }
+    public virtual ICollection<mst_patrol_schedule> mst_patrol_schedules { get; set; } = new List<mst_patrol_schedule>();
 
-    public string? dept_name { get; set; }
+    public virtual ICollection<ref_divisionss> ref_divisionsses { get; set; } = new List<ref_divisionss>();
 
-    public string? div_name { get; set; }
-
-    public virtual ref_department? dept { get; set; }
-
-    public virtual ref_division? div { get; set; }
+    public virtual ICollection<trn_inspection> trn_inspections { get; set; } = new List<trn_inspection>();
 }
