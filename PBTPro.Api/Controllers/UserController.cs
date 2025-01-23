@@ -517,7 +517,7 @@ namespace PBTPro.Api.Controllers
                 #endregion
                 await _dbContext.SaveChangesAsync();
 
-                return Ok("", SystemMesg(_feature, "UPDATE_SIGNATURE", MessageTypeEnum.Success, string.Format("Tandatangan berjaya disimpan")));
+                return Ok("", SystemMesg(_feature, "UPDATE_PROFILE", MessageTypeEnum.Success, string.Format("Berjaya mengemaskini profil")));
             }
             catch (Exception ex)
             {
