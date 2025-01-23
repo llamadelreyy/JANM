@@ -236,6 +236,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                int runUserID = await getDefRunUserId();
 
                 #region Validation
                 var permission = await _dbContext.permissions.FirstOrDefaultAsync(x => x.permission_id == Id);
@@ -245,9 +246,23 @@ namespace PBTPro.Api.Controllers
                 }
                 #endregion
 
-                _dbContext.permissions.Remove(permission);
-                await _dbContext.SaveChangesAsync();
+                try
+                {
+                    _dbContext.permissions.Remove(permission);
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    permission.is_deleted = true;
+                    permission.modifier_id = runUserID;
+                    permission.modified_at = DateTime.Now;
 
+                    _dbContext.permissions.Update(permission);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+
+                }
                 return Ok(permission, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang kebenaran akses")));
             }
             catch (Exception ex)

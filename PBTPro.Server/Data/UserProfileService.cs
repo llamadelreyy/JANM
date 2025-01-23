@@ -67,7 +67,7 @@ namespace PBTPro.Data
 
         private string _baseReqURL = "/api/User";
         private string LoggerName = "";
-        private List<user_profile> _Profile { get; set; }
+        private List<user_profile_view> _Profile { get; set; }
 
         public UserProfileService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<UserProfileService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
@@ -186,7 +186,7 @@ namespace PBTPro.Data
         //    return result;
         //}
 
-        public async Task<ReturnViewModel> UpdateProfile(int id, user_profile inputModel)
+        public async Task<ReturnViewModel> UpdateProfile(int id, user_profile_view inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -194,7 +194,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/UpdateProfile/{inputModel.profile_id}";
+                string requestUrl = $"{_baseReqURL}/UpdateProfile/{inputModel.user_id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
