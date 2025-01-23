@@ -51,6 +51,7 @@ namespace PBTPro.Api.Controllers
             _userManager = userManager;
             _identityOptions = identityOptions.Value;
             _emailSender = emailSender;
+            SetTenantDbContext("tenant");
         }
 
         [HttpGet]
@@ -126,50 +127,39 @@ namespace PBTPro.Api.Controllers
                 var AvatarViewURL = baseImageViewURL + "/profile";
                 var SignatureViewURL = baseImageViewURL + "/signature";
 
-                var UserProfile = await _dbContext.user_profiles.Where(x => x.user_id == UserId).Select(x => new user_profile_view
+                var UserProfile = await _dbContext.Users.Where(x => x.Id == UserId)
+                .Select(x => new user_profile_view
                 {
-                    profile_id = x.profile_id,
-                    user_id = x.user_id.Value,
-                    unit_code = x.unit_code,
-                    div_code = x.div_code,
-                    dept_code = x.dept_code,
-                    nat_id = x.nat_id,
-                    race_id = x.race_id,
-                    gen_id = x.gen_id,
-                    profile_name = x.profile_name,
-                    profile_photoname = x.profile_photoname,
-                    profile_email = x.profile_email,
-                    profile_telno = x.profile_telno,
-                    profile_icno = x.profile_icno,
-                    profile_dob = x.profile_dob,
-                    profile_postcode = x.profile_postcode,
-                    profile_accept_term1 = x.profile_accept_term1,
-                    profile_accept_term2 = x.profile_accept_term2,
-                    profile_accept_term3 = x.profile_accept_term3,
-                    profile_last_login = x.profile_last_login,
-                    profile_signfile = x.profile_signfile,
-                    profile_employee_no = "ABC9090112",
-                    dept_name = "Penguatkuasa",
-                    div_name = "Operasi",
-                    unit_name = "Operasi & Penguatkuasa",
-                    profile_photo_url = !string.IsNullOrWhiteSpace(x.profile_photoname) ? AvatarViewURL + "/" + x.profile_photoname : AvatarViewURL + "/avatar-user-profile-icon.jpg",
-                    profile_signature_url = !string.IsNullOrWhiteSpace(x.profile_signfile) ? SignatureViewURL + "/" + x.profile_signfile : null
+                    user_id = x.Id,
+                    user_name = x.UserName,
+                    unit_id = x.unit_id,
+                    div_id = x.div_id,
+                    dept_id = x.dept_id,
+                    full_name = x.full_name,
+                    idno = x.IdNo,
+                    photo_filename = x.PhotoFilename,
+                    sign_filename = x.SignFilename,
+                    email = x.Email,
+                    phone_number = x.PhoneNumber,
+                    last_login = x.LastLogin,
+                    photo_path_url = !string.IsNullOrWhiteSpace(x.PhotoFilename) ? AvatarViewURL + "/" + x.PhotoFilename : AvatarViewURL + "/avatar-user-profile-icon.jpg",
+                    sign_path_url = !string.IsNullOrWhiteSpace(x.SignFilename) ? SignatureViewURL + "/" + x.SignFilename : null
                 }).AsNoTracking().FirstOrDefaultAsync();
 
-                if (UserProfile == null)
-                {
-                    UserProfile = await _dbContext.Users.Where(x => x.Id == UserId).Select(x => new user_profile_view
+                UserProfile.dept_name = await _tenantDBContext.ref_departments.Where(x => x.dept_id == UserProfile.dept_id).Select(x => x.dept_name).FirstOrDefaultAsync();
+                UserProfile.div_name = await _tenantDBContext.ref_divisions.Where(x => x.div_id == UserProfile.div_id).Select(x => x.div_name).FirstOrDefaultAsync();
+                UserProfile.unit_name = await _tenantDBContext.ref_units.Where(x => x.unit_id == UserProfile.unit_id).Select(x => x.unit_name).FirstOrDefaultAsync();
+                UserProfile.user_roles = await _dbContext.UserRoles.Where(x => x.UserId == UserProfile.user_id).Join(
+                    _dbContext.Roles,
+                    userRole => userRole.RoleId,
+                    roles => roles.Id,
+                    (userRole, roles) => new user_profile_role
                     {
-                        user_id = x.Id,
-                        profile_name = x.UserName,
-                        profile_email = x.Email,
-                        profile_employee_no = "ABC9090112",
-                        dept_name = "Penguatkuasa",
-                        div_name = "Operasi",
-                        unit_name = "Operasi & Penguatkuasa",
-                        profile_photo_url = AvatarViewURL + "/avatar-user-profile-icon.jpg",
-                    }).AsNoTracking().FirstOrDefaultAsync();
-                }
+                        Id = userRole.RoleId,
+                        Name = roles.Name,
+                        IsDefaultRole = userRole.IsDefaultRole,
+                    }
+                ).AsNoTracking().ToListAsync();
 
                 return Ok(UserProfile, SystemMesg(_feature, "VIEW_USER_PROFILE", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
@@ -208,8 +198,8 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_FILE_SIZE", MessageTypeEnum.Error, string.Format("saiz fail melebihi had yang dibenarkan, saiz fail maksimum yang dibenarkan ialah [0]."), param));
                 }
 
-                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.user_id == runUserID);
-
+                ApplicationUser? userProfile = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == runUserID);
+                /*
                 if (userProfile == null)
                 {
                     isNew = true;
@@ -222,9 +212,10 @@ namespace PBTPro.Api.Controllers
                         profile_telno = x.PhoneNumber
                     }).AsNoTracking().FirstOrDefaultAsync();
                 }
+                */
                 #endregion
 
-                string? FileName = userProfile.profile_signfile;
+                string? FileName = userProfile.PhotoFilename;
                 //D:\Workspace\Dotnet\New\PBTPro.Server\wwwroot\images\signature
                 if (InputModel.sign_image?.Length > 0)
                 {
@@ -238,19 +229,19 @@ namespace PBTPro.Api.Controllers
                         await InputModel.sign_image.CopyToAsync(stream);
                     }
 
-                    userProfile.profile_signfile = FileName;
+                    userProfile.SignFilename = FileName;
 
                     if (isNew == true)
                     {
-                        userProfile.creator_id = runUserID;
-                        userProfile.created_at = DateTime.Now;
-                        _dbContext.user_profiles.Add(userProfile);
+                        userProfile.CreatorId = runUserID;
+                        userProfile.CreatedAt = DateTime.Now;
+                        _dbContext.Users.Add(userProfile);
                     }
                     else
                     {
-                        userProfile.modifier_id = runUserID;
-                        userProfile.modified_at = DateTime.Now;
-                        _dbContext.user_profiles.Update(userProfile);
+                        userProfile.ModifierId = runUserID;
+                        userProfile.ModifiedAt = DateTime.Now;
+                        _dbContext.Users.Update(userProfile);
                     }
                     await _dbContext.SaveChangesAsync();
                 }
@@ -292,8 +283,8 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_FILE_SIZE", MessageTypeEnum.Error, string.Format("saiz fail melebihi had yang dibenarkan, saiz fail maksimum yang dibenarkan ialah [0]."), param));
                 }
 
-                user_profile? userProfile = await _dbContext.user_profiles.FirstOrDefaultAsync(x => x.user_id == runUserID);
-
+                ApplicationUser? userProfile = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == runUserID);
+                /*
                 if (userProfile == null)
                 {
                     isNew = true;
@@ -306,9 +297,10 @@ namespace PBTPro.Api.Controllers
                         profile_telno = x.PhoneNumber
                     }).AsNoTracking().FirstOrDefaultAsync();
                 }
+                */
                 #endregion
 
-                string? FileName = userProfile.profile_photoname;
+                string? FileName = userProfile.PhotoFilename;
                 //D:\Workspace\Dotnet\New\PBTPro.Server\wwwroot\images\signature
                 if (InputModel.avatar_image?.Length > 0)
                 {
@@ -322,19 +314,19 @@ namespace PBTPro.Api.Controllers
                         await InputModel.avatar_image.CopyToAsync(stream);
                     }
 
-                    userProfile.profile_photoname = FileName;
+                    userProfile.PhotoFilename = FileName;
 
                     if (isNew == true)
                     {
-                        userProfile.creator_id = runUserID;
-                        userProfile.created_at = DateTime.Now;
-                        _dbContext.user_profiles.Add(userProfile);
+                        userProfile.CreatorId = runUserID;
+                        userProfile.CreatedAt = DateTime.Now;
+                        _dbContext.Users.Add(userProfile);
                     }
                     else
                     {
-                        userProfile.modifier_id = runUserID;
-                        userProfile.modified_at = DateTime.Now;
-                        _dbContext.user_profiles.Update(userProfile);
+                        userProfile.ModifierId = runUserID;
+                        userProfile.ModifiedAt = DateTime.Now;
+                        _dbContext.Users.Update(userProfile);
                     }
                     await _dbContext.SaveChangesAsync();
                 }
@@ -448,6 +440,84 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "UPDATE_PASSWORD", MessageTypeEnum.Error, string.Format("Gagal mengemaskini kata laluan")));
                 }
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateProfile([FromBody] update_profile_input_model InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                bool isNew = false;
+
+                if (runUserID != InputModel.user_id)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_USERID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                ApplicationUser? userProfile = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == runUserID);
+                if (userProfile == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_USERID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                #endregion
+
+                #region User
+                if (InputModel.full_name != null) userProfile.full_name = InputModel.full_name;
+                if(InputModel.idno != null) userProfile.IdNo = InputModel.idno;
+                if(InputModel.email != null) userProfile.Email = InputModel.email;
+                if(InputModel.phone_number != null) userProfile.PhoneNumber = InputModel.phone_number;
+                if(InputModel.photo_path_url != null) userProfile.PhotoPathUrl = InputModel.photo_path_url;
+                if(InputModel.photo_filename != null) userProfile.PhotoFilename = InputModel.photo_filename;
+                if(InputModel.sign_filename != null) userProfile.SignFilename = InputModel.sign_filename;
+                if(InputModel.dept_id.HasValue) userProfile.dept_id = InputModel.dept_id.Value;
+                if(InputModel.div_id.HasValue) userProfile.div_id = InputModel.div_id.Value;
+                if(InputModel.unit_id.HasValue) userProfile.unit_id = InputModel.unit_id.Value;
+                userProfile.ModifierId = runUserID;
+                userProfile.ModifiedAt = DateTime.Now;
+                _dbContext.Users.Update(userProfile);
+                #endregion
+
+                #region Default Role
+                if (InputModel.selected_role.HasValue)
+                {
+                    var user_roles = await _dbContext.UserRoles.Where(x => x.UserId == userProfile.Id).ToListAsync();
+
+                    var currDef = user_roles.FirstOrDefault(x => x.IsDefaultRole == true);
+                    var newDef = user_roles.FirstOrDefault(x => x.RoleId == InputModel.selected_role);
+
+                    if(currDef != null && currDef.RoleId != newDef.RoleId)
+                    {
+                        currDef.IsDefaultRole = false;
+                        currDef.ModifiedAt = DateTime.Now;
+                        currDef.ModifierId = runUserID;
+                        _dbContext.UserRoles.Update(currDef);
+
+                        newDef.IsDefaultRole = true;
+                        newDef.ModifiedAt = DateTime.Now;
+                        newDef.ModifierId = runUserID;
+                        _dbContext.UserRoles.Update(newDef);
+                    }
+                    if(currDef == null)
+                    {
+                        newDef.IsDefaultRole = true;
+                        newDef.ModifiedAt = DateTime.Now;
+                        newDef.ModifierId = runUserID;
+                        _dbContext.UserRoles.Update(newDef);
+                    }
+                }
+                #endregion
+                await _dbContext.SaveChangesAsync();
+
+                return Ok("", SystemMesg(_feature, "UPDATE_SIGNATURE", MessageTypeEnum.Success, string.Format("Tandatangan berjaya disimpan")));
             }
             catch (Exception ex)
             {
@@ -728,8 +798,22 @@ namespace PBTPro.Api.Controllers
                 }
                 #endregion
 
-                _dbContext.Users.Update(users);
-                await _dbContext.SaveChangesAsync();
+                try
+                {
+                    _dbContext.Users.Remove(users);
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    users.IsDeleted = true;
+                    users.ModifierId = runUserID;
+                    users.ModifiedAt = DateTime.Now;
+
+                    _dbContext.Users.Update(users);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                }
 
                 return Ok(users, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
