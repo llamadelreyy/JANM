@@ -16,7 +16,6 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
-using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using System.Data;
 
@@ -28,14 +27,16 @@ namespace PBTPro.Api.Controllers
     {       
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
+        protected PBTProTenantDbContext _tenantDBContext;
 
         private string LoggerName = "administrator";
         private readonly string _feature = "DASHBOARD";
 
-        public DashboardController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<DashboardController> logger) : base(dbContext, tntdbContext)
+        public DashboardController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<DashboardController> logger) : base(dbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
             _configuration = configuration;
+            _tenantDBContext = tntdbContext;
         }
 
         #region stoc proc example       
@@ -72,7 +73,38 @@ namespace PBTPro.Api.Controllers
             {
             }
         }
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> TotalPremisLicenseSP()
+        {
+            try
+            {
+                using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
+                {
+                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("SELECT tenant.func_totalpremislicense()", myConn))
+                    {
+                        myConn.Open();
 
+                        var total = myCmd.ExecuteScalar();
+
+                        if (total == null)
+                        {
+                            return Error("", SystemMesg("COMMON", "NO_DATA", MessageTypeEnum.Error, "No data found."));
+                        }
+                        int totalCount = Convert.ToInt32(total);
+
+                        return Ok(new { totalCount = totalCount }, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, "Senarai rekod berjaya dijana"));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+            finally
+            {
+            }
+        }
         #endregion
 
         #region jenis-jenis notis
@@ -86,7 +118,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var result = await _tntDbContext.trn_notices.CountAsync();
+                var result = await _tenantDBContext.trn_notices.CountAsync();
                 if (result == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
@@ -109,7 +141,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var result = await _tntDbContext.trn_compounds.CountAsync();
+                var result = await _tenantDBContext.trn_compounds.CountAsync();
                 if (result == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
@@ -132,7 +164,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var result = await _tntDbContext.trn_inspections.CountAsync();
+                var result = await _tenantDBContext.trn_inspections.CountAsync();
                 if (result == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
@@ -156,7 +188,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var result = await _tntDbContext.trn_confiscations.CountAsync();
+                var result = await _tenantDBContext.trn_confiscations.CountAsync();
                 if (result == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
@@ -183,7 +215,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var result = await _tntDbContext.mst_premis.Where(x => x.lesen != null).CountAsync();
+                var result = await _tenantDBContext.mst_premis.Where(x => x.lesen != null).CountAsync();
                 if (result == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
@@ -212,7 +244,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var result = await _tntDbContext.mst_premis.Where(x => x.lesen == null).CountAsync();
+                var result = await _tenantDBContext.mst_premis.Where(x => x.lesen == null).CountAsync();
                 if (result == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
@@ -240,7 +272,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var result = await _tntDbContext.mst_licensees.Where(x => x.status_id == 1).CountAsync();
+                var result = await _tenantDBContext.mst_licensees.Where(x => x.status_id == 1).CountAsync();
                 if (result == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
@@ -263,7 +295,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var result = await _tntDbContext.mst_licensees.Where(x => x.status_id == 2).CountAsync();
+                var result = await _tenantDBContext.mst_licensees.Where(x => x.status_id == 2).CountAsync();
                 if (result == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
