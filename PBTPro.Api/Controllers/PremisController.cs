@@ -247,6 +247,55 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("GetHistoryList")]
+        public async Task<IActionResult> GetHistoryList(int? crs = null)
+        {
+            try
+            {
+
+                IQueryable<mst_premis> initQuery = _dbContext.mst_premis.Where(x => PostGISFunctions.ST_IsValid(x.geom));
+
+                if (crs != null && crs == _defCRS)
+                {
+                    initQuery = initQuery
+                        .Select(x => new mst_premis { gid = x.gid, geom = (NetTopologySuite.Geometries.Point)PostGISFunctions.ST_Transform(x.geom, crs.Value) });
+                }
+
+                var mst_premis = await initQuery
+                .Select(x => new PremisMarkerViewModel
+                {
+                    gid = x.gid,
+                    lot = x.lot,
+                    status_cukai = x.tempoh_sah_cukai == null
+                                ? "None"
+                                : x.tempoh_sah_cukai > DateOnly.FromDateTime(DateTime.Now)
+                                    ? "Active"
+                                    : "Expired",
+                    status_lesen = x.tempoh_sah_lesen == null
+                                ? "None"
+                                : x.tempoh_sah_lesen > DateOnly.FromDateTime(DateTime.Now)
+                                    ? "Active"
+                                    : "Expired",
+
+                    geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.geom)),
+                })
+                .ToListAsync();
+
+
+                if (mst_premis.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                //mst_lots = await _dbContext.mst_lots.AsNoTracking().ToListAsync();
+                return Ok(mst_premis, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
 
         #region private logic
         private static string GenerateRandomString(int length)
