@@ -19,7 +19,7 @@ namespace PBTPro.Api.Controllers.Base
         protected readonly string? _apiBaseUrl;
         protected readonly PBTProTenantDbContext _tntDbContext;
 
-        public IBaseController(PBTProDbContext dbContext = null, PBTProTenantDbContext tntdbContext = null)
+        public IBaseController(PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext=null)
         {
             _dbContext = dbContext; 
             _tntDbContext = tntdbContext;

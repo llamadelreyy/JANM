@@ -64,8 +64,8 @@ builder.Services.AddSignalR(hubOptions =>
 builder.Services.AddDbContext<PBTProDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
 
-//builder.Services.AddDbContext<PBTProTenantDbContext>(options =>
-//        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
+builder.Services.AddDbContext<PBTProTenantDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
 #endregion
 
 #region Interface
