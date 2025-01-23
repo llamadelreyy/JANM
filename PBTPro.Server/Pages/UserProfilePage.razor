@@ -15,6 +15,7 @@
 @inject UserRoleService _UserRoleService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject NavigationManager NavigationManager
+@inject FileUrlStorageService _fileUrlStorageService
 
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -45,8 +46,9 @@
                                       MaxFileSize="4000000"
                                       SelectButtonText="Pilih fail imej"
                                       AllowMultiFileUpload="false"
+                                          FileUploaded="@((args) => OnFileUploaded(args, userInfo))"
                                       AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png" })"
-                                      UploadUrl="@GetUploadUrl("api/UploadValidation/UploadFile/")"
+                                      UploadUrl="@GetUploadUrl("api/Upload/UploadFile/")"
                                       SelectedFilesChanged="@SelectedFilesChanged">
                             </DxUpload>
                             </div>
@@ -215,6 +217,12 @@
     protected string GetUploadUrl(string url)
     {
         return NavigationManager.ToAbsoluteUri(url).AbsoluteUri;
+    }
+
+    protected void OnFileUploaded(FileUploadEventArgs args, user_profile_view item)
+    {
+        var fileUrl = _fileUrlStorageService.Get(Guid.Parse(args.FileInfo.Guid));
+        item.profile_photo_url = fileUrl;
     }
     //================ ** ==================//
 
