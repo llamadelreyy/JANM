@@ -14,6 +14,7 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -206,6 +207,8 @@ namespace PBTPro.Api.Controllers
         private bool FaqExists(int id)
         {
             return (_dbContext.faq_infos?.Any(e => e.faq_id == id)).GetValueOrDefault();
-        }       
+        }
+
+       
     }
 }

@@ -702,15 +702,18 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var patrol_member = await (from p in _dbContext.patrol_infos                                            
+                var patrol_member = await (from p in _dbContext.patrol_infos
                                            join pm in _dbContext.patrol_members on p.patrol_id equals pm.member_patrol_id
                                            where p.patrol_status == "Selesai" && pm.member_username == username
                                            select new
-                                           {
+                                           {                                              
+                                               p.patrol_start_dtm,
                                                pm.member_end_dtm,
-
+                                               PatrolDuration = p.patrol_start_dtm != null && pm.member_end_dtm != null
+                                                ? (pm.member_end_dtm.Value - p.patrol_start_dtm.Value)
+                                                : (TimeSpan?)null
                                            }).FirstOrDefaultAsync();
-                                
+
                 return Ok(patrol_member, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -728,7 +731,7 @@ namespace PBTPro.Api.Controllers
                 int runUserID = await getDefRunUserId();
                 string runUser = await getDefRunUser();
 
-                var patrol = await _dbContext.patrol_infos.Where(x=> x.patrol_start_dtm == DateTime.Today && x.patrol_user_id == runUserID).Select(x => new
+                var patrol = await _dbContext.patrol_infos.Where(x => x.patrol_start_dtm == DateTime.Today && x.patrol_user_id == runUserID).Select(x => new
                 {
                     patrol_id = x.patrol_id,
                     patrol_cnt_notice = x.patrol_cnt_notice,
@@ -755,7 +758,7 @@ namespace PBTPro.Api.Controllers
                                     ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_end_location))
                                     : null
                 }).AsNoTracking().ToListAsync();
-            
+
                 return Ok(patrol, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, "Senarai rekod berjaya dijana"));
             }
             catch (Exception ex)

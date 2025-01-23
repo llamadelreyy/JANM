@@ -105,6 +105,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<trn_email_queue> trn_email_queues { get; set; }
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
@@ -1342,6 +1343,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasMaxLength(255)
                 .HasComment("Subject line of the email in the queue");
         });
+
 
         OnModelCreatingPartial(modelBuilder);
     }
