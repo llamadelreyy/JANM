@@ -304,6 +304,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                int runUserID = await getDefRunUserId();
 
                 #region Validation
                 var menu = await _dbContext.menus.FirstOrDefaultAsync(x => x.menu_id == Id);
@@ -313,8 +314,22 @@ namespace PBTPro.Api.Controllers
                 }
                 #endregion
 
-                _dbContext.menus.Remove(menu);
-                await _dbContext.SaveChangesAsync();
+                try
+                {
+                    _dbContext.menus.Remove(menu);
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    menu.is_deleted = true;
+                    menu.modifier_id = runUserID;
+                    menu.modified_at = DateTime.Now;
+
+                    _dbContext.menus.Update(menu);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                }
 
                 return Ok(menu, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }

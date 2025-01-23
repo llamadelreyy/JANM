@@ -160,7 +160,7 @@ namespace PBTPro.Api.Controllers
                         return Error("", SystemMesg(_feature, "REGISTER", MessageTypeEnum.Error, string.Format("Gagal mencipta pengguna, sila hubungi pentadbir sistem atau cuba semula kemudian.")));
                     }
                 }
-
+                /*
                 if (!string.IsNullOrWhiteSpace(model.Name))
                 {
                     user_profile up = new user_profile
@@ -179,7 +179,7 @@ namespace PBTPro.Api.Controllers
                     _dbContext.user_profiles.Add(up);
                     await _dbContext.SaveChangesAsync();
                 }
-
+                */
                 if (!string.IsNullOrWhiteSpace(user?.Email))
                 {
                     await SendEmailSelfRegisterMember(user.Email, user.UserName, model.Password, model.Name);
@@ -208,7 +208,7 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "USER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pengguna tidak sah.")));
                 }
                 
-                string Fullname = user.UserName;
+                string Fullname = user.full_name ?? user.UserName;
 
                 var LoginResult = await _signInManager.PasswordSignInAsync(user, model.Password, false, true);
                 if (LoginResult.Succeeded)
@@ -225,21 +225,21 @@ namespace PBTPro.Api.Controllers
                     };
 
                     var roles = await _userManager.GetRolesAsync(user);
-                    if (roles.Any(x=> x.ToUpper() == "ANGOTA PENGUATKUASA")) { isMobileUser = true; }
+                    if (roles.Any(x=> x.ToUpper() == "ANGGOTA PENGUATKUASA")) { isMobileUser = true; }
 
                     foreach (var role in roles)
                     {
                         authClaims.Add(new Claim(ClaimTypes.Role, role));
                     }
-
+                    /*
                     var userProfile = await _dbContext.user_profiles.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == user.Id);
                     if(userProfile != null)
                     {
                         Fullname = userProfile.profile_name;
                     }
-
+                    */
                     var token = _tokenService.GenerateJwtToken(authClaims, model.RememberMe);
-                    return Ok(new LoginResult {Fullname = user.UserName, Userid = user.Id, Username = user.UserName, Token = token, IsMobileUser = isMobileUser, Roles = roles.ToList() }, SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
+                    return Ok(new LoginResult {Fullname = Fullname, Userid = user.Id, Username = user.UserName, Token = token, IsMobileUser = isMobileUser, Roles = roles.ToList() }, SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
                 }
                 else if (LoginResult.IsLockedOut)
                 {

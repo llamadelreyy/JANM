@@ -77,8 +77,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<permission> permissions { get; set; }
 
-    public virtual DbSet<user_profile> user_profiles { get; set; }
-
     public virtual DbSet<ref_department> ref_departments { get; set; }
 
     public virtual DbSet<ref_division> ref_divisions { get; set; }
@@ -954,44 +952,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
             entity.Property(e => e.role_id).HasComment("Identifier for the role associated with the core.permission.");
-        });
-
-        modelBuilder.Entity<user_profile>(entity =>
-        {
-            entity.HasKey(e => e.profile_id).HasName("user_profiles_pkey");
-
-            entity.ToTable("user_profiles", "core");
-
-            entity.HasIndex(e => e.profile_email, "user_profiles_profile_email_key").IsUnique();
-
-            entity.HasIndex(e => e.profile_icno, "user_profiles_profile_icno_key").IsUnique();
-
-            entity.Property(e => e.created_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.dept_code).HasMaxLength(10);
-            entity.Property(e => e.div_code).HasMaxLength(10);
-            entity.Property(e => e.is_deleted).HasDefaultValue(false);
-            entity.Property(e => e.modified_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.profile_accept_term1).HasDefaultValue(false);
-            entity.Property(e => e.profile_accept_term2).HasDefaultValue(false);
-            entity.Property(e => e.profile_accept_term3).HasDefaultValue(false);
-            entity.Property(e => e.profile_email).HasMaxLength(150);
-            entity.Property(e => e.profile_icno)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.profile_last_login).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.profile_name).HasMaxLength(100);
-            entity.Property(e => e.profile_photoname).HasMaxLength(255);
-            entity.Property(e => e.profile_postcode)
-                .HasMaxLength(10)
-                .IsFixedLength();
-            entity.Property(e => e.profile_signfile).HasMaxLength(255);
-            entity.Property(e => e.profile_telno).HasMaxLength(150);
-            entity.Property(e => e.unit_code).HasMaxLength(10);
-
         });
 
         modelBuilder.Entity<ref_department>(entity =>
