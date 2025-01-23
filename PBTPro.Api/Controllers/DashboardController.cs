@@ -32,54 +32,48 @@ namespace PBTPro.Api.Controllers
         private string LoggerName = "administrator";
         private readonly string _feature = "DASHBOARD";
 
-        public DashboardController(IConfiguration configuration, PBTProTenantDbContext dbContext, ILogger<DashboardController> logger) : base(null,dbContext)
+        public DashboardController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<DashboardController> logger) : base(dbContext, tntdbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
             _configuration = configuration;
         }
 
-        #region stoc proc example
+        #region stoc proc example       
 
         [AllowAnonymous]
-        [HttpPost]
-        public async Task<IActionResult> TotalLesen(auditlog_info inputModel, int intCurrentUserId)
+        [HttpGet]
+        public async Task<IActionResult> TotalNoticesSP()
         {
             try
             {
-                var runUserID = await getDefRunUserId();
-                var runUser = await getDefRunUser();
-
                 using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
                 {
-                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("call audit.proc_insertaudit(:_audit_role_id, :_audit_module_name, :_audit_description, :_created_by, :_audit_type, :_audit_username, :_audit_method)", myConn))
+                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("SELECT tenant.func_totalnotices()", myConn))
                     {
-                        myCmd.CommandType = CommandType.Text;
-                        myCmd.Parameters.AddWithValue("_audit_role_id", DbType.Int32).Value = inputModel.audit_role_id;
-                        myCmd.Parameters.AddWithValue("_audit_module_name", DbType.String).Value = inputModel.audit_module_name;
-                        myCmd.Parameters.AddWithValue("_audit_description", DbType.String).Value = inputModel.audit_description;
-                        myCmd.Parameters.AddWithValue("_created_by", DbType.Int32).Value = inputModel.created_by;
-                        myCmd.Parameters.AddWithValue("_audit_type", DbType.Int32).Value = inputModel.audit_type;
-                        myCmd.Parameters.AddWithValue("_audit_username", DbType.String).Value = inputModel.audit_username;
-                        myCmd.Parameters.AddWithValue("_audit_method", DbType.String).Value = inputModel.audit_method;
-
                         myConn.Open();
-                        myCmd.ExecuteNonQuery();
+
+                        var total = myCmd.ExecuteScalar();
+
+                        if (total == null)
+                        {
+                            return Error("", SystemMesg("COMMON", "NO_DATA", MessageTypeEnum.Error, "No data found."));
+                        }
+                        int totalCount = Convert.ToInt32(total);
+
+                        return Ok(new { totalCount = totalCount }, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, "Senarai rekod berjaya dijana"));
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception caught : InsertAudit - {0}", ex);
-                return Ok("", SystemMesg(_feature, "INSERT_LOG_AUDIT", MessageTypeEnum.Success, string.Format("Berjaya tambah log audit baru.")));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
             finally
             {
             }
-            return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
         }
 
         #endregion
-
 
         #region jenis-jenis notis
         /// <summary>
@@ -215,35 +209,6 @@ namespace PBTPro.Api.Controllers
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<int>> TotalPremisNoLicense()
-        {
-            try
-            {
-                var result = await _tntDbContext.mst_premis.Where(x => x.lesen == null).CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-
-            }
-        }
-
-
-        #endregion
-
-        #region Jumlah Premis diperiksa
-
-        /// <summary>
-        /// item c) jumlah premis tidak berlesen
-        /// </summary>
-        /// <returns></returns>        
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> TotalPremisInspected()
         {
             try
             {

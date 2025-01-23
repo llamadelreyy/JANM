@@ -8,7 +8,7 @@ using PBTPro.DAL.Tenant.Models;
 
 namespace PBTPro.DAL.Models;
 
-public partial class PBTProTenantDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, int>//DbContext
+public partial class PBTProTenantDbContext : DbContext
 {
     private string? _currentUser;
 
