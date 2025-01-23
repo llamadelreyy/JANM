@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using PBTPro.Api.Constants;
 using PBTPro.DAL;
@@ -16,15 +17,28 @@ namespace PBTPro.Api.Controllers.Base
     public class IBaseController : ControllerBase
     {
         protected readonly PBTProDbContext _dbContext;
+        private readonly IServiceProvider? _serviceProvider;
         protected readonly string? _apiBaseUrl;
-        protected readonly PBTProTenantDbContext _tntDbContext;
+        protected PBTProTenantDbContext _tenantDBContext;
 
-        public IBaseController(PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext=null)
+        public IBaseController(PBTProDbContext dbContext)
         {
-            _dbContext = dbContext; 
-            _tntDbContext = tntdbContext;
+            _dbContext = dbContext;
+            _tenantDBContext = null!;
         }
-      
+        // to use in child class just call SetTenantDbContext("tenant");
+        protected void SetTenantDbContext(string tenantSchema)
+        {
+            _tenantDBContext = new PBTProTenantDbContext(tenantSchema);
+        }
+
+        protected void EnsureTenantDbContextInitialized()
+        {
+            if (_tenantDBContext == null)
+            {
+                throw new InvalidOperationException("Tenant DB context has not been initialized.");
+            }
+        }
         /// <summary>
         /// OK data - 200
         /// </summary>
@@ -265,7 +279,7 @@ namespace PBTPro.Api.Controllers.Base
                         message_code = model.message_code,
                         message_type = model.message_type,
                         message_body = model.message_body,
-                        creator_id= runUserId,
+                        creator_id = runUserId,
                         created_at = DateTime.Now
                     };
                     _dbContext.app_system_msgs.Add(appSystemMessage);
@@ -383,7 +397,7 @@ namespace PBTPro.Api.Controllers.Base
             var extension = Path.GetExtension(file.FileName).ToLower();
             return allowedExtensions.Contains(extension);
         }
-        
+
         public static bool IsFileSizeWithinLimit(IFormFile file, long maxSizeInBytes)
         {
             return file.Length <= maxSizeInBytes;
@@ -398,7 +412,7 @@ namespace PBTPro.Api.Controllers.Base
             }
             return false;
         }
-        
+
         public static string FormatFileSize(long bytes)
         {
             const long KB = 1024;

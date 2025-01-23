@@ -14,7 +14,6 @@ public partial class ref_unit
     public int unit_id { get; set; }
 
     public int? div_id { get; set; }
-    public string div_name { get; set; } = null!;
 
     /// <summary>
     /// Code of the unit (e.g., PL-TR).
@@ -25,8 +24,6 @@ public partial class ref_unit
     /// Name of unit (e.g., Unit Kaunter).
     /// </summary>
     public string unit_name { get; set; } = null!;
-
-    public string unit_code_name => $"{unit_code} - {unit_name}";
 
     /// <summary>
     /// Description about the unit (e.g., Roles, Job Description, etc.).
@@ -58,6 +55,13 @@ public partial class ref_unit
     /// </summary>
     public bool? is_deleted { get; set; }
 
-    public int dept_id { get; set; }
+    public int? dept_id { get; set; }
+
     public string? dept_name { get; set; }
+
+    public string? div_name { get; set; }
+
+    public virtual ref_department? dept { get; set; }
+
+    public virtual ref_division? div { get; set; }
 }

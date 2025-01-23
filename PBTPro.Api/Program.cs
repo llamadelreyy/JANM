@@ -1,19 +1,17 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PBTPro.Api.Constants;
-using PBTPro.Api.Controllers;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
+using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 using PBTPro.DAL.Store;
-using PBTPro.Shared.Models.CommonService;
 using Prometheus;
-using Serilog.Events;
 using Serilog;
+using Serilog.Events;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -54,7 +52,8 @@ builder.Services.AddSignalR(hubOptions =>
     hubOptions.EnableDetailedErrors = true;
     hubOptions.KeepAliveInterval = TimeSpan.FromMinutes(1);
 })
-.AddJsonProtocol(options => {
+.AddJsonProtocol(options =>
+{
     options.PayloadSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
     //options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
     options.PayloadSerializerOptions.PropertyNamingPolicy = null;
@@ -152,7 +151,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     {
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15); 
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         options.Lockout.MaxFailedAccessAttempts = 3;
         options.Lockout.AllowedForNewUsers = true;
     })

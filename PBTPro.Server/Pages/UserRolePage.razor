@@ -24,6 +24,12 @@
     }
 </style>
 
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="\images\icons-small\xfn-friend.png" />
@@ -153,7 +159,6 @@
                                                     </label>
                                                 </div>
 
-
                                             }
                                         }
                                     </div>
@@ -183,6 +188,7 @@
     </DxGrid>
 
 </div>
+</DxLoadingPanel>
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
@@ -199,6 +205,7 @@
 
 
 @code {
+    bool PanelVisible { get; set; }
     IEnumerable<ApplicationUserRole> dataSource;
     IEnumerable<ApplicationUser> dataUser;
     IEnumerable<ApplicationRole> dataRole;
@@ -221,6 +228,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         //intCurrentUserId = _AllocationAuthenticationStateProvider.CurrentUser.userID;
         dataSource = await _UserRoleService.ListAll();
         dataUser = await _UserService.ListAll();
@@ -228,6 +236,7 @@
         dataUserRole = await _UserRoleService.ListsAll();
         // // valueRole = dataRole;
         DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
 
     protected void CheckboxChanged(ChangeEventArgs e, int key)
@@ -386,6 +395,7 @@
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
+        dataSource = await _UserRoleService.ListAll();
         dataUserRole = await _UserRoleService.Refresh();
     }
 
