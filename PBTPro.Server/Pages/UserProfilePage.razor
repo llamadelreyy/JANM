@@ -17,6 +17,14 @@
 @inject NavigationManager NavigationManager
 @inject FileUrlStorageService _fileUrlStorageService
 
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
         <img class="imgTitle" src="/images/icons-small/card-address.png" />
@@ -47,6 +55,7 @@
                                       SelectButtonText="Pilih fail imej"
                                       AllowMultiFileUpload="false"
                                           FileUploaded="@((args) => OnFileUploaded(args, userInfo))"
+                                              ChunkSize="20000"
                                       AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png" })"
                                       UploadUrl="@GetUploadUrl("api/Upload/UploadFile/")"
                                       SelectedFilesChanged="@SelectedFilesChanged">
@@ -114,40 +123,35 @@
                                    CssClass="cw-480"
                                    Enabled="false" />
                     </DxFormLayoutItem>
-                    @*
+                    
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>Peranan</div>
-                        <DxTextBox @bind-Text="@userInfo.role"
-                                   NullText="Peranan pengguna ..."
-                                   BindValueMode="BindValueMode.OnInput"
-                                   CssClass="cw-480"
-                                   Enabled="false" />
+                        <DxComboBox Data="@userInfo.user_roles"
+                                    NullText="Pilih peranan ..."
+                                    ShowValidationIcon="true"
+                                    FilteringMode="DataGridFilteringMode.Contains"
+                                    @bind-Value="@intCurrentRoleId"
+                                    TextFieldName="Name"
+                                    ValueFieldName="Id"
+                                    CssClass="cw-480">
+                            </DxComboBox>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="4"></DxFormLayoutItem>
-                    *@
+                   
 
                     <DxFormLayoutItem ColSpanMd="6">
                         <div>Nama</div>
                         <DxTextBox @bind-Text="@userInfo.full_name"
                                    NullText="Nama Pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
+                                   ShowValidationIcon="true"
                                    CssClass="cw-480"
-                                   Enabled="true" />
+                                   Enabled="false" />
                     </DxFormLayoutItem>
 
                     <DxFormLayoutItem ColSpanMd="6">
                         <div>Emel</div>
-@*                         <DxMaskedInput @bind-Value="@userInfo.profile_email"
-                                       CssClass="cw-320"
-                                       NullText="@("_@_.__")"
-                                       Mask="@EmailMask"
-                                       Maxlength="60"
-                                       ShowValidationIcon="true"
-                                       MaskMode="MaskMode.RegEx">
-                            <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
-                                                   Placeholder="Placeholder"
-                                                   PlaceholdersVisible="PlaceholderVisible" />
-                        </DxMaskedInput> *@
+
                         <DxMaskedInput @bind-Value="@userInfo.email"
                                        CssClass="cw-320"
                                        NullText="@("_@_.__")"
@@ -168,7 +172,7 @@
                                   SubmitFormOnClick="true">
                         </DxButton>
                     </DxFormLayoutItem>
-
+                        <MyCustomValidator DataItemValidating="ValidateData" />
                 </DxFormLayout>
                 <div class="row w-100 mx-0">
                     <p class="demo-text col-12 mt-2">
@@ -177,24 +181,20 @@
                     </p>
                 </div>
             </EditForm>
-
         </div>
     </div>
 </div>
+</DxLoadingPanel>
 
 @code {
+    bool PanelVisible { get; set; }
     [Inject] IToastNotificationService ToastService { get; set; }
     user_profile_view userInfo = new user_profile_view();
 
-    // IEnumerable<user_profile_view> dataSource;
-    // IEnumerable<department_info> dtDepartment;
-    // IEnumerable<section_info> dtSection;
-    // IEnumerable<unit_info> dtUnit;
-    // IEnumerable<user_role> dtRoles;
-
     //Get current user id
     // string strPhotoPath { get; set; } = "images/profile/avatar-user-profile-icon.jpg";
-    int intCurrentUserId { get; set; } = 0;
+    // int intCurrentUserId { get; set; } = 0;
+    int intCurrentRoleId { get; set; } = 0;
     string FormValidationState = @"Sila tekan butang ""Simpan"" untuk sahkan data.";
 
     IEnumerable<char> PredefinedPlaceholders { get; set; } = new List<char>() { '_', '#' };
@@ -222,30 +222,40 @@
     protected void OnFileUploaded(FileUploadEventArgs args, user_profile_view item)
     {
         var fileUrl = _fileUrlStorageService.Get(Guid.Parse(args.FileInfo.Guid));
-        item.profile_photo_url = fileUrl;
+        item.photo_path_url = fileUrl;
     }
     //================ ** ==================//
 
     protected override async Task OnInitializedAsync()
     {
-        intCurrentUserId = _PBTAuthStateProvider.CurrentUser.Userid;
+        PanelVisible = true;
+        // intCurrentUserId = _PBTAuthStateProvider.CurrentUser.Userid;
         userInfo = await _UserProfileService.Retrieve();
 
-        // if (!string.IsNullOrWhiteSpace(userInfo.profile_photo_url))
-        //     strPhotoPath = userInfo.profile_photo_url;
+        List<user_profile_role> user_roles = userInfo.user_roles;
 
-        //dataSource = await _UserProfileService.Retrieve("1");
-        // if (dataSource != null)
-        //     userInfo = dataSource.FirstOrDefault();
+        //Get the current role if user has more than 1 role
+        int intRoleId = 0;
+        foreach (var item in user_roles)
+        {
+            if (item.IsDefaultRole)
+                intCurrentRoleId = item.Id;
 
-        // dtDepartment = await _DepartmentService.GetAllDepartment();
-        // dtSection = await _SectionService.GetAllSection();
-        // dtUnit = await _UnitService.GetAllUnit();
-        // dtRoles = await _UserRoleService.GetRolesByUserAsync(_PBTAuthStateProvider.CurrentUser.Userid);
+
+            if (intRoleId > item.Id)
+                intRoleId = item.Id;
+            else if (intRoleId == 0)
+                intRoleId = item.Id;
+        }
+
+        //If default role is not set than get the lowest role id to be the default role
+        if (intCurrentRoleId == 0)
+            intCurrentRoleId = intRoleId;
 
         DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
-        
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -254,12 +264,56 @@
         }
     }
 
+    void ValidateData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (user_profile_view)e.EditModel;
+        if (_data.full_name == null || _data.full_name.Trim() == "")
+        {
+            e.AddError(nameof(_data.full_name), "Medan Nama pengguna perlu diisi.");
+        }
+
+        if (_data.phone_number == null || _data.phone_number.Trim() == "")
+        {
+            e.AddError(nameof(_data.phone_number), "Medan No Telefon perlu diisi.");
+        }
+
+        if (_data.email == null || _data.email.Trim() == "")
+        {
+            e.AddError(nameof(_data.email), "Medan emel perlu diisi.");
+        }
+
+        if (intCurrentRoleId == 0)
+        {
+            e.AddError(nameof(_data.dept_id), "Sila pilih Peranan dari senarai.");
+        }
+
+    }
+
+
     public async Task HandleValidSubmit()
     {
+
         FormValidationState = @"Maklumat yang dimasukkan sah.";
         ReturnViewModel response = new ReturnViewModel();
+        update_profile_input_model user_info_update = new update_profile_input_model();
 
-        response = await _UserProfileService.UpdateProfile(intCurrentUserId, userInfo);
+        //Assign the updated value to new model
+        user_info_update.idno = userInfo.idno;
+        user_info_update.user_id = userInfo.user_id;
+        user_info_update.user_name = userInfo.user_name;
+        user_info_update.sign_path_url = userInfo.sign_path_url;
+        user_info_update.sign_filename = userInfo.sign_filename;
+        user_info_update.div_id = userInfo.div_id;
+        user_info_update.dept_id = userInfo.dept_id;
+        user_info_update.unit_id = userInfo.unit_id;
+        user_info_update.email = userInfo.email;
+        user_info_update.full_name = userInfo.full_name;
+        user_info_update.phone_number = userInfo.phone_number;
+        user_info_update.photo_filename = "my_proile";
+        user_info_update.selected_role = intCurrentRoleId;
+        user_info_update.photo_path_url = userInfo.photo_path_url;
+
+        response = await _UserProfileService.UpdateProfile(user_info_update);
 
         if (response.ReturnCode == 200)
         {

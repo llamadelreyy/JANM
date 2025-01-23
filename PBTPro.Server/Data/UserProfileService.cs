@@ -186,7 +186,7 @@ namespace PBTPro.Data
         //    return result;
         //}
 
-        public async Task<ReturnViewModel> UpdateProfile(int id, user_profile_view inputModel)
+        public async Task<ReturnViewModel> UpdateProfile(update_profile_input_model inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -194,11 +194,18 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/UpdateProfile/{inputModel.user_id}";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
+                string requestUrl = $"{_baseReqURL}/UpdateProfile";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
+                if (response.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini profil pengguna.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "TIdak berjaya kemaskini profil pengguna.", 1, LoggerName, "");
+                }
 
             }
             catch (Exception ex)

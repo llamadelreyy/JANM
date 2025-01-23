@@ -25,7 +25,7 @@ namespace PBTPro.Controllers {
         [Route("UploadFile")]
         [DisableRequestSizeLimit]
         public ActionResult UploadFile(IFormFile ImageUpload, string chunkMetadata) {
-            var tempPath = Path.Combine(_hostingEnvironment.WebRootPath, "tempDocument");
+            var tempPath = Path.Combine(_hostingEnvironment.WebRootPath, "images", "tempProfile");
             // Removes temporary files
             RemoveTempFilesAfterDelay(tempPath, new TimeSpan(0, 5, 0));
 
@@ -46,7 +46,7 @@ namespace PBTPro.Controllers {
                         //ProcessUploadedFile(tempFilePath, metaDataObject.FileName);
                         //_fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), @"Document\" + metaDataObject.FileName);
                         ProcessUploadedFile(tempFilePath, strNewFileName);
-                        _fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), @"Document\" + strNewFileName);
+                        _fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), @"\images\Profile\" + strNewFileName);
 
                     }
                 }
@@ -63,7 +63,7 @@ namespace PBTPro.Controllers {
                     file.Delete();
         }
         void ProcessUploadedFile(string tempFilePath, string fileName) {
-            var path = Path.Combine(_hostingEnvironment.WebRootPath, "Document");
+            var path = Path.Combine(_hostingEnvironment.WebRootPath, "images", "Profile");
             var imagePath = Path.Combine(path, fileName);
             if (System.IO.File.Exists(imagePath))
                 System.IO.File.Delete(imagePath);
