@@ -41,9 +41,10 @@ namespace PBTPro.Data
         private readonly ILogger<RoleMenuService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
-
         private string _baseReqURL = "/api/RoleMenu";
         private string LoggerName = "";
+
+
         private List<role_menu> _RoleMenu { get; set; }
         
         public RoleMenuService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<RoleMenuService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)

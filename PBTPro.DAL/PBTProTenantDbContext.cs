@@ -1,45 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using PBTPro.DAL.Services;
-using PBTPro.DAL.Tenant.Models;
+using PBTPro.DAL.Models;
 
-namespace PBTPro.DAL.Models;
+namespace PBTPro.DAL;
 
 public partial class PBTProTenantDbContext : DbContext
 {
-    private string? _currentUser;
-
-    public PBTProTenantDbContext(DbContextOptions<PBTProTenantDbContext> options)
-        : base(options)
-    {
-    }
-    public PBTProTenantDbContext()
-    {
-    }
-    public PBTProTenantDbContext(string RunUser)
-    {
-        _currentUser = RunUser;
-    }
-    public PBTProTenantDbContext(DbContextOptions<PBTProTenantDbContext> options, UserResolverService userService)
-           : base(options)
-    {
-        _currentUser = userService.GetUser();
-    }
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile("appsettings.json")
-                .Build();
-            var test = configuration.GetConnectionString("DefaultConnection");
-            optionsBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite());
-        }
-    }
     public virtual DbSet<mst_ahlidun> mst_ahliduns { get; set; }
 
     public virtual DbSet<mst_ahlimajli> mst_ahlimajlis { get; set; }
@@ -78,9 +47,11 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<ref_deliver> ref_delivers { get; set; }
 
+    public virtual DbSet<ref_department> ref_departments { get; set; }
 
     public virtual DbSet<ref_departmentss> ref_departmentsses { get; set; }
 
+    public virtual DbSet<ref_division> ref_divisions { get; set; }
 
     public virtual DbSet<ref_divisionss> ref_divisionsses { get; set; }
 
@@ -110,6 +81,7 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<ref_trn_status> ref_trn_statuses { get; set; }
 
+    public virtual DbSet<ref_unit> ref_units { get; set; }
 
     public virtual DbSet<ref_unitss> ref_unitsses { get; set; }
 
@@ -128,8 +100,6 @@ public partial class PBTProTenantDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
-
-        modelBuilder.HasDefaultSchema("tenant");
 
         modelBuilder.Entity<mst_ahlidun>(entity =>
         {
@@ -817,6 +787,36 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.modifier_id).HasDefaultValue(0);
         });
 
+        modelBuilder.Entity<ref_department>(entity =>
+        {
+            entity.HasKey(e => e.dept_id).HasName("ref_department_pkey");
+
+            entity.ToTable("ref_department", "tenant", tb => tb.HasComment("This table stores information about departments under PBT (e.g., Jabatan Pelesenan)."));
+
+            entity.HasIndex(e => e.dept_code, "ref_department_dept_code_key").IsUnique();
+
+            entity.Property(e => e.dept_id).HasComment("Unique identifier for each department record (Primary Key).");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasComment("User who created the record.");
+            entity.Property(e => e.dept_code)
+                .HasMaxLength(10)
+                .HasComment("Code of the department (e.g., PL).");
+            entity.Property(e => e.dept_desc).HasComment("Description about the department (e.g., Roles, Job Description, etc.).");
+            entity.Property(e => e.dept_name)
+                .HasMaxLength(40)
+                .HasComment("Name of the department (e.g., Jabatan Pelesenan).");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Logical delete flag indicating if the record is active or deleted.");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was last updated.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+        });
 
         modelBuilder.Entity<ref_departmentss>(entity =>
         {
@@ -849,6 +849,41 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
         });
 
+        modelBuilder.Entity<ref_division>(entity =>
+        {
+            entity.HasKey(e => e.div_id).HasName("ref_division_pkey");
+
+            entity.ToTable("ref_division", "tenant", tb => tb.HasComment("This table stores information about divisions under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
+
+            entity.HasIndex(e => new { e.div_code, e.dept_name }, "ref_division_div_code_key").IsUnique();
+
+            entity.Property(e => e.div_id).HasComment("Unique identifier for each division record (Primary Key).");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasComment("User who created the record.");
+            entity.Property(e => e.dept_name).HasMaxLength(100);
+            entity.Property(e => e.div_code)
+                .HasMaxLength(10)
+                .HasComment("Code of the division (e.g., PL-TR).");
+            entity.Property(e => e.div_desc).HasComment("Description about the division (e.g., Roles, Job Description, etc.).");
+            entity.Property(e => e.div_name)
+                .HasMaxLength(40)
+                .HasComment("Name of division (e.g., Bahagian TRED dan Perniagaan dan Industri).");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Logical delete flag indicating if the record is active or deleted.");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was last updated.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+
+            entity.HasOne(d => d.dept).WithMany(p => p.ref_divisions)
+                .HasForeignKey(d => d.dept_id)
+                .HasConstraintName("fk_div_id_belongs_to_dept_id");
+        });
 
         modelBuilder.Entity<ref_divisionss>(entity =>
         {
@@ -1297,7 +1332,46 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasComment("Name of the transaction status (e.g., Baru, Dalam Tindakan, Tutup).");
         });
 
-     
+        modelBuilder.Entity<ref_unit>(entity =>
+        {
+            entity.HasKey(e => e.unit_id).HasName("ref_unit_pkey");
+
+            entity.ToTable("ref_unit", "tenant", tb => tb.HasComment("This table stores information about unit under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
+
+            entity.HasIndex(e => new { e.unit_code, e.dept_name }, "ref_unit_unit_code_key").IsUnique();
+
+            entity.Property(e => e.unit_id).HasComment("Unique identifier for each unit under division");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasComment("User who created the record.");
+            entity.Property(e => e.dept_name).HasMaxLength(100);
+            entity.Property(e => e.div_name).HasMaxLength(100);
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Logical delete flag indicating if the record is active or deleted.");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was last updated.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+            entity.Property(e => e.unit_code)
+                .HasMaxLength(10)
+                .HasComment("Code of the unit (e.g., PL-TR).");
+            entity.Property(e => e.unit_desc).HasComment("Description about the unit (e.g., Roles, Job Description, etc.).");
+            entity.Property(e => e.unit_name)
+                .HasMaxLength(40)
+                .HasComment("Name of unit (e.g., Unit Kaunter).");
+
+            entity.HasOne(d => d.dept).WithMany(p => p.ref_units)
+                .HasForeignKey(d => d.dept_id)
+                .HasConstraintName("fk_div_id_belongs_to_dept_id");
+
+            entity.HasOne(d => d.div).WithMany(p => p.ref_units)
+                .HasForeignKey(d => d.div_id)
+                .HasConstraintName("fk_unit_id_belongs_to_div_id");
+        });
 
         modelBuilder.Entity<ref_unitss>(entity =>
         {

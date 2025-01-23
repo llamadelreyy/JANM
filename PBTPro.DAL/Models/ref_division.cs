@@ -23,8 +23,6 @@ public partial class ref_division
     /// </summary>
     public string div_name { get; set; } = null!;
 
-    public string div_code_name => $"{div_code} - {div_name}";
-
     /// <summary>
     /// Description about the division (e.g., Roles, Job Description, etc.).
     /// </summary>
@@ -58,4 +56,8 @@ public partial class ref_division
     public int? dept_id { get; set; }
 
     public string? dept_name { get; set; }
+
+    public virtual ref_department? dept { get; set; }
+
+    public virtual ICollection<ref_unit> ref_units { get; set; } = new List<ref_unit>();
 }

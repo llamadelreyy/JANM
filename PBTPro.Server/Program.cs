@@ -110,6 +110,7 @@ builder.Services.AddTransient<BkgrTaskSMService>();
 builder.Services.AddTransient<ContactUsService>();
 builder.Services.AddTransient<MenuService>();
 builder.Services.AddTransient<PermissionService>();
+builder.Services.AddTransient<EmailerService>();
 
 
 builder.Services.AddSingleton<FileUrlStorageService>();
