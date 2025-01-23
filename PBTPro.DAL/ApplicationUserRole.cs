@@ -22,6 +22,7 @@ namespace PBTPro.DAL
         public DateTime? ModifiedAt { get; set; }
         public int? ModifierId { get; set; }
         public bool IsDeleted { get; set; }
+        public bool IsDefaultRole { get; set; }
         //role_id
         public int RoleId { get; set; }        
         //user_id

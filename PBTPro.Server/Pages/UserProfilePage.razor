@@ -32,7 +32,7 @@
                     <DxFormLayoutItem ColSpanMd="2">
                         <div class="align-items-center align-content-center">
                             @* <img class="profile-photo" src="images/profile/avatar-user-profile-icon.jpg" alt="" /> *@
-                            <img class="profile-photo" src="@userInfo.profile_photo_url" alt="@userInfo.profile_photoname" />
+                            <img class="profile-photo" src="@userInfo.photo_path_url" alt="@userInfo.photo_filename" />
                         </div>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="10">
@@ -81,7 +81,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>No Kad Pengenalan</div>
-                        <DxTextBox @bind-Text="@userInfo.profile_icno"
+                        <DxTextBox @bind-Text="@userInfo.idno"
                                    NullText="cth:750727085221 ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -90,7 +90,7 @@
 
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>No Telefon</div>
-                        <DxMaskedInput @bind-Value="@userInfo.profile_telno"
+                        <DxMaskedInput @bind-Value="@userInfo.phone_number"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                        BindValueMode="BindValueMode.OnInput"
                                        Maxlength="14"
@@ -112,21 +112,21 @@
                                    CssClass="cw-480"
                                    Enabled="false" />
                     </DxFormLayoutItem>
-
+                    @*
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>Peranan</div>
-                        <DxTextBox @bind-Text="@userInfo.profile_role"
+                        <DxTextBox @bind-Text="@userInfo.role"
                                    NullText="Peranan pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
                                    Enabled="false" />
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="4"></DxFormLayoutItem>
-
+                    *@
 
                     <DxFormLayoutItem ColSpanMd="6">
                         <div>Nama</div>
-                        <DxTextBox @bind-Text="@userInfo.profile_name"
+                        <DxTextBox @bind-Text="@userInfo.full_name"
                                    NullText="Nama Pengguna ..."
                                    BindValueMode="BindValueMode.OnInput"
                                    CssClass="cw-480"
@@ -146,7 +146,7 @@
                                                    Placeholder="Placeholder"
                                                    PlaceholdersVisible="PlaceholderVisible" />
                         </DxMaskedInput> *@
-                        <DxMaskedInput @bind-Value="@userInfo.profile_email"
+                        <DxMaskedInput @bind-Value="@userInfo.email"
                                        CssClass="cw-320"
                                        NullText="@("_@_.__")"
                                        Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"

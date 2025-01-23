@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 using PBTPro.DAL.Services;
 using System.Reflection;
 using System.Text;
@@ -47,7 +48,7 @@ namespace PBTPro.Data
         private string _baseReqURL = "/api/User";
         private string _baseReqURLAuth = "/api/Authenticate";
         private string LoggerName = "";
-        private List<user_profile> _user { get; set; }
+        private List<user_profile_view> _user { get; set; }
 
         public UserService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<UserService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
@@ -235,15 +236,15 @@ namespace PBTPro.Data
             return result;
         }
 
-        public Task<List<user_profile>> GetUserAsync(CancellationToken ct = default)
+        public Task<List<user_profile_view>> GetUserAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai tetapan bangsa.", 1, LoggerName, "");
             return Task.FromResult(_user);
         }
 
-        public async Task<user_profile> ViewDetail(int id)
+        public async Task<user_profile_view> ViewDetail(int id)
         {
-            var result = new user_profile();
+            var result = new user_profile_view();
             try
             {
                 string requestquery = $"/{id}";
@@ -255,7 +256,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<user_profile>(dataString);
+                        result = JsonConvert.DeserializeObject<user_profile_view>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci.", 1, LoggerName, "");
                 }
@@ -266,7 +267,7 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new user_profile();
+                result = new user_profile_view();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;
