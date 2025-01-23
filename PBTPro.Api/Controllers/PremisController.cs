@@ -14,12 +14,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Operation.Overlay;
+using Newtonsoft.Json;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -92,12 +94,11 @@ namespace PBTPro.Api.Controllers
         [HttpGet]
         [Route("GetListByBound")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, int? crs = null)
+        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat,  string? filterType, int? crs = null)
         {
             try
             {
                 IQueryable<mst_premis> initQuery = _dbContext.mst_premis.Where(x => PostGISFunctions.ST_IsValid(x.geom));
-
 
                 if (crs == null || crs == _defCRS)
                 {
@@ -111,6 +112,8 @@ namespace PBTPro.Api.Controllers
                         .Where(x => PostGISFunctions.ST_Within(x.geom, PostGISFunctions.ST_Transform(PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value), _defCRS)))
                         .Select(x => new mst_premis { gid = x.gid, geom = (NetTopologySuite.Geometries.Point)PostGISFunctions.ST_Transform(x.geom,crs.Value) });
                 }
+
+               
 
                 var mst_premis = await initQuery
                 .Select(x => new PremisMarkerViewModel
@@ -131,6 +134,16 @@ namespace PBTPro.Api.Controllers
                     geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.geom)),
                 })
                 .ToListAsync();
+
+                List<String> ft = JsonConvert.DeserializeObject<List<String>>(filterType);
+
+                if (filterType != null && filterType.Any())
+                {
+                    mst_premis = mst_premis.Where(x =>
+                                    filterType.Contains(Convert.ToString(x.status_lesen)) ||
+                                    filterType.Contains(Convert.ToString(x.status_cukai))
+                                ).ToList();
+                }
 
                 if (mst_premis.Count == 0)
                 {
@@ -234,6 +247,55 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("GetHistoryList")]
+        public async Task<IActionResult> GetHistoryList(int? crs = null)
+        {
+            try
+            {
+
+                IQueryable<mst_premis> initQuery = _dbContext.mst_premis.Where(x => PostGISFunctions.ST_IsValid(x.geom));
+
+                if (crs != null && crs == _defCRS)
+                {
+                    initQuery = initQuery
+                        .Select(x => new mst_premis { gid = x.gid, geom = (NetTopologySuite.Geometries.Point)PostGISFunctions.ST_Transform(x.geom, crs.Value) });
+                }
+
+                var mst_premis = await initQuery
+                .Select(x => new PremisMarkerViewModel
+                {
+                    gid = x.gid,
+                    lot = x.lot,
+                    status_cukai = x.tempoh_sah_cukai == null
+                                ? "None"
+                                : x.tempoh_sah_cukai > DateOnly.FromDateTime(DateTime.Now)
+                                    ? "Active"
+                                    : "Expired",
+                    status_lesen = x.tempoh_sah_lesen == null
+                                ? "None"
+                                : x.tempoh_sah_lesen > DateOnly.FromDateTime(DateTime.Now)
+                                    ? "Active"
+                                    : "Expired",
+
+                    geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.geom)),
+                })
+                .ToListAsync();
+
+
+                if (mst_premis.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                //mst_lots = await _dbContext.mst_lots.AsNoTracking().ToListAsync();
+                return Ok(mst_premis, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
 
         #region private logic
         private static string GenerateRandomString(int length)

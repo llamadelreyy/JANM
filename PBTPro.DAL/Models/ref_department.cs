@@ -23,8 +23,6 @@ public partial class ref_department
     /// </summary>
     public string dept_name { get; set; } = null!;
 
-    public string dept_code_name => $"{dept_code} - {dept_name}";
-
     /// <summary>
     /// Description about the department (e.g., Roles, Job Description, etc.).
     /// </summary>
@@ -54,4 +52,8 @@ public partial class ref_department
     /// Logical delete flag indicating if the record is active or deleted.
     /// </summary>
     public bool? is_deleted { get; set; }
+
+    public virtual ICollection<ref_division> ref_divisions { get; set; } = new List<ref_division>();
+
+    public virtual ICollection<ref_unit> ref_units { get; set; } = new List<ref_unit>();
 }

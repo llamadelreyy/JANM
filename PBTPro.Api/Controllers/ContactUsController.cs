@@ -14,6 +14,7 @@ using DevExpress.XtraPrinting.Export;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
@@ -255,6 +256,39 @@ namespace PBTPro.Api.Controllers
             {
                 return false;
             }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> TotalCOntactus()
+        {
+            try
+            {
+                using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
+                {
+                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("SELECT core.func_totalcontactus()", myConn))
+                    {
+                        myConn.Open();
+
+                        var total = myCmd.ExecuteScalar();
+
+                        if (total == null)
+                        {
+                            return Error("", SystemMesg("COMMON", "NO_DATA", MessageTypeEnum.Error, "No data found."));
+                        }
+                        int totalCount = Convert.ToInt32(total);
+
+                        return Ok(new { totalCount = totalCount }, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, "Senarai rekod berjaya dijana"));
+                    }
+                }               
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+            finally
+            {
+            }           
         }
     }
 }

@@ -1,0 +1,62 @@
+﻿@page "/premishistory"
+@attribute [AllowAnonymous]
+
+@implements IDisposable
+
+@using PBTPro
+@using PBTPro.Shared
+@using PBTPro.Data
+@using PBTPro.DAL
+@using PBTPro.DAL.Models
+@using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.CommonServices
+@using DevExpress.Blazor
+
+@inject PremisService _PremisService
+@inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastService
+
+<style>
+    .dxbl-grid {
+        height: 98.5%;
+        max-height: 98.5%;
+    }
+</style>
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+    <div class="d-lg-flex border-bottom">
+        <div class="col-md-12 py-1 dx-helptitle pageTitle">
+            <img class="imgTitle" src="\images\icons-small\toolbox.png" />
+            <div class="textTitle">Peranan</div>
+        </div>
+    </div>
+
+    <div class="item-container-x">
+
+    </div>
+</DxLoadingPanel>
+
+
+    @code {
+
+        bool PanelVisible { get; set; }
+        IGrid Grid { get; set; }
+        int GridPageIndex { get; set; } = 0;
+        string GridSearchText = "";
+
+        bool ConfirmationShown { get; set; } = false;
+        string strSelected { get; set; }
+
+        TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void Dispose()
+        {
+        DataLoadedTcs.TrySetCanceled();
+        }
+
+    }
