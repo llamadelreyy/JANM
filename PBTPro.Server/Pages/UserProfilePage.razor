@@ -195,6 +195,7 @@
     // string strPhotoPath { get; set; } = "images/profile/avatar-user-profile-icon.jpg";
     // int intCurrentUserId { get; set; } = 0;
     int intCurrentRoleId { get; set; } = 0;
+    int intCurrentSelectedRoleId { get; set; } = 0;
     string FormValidationState = @"Sila tekan butang ""Simpan"" untuk sahkan data.";
 
     IEnumerable<char> PredefinedPlaceholders { get; set; } = new List<char>() { '_', '#' };
@@ -251,6 +252,9 @@
         //If default role is not set than get the lowest role id to be the default role
         if (intCurrentRoleId == 0)
             intCurrentRoleId = intRoleId;
+
+        //Hold the current selected role
+        intCurrentSelectedRoleId = intCurrentRoleId;
 
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
@@ -309,7 +313,7 @@
         user_info_update.email = userInfo.email;
         user_info_update.full_name = userInfo.full_name;
         user_info_update.phone_number = userInfo.phone_number;
-        user_info_update.photo_filename = "my_proile";
+        user_info_update.photo_filename = (userInfo.photo_path_url.Trim() != "" ? Path.GetFileName(userInfo.photo_path_url) : "") ;
         user_info_update.selected_role = intCurrentRoleId;
         user_info_update.photo_path_url = userInfo.photo_path_url;
 
@@ -325,12 +329,14 @@
                 Title = "Proses kemaskini katalaluan selesai."
             });
 
+            //If user changed current role than redirect user to login again
+            //if (intCurrentSelectedRoleId != intCurrentRoleId)
+            //{
+                await _PBTAuthStateProvider.LogoutAsync();
 
-            await _PBTAuthStateProvider.LogoutAsync();
-
-            //You actually need to NavigateTo your current Uri with force load. I use simple extension method for this
-            NavigationManager.NavigateTo("login", true);
-
+                //You actually need to NavigateTo your current Uri with force load. I use simple extension method for this
+                NavigationManager.NavigateTo("login", true);
+            //}
         }
         else
         {

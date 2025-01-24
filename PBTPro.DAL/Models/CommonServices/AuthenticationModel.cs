@@ -58,13 +58,18 @@ namespace PBTPro.DAL.Models.CommonServices
 
     public class ResetPasswordInput
     {
-        [Required(ErrorMessage = "Nama Pengguna diperlukan.")]
+        [Required(ErrorMessage = "ID Pengguna diperlukan.")]
         public string username { get; set; } = null!;
 
-        [Required(ErrorMessage = "Password Baru diperlukan.")]
+        [Required(ErrorMessage = "Medan Kata Laluan perlu diisi."), RegularExpression(@"^(?=.*\d)(?=.*[~`!@#$%^&*()--+={}\[\]|\\:;""'<>,.?/_])(?=.*[a-z])(?=.*[A-Z]).{8,}$", ErrorMessage = "Kata laluan tidak sah!")]
+        [DataType(DataType.Password)]
+        [StringLength(255, ErrorMessage = "Min panjang adalah 8 aksara campuran abjad, nombor dan aksara khas.", MinimumLength = 8)]
         public string new_password { get; set; } = null!;
 
-        [Required(ErrorMessage = "Sahkan Password diperlukan.")]
+        [Required(ErrorMessage = "Medan Sahkan Katalaluan perlu diisi.")]
+        [DataType(DataType.Password)]
+        [StringLength(255, ErrorMessage = "Min panjang adalah 8 aksara.", MinimumLength = 8)]
+        [Compare("new_password", ErrorMessage = "Katalaluan yang dimasukkan tidak sama.")]
         public string valid_new_password { get; set; } = null!;
         public string reset_token { get; set; }
     }
