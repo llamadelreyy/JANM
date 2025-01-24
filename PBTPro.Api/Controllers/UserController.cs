@@ -429,6 +429,11 @@ namespace PBTPro.Api.Controllers
 
                     if (resultADD != null && resultADD.Succeeded)
                     {
+                        user.PwdUpdateAt = DateTime.Now;
+                        user.ModifierId = runUserID;
+                        user.ModifiedAt = DateTime.Now;
+                        await _dbContext.SaveChangesAsync();
+                        _dbContext.Users.Update(user);
                         return Ok("", SystemMesg(_feature, "UPDATE_PASSWORD", MessageTypeEnum.Success, string.Format("Berjaya mengemaskini kata laluan")));
                     }
                     else
