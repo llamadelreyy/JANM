@@ -1,6 +1,7 @@
 ﻿@page "/user_profile"
-@attribute [AllowAnonymous]
+@attribute [Authorize]
 
+@implements IDisposable
 @using PBTPro.DAL.Models.PayLoads
 @using PBTPro.DAL.Services
 @using PBTPro.Data
@@ -27,7 +28,7 @@
 
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons-small/card-address.png" />
+            <img class="imgTitle" src="/images/icons-small/user--pencil.png" />
         <div class="textTitle">Profail Pengguna</div>
     </div>
 </div>
@@ -46,20 +47,20 @@
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="10">
                         <div class="upload-container">
-                            <div style="@(SelectedFilesCount > 0 ? "display: none" : string.Empty)">
+                            <div style="display: none">
                                 <span class="drop-file-label mb-1">Tekan butang Pilih untuk pilih fail imej</span>
                             </div>
                             <div class="bottom-upload">
-                            <DxUpload Name="ImageUpload"
-                                      MaxFileSize="4000000"
-                                      SelectButtonText="Pilih fail imej"
-                                      AllowMultiFileUpload="false"
-                                          FileUploaded="@((args) => OnFileUploaded(args, userInfo))"
-                                              ChunkSize="20000"
-                                      AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png" })"
-                                      UploadUrl="@GetUploadUrl("api/Upload/UploadFile/")"
-                                      SelectedFilesChanged="@SelectedFilesChanged">
-                            </DxUpload>
+                                <DxUpload Name="ImageUpload"
+                                                MaxFileSize="4000000"
+                                                SelectButtonText="Pilih fail imej"
+                                                AllowMultiFileUpload="false"
+                                                FileUploaded="@((args) => OnFileUploaded(args, userInfo))"
+                                                ChunkSize="20000"
+                                                AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png" })"
+                                                UploadUrl="@GetUploadUrl("api/Upload/UploadFile/")"
+                                                ShowFileList="false">
+                                </DxUpload>
                             </div>
                         </div>
                     </DxFormLayoutItem>
@@ -208,12 +209,12 @@
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     //============== Upload file ===============//
-    int SelectedFilesCount { get; set; }
-    protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
-    {
-        SelectedFilesCount = files.ToList().Count;
-        InvokeAsync(StateHasChanged);
-    }
+    // int SelectedFilesCount { get; set; }
+    // protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
+    // {
+    //     SelectedFilesCount = files.ToList().Count;
+    //     InvokeAsync(StateHasChanged);
+    // }
 
     protected string GetUploadUrl(string url)
     {
@@ -233,28 +234,31 @@
         // intCurrentUserId = _PBTAuthStateProvider.CurrentUser.Userid;
         userInfo = await _UserProfileService.Retrieve();
 
-        List<user_profile_role> user_roles = userInfo.user_roles;
-
-        //Get the current role if user has more than 1 role
-        int intRoleId = 0;
-        foreach (var item in user_roles)
+        if (userInfo != null && userInfo.user_id != 0)
         {
-            if (item.IsDefaultRole)
-                intCurrentRoleId = item.Id;
+            List<user_profile_role> user_roles = userInfo.user_roles;
+
+            //Get the current role if user has more than 1 role
+            int intRoleId = 0;
+            foreach (var item in user_roles)
+            {
+                if (item.IsDefaultRole)
+                    intCurrentRoleId = item.Id;
 
 
-            if (intRoleId > item.Id)
-                intRoleId = item.Id;
-            else if (intRoleId == 0)
-                intRoleId = item.Id;
+                if (intRoleId > item.Id)
+                    intRoleId = item.Id;
+                else if (intRoleId == 0)
+                    intRoleId = item.Id;
+            }
+
+            //If default role is not set than get the lowest role id to be the default role
+            if (intCurrentRoleId == 0)
+                intCurrentRoleId = intRoleId;
+
+            //Hold the current selected role
+            intCurrentSelectedRoleId = intCurrentRoleId;
         }
-
-        //If default role is not set than get the lowest role id to be the default role
-        if (intCurrentRoleId == 0)
-            intCurrentRoleId = intRoleId;
-
-        //Hold the current selected role
-        intCurrentSelectedRoleId = intCurrentRoleId;
 
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
@@ -330,13 +334,15 @@
             });
 
             //If user changed current role than redirect user to login again
-            //if (intCurrentSelectedRoleId != intCurrentRoleId)
-            //{
+            if (intCurrentSelectedRoleId != intCurrentRoleId)
+            {
                 await _PBTAuthStateProvider.LogoutAsync();
-
-                //You actually need to NavigateTo your current Uri with force load. I use simple extension method for this
                 NavigationManager.NavigateTo("login", true);
-            //}
+            }
+            else
+            {
+                NavigationManager.NavigateTo("user_profile", true);
+            }
         }
         else
         {
@@ -356,4 +362,8 @@
         FormValidationState = @"Maklumat yang dimasukkan tidak sah!";
     }
 
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
 }
