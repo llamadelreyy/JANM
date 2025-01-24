@@ -11,6 +11,7 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
+using System.Data;
 using System.Security.Claims;
 using System.Text;
 
@@ -215,10 +216,10 @@ namespace PBTPro.Api.Controllers
                 if (LoginResult.Succeeded)
                 {
                     bool isMobileUser = false;
+                    bool isPasswordExpired = false;
                     user.LastLogin = DateTime.Now;
                     _dbContext.Users.Update(user);
                     await _dbContext.SaveChangesAsync();
-
                     var authClaims = new List<Claim>
                     {
                         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(), ClaimValueTypes.Integer),
@@ -245,11 +246,16 @@ namespace PBTPro.Api.Controllers
                             IsDefaultRole = userRole.IsDefaultRole,
                         }
                     ).AsNoTracking().OrderBy(x=>x.Name).ToListAsync();
+                    if (userRoles.Any(x => x.Name.ToUpper() == "ANGGOTA PENGUATKUASA")) { isMobileUser = true; }
 
-                    var currDefRole = userRoles.FirstOrDefault(x=> x.IsDefaultRole == true);
-                    if (currDefRole != null)
+                    user_profile_role currDefRole = new user_profile_role { Name = "Public", Id = 0, IsDefaultRole = true };
+                    if (userRoles != null)
                     {
-                        currDefRole = userRoles.FirstOrDefault();
+                        currDefRole = userRoles.FirstOrDefault(x => x.IsDefaultRole == true);
+                        if (currDefRole == null)
+                        {
+                            currDefRole = userRoles.FirstOrDefault();
+                        }
                     }
                     /*
                     var userProfile = await _dbContext.user_profiles.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == user.Id);
@@ -258,15 +264,31 @@ namespace PBTPro.Api.Controllers
                         Fullname = userProfile.profile_name;
                     }
                     */
+
+                    int PassExpDays = int.Parse(_configuration["Identity:Password:ExpiredEveryDays"] ?? "0");
+                    if (PassExpDays > 0)
+                    { 
+                        DateTime passChgDTM = user.PwdUpdateAt ?? user.CreatedAt;
+                        DateTime currDTM = DateTime.Now;
+
+                        TimeSpan difference = currDTM - passChgDTM;
+
+                        int daysDifference = difference.Days;
+                        if (daysDifference > PassExpDays)
+                        {
+                            isPasswordExpired = true;
+                        }                        
+                    }
+
                     var token = _tokenService.GenerateJwtToken(authClaims, model.RememberMe);
                     return Ok(new LoginResult {
                         Fullname = Fullname, 
                         Userid = user.Id, 
                         Username = user.UserName, 
                         Token = token, 
-                        Role = currDefRole.Name,
+                        Role = currDefRole?.Name,
                         Roleid = currDefRole.Id,
-                        IsPasswordExpired = false,
+                        IsPasswordExpired = isPasswordExpired,
                         IsMobileUser = isMobileUser, 
                         Roles = userRoles.Select(x => x.Name).ToList() },
                     SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
@@ -468,6 +490,12 @@ namespace PBTPro.Api.Controllers
                 var resultd = await _userManager.ResetPasswordAsync(user, decodedToken, model.new_password);
                 if (resultd.Succeeded)
                 {
+                    user.PwdUpdateAt = DateTime.Now;
+                    user.ModifierId = user.Id;
+                    user.ModifiedAt = DateTime.Now;
+                    await _dbContext.SaveChangesAsync();
+                    _dbContext.Users.Update(user);
+
                     return Ok("", SystemMesg(_feature, "RESET_PASSWORD", MessageTypeEnum.Success, string.Format("Berjaya menetap semula kata laluan")));
                 }
                 else

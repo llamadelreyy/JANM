@@ -135,10 +135,12 @@ namespace PBTPro.Api.Controllers
                 })
                 .ToListAsync();
 
-                List<String> ft = JsonConvert.DeserializeObject<List<String>>(filterType);
+                // comment error mobile 216
+               //List<String> ft = JsonConvert.DeserializeObject<List<String>>(filterType);
 
                 if (filterType != null && filterType.Any())
                 {
+                    List<string> ft = filterType.Split(',').ToList();
                     mst_premis = mst_premis.Where(x =>
                                     filterType.Contains(Convert.ToString(x.status_lesen)) ||
                                     filterType.Contains(Convert.ToString(x.status_cukai))
