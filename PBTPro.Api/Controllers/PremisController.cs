@@ -135,7 +135,8 @@ namespace PBTPro.Api.Controllers
                 })
                 .ToListAsync();
 
-                List<String> ft = JsonConvert.DeserializeObject<List<String>>(filterType);
+                // comment error mobile 216
+               //List<String> ft = JsonConvert.DeserializeObject<List<String>>(filterType);
 
                 if (filterType != null && filterType.Any())
                 {
