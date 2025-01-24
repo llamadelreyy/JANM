@@ -151,9 +151,14 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     {
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-        options.Lockout.MaxFailedAccessAttempts = 3;
-        options.Lockout.AllowedForNewUsers = true;
+        options.Password.RequireDigit = bool.Parse(builder.Configuration["Identity:Password:RequiredDigit"] ?? "false");
+        options.Password.RequireLowercase = bool.Parse(builder.Configuration["Identity:Password:RequireLowercase"] ?? "false");
+        options.Password.RequireUppercase = bool.Parse(builder.Configuration["Identity:Password:RequireUppercase"] ?? "false");
+        options.Password.RequireNonAlphanumeric = bool.Parse(builder.Configuration["Identity:Password:RequireNonAlphanumeric"] ?? "false");
+        options.Password.RequiredLength = int.Parse(builder.Configuration["Identity:Password:RequiredLength"] ?? "6");
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(int.Parse(builder.Configuration["Identity:Lockout:DefaultLockoutTimeSpan"] ?? "30"));
+        options.Lockout.MaxFailedAccessAttempts = int.Parse(builder.Configuration["Identity:Lockout:MaxFailedAccessAttempts"] ?? "5");
+        options.Lockout.AllowedForNewUsers = bool.Parse(builder.Configuration["Identity:Lockout:AllowedForNewUsers"] ?? "true");
     })
     .AddUserStore<ApplicationUserStore>()
     .AddRoleStore<ApplicationRoleStore>()

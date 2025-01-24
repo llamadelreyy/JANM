@@ -10,6 +10,7 @@ using PBTPro.Api.Services;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 using System.Security.Claims;
 using System.Text;
 
@@ -224,12 +225,31 @@ namespace PBTPro.Api.Controllers
                         new Claim(ClaimTypes.Name, user.UserName)
                     };
 
+                    /* commented not used due to need to add custom checking
                     var roles = await _userManager.GetRolesAsync(user);
                     if (roles.Any(x=> x.ToUpper() == "ANGGOTA PENGUATKUASA")) { isMobileUser = true; }
 
                     foreach (var role in roles)
                     {
                         authClaims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+                    */
+                    var userRoles = await _dbContext.UserRoles.Where(x => x.UserId == user.Id).Join(
+                        _dbContext.Roles,
+                        userRole => userRole.RoleId,
+                        roles => roles.Id,
+                        (userRole, roles) => new user_profile_role
+                        {
+                            Id = userRole.RoleId,
+                            Name = roles.Name,
+                            IsDefaultRole = userRole.IsDefaultRole,
+                        }
+                    ).AsNoTracking().OrderBy(x=>x.Name).ToListAsync();
+
+                    var currDefRole = userRoles.FirstOrDefault(x=> x.IsDefaultRole == true);
+                    if (currDefRole != null)
+                    {
+                        currDefRole = userRoles.FirstOrDefault();
                     }
                     /*
                     var userProfile = await _dbContext.user_profiles.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == user.Id);
@@ -239,7 +259,17 @@ namespace PBTPro.Api.Controllers
                     }
                     */
                     var token = _tokenService.GenerateJwtToken(authClaims, model.RememberMe);
-                    return Ok(new LoginResult {Fullname = Fullname, Userid = user.Id, Username = user.UserName, Token = token, IsMobileUser = isMobileUser, Roles = roles.ToList() }, SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
+                    return Ok(new LoginResult {
+                        Fullname = Fullname, 
+                        Userid = user.Id, 
+                        Username = user.UserName, 
+                        Token = token, 
+                        Role = currDefRole.Name,
+                        Roleid = currDefRole.Id,
+                        IsPasswordExpired = false,
+                        IsMobileUser = isMobileUser, 
+                        Roles = userRoles.Select(x => x.Name).ToList() },
+                    SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
                 }
                 else if (LoginResult.IsLockedOut)
                 {
