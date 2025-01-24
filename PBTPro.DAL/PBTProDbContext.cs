@@ -983,6 +983,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("Timestamp when the record was last updated.")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+           
         });
 
         modelBuilder.Entity<ref_division>(entity =>
@@ -1015,7 +1016,11 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
             entity.Property(e => e.dept_name)
-                .HasMaxLength(100);               
+                .HasMaxLength(100);
+            entity.Property(e => e.dept_id);
+            entity.HasOne(d => d.dept).WithMany(p => p.ref_divisions)
+                .HasForeignKey(d => d.dept_id)
+                .HasConstraintName("fk_div_id_belongs_to_dept_id");
         });
 
         modelBuilder.Entity<ref_law_act>(entity =>
@@ -1125,6 +1130,13 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasMaxLength(100);
             entity.Property(e => e.div_name)
                 .HasMaxLength(100);
+            entity.HasOne(d => d.dept).WithMany(p => p.ref_units)
+               .HasForeignKey(d => d.dept_id)
+               .HasConstraintName("fk_div_id_belongs_to_dept_id");
+
+            entity.HasOne(d => d.div).WithMany(p => p.ref_units)
+                .HasForeignKey(d => d.div_id)
+                .HasConstraintName("fk_unit_id_belongs_to_div_id");
         });
 
         modelBuilder.Entity<ref_id_type>(entity =>
