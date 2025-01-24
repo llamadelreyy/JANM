@@ -15,7 +15,7 @@
                 <div class="ms-3 title">
                     <span class="loginuser mb-2">@PBTAuthStateProvider.CurrentUser.Fullname </span> [ <a href="user_profile" alt="ubah profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="reset_password" alt="ubah profail"><i class="ri-lock-password-line ri-1x"></i></a> ]
                     <p class="text-sm text-gray-500 fw-light mb-0 lh-1">
-                        <span class="loginusername">@string.Join(", ", PBTAuthStateProvider.CurrentUser.Roles)</span> [ <a alt="logout" href="/logout"><i class="ri-logout-box-r-line ri-1x"></i></a>]
+                        <span class="loginusername">@PBTAuthStateProvider.CurrentUser.Role</span> [ <a alt="logout" href="/logout"><i class="ri-logout-box-r-line ri-1x"></i></a>]
                     </p>
                 </div>
 
