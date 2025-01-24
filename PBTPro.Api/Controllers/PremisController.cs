@@ -140,6 +140,7 @@ namespace PBTPro.Api.Controllers
 
                 if (filterType != null && filterType.Any())
                 {
+                    List<string> ft = filterType.Split(',').ToList();
                     mst_premis = mst_premis.Where(x =>
                                     filterType.Contains(Convert.ToString(x.status_lesen)) ||
                                     filterType.Contains(Convert.ToString(x.status_cukai))
