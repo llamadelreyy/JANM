@@ -68,7 +68,7 @@ else
                             NullText="Katalaluan ..."
                             BindValueMode="BindValueMode.OnInput"
                             ShowValidationIcon="true"
-                            CssClass="cw-480" />
+                            CssClass="cw-480" style="width:180px;" />
                         </DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="4">
@@ -84,7 +84,7 @@ else
                             <div>Port</div>
                             <DxSpinEdit @bind-Value="@emailConfig.Port"
                             NullText="587"
-                            ShowValidationIcon="true" CssClass="cw-480" />
+                            ShowValidationIcon="true" CssClass="cw-480" style="width:120px;" />
                         </DxFormLayoutItem>
                         <DxFormLayoutItem ColSpanMd="4"></DxFormLayoutItem>
 
@@ -98,7 +98,7 @@ else
                             @if (PermissionService.HasPermission("Execute"))
                             {
                                 <DxButton Text="Hantar Email Ujian"
-                                RenderStyle="ButtonRenderStyle.Primary"
+                                          class="btn-edit-grid"
                                 Enabled="true"
                                 SubmitFormOnClick="false"
                                 Click="OnExecuteButtonClick">
@@ -107,7 +107,7 @@ else
                             @if (PermissionService.HasPermission("Add") || PermissionService.HasPermission("Edit"))
                             {
                                 <DxButton Text="Simpan"
-                                RenderStyle="ButtonRenderStyle.Primary"
+                                          class="btn-edit-grid"
                                 Enabled="true"
                                 SubmitFormOnClick="true">
                                 </DxButton>
