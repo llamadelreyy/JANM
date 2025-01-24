@@ -190,14 +190,9 @@ namespace PBTPro.Data
             var result = new ReturnViewModel();
             try
             {
-                //RegisterModel rm = new RegisterModel();
-                //rm.FullName = inputModel.full_name;
-                //rm.ICNo = inputModel.IdNo;
-                //rm.PhoneNo = inputModel.PhoneNumber;
-                //rm.Email = inputModel.Email;
-                //rm.DepartmentID = inputModel.dept_id;
-                //rm.DivisionID = inputModel.div_id;
-                //rm.UnitID = inputModel.unit_id;
+
+                inputModel.Name = inputModel.Username;
+                inputModel.Password = "";  
 
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
