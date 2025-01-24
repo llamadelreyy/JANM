@@ -11,6 +11,7 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
+using System.Data;
 using System.Security.Claims;
 using System.Text;
 
@@ -245,11 +246,16 @@ namespace PBTPro.Api.Controllers
                             IsDefaultRole = userRole.IsDefaultRole,
                         }
                     ).AsNoTracking().OrderBy(x=>x.Name).ToListAsync();
+                    if (userRoles.Any(x => x.Name.ToUpper() == "ANGGOTA PENGUATKUASA")) { isMobileUser = true; }
 
-                    var currDefRole = userRoles.FirstOrDefault(x=> x.IsDefaultRole == true);
-                    if (currDefRole != null)
+                    user_profile_role currDefRole = new user_profile_role { Name = "Public", Id = 0, IsDefaultRole = true };
+                    if (userRoles != null)
                     {
-                        currDefRole = userRoles.FirstOrDefault();
+                        currDefRole = userRoles.FirstOrDefault(x => x.IsDefaultRole == true);
+                        if (currDefRole == null)
+                        {
+                            currDefRole = userRoles.FirstOrDefault();
+                        }
                     }
                     /*
                     var userProfile = await _dbContext.user_profiles.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == user.Id);
@@ -264,7 +270,7 @@ namespace PBTPro.Api.Controllers
                         Userid = user.Id, 
                         Username = user.UserName, 
                         Token = token, 
-                        Role = currDefRole.Name,
+                        Role = currDefRole?.Name,
                         Roleid = currDefRole.Id,
                         IsPasswordExpired = false,
                         IsMobileUser = isMobileUser, 
