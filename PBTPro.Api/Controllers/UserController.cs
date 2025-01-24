@@ -675,7 +675,15 @@ namespace PBTPro.Api.Controllers
                     {
                         return Error("", "e-mel telah berdaftar dengan pengguna lain");
                     }
+                    if (IdExist.IdNo == model.Username)
+                    {
+                        return Error("", "Nama pengguna telah berdaftar");
+                    }
                 }
+
+
+             
+                
 
                 #endregion          
 
@@ -735,7 +743,6 @@ namespace PBTPro.Api.Controllers
                 int runUserID = await getDefRunUserId();
 
                 #region Validation
-                //var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.IdNo == model.ICNo);
 
                 var users = await (from user in _dbContext.Users
                                    join dept in _dbContext.ref_departments on user.dept_id equals dept.dept_id
@@ -752,13 +759,18 @@ namespace PBTPro.Api.Controllers
                                        DepartmentName = dept.dept_name,
                                        DivisionName = div.div_name,
                                        UnitName = unit.unit_name,
-                                       ICNo = user.IdNo
+                                       ICNo = user.IdNo,
+                                       Name = user.UserName,
+                                       Password = user.PasswordHash,
+
                                    }).FirstOrDefaultAsync();
 
                 if (users == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
+               
+            
                 #endregion
                 ApplicationUser au = new ApplicationUser();
                 au.full_name = model.FullName;
@@ -770,6 +782,7 @@ namespace PBTPro.Api.Controllers
                 au.ModifiedAt = DateTime.Now;
                 au.ModifierId = runUserID;
                 au.UserName = model.Username;
+
 
                 _dbContext.Users.Update(au);
                 await _dbContext.SaveChangesAsync();

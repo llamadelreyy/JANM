@@ -115,86 +115,6 @@
                 <DxFormLayout CssClass="w-100">
                     <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
                         <table class="layout_edit">
-                            @* <tr>
-                                <td nowrap>Lokasi</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    <DxComboBox Data="@dtDepartment"
-                                                NullText="Pilih Jabatan ..."
-                                                ShowValidationIcon="true"
-                                                FilteringMode="DataGridFilteringMode.Contains"
-                                                @bind-Value="@dtEdit.dept_id"
-                                                TextFieldName="dept_name"
-                                                ValueFieldName="dept_id">
-                                    </DxComboBox>
-                                </td>
-                            </tr> *@
-                            @* <tr>
-                                <td nowrap>Kod</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxTextBox @bind-Text="@dtEdit.div_code"
-                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                               BindValueMode="BindValueMode.OnInput"
-                                               NullText="Masukkan kod seksyen ..."
-                                               Maxlength="10"
-                                               ShowValidationIcon="true"
-                                               CssClass="cw-320" />
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr> *@
-                            @* <tr>
-                                <td nowrap>Nama</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    <DxTextBox @bind-Text="@dtEdit.div_name"
-                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                               BindValueMode="BindValueMode.OnInput"
-                                               NullText="Masukkan nama seksyen ..."
-                                               Maxlength="60"
-                                               ShowValidationIcon="true"
-                                               CssClass="cw-320" />
-                                </td>
-                            </tr> *@
-                           @*  <tr>
-                                <td nowrap>Kumpulan Pegawai</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-
-                                    <div class="multiselect">
-                                        <div id="checkboxes">
-                                            @{
-                                                //Select multiple pegawai
-                                                foreach (var item in dataUser)
-                                                {
-                                                    bool blnSelected = false;
-                                                   // foreach (var value in valueUser)
-                                                    //{
-                                                        //if (item.Id == value.Id)
-                                                        //{
-                                                           // blnSelected = value.role_select; // true;
-                                                            //item.role_select = value.role_select;  //true;
-                                                        //}
-                                                    //}
-
-
-                                                    <div>
-                                                        <label class="multiselect-container" for="@item.Id">
-                                                            @item.full_name 
-                                                            <input type="checkbox" class="check_role" id="@item.Id" checked="@(blnSelected ? true : false)" @onchange="@((e) => CheckboxChanged(e, item.Id))" name="pegawai" />
-                                                            <span class="checkmark"></span>
-                                                        </label>
-                                                    </div>
-
-                                                }
-                                            }
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr> *@
                             <tr>
                                 <td nowrap>Nama Pegawai</td>
                                 <td nowrap>&nbsp;&nbsp;</td>
@@ -205,8 +125,8 @@
                                                 SearchMode="ListSearchMode.AutoSearch"
                                                 Enabled="@boolLockDropDown"
                                                 ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                TextFieldName="@nameof(ApplicationUser.Text)"
-                                                ValueFieldName="Id"
+                                                TextFieldName="@nameof(ApplicationUser.TextName)"
+                                                ValueFieldName="full_name"
                                                 CssClass="combo-width"
                                                 SelectedItemChanged="@((ApplicationUser x) => SelectedItemChanged(x))"
                                                 DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
@@ -394,10 +314,7 @@
         dataSource = await _ScheduleService.Refresh();
     }
 
-    public void Dispose()
-    {
-        DataLoadedTcs.TrySetCanceled();
-    }
+   
 
     async Task Delete(PatrolViewModel item)
     {
@@ -504,6 +421,12 @@
     }
 
      #region response
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
     private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
