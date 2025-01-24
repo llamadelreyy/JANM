@@ -37,6 +37,9 @@ namespace PBTPro.DAL.Models.CommonServices
         public string Token { get; set; } = null!;
         public string Fullname { get; set; }
         public bool IsMobileUser { get; set; } = false;
+        public bool IsPasswordExpired { get; set; } = false;
+        public string? Role { get; set; }
+        public int Roleid { get; set; }
         public List<string?> Roles { get; set; }
     }
 
@@ -76,6 +79,8 @@ namespace PBTPro.DAL.Models.CommonServices
         public string Username { get; set; } = "";
         public string Password { get; set; } = "";
         public string Token { get; set; } = "";
+        public string Role { get; set; } = "";
+        public int Roleid { get; set; } = 0;
         public List<string> Roles { get; set; } = new List<string>();
 
         public ClaimsPrincipal ToClaimsPrincipal() => new(new ClaimsIdentity(new Claim[]
