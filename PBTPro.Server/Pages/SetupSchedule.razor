@@ -159,7 +159,7 @@
                                                CssClass="cw-320" />
                                 </td>
                             </tr> *@
-                            <tr>
+                           @*  <tr>
                                 <td nowrap>Kumpulan Pegawai</td>
                                 <td nowrap>&nbsp;&nbsp;</td>
                                 <td width="50%" colspan="6">
@@ -171,14 +171,14 @@
                                                 foreach (var item in dataUser)
                                                 {
                                                     bool blnSelected = false;
-                                                    foreach (var value in valueUser)
-                                                    {
-                                                        if (item.Id == value.Id)
-                                                        {
+                                                   // foreach (var value in valueUser)
+                                                    //{
+                                                        //if (item.Id == value.Id)
+                                                        //{
                                                            // blnSelected = value.role_select; // true;
                                                             //item.role_select = value.role_select;  //true;
-                                                        }
-                                                    }
+                                                        //}
+                                                    //}
 
 
                                                     <div>
@@ -194,8 +194,30 @@
                                         </div>
                                     </div>
                                 </td>
+                            </tr> *@
+                            <tr>
+                                <td nowrap>Nama Pegawai</td>
+                                <td nowrap>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    <DxComboBox Data="@dataUser"
+                                                NullText="Pilih nama pegawai ..."
+                                                ShowValidationIcon="true"
+                                                SearchMode="ListSearchMode.AutoSearch"
+                                                Enabled="@boolLockDropDown"
+                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                TextFieldName="@nameof(ApplicationUser.Text)"
+                                                ValueFieldName="Id"
+                                                CssClass="combo-width"
+                                                SelectedItemChanged="@((ApplicationUser x) => SelectedItemChanged(x))"
+                                                DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
+                                                @bind-Value="@dtEdit.OfficerName">
+                                    </DxComboBox>
+                                </td>
+                                <td width="100px">&nbsp;</td>
+                                <td nowrap></td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td width="50%"></td>
                             </tr>
-                            
                             <tr>
                                 <td nowrap>Masa Mula Rondaan</td>
                                 <td>&nbsp;&nbsp;</td>
@@ -213,7 +235,7 @@
                             <tr>
                                 <td nowrap>Masa Tamat Rondaan</td>
                                 <td>&nbsp;&nbsp;</td>
-                                <td width="50%">
+                                <td width="50%" colspan="6">
                                     <DxDateEdit @bind-Date="@dtEdit.EndTime"
                                                 TimeSectionVisible="true"
                                                 CssClass="cw-320"
@@ -428,24 +450,60 @@
         return new MarkupString(html);
     }
 
-    protected void CheckboxChanged(ChangeEventArgs e, int key)
-    {
-        var i = dataUser.FirstOrDefault(i => i.Id == key);
-        if (i != null)
-        {
-           // i.role_select = (bool)e.Value;
-        }
+    // protected void CheckboxChanged(ChangeEventArgs e, int key)
+    // {
+    //     var i = dataUser.FirstOrDefault(i => i.Id == key);
+    //     if (i != null)
+    //     {
+    //        // i.role_select = (bool)e.Value;
+    //     }
 
-        //Clear the selection
-        foreach (var item in valueUser)
+    //     //Clear the selection
+    //     foreach (var item in valueUser)
+    //     {
+    //         if (item.Id == key){}
+    //             //item.se = (bool)e.Value;
+    //     }
+
+    // }
+
+
+    void SelectedItemChanged(ApplicationUser x)
+    {
+
+        if (x != null)
         {
-            if (item.Id == key){}
-                //item.se = (bool)e.Value;
+            List<ApplicationRole> arrItem = new List<ApplicationRole>();
+            ApplicationRole _item;
+
+            //Loop the main data to get all the role for selected user
+            // @foreach (var item in dataSource)
+            // {
+            //     if (x.Id == item.UserId)
+            //     {
+            //         _item = new ApplicationRole();
+            //         _item.Id = item.RoleId;
+            //         //_item.Name = item.Name;
+            //         //_item.RoleDesc = item.RoleDesc;
+            //         _item.role_select = true;
+            //         _item.CreatedAt = (DateTime)item.CreatedAt;
+            //         arrItem.Add(_item);
+
+            //         //Mark that role is selected
+            //         foreach (var _role in dataRole)
+            //         {
+            //             if (_role.Id == item.RoleId)
+            //                 _role.role_select = true;
+            //         }
+            //     }
+            // }
+
+            //valueRole = arrItem;
         }
 
     }
 
-    #region response
+     #region response
     private void HandleResponse(string message, string? status = "Success")
     {
         var RenderStyle = ToastRenderStyle.Success;
