@@ -135,6 +135,8 @@ namespace PBTPro.Api.Controllers
                 })
                 .ToListAsync();
 
+                // comment error mobile 216
+               //List<String> ft = JsonConvert.DeserializeObject<List<String>>(filterType);
 
                 if (filterType != null && filterType.Any())
                 {
@@ -150,6 +152,7 @@ namespace PBTPro.Api.Controllers
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
 
+                //mst_lots = await _dbContext.mst_lots.AsNoTracking().ToListAsync();
                 return Ok(mst_premis, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
             }
             catch (Exception ex)

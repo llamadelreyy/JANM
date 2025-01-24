@@ -48,7 +48,7 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
             }
             */
             CurrentUser = user;
-            strUserFullNameNRole = user.Fullname + " (" + user.Roles + ")";
+            strUserFullNameNRole = user.Fullname + " (" + user.Role + ")";
             accessToken = user.Token;
             principal = user.ToClaimsPrincipal();
 
@@ -58,7 +58,6 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
                 string? permissionDataString = permissionResponse?.Data?.ToString();
                 if (!string.IsNullOrWhiteSpace(permissionDataString))
                 {
-                    var test = JsonConvert.DeserializeObject<List<AuthenticatedMenuPermission>>(permissionDataString);
                     Permissions = JsonConvert.DeserializeObject<List<AuthenticatedMenuPermission>>(permissionDataString);
                 }
             }
@@ -88,6 +87,8 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
                         Token = data.Token,
                         Userid = data.Userid,
                         Username = data.Username,
+                        Role = data.Role,
+                        Roleid = data.Roleid,
                         Roles = data.Roles,
                         Password = password
                     };
