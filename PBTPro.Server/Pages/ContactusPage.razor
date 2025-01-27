@@ -22,6 +22,8 @@ Changes Logs:
 @using PBTPro.DAL.Services
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components
 
 @inject ContactUsService _contactus
 @inject NavigationManager NavigationManager
@@ -29,72 +31,141 @@ Changes Logs:
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 
+<div class="d-lg-flex border-bottom mb-2">
+    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+        <img class="imgTitle" src="/images/icons/information.png" />
+        <div class="textTitle">Hubungi Kami</div>
+    </div>
+</div>
+
 <div class="item-container-x">
-    <div class="layout_edit">
+    <div class="ProfileBox" style="border:solid 1px #999;border-radius: 5px;box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);">
+        <div class="card-body">
+            <EditForm Model="@dtData" OnValidSubmit="@HandleValidSubmit" OnInvalidSubmit="@HandleInvalidSubmit" Context="EditFormContext">
+                <DataAnnotationsValidator />
+                <DxFormLayout>
+                    <DxFormLayoutItem Caption="Nama:" ColSpanMd="12">
+                        <DxTextBox @bind-Text="@dtData.contact_name"
+                                   BindValueMode="BindValueMode.OnInput"
+                                   ValidationEnabled="true"
+                                   ShowValidationIcon="true"
+                                   ShowValidationSuccessState="true"
+                                   CssClass="cw-480">
+                        </DxTextBox>
+                    </DxFormLayoutItem>
 
-        <DxFormLayout CssClass="w-100">
-            <DxFormLayoutItem Caption="Nama:" ColSpanMd="12">
-                <DxTextBox @bind-Text="@dtData.contact_name" ShowValidationIcon="true">
-                    <ValidationSettings Required="true" />
-                </DxTextBox>
-            </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="Email:">
-                <DxTextBox @bind-Text="@dtData.contact_email" ShowValidationIcon="true">
-                    <ValidationSettings Required="true" />
-                </DxTextBox>
-            </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="No Telefon:" BeginRow="true">
-                <DxTextBox @bind-Text="@dtData.contact_telno" ShowValidationIcon="true">
-                    <ValidationSettings Required="true" />
-                </DxTextBox>
-            </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="Subjek:" BeginRow="true">
-                <DxComboBox Data="@JenisSubjek"
-                            ShowValidationIcon="true"
-                            NullText="Pilih Subjek..."
-                            @bind-Value="@dtData.contact_subject"
-                            CssClass="cw-320" style="width:350px;">
-                    <ValidationSettings Required="true" />
-                </DxComboBox>
-            </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="Catatan/Aduan:" BeginRow="true">
-                <DxTextBox @bind-Text="@dtData.contact_message" ShowValidationIcon="true">
-                    <ValidationSettings Required="true" />
-                </DxTextBox>
-            </DxFormLayoutItem>
-        </DxFormLayout>
 
-        <DxButton Text="Hantar" Click="Add" />
+                    <DxFormLayoutItem Caption="Emel:" ColSpanMd="12">
+                      
+                        <DxMaskedInput @bind-Value="@dtData.contact_email"
+                                       CssClass="cw-320"
+                                       NullText="@("_@_.__")"
+                                       Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"
+                                       Maxlength="60"
+                                       ShowValidationIcon="true"
+                                       MaskMode="MaskMode.RegEx">
+                            <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
+                                                   Placeholder="Placeholder"
+                                                   PlaceholdersVisible="PlaceholderVisible" />
+                        </DxMaskedInput>
+                    </DxFormLayoutItem>
 
+                    <DxFormLayoutItem Caption="No Telefon:" ColSpanMd="12">
+                        <DxMaskedInput @bind-Value="@dtData.contact_telno"
+                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                       BindValueMode="BindValueMode.OnInput"
+                                       Maxlength="14"
+                                       ShowValidationIcon="true"
+                                       CssClass="cw-480" style="width:170px"
+                                       MaskMode=MaskMode.Text
+                                       Mask="99999999999999">
+                            <DxTextMaskProperties SaveLiteral=false></DxTextMaskProperties>
+                        </DxMaskedInput>
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="Subjek:" BeginRow="true" CssClass="cw-480">
+                        <DxComboBox Data="@JenisSubjek"
+                                    NullText="Pilih Subjek..."
+                                    @bind-Value="@dtData.contact_subject"
+                                    BindValueMode="BindValueMode.OnInput"
+                                    ValidationEnabled="true"
+                                    ShowValidationIcon="true"
+                                    ShowValidationSuccessState="true"
+                                    CssClass="cw-320" style="width:350px;/">
+
+                        </DxComboBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Catatan/Aduan:" BeginRow="true" ColSpanMd="12">
+                        <DxMemo @bind-Text="@dtData.contact_message"
+                                CssClass="cw-480"
+                                Rows="3"
+                                BindValueMode="BindValueMode.OnInput"
+                                ValidationEnabled="true"
+                                ShowValidationIcon="true"
+                                ShowValidationSuccessState="true">
+                        </DxMemo>
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <DxButton CssClass="w-100 normal-btn" Text="Simpan"
+                                  RenderStyle="ButtonRenderStyle.Primary"
+                                  Enabled="true"
+                                  SubmitFormOnClick="true"
+                                  Click="OnYesButtonClick">
+                        </DxButton>
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+                <div class="row w-100 mx-0">
+                    <p class="demo-text col-12 mt-2">
+                        Pengesahan Maklumat :
+                        <b>@FormValidationState</b>
+                    </p>
+                </div>
+                
+            </EditForm>
+
+        </div>
     </div>
 </div>
 
 @code {
     contact_us dtData { get; set; } = new contact_us();
-
-    bool IsValidForm => !string.IsNullOrEmpty(dtData.contact_name) &&
+    bool ConfirmationShown { get; set; } = false;
+    IEnumerable<char> PredefinedPlaceholders { get; set; } = new List<char>() { '_', '#' };
+    MaskAutoCompleteMode AutoCompleteMode { get; set; } = MaskAutoCompleteMode.Strong;
+    char Placeholder { get; set; } = '_';
+    bool PlaceholderVisible { get; set; } = true;
+    bool IsEmptyForm => !string.IsNullOrEmpty(dtData.contact_name) &&
                         !string.IsNullOrEmpty(dtData.contact_email) &&
                         !string.IsNullOrEmpty(dtData.contact_telno) &&
                         !string.IsNullOrEmpty(dtData.contact_subject) &&
                         !string.IsNullOrEmpty(dtData.contact_message);
 
+    string FormValidationState = @"Sila tekan butang ""Simpan"" untuk sahkan data.";
+
     protected override async Task OnInitializedAsync()
     {
         dtData = new contact_us();
     }
-    #region response
-
-    public void Dispose()
+   
+    private void HandleValidSubmit()
     {
+        if (!IsEmptyForm)
+        {
+            StateHasChanged();
+            HandleResponse("Semua ruangan wajib diisi.", "Error");
+        }
     }
-    public async Task Add()
+
+    public async Task OnYesButtonClick()
     {
         try
         {
             ReturnViewModel response = new ReturnViewModel();
 
             dtData.contact_status = "Menunggu";
-            
+
             response = await _contactus.Add(dtData);
             StateHasChanged();
             HandleResponse(response.ReturnMessage);
@@ -103,6 +174,13 @@ Changes Logs:
         {
             Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
         }
+
+        ConfirmationShown = false;
+    }
+
+    void OnNoButtonClick()
+    {
+        ConfirmationShown = false;
     }
 
     private List<string> JenisSubjek = new List<string>
@@ -110,6 +188,16 @@ Changes Logs:
         "Catatan",
         "Aduan"
     };
+
+    void HandleInvalidSubmit()
+    {
+        FormValidationState = @"Maklumat yang dimasukkan tidak sah!";
+    }
+    #region response
+
+    public void Dispose()
+    {
+    }
 
     private void HandleResponse(string message, string? status = "Success")
     {
@@ -136,5 +224,6 @@ Changes Logs:
                 Title = message
             });
     }
+
     #endregion
 }

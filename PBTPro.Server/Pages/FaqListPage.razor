@@ -87,18 +87,18 @@ Changes Logs:
                 </HeaderTemplate>
                 <CellDisplayTemplate>
                     <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((faq_info)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                        <a @onclick="@(() => Delete((ref_faq)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                 </CellDisplayTemplate>
             </DxGridCommandColumn>
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_category)" Caption="Kategori" Width="15%" TextAlignment="GridTextAlignment.Left"/>
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_question)" Caption="Soalan" Width="25%" TextAlignment="GridTextAlignment.Left"/>
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_answer)" Caption="Jawapan" Width="36%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(faq_info.faq_status)" Caption="Status" Width="12%" TextAlignment="GridTextAlignment.Center">
+                <DxGridDataColumn FieldName="@nameof(ref_faq.faq_category)" Caption="Kategori" Width="15%" TextAlignment="GridTextAlignment.Left" />
+                <DxGridDataColumn FieldName="@nameof(ref_faq.faq_question)" Caption="Soalan" Width="25%" TextAlignment="GridTextAlignment.Left" />
+                <DxGridDataColumn FieldName="@nameof(ref_faq.faq_answer)" Caption="Jawapan" Width="36%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                <DxGridDataColumn FieldName="@nameof(ref_faq.faq_status)" Caption="Status" Width="12%" TextAlignment="GridTextAlignment.Center">
                 <CellDisplayTemplate>
-                    <div>@GetStatusFAQIconHtml(((faq_info)context.DataItem).faq_status)</div>
+                        <div>@GetStatusFAQIconHtml(((ref_faq)context.DataItem).faq_status)</div>
                 </CellDisplayTemplate>
             </DxGridDataColumn>
-            <DxGridDataColumn FieldName=@nameof(faq_info.created_date)
+                <DxGridDataColumn FieldName=@nameof(ref_faq.created_at)
                               DisplayFormat="dd/MM/yyyy"
                               Caption="Tarikh Data"
                               MinWidth="120"
@@ -110,7 +110,7 @@ Changes Logs:
 
         <EditFormTemplate Context="editFormContext">
             @{
-                var dtData = (faq_info)editFormContext.EditModel;
+                    var dtData = (ref_faq)editFormContext.EditModel;
             }
             <DxFormLayout CssClass="w-100">
                     <DxFormLayoutItem ColSpanMd="6" ColSpanLg="8" BeginRow="true">
@@ -197,8 +197,8 @@ Changes Logs:
 @code {
     bool PanelVisible { get; set; }
 
-    private List<faq_info> _lstFaqs = new List<faq_info>();
-    faq_info dtData { get; set; }
+    private List<ref_faq> _lstFaqs = new List<ref_faq>();
+    ref_faq dtData { get; set; }
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
@@ -235,7 +235,7 @@ Changes Logs:
     {
         ReturnViewModel response = new ReturnViewModel();
         bool blnSuccess = false;
-        var editModel = e.EditModel as faq_info;
+        var editModel = e.EditModel as ref_faq;
         try
         {
             if (e.IsNew)
@@ -264,7 +264,7 @@ Changes Logs:
         }
     }
 
-    async Task Delete(faq_info item)
+    async Task Delete(ref_faq item)
     {
         dtData = item;
         ConfirmationShown = true;
@@ -303,7 +303,7 @@ Changes Logs:
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (faq_info)e.EditModel;
+        var _data = (ref_faq)e.EditModel;
         if (_data.faq_status == null || _data.faq_status.Trim() == "")
         {
             e.AddError(nameof(_data.faq_status), "Status tidak sah. Medan perlu diisi.");
