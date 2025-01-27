@@ -39,11 +39,11 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<faq_info>>> ListAll()
+        public async Task<ActionResult<IEnumerable<ref_faq>>> ListAll()
         {
             try
             {
-                var data = await _dbContext.faq_infos.AsNoTracking().ToListAsync();
+                var data = await _dbContext.ref_faqs.AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -57,7 +57,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfield = await _dbContext.faq_infos.FirstOrDefaultAsync(x => x.faq_id == Id);
+                var parFormfield = await _dbContext.ref_faqs.FirstOrDefaultAsync(x => x.faq_id == Id);
 
                 if (parFormfield == null)
                 {
@@ -72,7 +72,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] faq_info InputModel)
+        public async Task<IActionResult> Add([FromBody] ref_faq InputModel)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace PBTPro.Api.Controllers
                 var runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.faq_infos.FirstOrDefaultAsync();
+                var formField = await _dbContext.ref_faqs.FirstOrDefaultAsync();
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
@@ -104,17 +104,17 @@ namespace PBTPro.Api.Controllers
                 #endregion
 
                 #region store data
-                faq_info faq_info = new faq_info
+                ref_faq faq_info = new ref_faq
                 {
                     faq_status = InputModel.faq_status,
                     faq_answer = InputModel.faq_answer,
                     faq_category = InputModel.faq_category,
                     faq_question = InputModel.faq_question,
-                    created_by = runUserID,
-                    created_date = DateTime.Now,
+                    creator_id = runUserID,
+                    created_at = DateTime.Now,
                 };
 
-                _dbContext.faq_infos.Add(faq_info);
+                _dbContext.ref_faqs.Add(faq_info);
                 await _dbContext.SaveChangesAsync();
 
                 #endregion
@@ -128,7 +128,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] faq_info InputModel)
+        public async Task<IActionResult> Update(int Id, [FromBody] ref_faq InputModel)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.faq_infos.FirstOrDefaultAsync(x => x.faq_id == Id);
+                var formField = await _dbContext.ref_faqs.FirstOrDefaultAsync(x => x.faq_id == Id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
@@ -164,10 +164,10 @@ namespace PBTPro.Api.Controllers
                 formField.faq_answer = InputModel.faq_answer;
                 formField.faq_status = InputModel.faq_status;
 
-                formField.updated_by = runUserID;
-                formField.updated_date = DateTime.Now;
+                formField.modifier_id = runUserID;
+                formField.modified_at = DateTime.Now;
 
-                _dbContext.faq_infos.Update(formField);
+                _dbContext.ref_faqs.Update(formField);
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
@@ -186,14 +186,14 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.faq_infos.FirstOrDefaultAsync(x => x.faq_id == Id);
+                var formField = await _dbContext.ref_faqs.FirstOrDefaultAsync(x => x.faq_id == Id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
 
-                _dbContext.faq_infos.Remove(formField);
+                _dbContext.ref_faqs.Remove(formField);
                 await _dbContext.SaveChangesAsync();
                 
                 return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
@@ -206,7 +206,7 @@ namespace PBTPro.Api.Controllers
 
         private bool FaqExists(int id)
         {
-            return (_dbContext.faq_infos?.Any(e => e.faq_id == id)).GetValueOrDefault();
+            return (_dbContext.ref_faqs?.Any(e => e.faq_id == id)).GetValueOrDefault();
         }
 
        

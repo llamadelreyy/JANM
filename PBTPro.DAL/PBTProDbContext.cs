@@ -35,8 +35,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<department_info> department_infos { get; set; }
 
-    public virtual DbSet<faq_info> faq_infos { get; set; } 
-
     public virtual DbSet<his_email_history> his_email_histories { get; set; }
 
     public virtual DbSet<license_address_swap> license_address_swaps { get; set; }
@@ -103,6 +101,8 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<trn_email_queue> trn_email_queues { get; set; }
 
+    public virtual DbSet<ref_faq> ref_faqs { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -110,48 +110,90 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
         modelBuilder.Entity<auditlog_archive_info>(entity =>
         {
-            //entity
-            //    .HasNoKey()
-            //    .ToTable("auditlog_archive_info", "audit");
+            entity
+                .HasNoKey()
+                .ToTable("auditlog_archive_info", "core");
 
-            entity.HasKey(e => e.archive_id).HasName("auditlog_archive_info_pkey");
-
-            entity.ToTable("auditlog_archive_info", "audit");
-
-            entity.Property(e => e.archive_id).HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)");
-            entity.Property(e => e.archive_isarchived).HasDefaultValue(true);
+            entity.Property(e => e.archive_id).HasDefaultValueSql("nextval('core.archive_info_archive_id_seq'::regclass)");
             entity.Property(e => e.archive_method).HasMaxLength(255);
             entity.Property(e => e.archive_module_name)
                 .HasMaxLength(255)
                 .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.archive_role_id).HasDefaultValue(0);
             entity.Property(e => e.archive_username).HasMaxLength(25);
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
+            entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.archive_audit_id).HasDefaultValue(0);
+            entity.Property(e => e.creator_id).HasDefaultValue(0);
+            entity.Property(e => e.is_archived).HasDefaultValue(true);
+            entity.Property(e => e.role_id).HasDefaultValue(0);
         });
+
+
+        //modelBuilder.Entity<auditlog_archive_info>(entity =>
+        //{
+        //    //entity
+        //    //    .HasNoKey()
+        //    //    .ToTable("auditlog_archive_info", "audit");
+
+        //    entity.HasKey(e => e.archive_id).HasName("auditlog_archive_info_pkey");
+
+        //    entity.ToTable("auditlog_archive_info", "audit");
+
+        //    entity.Property(e => e.archive_id).HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)");
+        //    entity.Property(e => e.archive_isarchived).HasDefaultValue(true);
+        //    entity.Property(e => e.archive_method).HasMaxLength(255);
+        //    entity.Property(e => e.archive_module_name)
+        //        .HasMaxLength(255)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.archive_role_id).HasDefaultValue(0);
+        //    entity.Property(e => e.archive_username).HasMaxLength(25);
+        //    entity.Property(e => e.created_by).HasDefaultValue(0);
+        //    entity.Property(e => e.created_date)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        //        .HasColumnType("timestamp without time zone");
+        //    entity.Property(e => e.archive_audit_id).HasDefaultValue(0);
+        //});
 
         modelBuilder.Entity<auditlog_info>(entity =>
         {
-            entity.HasKey(e => e.audit_id).HasName("auditlog_pkey");
+            entity.HasKey(e => e.log_id).HasName("auditlog_pkey");
 
-            entity.ToTable("auditlog_info", "audit");
+            entity.ToTable("auditlog_info", "core");
 
-            entity.Property(e => e.audit_id).HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)");
-            entity.Property(e => e.audit_isarchived).HasDefaultValue(false);
-            entity.Property(e => e.audit_method).HasMaxLength(255);
-            entity.Property(e => e.audit_module_name)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.audit_role_id).HasDefaultValue(0);
-            entity.Property(e => e.audit_username).HasMaxLength(25);
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
+            entity.Property(e => e.log_id).HasDefaultValueSql("nextval('core.auditlog_info_audit_id_seq'::regclass)");
+            entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasDefaultValue(0);
+            entity.Property(e => e.is_archived).HasDefaultValue(false);
+            entity.Property(e => e.log_method).HasMaxLength(255);
+            entity.Property(e => e.module_name)
+                .HasMaxLength(255)
+                .HasDefaultValueSql("NULL::character varying");
+            entity.Property(e => e.role_id).HasDefaultValue(0);
+            entity.Property(e => e.username).HasMaxLength(25);
         });
+
+
+        //modelBuilder.Entity<auditlog_info>(entity =>
+        //{
+        //    entity.HasKey(e => e.audit_id).HasName("auditlog_pkey");
+
+        //    entity.ToTable("auditlog_info", "audit");
+
+        //    entity.Property(e => e.audit_id).HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)");
+        //    entity.Property(e => e.audit_isarchived).HasDefaultValue(false);
+        //    entity.Property(e => e.audit_method).HasMaxLength(255);
+        //    entity.Property(e => e.audit_module_name)
+        //        .HasMaxLength(255)
+        //        .HasDefaultValueSql("NULL::character varying");
+        //    entity.Property(e => e.audit_role_id).HasDefaultValue(0);
+        //    entity.Property(e => e.audit_username).HasMaxLength(25);
+        //    entity.Property(e => e.created_by).HasDefaultValue(0);
+        //    entity.Property(e => e.created_date)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        //        .HasColumnType("timestamp without time zone");
+        //});
 
         modelBuilder.Entity<app_email_tmpl>(entity =>
         {
@@ -377,24 +419,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasMaxLength(255)
                 .HasDefaultValueSql("NULL::character varying");
             entity.Property(e => e.dept_status).HasMaxLength(30);
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-            entity.Property(e => e.updated_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-        });
-
-        modelBuilder.Entity<faq_info>(entity =>
-        {
-            entity.HasKey(e => e.faq_id).HasName("faq_info_pkey");
-
-            entity.ToTable("faq_info", "faq");
-
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.faq_category).HasMaxLength(50);
-            entity.Property(e => e.faq_status).HasMaxLength(30);
             entity.Property(e => e.updated_by).HasDefaultValue(0);
             entity.Property(e => e.updated_date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -1316,6 +1340,24 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("Subject line of the email in the queue");
         });
 
+        modelBuilder.Entity<ref_faq>(entity =>
+        {
+            entity.HasKey(e => e.faq_id).HasName("faq_info_pkey");
+
+            entity.ToTable("ref_faq", "core");
+
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasDefaultValue(0);
+            entity.Property(e => e.faq_category).HasMaxLength(50);
+            entity.Property(e => e.faq_status).HasMaxLength(30);
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasDefaultValue(0);
+        });
 
         OnModelCreatingPartial(modelBuilder);
     }

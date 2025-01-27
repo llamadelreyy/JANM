@@ -34,7 +34,7 @@
     <div class="d-lg-flex border-bottom">
         <div class="col-md-12 py-1 dx-helptitle pageTitle">
             <img class="imgTitle" src="\images\icons-small\hard-hat--plus.png" />
-            <div class="textTitle">Seksyen</div>
+            <div class="textTitle">Setup Rondaan - Senarai Rondaan</div>
         </div>
     </div>
 
@@ -92,6 +92,11 @@
                         </div>
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
+                <DxGridDataColumn FieldName="PatrolStatus" Caption="Status" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                    <CellDisplayTemplate>
+                        <div>@GetStatusRondaanIconHtml(((PatrolViewModel)context.DataItem).PatrolStatus)</div>
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
                 <DxGridDataColumn FieldName="CreatedAt"
                                   DisplayFormat="dd/MM/yyyy"
                                   Caption="Tarikh Data"
@@ -132,6 +137,35 @@
                                                 DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
                                                 @bind-Value="@dtEdit.OfficerName">
                                     </DxComboBox>
+                                </td>
+                                <td width="100px">&nbsp;</td>
+                                <td nowrap></td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td width="50%"></td>
+                            </tr>
+                            <tr>
+                                <td nowrap>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    <div>Jabatan</div>
+                                    <DxTextBox @bind-Text="@dtEdit.DeptName"
+                                               NullText="Jabatan pengguna ..."
+                                               BindValueMode="BindValueMode.OnInput"
+                                               CssClass="cw-480"
+                                               Enabled="false" />
+
+                                    <div>Section</div>
+                                    <DxTextBox @bind-Text="@dtEdit.SectionName"
+                                               NullText="Seksyen pengguna ..."
+                                               BindValueMode="BindValueMode.OnInput"
+                                               CssClass="cw-480"
+                                               Enabled="false" />
+
+                                    <div>Unit</div>
+                                    <DxTextBox @bind-Text="@dtEdit.UnitName"
+                                               NullText="Unit pengguna ..."
+                                               BindValueMode="BindValueMode.OnInput"
+                                               CssClass="cw-480"
+                                               Enabled="false" />
                                 </td>
                                 <td width="100px">&nbsp;</td>
                                 <td nowrap></td>
@@ -259,7 +293,7 @@
             e.AddError(nameof(_data.DistrictName), "Medan nama pegawai perlu diisi.");
         }
 
-        
+
 
         // if (Grid.IsEditingNewRow())
         // {
@@ -314,7 +348,7 @@
         dataSource = await _ScheduleService.Refresh();
     }
 
-   
+
 
     async Task Delete(PatrolViewModel item)
     {
@@ -420,7 +454,31 @@
 
     }
 
-     #region response
+    public MarkupString GetStatusRondaanIconHtml(string status)
+    {
+        string priorytyClass = "";
+        string title = "";
+
+        if (status == "Selesai")
+        {
+            priorytyClass = "info";
+            title = " SELESAI ";
+        }
+        else if (status == "Rondaan")
+        {
+            priorytyClass = "warning";
+            title = " RONDAAN ";
+        }
+        else
+        {
+            priorytyClass = "danger";
+            title = " BELUM MULA ";
+        }
+
+        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
+        return new MarkupString(html);
+    }
+    #region response
 
     public void Dispose()
     {

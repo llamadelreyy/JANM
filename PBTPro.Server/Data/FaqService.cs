@@ -59,7 +59,7 @@ namespace PBTPro.Data
 
         private string _baseReqURL = "/api/Faq";
         private string LoggerName = "";
-        private List<faq_info> _Faq { get; set; }
+        private List<ref_faq> _Faq { get; set; }
 
         public FaqService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<FaqService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
@@ -71,9 +71,9 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<faq_info>> ListAll()
+        public async Task<List<ref_faq>> ListAll()
         {
-            var result = new List<faq_info>();
+            var result = new List<ref_faq>();
             string requestUrl = $"{_baseReqURL}/ListAll";
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
@@ -84,7 +84,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<faq_info>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_faq>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya jana senarai soalan lazim.", 1, LoggerName, "");
                 }
@@ -96,15 +96,15 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<faq_info>();
+                result = new List<ref_faq>();
             }
             return result;
         }
 
         [HttpGet]
-        public async Task<List<faq_info>> Refresh()
+        public async Task<List<ref_faq>> Refresh()
         {
-            var result = new List<faq_info>();
+            var result = new List<ref_faq>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/ListAll";
@@ -115,7 +115,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<faq_info>>(dataString); 
+                        result = JsonConvert.DeserializeObject<List<ref_faq>>(dataString); 
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya jana senarai soalan lazim.", 1, LoggerName, "");
                 }
@@ -128,12 +128,12 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<faq_info>();
+                result = new List<ref_faq>();
             }
             return result;
         }
 
-        public async Task<ReturnViewModel> Add(faq_info inputModel)
+        public async Task<ReturnViewModel> Add(ref_faq inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -162,7 +162,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, faq_info inputModel)
+        public async Task<ReturnViewModel> Update(int id, ref_faq inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -218,15 +218,15 @@ namespace PBTPro.Data
             return result;
         }
 
-        public Task<List<faq_info>> GetFAQAsync(CancellationToken ct = default)
+        public Task<List<ref_faq>> GetFAQAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk soalan lazim.", 1, LoggerName, "");
             return Task.FromResult(_Faq);
         }
 
-        public async Task<faq_info> ViewDetail(int id)
+        public async Task<ref_faq> ViewDetail(int id)
         {
-            var result = new faq_info();
+            var result = new ref_faq();
             try
             {
                 string requestquery = $"/{id}";
@@ -238,7 +238,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<faq_info>(dataString);
+                        result = JsonConvert.DeserializeObject<ref_faq>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci soalan lazim.", 1, LoggerName, "");
                 }
@@ -249,7 +249,7 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new faq_info(); 
+                result = new ref_faq(); 
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;

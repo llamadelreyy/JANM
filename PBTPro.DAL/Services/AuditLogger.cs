@@ -60,13 +60,13 @@ namespace PBTPro.DAL.Services
             {
                 auditlog_info inputModel = new auditlog_info()
                 {
-                    audit_role_id = roleid,
-                    audit_module_name = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName,
-                    audit_description = strMessage,
-                    created_by = userId,
-                    audit_type = intType,
-                    audit_username = uname,
-                    audit_method = strMethod
+                    role_id = roleid,
+                    module_name = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName,
+                    log_descr = strMessage,
+                    creator_id = userId,
+                    log_type = intType,
+                    username = uname,
+                    log_method = strMethod
                 };
 
                 var reqData = JsonConvert.SerializeObject(inputModel);
