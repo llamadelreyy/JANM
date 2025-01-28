@@ -17,6 +17,7 @@
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject NavigationManager NavigationManager
 @inject FileUrlStorageService _fileUrlStorageService
+@* @inject IWebHostEnvironment _hostingEnvironment *@
 
 
 <DxLoadingPanel @bind-Visible="PanelVisible"
@@ -191,9 +192,11 @@
     bool PanelVisible { get; set; }
     [Inject] IToastNotificationService ToastService { get; set; }
     user_profile_view userInfo = new user_profile_view();
+    update_avatar_input_model user_avatar = new update_avatar_input_model();
 
     //Get current user id
     // string strPhotoPath { get; set; } = "images/profile/avatar-user-profile-icon.jpg";
+    string strTempoPhotoPath { get; set; } = "";
     // int intCurrentUserId { get; set; } = 0;
     int intCurrentRoleId { get; set; } = 0;
     int intCurrentSelectedRoleId { get; set; } = 0;
@@ -224,7 +227,11 @@
     protected void OnFileUploaded(FileUploadEventArgs args, user_profile_view item)
     {
         var fileUrl = _fileUrlStorageService.Get(Guid.Parse(args.FileInfo.Guid));
-        item.photo_path_url = fileUrl;
+        string[] pathFileName = fileUrl.Split(";");
+
+        strTempoPhotoPath = pathFileName[0];
+        item.photo_path_url = pathFileName[1]; //fileUrl;
+        item.photo_filename = pathFileName[2];
     }
     //================ ** ==================//
 
@@ -297,6 +304,30 @@
 
     }
 
+    // // // string ProcessUploadedFile(string tempFilePath, string fileName)
+    // // // {
+
+    // // //     var path = Path.Combine(_hostingEnvironment.WebRootPath, "images", "profile");
+    // // //     var imagePath = Path.Combine(path, fileName);
+    // // //     if (System.IO.File.Exists(imagePath))
+    // // //         System.IO.File.Delete(imagePath);
+    // // //     System.IO.File.Copy(tempFilePath, imagePath);
+
+    // // //     return @"\images\profile\" + fileName;
+    // // // }
+
+    public IFormFile ConvertToFormFile(string filePath)
+    {
+        var fileName = Path.GetFileName(filePath);
+        var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        var formFile = new FormFile(fileStream, 0, fileStream.Length, "formFile", fileName)
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "image/png" // You can set the appropriate content type
+            };
+
+        return formFile;
+    }
 
     public async Task HandleValidSubmit()
     {
@@ -304,6 +335,12 @@
         FormValidationState = @"Maklumat yang dimasukkan sah.";
         ReturnViewModel response = new ReturnViewModel();
         update_profile_input_model user_info_update = new update_profile_input_model();
+        update_avatar_input_model user_avatar = new update_avatar_input_model();
+
+        user_avatar.avatar_image = ConvertToFormFile(strTempoPhotoPath);
+        user_avatar.user_id = userInfo.user_id;
+
+        //string result = ProcessUploadedFile(, userInfo.photo_filename); //Called to update the upload fike
 
         //Assign the updated value to new model
         user_info_update.idno = userInfo.idno;
@@ -317,14 +354,22 @@
         user_info_update.email = userInfo.email;
         user_info_update.full_name = userInfo.full_name;
         user_info_update.phone_number = userInfo.phone_number;
-        user_info_update.photo_filename = (userInfo.photo_path_url.Trim() != "" ? Path.GetFileName(userInfo.photo_path_url) : "") ;
+        user_info_update.photo_filename = userInfo.photo_filename;
         user_info_update.selected_role = intCurrentRoleId;
         user_info_update.photo_path_url = userInfo.photo_path_url;
 
+        // // GetUploadUrl("api/Upload/ProcessUploadedFile?tempFilePath=" + strTempoPhotoPath + "&fileName=" + userInfo.photo_filename);
+        // // GetUploadUrl("api/Upload/TestUpload/");
+
         response = await _UserProfileService.UpdateProfile(user_info_update);
+        await _UserProfileService.UpdateAvatar(user_avatar);
+
 
         if (response.ReturnCode == 200)
         {
+            //Update the picture
+            //UpdateImageUrl("api/Upload/ProcessUploadedFile?tempFilePath=" + strTempoPhotoPath + "&fileName=" + userInfo.photo_filename);
+
             ToastService.ShowToast(new ToastOptions()
             {
                 ProviderName = "Overview",

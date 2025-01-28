@@ -6,6 +6,7 @@ using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using PBTPro.DAL.Services;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 
@@ -125,6 +126,7 @@ namespace PBTPro.Data
         //    }
         //}
 
+
         public async Task<user_profile_view> Retrieve()
         {
             //var result = new List<user_profile_view>();
@@ -155,6 +157,7 @@ namespace PBTPro.Data
             }
             return result;
         }
+
         //public async Task<List<user_profile>> Retrieve(int id)
         //{
         //    var result = new user_profile();
@@ -245,6 +248,47 @@ namespace PBTPro.Data
             }
             return result;
         }
+
+        public async Task<ReturnViewModel> UpdateAvatar(update_avatar_input_model inputModel)
+        {
+            var result = new ReturnViewModel();
+            try
+            {
+                //var reqData = JsonConvert.SerializeObject(inputModel);
+                var reqContent = new MultipartFormDataContent(); //new StringContent(reqData, Encoding.UTF8, "application/json");
+                reqContent.Add(new StringContent(inputModel.user_id.ToString()), "user_id");
+                var streamContent = new StreamContent(inputModel.avatar_image.OpenReadStream());
+                streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "avatar_image",
+                    FileName = inputModel.avatar_image.FileName
+                };
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue(inputModel.avatar_image.ContentType);
+                reqContent.Add(streamContent);
+                string requestUrl = $"{_baseReqURL}/UpdateAvatar";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
+
+                if (response.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat naik data untuk seksyen.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
+
+                result = response;
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new ReturnViewModel();
+            }
+
+            return result;
+        }
+    
+
 
         //        [AllowAnonymous]
         //        [HttpPut]
