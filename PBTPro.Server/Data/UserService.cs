@@ -318,6 +318,40 @@ namespace PBTPro.Data
 
             return new string(chars.ToArray());
         }
+
+        [HttpGet]
+        public async Task<user_profile_view> RetrievebyIc(string icno)
+        {
+            
+            var result = new user_profile_view();
+            string requestquery = $"/{icno}";
+            string requestUrl = $"{_baseReqURL}/RetrievebyIc{requestquery}";
+            var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+            try
+            {
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<user_profile_view>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new user_profile_view();
+            }
+            return result;
+        }
+
         #region 
         //private List<system_user> _User { get; set; }
         //public IConfiguration _configuration { get; }

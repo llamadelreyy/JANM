@@ -102,7 +102,7 @@ namespace PBTPro.Api.Controllers
                                           DepartmentID = dept.dept_id,
                                           DivisionID = div.div_id,
                                           UnitID = unit.unit_id,
-                                    
+
 
                                       }).ToList();
                 }
@@ -477,15 +477,15 @@ namespace PBTPro.Api.Controllers
 
                 #region User
                 if (InputModel.full_name != null) userProfile.full_name = InputModel.full_name;
-                if(InputModel.idno != null) userProfile.IdNo = InputModel.idno;
-                if(InputModel.email != null) userProfile.Email = InputModel.email;
-                if(InputModel.phone_number != null) userProfile.PhoneNumber = InputModel.phone_number;
-                if(InputModel.photo_path_url != null) userProfile.PhotoPathUrl = InputModel.photo_path_url;
-                if(InputModel.photo_filename != null) userProfile.PhotoFilename = InputModel.photo_filename;
-                if(InputModel.sign_filename != null) userProfile.SignFilename = InputModel.sign_filename;
-                if(InputModel.dept_id.HasValue) userProfile.dept_id = InputModel.dept_id.Value;
-                if(InputModel.div_id.HasValue) userProfile.div_id = InputModel.div_id.Value;
-                if(InputModel.unit_id.HasValue) userProfile.unit_id = InputModel.unit_id.Value;
+                if (InputModel.idno != null) userProfile.IdNo = InputModel.idno;
+                if (InputModel.email != null) userProfile.Email = InputModel.email;
+                if (InputModel.phone_number != null) userProfile.PhoneNumber = InputModel.phone_number;
+                if (InputModel.photo_path_url != null) userProfile.PhotoPathUrl = InputModel.photo_path_url;
+                if (InputModel.photo_filename != null) userProfile.PhotoFilename = InputModel.photo_filename;
+                if (InputModel.sign_filename != null) userProfile.SignFilename = InputModel.sign_filename;
+                if (InputModel.dept_id.HasValue) userProfile.dept_id = InputModel.dept_id.Value;
+                if (InputModel.div_id.HasValue) userProfile.div_id = InputModel.div_id.Value;
+                if (InputModel.unit_id.HasValue) userProfile.unit_id = InputModel.unit_id.Value;
                 userProfile.ModifierId = runUserID;
                 userProfile.ModifiedAt = DateTime.Now;
                 _dbContext.Users.Update(userProfile);
@@ -499,7 +499,7 @@ namespace PBTPro.Api.Controllers
                     var currDef = user_roles.FirstOrDefault(x => x.IsDefaultRole == true);
                     var newDef = user_roles.FirstOrDefault(x => x.RoleId == InputModel.selected_role);
 
-                    if(currDef != null && currDef.RoleId != newDef.RoleId)
+                    if (currDef != null && currDef.RoleId != newDef.RoleId)
                     {
                         currDef.IsDefaultRole = false;
                         currDef.ModifiedAt = DateTime.Now;
@@ -511,7 +511,7 @@ namespace PBTPro.Api.Controllers
                         newDef.ModifierId = runUserID;
                         _dbContext.UserRoles.Update(newDef);
                     }
-                    if(currDef == null)
+                    if (currDef == null)
                     {
                         newDef.IsDefaultRole = true;
                         newDef.ModifiedAt = DateTime.Now;
@@ -687,10 +687,10 @@ namespace PBTPro.Api.Controllers
                 }
 
 
-             
-                
 
-                #endregion          
+
+
+                #endregion
 
                 #region store data
                 ApplicationUser au = new ApplicationUser
@@ -774,8 +774,8 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-               
-            
+
+
                 #endregion
                 ApplicationUser au = new ApplicationUser();
                 au.full_name = model.FullName;
@@ -861,6 +861,7 @@ namespace PBTPro.Api.Controllers
             }
         }
         #endregion
+
         private async Task<bool> SendEmailCreateUser(string recipient, string username, string fullname, string password)
         {
             try
@@ -889,5 +890,44 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [HttpGet("{icno}")]
+        public async Task<IActionResult> RetrievebyIc(string icno)
+        {
+            try
+            {
+                //var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.IdNo == icno)
+                var users = await _dbContext.Users.Where(x => x.IdNo == icno)
+              .Select(x => new user_profile_view
+              {
+                  user_id = x.Id,
+                  user_name = x.UserName,
+                  unit_id = x.unit_id,
+                  div_id = x.div_id,
+                  dept_id = x.dept_id,
+                  full_name = x.full_name,
+                  idno = x.IdNo,
+                  photo_filename = x.PhotoFilename,
+                  sign_filename = x.SignFilename,
+                  email = x.Email,
+                  phone_number = x.PhoneNumber,
+                  last_login = x.LastLogin,
+              }).AsNoTracking().FirstOrDefaultAsync();
+
+                users.dept_name = await _tenantDBContext.ref_departments.Where(x => x.dept_id == users.dept_id).Select(x => x.dept_name).FirstOrDefaultAsync();
+                users.div_name = await _tenantDBContext.ref_divisions.Where(x => x.div_id == users.div_id).Select(x => x.div_name).FirstOrDefaultAsync();
+                users.unit_name = await _tenantDBContext.ref_units.Where(x => x.unit_id == users.unit_id).Select(x => x.unit_name).FirstOrDefaultAsync();
+
+                if (users == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(users, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
     }
 }

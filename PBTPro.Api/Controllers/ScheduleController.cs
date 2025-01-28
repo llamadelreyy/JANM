@@ -33,7 +33,6 @@ namespace PBTPro.Api.Controllers
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
         private readonly IHubContext<PushDataHub> _hubContext;
-        protected PBTProTenantDbContext _tenantDBContext;
 
         private string LoggerName = "administrator";
         private readonly string _feature = "SCHEDULE";
@@ -84,7 +83,103 @@ namespace PBTPro.Api.Controllers
                                     ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.end_location))
                                     : null
                 }).AsNoTracking().ToListAsync();
-                return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+
+                var result = (
+                        from schedule in data
+                        join user in _dbContext.Users on schedule.idno equals user.IdNo
+                        join department in _tenantDBContext.ref_departments on user.dept_id equals department.dept_id
+                        join seksyen in _tenantDBContext.ref_divisions on user.div_id equals seksyen.div_id
+                        join unit in  _tenantDBContext.ref_units on user.unit_id equals unit.unit_id
+                        
+                        select new PatrolViewModel
+                        {        
+                            scheduleId = schedule.schedule_id,
+                            OfficerName = user.full_name,
+                            CreatedAt = schedule.created_at,
+                            DeptName = department.dept_name,
+                            SectionName = seksyen.div_name,
+                            UnitName = unit.unit_name,
+                            StartTime = schedule.start_time,
+                            EndTime = schedule.end_time,
+                            DistrictName = schedule.loc_name,
+                        }
+                    ).ToList();
+
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> Add([FromBody] PatrolViewModel InputModel)
+        {
+            try
+            {
+                var runUserID = await getDefRunUserId();
+                var runUser = await getDefRunUser();
+               
+                #region store data
+                mst_patrol_schedule mst_Patrol = new mst_patrol_schedule
+                {
+                    idno = InputModel.ICNo,
+                    dept_id = InputModel.DeptId,
+                    start_time = InputModel.StartTime,
+                    end_time = InputModel.EndTime,
+                    creator_id = runUserID,
+                    created_at = InputModel.CreatedAt,
+                    is_deleted = false,
+                    //need to add new field in the tbl district and town, rename loc_name
+                    loc_name = InputModel.DistrictName,
+                    
+                };
+
+                _tenantDBContext.mst_patrol_schedules.Add(mst_Patrol);
+                await _tenantDBContext.SaveChangesAsync();
+
+                #endregion               
+                return Ok(mst_Patrol, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya tambah jadual rondaan")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> Update(int Id, [FromBody] PatrolViewModel InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                var formField = await _tenantDBContext.mst_patrol_schedules
+                                .FirstOrDefaultAsync(x => x.schedule_id == InputModel.scheduleId);
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                if (string.IsNullOrWhiteSpace(InputModel.ICNo))
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_OFFICER_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Pegawai diperlukan")));
+                }
+
+                #endregion
+                formField.idno = InputModel.ICNo;
+                formField.modifier_id = runUserID;
+                formField.modified_at = DateTime.Now;
+
+                _tenantDBContext.mst_patrol_schedules.Update(formField);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
             catch (Exception ex)
             {
