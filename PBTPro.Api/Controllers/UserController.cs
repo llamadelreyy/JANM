@@ -519,8 +519,13 @@ namespace PBTPro.Api.Controllers
                         _dbContext.UserRoles.Update(newDef);
                     }
                 }
+
                 #endregion
                 await _dbContext.SaveChangesAsync();
+
+
+
+
 
                 return Ok("", SystemMesg(_feature, "UPDATE_PROFILE", MessageTypeEnum.Success, string.Format("Berjaya mengemaskini profil")));
             }
