@@ -45,7 +45,7 @@
                 <img src="images/mdk.jpeg" class="loginImej" />
 
                 <p class="tm-8 mb-0 fw-normal fs-825">
-                    <b>Log masuk.</b>
+                    <b>Log Masuk.</b>
                 </p>
             </div>
             <div class="card-body">
@@ -54,7 +54,7 @@
                     <DxFormLayout>
                         <DxFormLayoutItem ColSpanMd="12">
                             <DxTextBox @bind-Text="@LoginModel.Username"
-                                       NullText="Nama Pengguna ..."
+                                       NullText="Nama Pengguna"
                                        BindValueMode="BindValueMode.OnInput"
                                        ShowValidationIcon="true"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
@@ -62,11 +62,20 @@
 
                         <DxFormLayoutItem ColSpanMd="12">
                             <DxTextBox @bind-Text="@LoginModel.Password"
-                                       NullText="Kata Laluan ..."
+                                       NullText="Kata Laluan"
                                        BindValueMode="BindValueMode.OnInput"
+                                       type="@inputType"
                                        Password="true"
                                        ShowValidationIcon="true"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+
+                            <div class="password-container">
+                                <input type="@inputType" @bind="LoginModel.Password" placeholder="Enter your password" />
+                                <button @onclick="TogglePasswordVisibility">
+                                    <i class="fa @eyeIconClass"></i>
+                                </button>
+                            </div>
+
                         </DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="12">
@@ -93,6 +102,17 @@
 
 @code {
     public LoginModel LoginModel = new LoginModel();
+
+    private string password;
+    private bool showPassword;
+
+    private string inputType => showPassword ? "text" : "password";
+    private string eyeIconClass => showPassword ? "fa-eye-slash" : "fa-eye";
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
 
     string FormSubmitResult = "";
     public async Task HandleValidSubmit()
