@@ -10,8 +10,10 @@
 @using PBTPro.DAL.Models
 @using PBTPro.DAL.Services
 @using PBTPro.DAL.Models.CommonServices
+@using PBTPro.DAL.Models.PayLoads
 
-@inject DepartmentService _DepartmentService
+
+@inject UserProfileService _UserProfileService
 @inject ScheduleService _ScheduleService
 @inject UserService _UserService
 @inject NavigationManager NavigationManager
@@ -41,7 +43,7 @@
     <div class="item-container-x">
         <DxGrid @ref="Grid"
                 Data="@dataSchedule"
-                KeyFieldName="Id"
+                KeyFieldName="scheduleId"
                 ShowGroupPanel="true"
                 ShowFilterRow="false"
                 TextWrapEnabled="true"
@@ -77,26 +79,26 @@
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
                 <DxGridDataColumn Caption="Nama Pegawai" MinWidth="120" Width="15%" FieldName="OfficerName" />
-                <DxGridDataColumn Caption="Lokasi Rondaan" MinWidth="100" Width="13%" FieldName="DistrictName" />
-                <DxGridDataColumn Caption="Tarikh & Masa Mula Rondaan" MinWidth="200" Width="30%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+              @*   <DxGridDataColumn Caption="Lokasi Rondaan" MinWidth="100" Width="13%" FieldName="DistrictName" /> *@
+                <DxGridDataColumn Caption="Tarikh & Masa Mula Rondaan" MinWidth="200" Width="30%" FieldName="StartTime" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
                     <CellDisplayTemplate>
                         <div>
                             @CombineText(Convert.ToDateTime(((PatrolViewModel)context.DataItem).StartTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).EndTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).StartTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).EndTime))
                         </div>
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
-                <DxGridDataColumn Caption="Tarikh & Masa Tamat Rondaan" MinWidth="200" Width="30%" FieldName="tarikh" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                <DxGridDataColumn Caption="Tarikh & Masa Tamat Rondaan" MinWidth="200" Width="30%" FieldName="EndTime" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
                     <CellDisplayTemplate>
                         <div>
                             @CombineText(Convert.ToDateTime(((PatrolViewModel)context.DataItem).StartTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).EndTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).StartTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).EndTime))
                         </div>
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
-                <DxGridDataColumn FieldName="PatrolStatus" Caption="Status" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+               @*  <DxGridDataColumn FieldName="PatrolStatus" Caption="Status" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                     <CellDisplayTemplate>
                         <div>@GetStatusRondaanIconHtml(((PatrolViewModel)context.DataItem).PatrolStatus)</div>
                     </CellDisplayTemplate>
-                </DxGridDataColumn>
+                </DxGridDataColumn> *@
                 <DxGridDataColumn FieldName="CreatedAt"
                                   DisplayFormat="dd/MM/yyyy"
                                   Caption="Tarikh Data"
@@ -131,12 +133,13 @@
                                                 Enabled="@boolLockDropDown"
                                                 ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                                 TextFieldName="@nameof(ApplicationUser.TextName)"
-                                                ValueFieldName="full_name"
+                                                ValueFieldName="IdNo"
                                                 CssClass="combo-width"
                                                 SelectedItemChanged="@((ApplicationUser x) => SelectedItemChanged(x))"
                                                 DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
-                                                @bind-Value="@dtEdit.OfficerName">
+                                                @bind-Value="@dtEdit.ICNo">
                                     </DxComboBox>
+
                                 </td>
                                 <td width="100px">&nbsp;</td>
                                 <td nowrap></td>
@@ -144,34 +147,42 @@
                                 <td width="50%"></td>
                             </tr>
                             <tr>
+                                <td nowrap>Jabatan</td>
                                 <td nowrap>&nbsp;&nbsp;</td>
                                 <td width="50%">
-                                    <div>Jabatan</div>
-                                    <DxTextBox @bind-Text="@dtEdit.DeptName"
+                                    <DxTextBox @bind-Text="@_itm.DeptName"
+                                               @bind-Value="@dtEdit.DeptId"
                                                NullText="Jabatan pengguna ..."
                                                BindValueMode="BindValueMode.OnInput"
-                                               CssClass="cw-480"
+                                               Style="width: 320px;"
                                                Enabled="false" />
-
-                                    <div>Section</div>
-                                    <DxTextBox @bind-Text="@dtEdit.SectionName"
+                                </td>                                
+                            </tr>
+                            <tr>
+                                <td nowrap>Seksyen</td>
+                                <td nowrap>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    <DxTextBox @bind-Text="@_itm.UnitName"
+                                               @bind-Value="@dtEdit.SectionId"
                                                NullText="Seksyen pengguna ..."
                                                BindValueMode="BindValueMode.OnInput"
-                                               CssClass="cw-480"
-                                               Enabled="false" />
-
-                                    <div>Unit</div>
-                                    <DxTextBox @bind-Text="@dtEdit.UnitName"
-                                               NullText="Unit pengguna ..."
-                                               BindValueMode="BindValueMode.OnInput"
-                                               CssClass="cw-480"
+                                               Style="width: 320px;"
                                                Enabled="false" />
                                 </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
+                              
                             </tr>
+                            <tr>
+                                <td nowrap>Unit</td>
+                                <td nowrap>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    <DxTextBox @bind-Text="@_itm.UnitName"
+                                               @bind-Value="@dtEdit.UnitId"
+                                               NullText="Unit pengguna ..."
+                                               BindValueMode="BindValueMode.OnInput"
+                                               Style="width: 320px;"
+                                               Enabled="false" />
+                                </td>
+                            </tr>                           
                             <tr>
                                 <td nowrap>Masa Mula Rondaan</td>
                                 <td>&nbsp;&nbsp;</td>
@@ -213,9 +224,8 @@
                 <MyCustomValidator DataItemValidating="ValidateGridData" />
             </CustomValidators>
 
-
             <TotalSummary>
-                <DxGridSummaryItem FooterColumnName="DistrictName"
+                <DxGridSummaryItem FooterColumnName="ICNo"
                                    Name="Custom"
                                    SummaryType=GridSummaryItemType.Count />
             </TotalSummary>
@@ -245,19 +255,21 @@
     IEnumerable<ApplicationUser> dataUser;
     IEnumerable<ApplicationUser> valueUser;
     IEnumerable<PatrolViewModel> dataSchedule;
-
+    PatrolViewModel dtData { get; set; }
+    mst_patrol_schedule dtPatrolData { get; set; }
+    user_profile_view userInfo = new user_profile_view();
+    PatrolViewModel _itm = new PatrolViewModel();
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
 
     bool ConfirmationShown { get; set; } = false;
-    string strSelected { get; set; }
-    PatrolViewModel dtData { get; set; }
-    mst_patrol_schedule dtPatrolData { get; set; }
+    string strSelected { get; set; } = "";
 
     bool boolLockDropDown { get; set; } = false;
 
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
@@ -275,7 +287,26 @@
         if (firstRender)
         {
             await DataLoadedTcs.Task;
-            await Grid.CancelEditAsync(); //.StartEditRowAsync(0);
+            await Grid.CancelEditAsync();
+        }
+    }
+
+    async void SelectedItemChanged(ApplicationUser x)
+    {
+        if (x != null)
+        {
+            userInfo = await _UserService.RetrievebyIc(x.IdNo);
+            if (userInfo != null)
+            {
+                _itm.DeptName = userInfo.dept_name;
+                _itm.SectionName = userInfo.div_name;
+                _itm.UnitName = userInfo.unit_name;
+                _itm.DeptId = (int)userInfo.dept_id;
+                _itm.SectionId = (int)userInfo.div_id;
+                _itm.UnitId = (int)userInfo.unit_id;
+
+                StateHasChanged();
+            }
         }
     }
 
@@ -286,35 +317,11 @@
         if (_data.OfficerName == null || _data.OfficerName.Trim() == "")
         {
             e.AddError(nameof(_data.OfficerName), "Medan jabatan perlu diisi.");
-        }
-
-        if (_data.DistrictName == null || _data.DistrictName.Trim() == "")
-        {
-            e.AddError(nameof(_data.DistrictName), "Medan nama pegawai perlu diisi.");
-        }
-
-
-
-        // if (Grid.IsEditingNewRow())
-        // {
-        //     var _dtAdd = dataSource.Where(x => x.dept_id == _data.dept_id && x.div_code == _data.div_code).FirstOrDefault();
-
-        //     if (_dtAdd != null)
-        //         e.AddError(nameof(_data.div_code), "Kod Seksyen telah wujud.");
-        // }
-        // else
-        // {
-        //     var _dtEdit = dataSource.Where(x => x.dept_id == _data.dept_id && x.div_id != _data.div_id && x.div_code == _data.div_code).FirstOrDefault();
-
-        //     if (_dtEdit != null)
-        //         e.AddError(nameof(_data.div_code), "Kod Seksyen telah wujud.");
-        // }
-
+        }       
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
-
         ReturnViewModel response = new ReturnViewModel();
         var editModel = e.EditModel as PatrolViewModel;
 
@@ -324,7 +331,6 @@
                 response = await _ScheduleService.Add(editModel);
             else
                 response = await _ScheduleService.Update(editModel);
-
 
             if (response.ReturnCode == 200)
             {
@@ -344,11 +350,8 @@
 
     async Task UpdateDataAsync()
     {
-        //Refresh back the data source
         dataSource = await _ScheduleService.Refresh();
     }
-
-
 
     async Task Delete(PatrolViewModel item)
     {
@@ -362,7 +365,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _ScheduleService.Delete(dtData.Id);
+            response = await _ScheduleService.Delete(dtData.scheduleId);
 
             if (response.ReturnCode == 200)
             {
@@ -394,64 +397,10 @@
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
-
     public MarkupString CombineText(DateTime startDtm, DateTime EndDtm, DateTime startTm, DateTime EndTm)
     {
         string html = string.Format("<b>TARIKH:</b> {0} - {1} <br/> <b>MASA:</b> {2} - {3} ", startDtm.ToString("dd/MM/yyyy"), EndDtm.ToString("dd/MM/yyyy"), startTm.ToString("HH:mm tt"), EndTm.ToString("HH:mm tt"));
         return new MarkupString(html);
-    }
-
-    // protected void CheckboxChanged(ChangeEventArgs e, int key)
-    // {
-    //     var i = dataUser.FirstOrDefault(i => i.Id == key);
-    //     if (i != null)
-    //     {
-    //        // i.role_select = (bool)e.Value;
-    //     }
-
-    //     //Clear the selection
-    //     foreach (var item in valueUser)
-    //     {
-    //         if (item.Id == key){}
-    //             //item.se = (bool)e.Value;
-    //     }
-
-    // }
-
-
-    void SelectedItemChanged(ApplicationUser x)
-    {
-
-        if (x != null)
-        {
-            List<ApplicationRole> arrItem = new List<ApplicationRole>();
-            ApplicationRole _item;
-
-            //Loop the main data to get all the role for selected user
-            // @foreach (var item in dataSource)
-            // {
-            //     if (x.Id == item.UserId)
-            //     {
-            //         _item = new ApplicationRole();
-            //         _item.Id = item.RoleId;
-            //         //_item.Name = item.Name;
-            //         //_item.RoleDesc = item.RoleDesc;
-            //         _item.role_select = true;
-            //         _item.CreatedAt = (DateTime)item.CreatedAt;
-            //         arrItem.Add(_item);
-
-            //         //Mark that role is selected
-            //         foreach (var _role in dataRole)
-            //         {
-            //             if (_role.Id == item.RoleId)
-            //                 _role.role_select = true;
-            //         }
-            //     }
-            // }
-
-            //valueRole = arrItem;
-        }
-
     }
 
     public MarkupString GetStatusRondaanIconHtml(string status)
@@ -478,6 +427,7 @@
         string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
         return new MarkupString(html);
     }
+
     #region response
 
     public void Dispose()

@@ -168,7 +168,7 @@ namespace PBTPro.Data
             var result = new ReturnViewModel();
             try
             {
-                int id = inputModel.Id;
+                int id = inputModel.scheduleId;
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
