@@ -2,6 +2,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 @using PBTPro.Pages
+@inject PBTAuthStateProvider PBTAuthStateProvider
 @* @using Blazored.Toast.Configuration *@
 
 <HeadContent>
@@ -13,23 +14,23 @@
 
 <div class="d-flex align-items-center custom-toast-background">
     <DxToastProvider Name="Overview"
-                     MaxToastCount="5"
-                     AnimationType="ToastAnimationType.Slide"
-                     HorizontalAlignment="HorizontalAlignment.Center"
-                     VerticalAlignment="VerticalEdge.Bottom"
-                     Width="50%" />
+    MaxToastCount="5"
+    AnimationType="ToastAnimationType.Slide"
+    HorizontalAlignment="HorizontalAlignment.Center"
+    VerticalAlignment="VerticalEdge.Bottom"
+    Width="50%" />
 </div>
 
 <DxLayoutBreakpoint MaxWidth="1200"
-                    @bind-IsActive="@IsMobileLayout" />
+@bind-IsActive="@IsMobileLayout" />
 
 
 <div class="page">
     <DxLoadingPanel @bind-Visible="PanelVisible"
-                    IsContentBlocked="true"
-                    ApplyBackgroundShading="true"
-                    IndicatorAreaVisible="false"
-                    Text="Membenarkan akses...">
+    IsContentBlocked="true"
+    ApplyBackgroundShading="true"
+    IndicatorAreaVisible="false"
+    Text="Membenarkan akses...">
 
         <DxGridLayout CssClass="page-layout">
             <Rows>
@@ -77,6 +78,23 @@
             </Items>
         </DxGridLayout>
     </DxLoadingPanel>
+
+    @*For Popup checking password expired*@
+    <DxPopup @bind-Visible="@ExpiredPasswordShown" 
+    HeaderText="Katalaluan Tamat Tempoh" 
+    Width="auto" 
+    CloseOnOutsideClick="false"
+    ShowCloseButton="false">
+        <BodyContentTemplate>
+            <center>
+            <br />Kata laluan anda telah tamat tempoh. <br />Sila tetapkan semula kata laluan anda untuk meneruskan akses ke akaun anda.
+            <br /><br
+            </center>
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnExpiredPwdYesButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
 </div>
 
 
@@ -115,6 +133,7 @@
         await Task.Delay(1000);
         NavigationManager.LocationChanged += OnLocationChanged;
         PanelVisible = false;
+        validateAccountStatus();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -123,12 +142,44 @@
             IsSidebarExpanded = false;
             await InvokeAsync(StateHasChanged);
         }
+        validateAccountStatus();
     }
 
     public void Dispose()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
+
+    #region Password Expired
+    bool ExpiredPasswordShown { get; set; } = false;
+    async void validateAccountStatus()
+    {
+        var CurrentUser = PBTAuthStateProvider.CurrentUser;
+        if (CurrentUser.IsPasswordExpired)
+        {
+            var currrentPath = GetCurrentPath();
+            if (!string.Equals(currrentPath, "user_password", StringComparison.OrdinalIgnoreCase) && 
+            !string.Equals(currrentPath, "logour", StringComparison.OrdinalIgnoreCase))
+            {
+                ExpiredPasswordShown = true;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    private string GetCurrentPath()
+    {
+        var fullUrl = NavigationManager.Uri;
+        var uri = new Uri(fullUrl);
+        return uri.AbsolutePath.TrimStart('/');
+    }
+
+    private void OnExpiredPwdYesButtonClick()
+    {
+        ExpiredPasswordShown = false;
+        NavigationManager.NavigateTo("user_password", false);
+    }
+    #endregion
 }
 
 
