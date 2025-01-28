@@ -159,7 +159,7 @@
         {
             var currrentPath = GetCurrentPath();
             if (!string.Equals(currrentPath, "user_password", StringComparison.OrdinalIgnoreCase) && 
-            !string.Equals(currrentPath, "logour", StringComparison.OrdinalIgnoreCase))
+            !string.Equals(currrentPath, "logout", StringComparison.OrdinalIgnoreCase))
             {
                 ExpiredPasswordShown = true;
                 await InvokeAsync(StateHasChanged);
