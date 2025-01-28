@@ -90,6 +90,7 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
                         Role = data.Role,
                         Roleid = data.Roleid,
                         Roles = data.Roles,
+                        IsPasswordExpired = data.IsPasswordExpired,
                         Password = password
                     };
 
