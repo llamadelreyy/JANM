@@ -9,12 +9,15 @@ Additional Notes:
 Changes Logs:
 22/11/2024 - initial create
 26/11/2024 - change all hardcoded sql query to EF function
+30/01/2025 (Author: Fakhrul) - added GetFilteredListByBound function where it will return the status value for both lesen and cukai based on traffic light priority
 */
+using DevExpress.Utils.Filtering.Internal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Operation.Overlay;
 using Newtonsoft.Json;
+using OneOf.Types;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -299,6 +302,207 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("GetFilteredListByBound")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetFilteredListByBound(double minLng, double minLat, double maxLng, double maxLat, string? filterType, int? crs = null)
+        {
+            try
+            {
+                // Retrieve initial list of mst_premis
+                IQueryable<mst_premis> initQuery = _dbContext.mst_premis.Where(x => PostGISFunctions.ST_IsValid(x.geom));
+
+                if (crs == null || crs == _defCRS)
+                {
+                    crs = _defCRS;
+                    initQuery = initQuery
+                        .Where(x => PostGISFunctions.ST_Within(x.geom, PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value)));
+                }
+                else
+                {
+                    initQuery = initQuery
+                        .Where(x => PostGISFunctions.ST_Within(x.geom, PostGISFunctions.ST_Transform(PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value), _defCRS)))
+                        .Select(x => new mst_premis { gid = x.gid, geom = (NetTopologySuite.Geometries.Point)PostGISFunctions.ST_Transform(x.geom, crs.Value) });
+                }
+
+                var mst_premisList = await initQuery
+                    .Select(x => new PremisMarkerViewModel
+                    {
+                        gid = x.gid,
+                        lot = x.lot,
+                        status_cukai = x.tempoh_sah_cukai == null
+                            ? "None"
+                            : x.tempoh_sah_cukai > DateOnly.FromDateTime(DateTime.Now)
+                                ? "Dibayar"
+                                : "Tertunggak",
+                        status_lesen = x.tempoh_sah_lesen == null
+                            ? "None"
+                            : x.tempoh_sah_lesen > DateOnly.FromDateTime(DateTime.Now)
+                                ? "Aktif"
+                                : "Tamat Tempoh",
+                        geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.geom)),
+                    })
+                    .ToListAsync();
+
+                // Check if any records were found
+                if (!mst_premisList.Any())
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                // For each mst_premis, get premis_view and add licenses
+                var resultData = new List<dynamic>();
+                var gids = mst_premisList.Select(p => p.gid).ToList();
+
+                // Fetch all premis_view data for the retrieved gids in one query
+                var premisViews = await _dbContext.mst_premis
+                    .Where(x => gids.Contains(x.gid))
+                    .Select(x => new premis_view
+                    {
+                        gid = x.gid,
+                        // Include other necessary fields here
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                // Populate lesen information for each premis_view
+                foreach (var premisView in premisViews)
+                {
+                    premisView.lesen = new List<premis_license_view>
+                    {
+                        new premis_license_view { aras = "G", status_lesen = GetRandomLicenseStatus(), no_lesen = GenerateRandomString(8), nama_perniagaan = GenerateRandomString(15), nama_pemilik = GenerateRandomString(12), alamat_premis = GenerateRandomString(30) },
+                        new premis_license_view { aras = "1", status_lesen = GetRandomLicenseStatus(), no_lesen = GenerateRandomString(8), nama_perniagaan = GenerateRandomString(15), nama_pemilik = GenerateRandomString(12), alamat_premis = GenerateRandomString(30) },
+                        new premis_license_view { aras = "2", status_lesen = GetRandomLicenseStatus(), no_lesen = GenerateRandomString(8), nama_perniagaan = GenerateRandomString(15), nama_pemilik = GenerateRandomString(12), alamat_premis = GenerateRandomString(30) }
+                    };
+                }
+
+                // Build the result object for each mst_premis and include the corresponding lesen information
+                foreach (var premis in mst_premisList)
+                {
+                    // Find the corresponding premisView based on gid
+                    var correspondingPremisView = premisViews.FirstOrDefault(pv => pv.gid == premis.gid);
+
+                    // filter start here
+                    // Extract status_lesen values into a list from lesen and add premis.status_lesen
+                    var statusLesens = new List<string> { premis.status_lesen }; // Start with the status_lesen from mst_premis
+
+                    if (correspondingPremisView?.lesen != null)
+                    {
+                        statusLesens.AddRange(correspondingPremisView.lesen.Select(l => l.status_lesen));
+                    }
+
+                    // Split the filterType string into a list of statuses
+                    List<string> statusFilters;
+
+                    if (!string.IsNullOrEmpty(filterType))
+                    {
+                        // Split the filterType string into a list of statuses and trim whitespace
+                        statusFilters = filterType.Split(',')
+                                                  .Select(f => f.Trim())
+                                                  .ToList();
+                    }
+                    else
+                    {
+                        // Assign an empty list if filterType is null or empty
+                        statusFilters = new List<string>();
+                    }
+
+                    // Check if any of the status_lesen contains any of the values from filterType
+                    bool containsSearchTerm = false;
+                    bool isAktif = false;
+                    bool isTamatTempoh = false;
+                    bool isGantung = false;
+                    bool isTiadaData = false;
+                    bool isDibayar = false;
+                    bool isTertunggak = false;
+
+                    if (statusFilters.Any())
+                    {
+                        containsSearchTerm = statusLesens.Any(sl => statusFilters.Any(sf => sl.Contains(sf, StringComparison.OrdinalIgnoreCase)));
+
+                        isAktif = statusFilters.Contains("Aktif", StringComparer.OrdinalIgnoreCase) &&
+                            statusLesens.Any(sl => sl.Equals("Aktif", StringComparison.OrdinalIgnoreCase));
+
+                        isTamatTempoh = statusFilters.Contains("Tamat Tempoh", StringComparer.OrdinalIgnoreCase) &&
+                            statusLesens.Any(sl => sl.Equals("Tamat Tempoh", StringComparison.OrdinalIgnoreCase));
+
+                        isGantung = statusFilters.Contains("Gantung", StringComparer.OrdinalIgnoreCase) &&
+                            statusLesens.Any(sl => sl.Equals("Gantung", StringComparison.OrdinalIgnoreCase));
+
+                        isTiadaData = statusFilters.Contains("Tiada Data", StringComparer.OrdinalIgnoreCase) &&
+                            statusLesens.Any(sl => sl.Equals("Tiada Data", StringComparison.OrdinalIgnoreCase));
+
+                        isDibayar = statusFilters.Contains("Dibayar", StringComparer.OrdinalIgnoreCase) &&
+                            premis.status_cukai.IndexOf("Dibayar", StringComparison.OrdinalIgnoreCase) >= 0; 
+
+                        isTertunggak = statusFilters.Contains("Tertunggak", StringComparer.OrdinalIgnoreCase) &&
+                            premis.status_cukai.IndexOf("Tertunggak", StringComparison.OrdinalIgnoreCase) >= 0;
+                    }
+
+                    String marker_cukai_status = "Default";
+                    String marker_lesen_status = "Default";
+
+                    // determine marker cukai status
+                    if (isTertunggak)
+                    {
+                        marker_cukai_status = "Tertunggak";
+                    } 
+                    else if (isDibayar)
+                    {
+                        marker_cukai_status = "Dibayar";
+                    }
+
+                    // determine marker lesen status
+                    if (isTamatTempoh)
+                    {
+                        marker_lesen_status = "Tamat Tempoh";
+                    }
+                    else if (isGantung)
+                    {
+                        marker_lesen_status = "Gantung";
+                    }
+                    else if (isAktif)
+                    {
+                        marker_lesen_status = "Aktif";
+                    }
+                    else if (isTiadaData)
+                    {
+                        marker_lesen_status = "Tiada Data";
+                    }
+
+                    // filter end here
+
+                    // Build the result object for this premis (can uncommment the commented var if want to debug)
+                    resultData.Add(new
+                    {
+                        gid = premis.gid,
+                        lot = premis.lot,
+                        //containsSearchTerm = containsSearchTerm,
+                        //isAktif = isAktif,
+                        //isTamatTempoh = isTamatTempoh,
+                        //isGantung = isGantung,
+                        //isTiadaData = isTiadaData,
+                        //isDibayar = isDibayar,
+                        //isTertunggak = isTertunggak,
+                        //status_cukai = premis.status_cukai,
+                        //status_lesen = premis.status_lesen,
+                        marker_cukai_status = marker_cukai_status,
+                        marker_lesen_status = marker_lesen_status,
+                        geom = premis.geom,
+                        //lesen = correspondingPremisView?.lesen // Safely access lesen if correspondingPremisView is found
+                    });
+                }
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
+
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+
         #region private logic
         private static string GenerateRandomString(int length)
         {
@@ -306,6 +510,12 @@ namespace PBTPro.Api.Controllers
             return new string(Enumerable.Range(0, length)
                 .Select(_ => chars[random.Next(chars.Length)])
                 .ToArray());
+        }
+        private static string GetRandomLicenseStatus()
+        {
+            string[] statuses = { "Aktif", "Tamat Tempoh", "Gantung", "Tiada Data" };
+            Random random = new Random();
+            return statuses[random.Next(statuses.Length)];
         }
         #endregion
     }
