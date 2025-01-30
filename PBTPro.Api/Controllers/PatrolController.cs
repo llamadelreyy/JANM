@@ -779,15 +779,6 @@ namespace PBTPro.Api.Controllers
             {
                 var resultData = new List<dynamic>();
 
-                var patrol_member_leader = await (from p in _dbContext.patrol_infos
-                                           join pm in _dbContext.patrol_members on p.patrol_id equals pm.member_patrol_id
-                                           where pm.member_leader_flag == true
-                                           orderby p.patrol_id descending
-                                           select new
-                                           {
-                                               pm.member_username,
-                                           }).FirstOrDefaultAsync();
-
                 var patrol_member = await (from p in _dbContext.patrol_infos
                                            join pm in _dbContext.patrol_members on p.patrol_id equals pm.member_patrol_id
                                            where pm.member_username == username
@@ -803,6 +794,16 @@ namespace PBTPro.Api.Controllers
                                                PatrolDuration = p.patrol_start_dtm != null && pm.member_end_dtm != null
                                                 ? (pm.member_end_dtm.Value - p.patrol_start_dtm.Value)
                                                 : (TimeSpan?)null
+                                           }).FirstOrDefaultAsync();
+
+                var patrol_member_leader = await (from p in _dbContext.patrol_infos
+                                           join pm in _dbContext.patrol_members on p.patrol_id equals pm.member_patrol_id
+                                           where pm.member_leader_flag == true
+                                           && patrol_member.patrol_id == p.patrol_id
+                                           orderby p.patrol_id descending
+                                           select new
+                                           {
+                                               pm.member_username,
                                            }).FirstOrDefaultAsync();
 
                 resultData.Add(new
