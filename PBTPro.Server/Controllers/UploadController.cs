@@ -30,23 +30,48 @@ namespace PBTPro.Controllers {
             RemoveTempFilesAfterDelay(tempPath, new TimeSpan(0, 5, 0));
 
             try {
-                if (!string.IsNullOrEmpty(chunkMetadata)) {
+                //////if (!string.IsNullOrEmpty(chunkMetadata)) {
+                //////    var metaDataObject = JsonConvert.DeserializeObject<ChunkMetadata>(chunkMetadata);
+                //////    var tempFilePath = Path.Combine(tempPath, metaDataObject.FileGuid + ".tmp");
+                //////    if (!Directory.Exists(tempPath))
+                //////        Directory.CreateDirectory(tempPath);
+
+                //////    AppendContentToFile(tempFilePath, ImageUpload);
+
+                //////    if (metaDataObject.Index == (metaDataObject.TotalCount - 1)) {
+                //////        string fileName = Path.GetFileNameWithoutExtension(metaDataObject.FileName);
+                //////        string extension = Path.GetExtension(metaDataObject.FileName);
+                //////        string strNewFileName = fileName + "_" + DateTime.Now.ToString("yyMMddhhmmss") + extension;
+
+                //////        //ProcessUploadedFile(tempFilePath, metaDataObject.FileName);
+                //////        //_fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), @"Document\" + metaDataObject.FileName);
+                //////        ProcessUploadedFile(tempFilePath, strNewFileName);
+                //////        //_fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), @"\images\Profile\" + strNewFileName);
+                //////        _fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), tempFilePath);
+
+                //////    }
+                //////}
+                ///
+                if (!string.IsNullOrEmpty(chunkMetadata))
+                {
                     var metaDataObject = JsonConvert.DeserializeObject<ChunkMetadata>(chunkMetadata);
-                    var tempFilePath = Path.Combine(tempPath, metaDataObject.FileGuid + ".tmp");
+                    var tempExtension = Path.GetExtension(metaDataObject.FileName);
+                    var tempFileName = metaDataObject.FileGuid + "tmp" + tempExtension;
+                    var tempFilePath = Path.Combine(tempPath, metaDataObject.FileGuid + "tmp" + tempExtension);
                     if (!Directory.Exists(tempPath))
                         Directory.CreateDirectory(tempPath);
 
                     AppendContentToFile(tempFilePath, ImageUpload);
 
-                    if (metaDataObject.Index == (metaDataObject.TotalCount - 1)) {
+                    if (metaDataObject.Index == (metaDataObject.TotalCount - 1))
+                    {
                         string fileName = Path.GetFileNameWithoutExtension(metaDataObject.FileName);
                         string extension = Path.GetExtension(metaDataObject.FileName);
                         string strNewFileName = fileName + "_" + DateTime.Now.ToString("yyMMddhhmmss") + extension;
 
-                        //ProcessUploadedFile(tempFilePath, metaDataObject.FileName);
-                        //_fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), @"Document\" + metaDataObject.FileName);
-                        ProcessUploadedFile(tempFilePath, strNewFileName);
-                        _fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), @"\images\Profile\" + strNewFileName);
+                        ////ProcessUploadedFile(tempFilePath, strNewFileName);
+                        //_fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), @"\images\Profile\" + strNewFileName);
+                        _fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), tempFilePath + ";" + @"\images\tempProfile\" + tempFileName + ";" + strNewFileName);
 
                     }
                 }
@@ -59,16 +84,31 @@ namespace PBTPro.Controllers {
         void RemoveTempFilesAfterDelay(string path, TimeSpan delay) {
             var dir = new DirectoryInfo(path);
             if (dir.Exists)
-                foreach (var file in dir.GetFiles("*.tmp").Where(f => f.LastWriteTimeUtc.Add(delay) < DateTime.UtcNow))
+                //////foreach (var file in dir.GetFiles("*.tmp").Where(f => f.LastWriteTimeUtc.Add(delay) < DateTime.UtcNow))
+                //////    file.Delete();
+                foreach (var file in dir.GetFiles("*tmp.*").Where(f => f.LastWriteTimeUtc.Add(delay) < DateTime.UtcNow))
                     file.Delete();
         }
-        void ProcessUploadedFile(string tempFilePath, string fileName) {
-            var path = Path.Combine(_hostingEnvironment.WebRootPath, "images", "Profile");
+
+        [HttpPost]
+        [Route("TestUpload")]
+        public ActionResult TestUpload()
+        {
+
+            return Ok();
+        }
+
+        [HttpPost]
+        public ActionResult ProcessUploadedFile(string tempFilePath, string fileName) {
+            var path = Path.Combine(_hostingEnvironment.WebRootPath, "images", "profile");
             var imagePath = Path.Combine(path, fileName);
             if (System.IO.File.Exists(imagePath))
                 System.IO.File.Delete(imagePath);
             System.IO.File.Copy(tempFilePath, imagePath);
+
+            return Ok();
         }
+
         void AppendContentToFile(string path, IFormFile content) {
             using (var stream = new FileStream(path, FileMode.Append, FileAccess.Write)) {
                 content.CopyTo(stream);
