@@ -441,6 +441,7 @@ namespace PBTPro.Api.Controllers
 
                     String marker_cukai_status = "Default";
                     String marker_lesen_status = "Default";
+                    String marker_color = "Black";
 
                     // determine marker cukai status
                     if (isTertunggak)
@@ -470,6 +471,24 @@ namespace PBTPro.Api.Controllers
                         marker_lesen_status = "Tiada Data";
                     }
 
+                    // determine marker color
+                    if (isTertunggak || isTamatTempoh)
+                    {
+                        marker_color = "Red";
+                    }
+                    else if (isDibayar || isAktif)
+                    {
+                        marker_color = "Green";
+                    }
+                    else if (isGantung)
+                    {
+                        marker_color = "Yellow";
+                    }
+                    else if (isTiadaData)
+                    {
+                        marker_color = "Grey";
+                    }
+
                     // filter end here
 
                     // Build the result object for this premis (can uncommment the commented var if want to debug)
@@ -488,6 +507,7 @@ namespace PBTPro.Api.Controllers
                         //status_lesen = premis.status_lesen,
                         marker_cukai_status = marker_cukai_status,
                         marker_lesen_status = marker_lesen_status,
+                        marker_color = marker_color,
                         geom = premis.geom,
                         //lesen = correspondingPremisView?.lesen // Safely access lesen if correspondingPremisView is found
                     });
