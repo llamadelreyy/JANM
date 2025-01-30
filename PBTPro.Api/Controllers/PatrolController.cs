@@ -9,7 +9,8 @@ Additional Notes:
 
 Changes Logs:
 06/11/2024 - initial create
-31/01/2025 (Author: Fakhrul) - add sort by patrolid in GetDateTimeByUserId function to return the latest patrol for current user
+31/01/2025 (Author: Fakhrul) - add sort by patrolid in GetDateTimeByUserId function to return the latest patrol with status SELESAI for current user
+31/01/2025 (Author: Fakhrul) - add new function called GetPatrolStatusByUserId to display current user latest patrol information
 */
 using DevExpress.Data.ODataLinq.Helpers;
 using DevExpress.Utils.Filtering;
@@ -23,6 +24,7 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PBTPro.Api.Controllers
 {
@@ -766,6 +768,59 @@ namespace PBTPro.Api.Controllers
             catch (Exception ex)
             {
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, "Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian."));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{username}")]
+        public async Task<IActionResult> GetPatrolStatusByUserId(string username)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+
+                var patrol_member_leader = await (from p in _dbContext.patrol_infos
+                                           join pm in _dbContext.patrol_members on p.patrol_id equals pm.member_patrol_id
+                                           where pm.member_leader_flag == true
+                                           orderby p.patrol_id descending
+                                           select new
+                                           {
+                                               pm.member_username,
+                                           }).FirstOrDefaultAsync();
+
+                var patrol_member = await (from p in _dbContext.patrol_infos
+                                           join pm in _dbContext.patrol_members on p.patrol_id equals pm.member_patrol_id
+                                           where pm.member_username == username
+                                           orderby p.patrol_id descending
+                                           select new
+                                           {
+                                               p.patrol_id,
+                                               p.patrol_status,
+                                               pm.member_username,
+
+                                               p.patrol_start_dtm,
+                                               pm.member_end_dtm,
+                                               PatrolDuration = p.patrol_start_dtm != null && pm.member_end_dtm != null
+                                                ? (pm.member_end_dtm.Value - p.patrol_start_dtm.Value)
+                                                : (TimeSpan?)null
+                                           }).FirstOrDefaultAsync();
+
+                resultData.Add(new
+                {
+                    patrol_id = patrol_member.patrol_id,
+                    patrol_leader = patrol_member_leader.member_username,
+                    patrol_status = patrol_member.patrol_status,
+                    current_user = patrol_member.member_username,
+                    patrol_start_dtm = patrol_member.patrol_start_dtm,
+                    member_end_dtm = patrol_member.member_end_dtm,
+                    patrolDuration = patrol_member.PatrolDuration,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
 
