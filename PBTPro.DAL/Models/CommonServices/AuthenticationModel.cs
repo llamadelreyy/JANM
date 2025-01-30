@@ -86,6 +86,7 @@ namespace PBTPro.DAL.Models.CommonServices
         public string Token { get; set; } = "";
         public string Role { get; set; } = "";
         public int Roleid { get; set; } = 0;
+        public bool IsPasswordExpired { get; set; } = false;
         public List<string> Roles { get; set; } = new List<string>();
 
         public ClaimsPrincipal ToClaimsPrincipal() => new(new ClaimsIdentity(new Claim[]
