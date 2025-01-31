@@ -168,7 +168,7 @@ else
     IEnumerable<config_form_field_view> Data;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    private string formType = "Notis";
+    private string formType = "Notice";
     private config_form_field_view itemToDelete;
     private List<dynamic> fieldType;
     
@@ -220,7 +220,7 @@ else
         StateHasChanged();
     }
 
-    private async Task<IEnumerable<config_form_field_view>> GetListDataAsync(string? formType = "Compound")
+    private async Task<IEnumerable<config_form_field_view>> GetListDataAsync(string? formType = "Notice")
     {
         IEnumerable<config_form_field_view> result = await _ConfigFormField.ListByFormType(formType);
         return result;
