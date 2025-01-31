@@ -65,17 +65,31 @@
                                        NullText="Kata Laluan"
                                        BindValueMode="BindValueMode.OnInput"
                                        type="@inputType"
-                                       Password="true"
                                        ShowValidationIcon="true"
-                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
-
+                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto">
+                                <Buttons>
+                                    <DxEditorButton Click="@TogglePasswordVisibility">
+                                        <ChildContent Context="showPassBtnCtx">
+                                            @showPassBtnCtx
+                                            @if (showPassword)
+                                            {
+                                                <span class="material-icons">visibility_off</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="material-icons">visibility</span>
+                                            }
+                                        </ChildContent>
+                                    </DxEditorButton>     
+                                </Buttons>
+                            </DxTextBox>
+                            <!--
                             <div class="password-container">
                                 <input type="@inputType" @bind="LoginModel.Password" placeholder="Enter your password" />
-                                <button @onclick="TogglePasswordVisibility">
+                                <button @onclick="TogglePasswordVisibility" >
                                     <i class="fa @eyeIconClass"></i>
-                                </button>
-                            </div>
-
+                                                            </button>
+                            </div>-->
                         </DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="12">
