@@ -9,6 +9,7 @@ Additional Notes:
 
 Changes Logs:
 06/11/2024 - initial create
+31/01/2025 (Author: Fakhrul) - add sort by patrolid in GetDateTimeByUserId function to return the latest patrol for current user
 */
 using DevExpress.Data.ODataLinq.Helpers;
 using DevExpress.Utils.Filtering;
@@ -705,6 +706,7 @@ namespace PBTPro.Api.Controllers
                 var patrol_member = await (from p in _dbContext.patrol_infos
                                            join pm in _dbContext.patrol_members on p.patrol_id equals pm.member_patrol_id
                                            where p.patrol_status == "Selesai" && pm.member_username == username
+                                           orderby p.patrol_id descending
                                            select new
                                            {                                              
                                                p.patrol_start_dtm,
