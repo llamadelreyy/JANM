@@ -234,6 +234,49 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet("{UserId}")]
+        public async Task<IActionResult> GetCompoundListByUserId(int UserId)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+
+                var totalCount = await _tenantDBContext.trn_compounds
+                    .Where(n => n.creator_id == UserId)
+                    .CountAsync();
+
+                var compound_lists = await (from n in _tenantDBContext.trn_compounds
+                                          where n.creator_id == UserId
+                                          select new
+                                           {
+                                               n.cmpd_ref_no,
+                                               n.section_act_id,
+                                               n.act_type_id,
+                                               n.created_at,
+                                               n.modified_at,
+                                           }).ToListAsync();
+
+                // Check if no record was found
+                if (compound_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = totalCount,
+                    compound_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
         // can be deleted later.. this is created so that it can be called from other places..
         private bool UnitExists(int id)
         {
