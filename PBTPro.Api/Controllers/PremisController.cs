@@ -331,12 +331,12 @@ namespace PBTPro.Api.Controllers
                         gid = x.gid,
                         lot = x.lot,
                         status_cukai = x.tempoh_sah_cukai == null
-                            ? "None"
+                            ? "Tiada Data"
                             : x.tempoh_sah_cukai > DateOnly.FromDateTime(DateTime.Now)
                                 ? "Dibayar"
                                 : "Tertunggak",
                         status_lesen = x.tempoh_sah_lesen == null
-                            ? "None"
+                            ? "Tiada Data"
                             : x.tempoh_sah_lesen > DateOnly.FromDateTime(DateTime.Now)
                                 ? "Aktif"
                                 : "Tamat Tempoh",
@@ -361,6 +361,11 @@ namespace PBTPro.Api.Controllers
                     {
                         gid = x.gid,
                         // Include other necessary fields here
+                        status_lesen = x.tempoh_sah_lesen == null
+                            ? "Tiada Data"
+                            : x.tempoh_sah_lesen > DateOnly.FromDateTime(DateTime.Now)
+                                ? "Aktif"
+                                : "Tamat Tempoh",
                     })
                     .AsNoTracking()
                     .ToListAsync();
@@ -370,9 +375,9 @@ namespace PBTPro.Api.Controllers
                 {
                     premisView.lesen = new List<premis_license_view>
                     {
-                        new premis_license_view { aras = "G", status_lesen = GetRandomLicenseStatus(), no_lesen = GenerateRandomString(8), nama_perniagaan = GenerateRandomString(15), nama_pemilik = GenerateRandomString(12), alamat_premis = GenerateRandomString(30) },
-                        new premis_license_view { aras = "1", status_lesen = GetRandomLicenseStatus(), no_lesen = GenerateRandomString(8), nama_perniagaan = GenerateRandomString(15), nama_pemilik = GenerateRandomString(12), alamat_premis = GenerateRandomString(30) },
-                        new premis_license_view { aras = "2", status_lesen = GetRandomLicenseStatus(), no_lesen = GenerateRandomString(8), nama_perniagaan = GenerateRandomString(15), nama_pemilik = GenerateRandomString(12), alamat_premis = GenerateRandomString(30) }
+                        new premis_license_view { aras = "G", status_lesen = premisView.status_lesen, no_lesen = GenerateRandomString(8), nama_perniagaan = GenerateRandomString(15), nama_pemilik = GenerateRandomString(12), alamat_premis = GenerateRandomString(30) },
+                        new premis_license_view { aras = "1", status_lesen = premisView.status_lesen, no_lesen = GenerateRandomString(8), nama_perniagaan = GenerateRandomString(15), nama_pemilik = GenerateRandomString(12), alamat_premis = GenerateRandomString(30) },
+                        new premis_license_view { aras = "2", status_lesen = premisView.status_lesen, no_lesen = GenerateRandomString(8), nama_perniagaan = GenerateRandomString(15), nama_pemilik = GenerateRandomString(12), alamat_premis = GenerateRandomString(30) }
                     };
                 }
 
@@ -518,6 +523,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
