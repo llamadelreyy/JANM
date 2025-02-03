@@ -54,42 +54,29 @@
                     <DxFormLayout>
                         <DxFormLayoutItem ColSpanMd="12">
                             <DxTextBox @bind-Text="@LoginModel.Username"
-                                       NullText="Nama Pengguna"
+                                       NullText="Id Pengguna"
                                        BindValueMode="BindValueMode.OnInput"
                                        ShowValidationIcon="true"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
                         </DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="12">
-                            <DxTextBox @bind-Text="@LoginModel.Password"
-                                       NullText="Kata Laluan"
+                            <div class="password-container">
+                                <DxTextBox @bind-Text="@LoginModel.Password"
+                                           NullText="Kata Laluan"
                                        BindValueMode="BindValueMode.OnInput"
                                        type="@inputType"
+                                       Password="@showPassword"
                                        ShowValidationIcon="true"
-                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto">
-                                <Buttons>
-                                    <DxEditorButton Click="@TogglePasswordVisibility">
-                                        <ChildContent Context="showPassBtnCtx">
-                                            @showPassBtnCtx
-                                            @if (showPassword)
-                                            {
-                                                <span class="material-icons">visibility_off</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="material-icons">visibility</span>
-                                            }
-                                        </ChildContent>
-                                    </DxEditorButton>     
-                                </Buttons>
-                            </DxTextBox>
-                            <!--
-                            <div class="password-container">
-                                <input type="@inputType" @bind="LoginModel.Password" placeholder="Enter your password" />
-                                <button @onclick="TogglePasswordVisibility" >
-                                    <i class="fa @eyeIconClass"></i>
-                                                            </button>
-                            </div>-->
+                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" style="width:250px;padding-right:25px;" />
+
+
+                                <input id="dummyPwd" type="@inputType" style="visibility:@inputVisible" @oninput="BindValue" @bind="LoginModel.Password" placeholder="" />
+                                    <button id="dummybtn" @onclick="TogglePasswordVisibility">
+                                        <img src="@eyeIconClass" />
+                                    </button>
+                            </div>
+
                         </DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="12">
@@ -120,19 +107,51 @@
     private string password;
     private bool showPassword;
 
+    public string inputVisible = "hidden";
+    public bool blnNotSubmit = false;
     private string inputType => showPassword ? "text" : "password";
-    private string eyeIconClass => showPassword ? "fa-eye-slash" : "fa-eye";
+    private string eyeIconClass => showPassword ? "images/icons-small/eye.png" : "images/icons-small/eye-close.png";
+
+    private void BindValue()
+    {
+        // blnNotSubmit = true;
+        string Pwd = LoginModel.Password;
+        LoginModel.Password = Pwd;
+    }
 
     private void TogglePasswordVisibility()
     {
+        blnNotSubmit = true;
         showPassword = !showPassword;
+        inputVisible = showPassword ? "visible" : "hidden";
     }
 
     string FormSubmitResult = "";
     public async Task HandleValidSubmit()
-    {        
+    {    
+        //TogglePasswordVisibility cause Handle submit to be trigger, this code is to prevent the submission process
+        if (blnNotSubmit)
+        {
+            blnNotSubmit = false;
+            return;
+        }
+
         ReturnViewModel response = new ReturnViewModel();
-        response = await PBTAuthStateProvider.LoginAsync(LoginModel.Username, LoginModel.Password);
+
+        if (LoginModel.Username.ToLower() != "administrator")
+        {
+            if ((LoginModel.Username.ToString().Length != 12) || (!LoginModel.Username.All(char.IsDigit)))
+            {
+                response.ReturnCode = 500;
+                response.ReturnMessage = "Format Id pengguna tidak sah. Sila masukkan nombor kad pengenalan 12 digit yang sah.";
+            }
+            else
+            {
+                response = await PBTAuthStateProvider.LoginAsync(LoginModel.Username, LoginModel.Password);
+            }
+        }
+        else
+            response = await PBTAuthStateProvider.LoginAsync(LoginModel.Username, LoginModel.Password);
 
         if (response.ReturnCode == 200)
         {
