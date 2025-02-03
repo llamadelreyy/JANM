@@ -49,9 +49,16 @@
     <div class="item-container-x" style="padding-top:2px;">
         <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="@OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
             @{
-                <DxTab Text="Belum Meronda (0)"></DxTab>
-                <DxTab Text="Dalam Rondaan (0)"></DxTab>     
-                <DxTab Text="Selesai (0)"></DxTab>
+                // <DxTab Text="Belum Meronda (0)"></DxTab>
+                // <DxTab Text="Dalam Rondaan (0)"></DxTab>     
+                // <DxTab Text="Selesai (0)"></DxTab>
+                string belummeronda = "Belum Meronda (" + belumMerondaCount + ")";
+                string dalamrondaan = "Dalam Rondaan (" + dalamRondaanCount + ")";
+                string selesai = "Selesai (" + selesaiCount + ")";
+
+                <DxTab Text="@belummeronda"></DxTab>
+                <DxTab Text="@dalamrondaan"></DxTab>
+                <DxTab Text="@selesai"></DxTab>
             }            
         </DxTabs>
 
@@ -160,8 +167,7 @@
                                     <DxComboBox Data="@dataUser"
                                     NullText="Pilih nama pegawai ..."
                                     ShowValidationIcon="true"
-                                    SearchMode="ListSearchMode.AutoSearch"
-                                   
+                                    SearchMode="ListSearchMode.AutoSearch"                                   
                                     ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                     TextFieldName="@nameof(ApplicationUser.TextName)"
                                     ValueFieldName="IdNo"
@@ -330,6 +336,10 @@
     string strSelected { get; set; } = "";
     bool boolLockDropDown { get; set; } = false;
 
+    int belumMerondaCount = 0;
+    int dalamRondaanCount = 0;
+    int selesaiCount = 0;
+
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -344,8 +354,13 @@
         dtTown = await _TownService.ListAll();
         dtDistrict = await _DistrictService.ListAll();
         dataSchedule = await GetListDataAsync(tabType);
+        dataTabSchedule = await _ScheduleService.ListsAll();
         dtPatrolStatus = await _RefPatrolStatus.ListAll();
-
+       
+        belumMerondaCount = dataTabSchedule.Count(x => x.PatrolStatus == "3" );
+        dalamRondaanCount = dataTabSchedule.Count(x => x.PatrolStatus == "2");
+        selesaiCount = dataTabSchedule.Count(x => x.PatrolStatus == "1");
+        
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
     }
@@ -361,7 +376,6 @@
 
     private async Task OnActiveTabIndexChanged(int index)
     {
-
         ActiveTabIndex = index;
         switch (ActiveTabIndex)
         {
@@ -379,13 +393,13 @@
                 break;
         }
 
-        dataSchedule = await GetListDataAsync(tabType);
+        dataSchedule = await GetListDataAsync(tabType);        
         StateHasChanged();
     }
-  
+
     private async Task<IEnumerable<PatrolViewModel>> GetListDataAsync(string? formType = "3")
     {
-        IEnumerable<PatrolViewModel> result = await _ScheduleService.ListByTabType(formType);
+        IEnumerable<PatrolViewModel> result = await _ScheduleService.ListByTabType(formType);        
         return result;
     }
 
@@ -464,7 +478,6 @@
         strSelected = item.OfficerName;
         dtData = item;
         ConfirmationShown = true;
-
     }
 
     async void OnYesButtonClick()
