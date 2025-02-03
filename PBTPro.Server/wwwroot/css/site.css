@@ -1382,18 +1382,32 @@ label {
 .password-container {
     position: relative;
     display: inline-block;
+    top:0px;
+
 }
 
-    .password-container input {
-        padding-right: 30px; /* Adjust based on your icon size */
+    .password-container #dummyPwd {
+        padding-left: 0px; /* Adjust based on your icon size */    
+        margin-top:-26px;
+        margin-left:30px;
+        position:absolute;
+        z-index:0;
+        border:0px solid #000;
     }
 
-    .password-container button {
+    .password-container #dummyPwd:focus {
+        outline: none;
+    }
+
+    .password-container #dummybtn {
         position: absolute;
-        right: 0;
-        top: 0;
+        right:10px;
+        left:225px;
+        width:20px;
+        top: 0px;
         bottom: 0;
-        border: none;
+        border: 0px;
         background: none;
         cursor: pointer;
-        padding: 0 10px;
+        padding: 0 0px;
+    }
