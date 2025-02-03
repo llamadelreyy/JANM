@@ -12,10 +12,8 @@ namespace PBTPro.DAL.Models.CommonServices
         public string? ICNo { get; set; }
         public string? OfficerName { get; set; }
         public bool UserSelected { get; set; }
-        public int DistrictId { get; set; }
         public string?  DistrictCode { get; set; }
         public string? DistrictName { get; set; }
-        public int TownId { get; set; }
         public string?  TownCode { get; set; }
         public string? TownName { get; set; }
         public DateTime StartTime { get; set; }
@@ -28,7 +26,7 @@ namespace PBTPro.DAL.Models.CommonServices
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
         public string PatrolStatus { get; set; } = null!;
-
+        public bool is_deleted { get; set; }
 
     }
 }
