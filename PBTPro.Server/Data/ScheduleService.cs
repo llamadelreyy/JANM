@@ -70,39 +70,39 @@ namespace PBTPro.Data
             var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk jadual rondaan.", 1, LoggerName, "");
 
             return Task.FromResult(_Schedules);
-        }       
+        }
 
 
-        //public async Task<List<PatrolViewModel>> ListsAll()
-        //{
-        //    var result = new List<PatrolViewModel>();
-        //    try
-        //    {
-        //        string requestUrl = $"{_baseReqURL}/GetList";
-        //        var response = await _apiConnector.ProcessLocalApi(requestUrl);
+        public async Task<List<PatrolViewModel>> ListsAll()
+        {
+            var result = new List<PatrolViewModel>();
+            try
+            {
+                string requestUrl = $"{_baseReqURL}/GetList";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
-        //        if (response.ReturnCode == 200)
-        //        {
-        //            string? dataString = response?.Data?.ToString();
-        //            if (!string.IsNullOrWhiteSpace(dataString))
-        //            {
-        //                result = JsonConvert.DeserializeObject<List<PatrolViewModel>>(dataString);
-        //                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai jadual rondaan.", 1, LoggerName, "");
-        //            }
-        //        }
-        //        else
-        //        {
-        //            await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-        //        result = new List<PatrolViewModel>();
-        //    }
-        //    return result;
-        //}
-        
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<PatrolViewModel>>(dataString);
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai jadual rondaan.", 1, LoggerName, "");
+                    }
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<PatrolViewModel>();
+            }
+            return result;
+        }
+
 
         public async Task<ReturnViewModel> Add(PatrolViewModel inputModel)
         {
