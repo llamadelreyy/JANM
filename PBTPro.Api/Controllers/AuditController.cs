@@ -18,13 +18,14 @@ namespace PBTPro.Api.Controllers
     {
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
-        private string LoggerName = "administrator";
+        private readonly ILogger<AuditController> _logger;
         private readonly string _feature = "AUDIT_LOG";
 
         public AuditController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<AuditController> logger) : base(dbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
             _configuration = configuration;
+            _logger = logger;
         }
 
         [AllowAnonymous]
@@ -43,6 +44,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }       
@@ -63,6 +65,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -91,6 +94,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -138,6 +142,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -160,6 +165,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
             finally
