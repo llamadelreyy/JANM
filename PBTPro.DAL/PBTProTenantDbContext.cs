@@ -455,7 +455,6 @@ public partial class PBTProTenantDbContext : DbContext
 
             entity.ToTable("mst_patrol_schedule", "tenant");
 
-            entity.Property(e => e.schedule_id).ValueGeneratedNever();
             entity.Property(e => e.cnt_cmpd).HasDefaultValue(0);
             entity.Property(e => e.cnt_notes).HasDefaultValue(0);
             entity.Property(e => e.cnt_notice).HasDefaultValue(0);
@@ -492,6 +491,9 @@ public partial class PBTProTenantDbContext : DbContext
             entity.HasOne(d => d.type).WithMany(p => p.mst_patrol_schedules)
                 .HasForeignKey(d => d.type_id)
                 .HasConstraintName("type_id_refers_to_patrol_type_id");
+
+            entity.Property(e => e.district_code).HasMaxLength(10);
+            entity.Property(e => e.town_code).HasMaxLength(10);
         });
 
         modelBuilder.Entity<mst_premi>(entity =>
