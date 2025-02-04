@@ -690,11 +690,6 @@ namespace PBTPro.Api.Controllers
                         return Error("", "Nama pengguna telah berdaftar");
                     }
                 }
-
-
-
-
-
                 #endregion
 
                 #region store data
@@ -713,7 +708,7 @@ namespace PBTPro.Api.Controllers
                     UserName = model.Username.Trim(new char[] { (char)39 }).Replace(" ", ""),
                     CreatedAt = DateTime.Now,
                     CreatorId = runUserID,
-                    PasswordHash = "AQAAAAIAAYagAAAAEPGX5Ds9agERax0qx8EOJNeHDJOrdURhb/Nwndx0lYbcXfz/yTYxLfyp/pJkW8GB1Q==",
+                    //PasswordHash = "AQAAAAIAAYagAAAAEPGX5Ds9agERax0qx8EOJNeHDJOrdURhb/Nwndx0lYbcXfz/yTYxLfyp/pJkW8GB1Q==",
                     PhotoFilename = "",
                     PhotoPathUrl = "",
                     SignFilename = "",
@@ -723,8 +718,9 @@ namespace PBTPro.Api.Controllers
 
                 };
 
-                _dbContext.Users.Add(au);
-                await _dbContext.SaveChangesAsync();
+                // disable this manual add, will create user using _userManager below.
+                //_dbContext.Users.Add(au);
+                //await _dbContext.SaveChangesAsync();
 
                 #endregion
                 var result = await _userManager.CreateAsync(au, model.Password);
