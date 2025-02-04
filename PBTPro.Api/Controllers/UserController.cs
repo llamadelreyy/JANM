@@ -749,7 +749,7 @@ namespace PBTPro.Api.Controllers
                 int runUserID = await getDefRunUserId();
 
                 #region Validation
-
+                /*
                 var users = await (from user in _dbContext.Users
                                    join dept in _dbContext.ref_departments on user.dept_id equals dept.dept_id
                                    join div in _dbContext.ref_divisions on user.div_id equals div.div_id
@@ -770,7 +770,8 @@ namespace PBTPro.Api.Controllers
                                        Password = user.PasswordHash,
 
                                    }).FirstOrDefaultAsync();
-
+                */
+                var users = await _dbContext.Users.Where(x => x.Id == model.Id).FirstOrDefaultAsync();
                 if (users == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
@@ -778,19 +779,17 @@ namespace PBTPro.Api.Controllers
 
 
                 #endregion
-                ApplicationUser au = new ApplicationUser();
-                au.full_name = model.FullName;
-                au.IdNo = model.ICNo;
-                au.PhoneNumber = model.PhoneNo;
-                au.dept_id = model.DepartmentID;
-                au.div_id = model.DivisionID;
-                au.unit_id = model.UnitID;
-                au.ModifiedAt = DateTime.Now;
-                au.ModifierId = runUserID;
-                au.UserName = model.Username;
+                //ApplicationUser au = new ApplicationUser();
+                users.full_name = model.FullName;
+                users.IdNo = model.ICNo;
+                users.PhoneNumber = model.PhoneNo;
+                users.dept_id = model.DepartmentID;
+                users.div_id = model.DivisionID;
+                users.unit_id = model.UnitID;
+                users.ModifiedAt = DateTime.Now;
+                users.ModifierId = runUserID;
 
-
-                _dbContext.Users.Update(au);
+                _dbContext.Users.Update(users);
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(users, SystemMesg(_feature, "Update", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
