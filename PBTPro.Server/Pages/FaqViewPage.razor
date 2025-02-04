@@ -78,8 +78,8 @@ Changes Logs:
 @code {
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    IEnumerable<faq_info> DataSource;
-    public List<(faq_info, int)> Items { get; set; } = new List<(faq_info, int)>();
+    IEnumerable<ref_faq> DataSource;
+    public List<(ref_faq, int)> Items { get; set; } = new List<(ref_faq, int)>();
     int ActiveTabIndex { get; set; } = 1;
     AccordionExpandMode ExpandMode { get; set; } = AccordionExpandMode.SingleOrNone;
     AccordionExpandCollapseAction ExpandCollapseAction { get; set; } = AccordionExpandCollapseAction.HeaderClick;
@@ -101,7 +101,7 @@ Changes Logs:
             }
             else
             {
-                Items = new List<(faq_info, int)>();
+                Items = new List<(ref_faq, int)>();
             }
 
         }

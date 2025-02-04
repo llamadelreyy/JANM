@@ -54,7 +54,7 @@ namespace PBTPro.Data
 
         private string _baseReqURL = "/api/Schedule";
         private string LoggerName = "administrator";
-        private List<mst_patrol_schedule> _Schedules { get; set; }
+        private List<PatrolViewModel> _Schedules { get; set; }
 
         public ScheduleService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<ScheduleService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
@@ -65,74 +65,44 @@ namespace PBTPro.Data
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
 
-        #region mst_patrol_schedule
-        public Task<List<mst_patrol_schedule>> GetScheduleAsync(CancellationToken ct = default)
+        public Task<List<PatrolViewModel>> GetScheduleAsync(CancellationToken ct = default)
         {
             var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk jadual rondaan.", 1, LoggerName, "");
 
             return Task.FromResult(_Schedules);
-        }
-
-        public async Task<List<mst_patrol_schedule>> ListAll()
-        {
-            var result = new List<mst_patrol_schedule>();
-            try
-            {
-                string requestUrl = $"{_baseReqURL}/GetList";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl);
-
-                if (response.ReturnCode == 200)
-                {
-                    string? dataString = response?.Data?.ToString();
-                    if (!string.IsNullOrWhiteSpace(dataString))
-                    {
-                        result = JsonConvert.DeserializeObject<List<mst_patrol_schedule>>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai jadual rondaan.", 1, LoggerName, "");
-                    }
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
-                }
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<mst_patrol_schedule>();
-            }
-            return result;
-        }
+        }       
 
 
-        public async Task<List<PatrolViewModel>> ListsAll()
-        {
-            var result = new List<PatrolViewModel>();
-            try
-            {
-                string requestUrl = $"{_baseReqURL}/GetList";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+        //public async Task<List<PatrolViewModel>> ListsAll()
+        //{
+        //    var result = new List<PatrolViewModel>();
+        //    try
+        //    {
+        //        string requestUrl = $"{_baseReqURL}/GetList";
+        //        var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
-                if (response.ReturnCode == 200)
-                {
-                    string? dataString = response?.Data?.ToString();
-                    if (!string.IsNullOrWhiteSpace(dataString))
-                    {
-                        result = JsonConvert.DeserializeObject<List<PatrolViewModel>>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai jadual rondaan.", 1, LoggerName, "");
-                    }
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
-                }
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<PatrolViewModel>();
-            }
-            return result;
-        }
+        //        if (response.ReturnCode == 200)
+        //        {
+        //            string? dataString = response?.Data?.ToString();
+        //            if (!string.IsNullOrWhiteSpace(dataString))
+        //            {
+        //                result = JsonConvert.DeserializeObject<List<PatrolViewModel>>(dataString);
+        //                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai jadual rondaan.", 1, LoggerName, "");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+        //        result = new List<PatrolViewModel>();
+        //    }
+        //    return result;
+        //}
+        
 
         public async Task<ReturnViewModel> Add(PatrolViewModel inputModel)
         {
@@ -168,7 +138,7 @@ namespace PBTPro.Data
             var result = new ReturnViewModel();
             try
             {
-                int id = inputModel.Id;
+                int id = inputModel.scheduleId;
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
@@ -250,162 +220,10 @@ namespace PBTPro.Data
 
             return result;
         }
-        #endregion
 
-
-        #region patrol_info
-
-        [HttpGet]
-        public async Task<List<mst_patrol_schedule>> Refresh()
+        public async Task<List<PatrolViewModel>> ListByTabType(string tabType)
         {
-            var result = new List<mst_patrol_schedule>();
-            try
-            {
-                string requestUrl = $"{_baseReqURL}/GetList";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl);
-
-                if (response.ReturnCode == 200)
-                {
-                    string? dataString = response?.Data?.ToString();
-                    if (!string.IsNullOrWhiteSpace(dataString))
-                    {
-                        result = JsonConvert.DeserializeObject<List<mst_patrol_schedule>>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula dan papar senarai jadual rondaan.", 1, LoggerName, "");
-                    }
-                    else
-                    {
-                        await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<mst_patrol_schedule>();
-            }
-            return result;
-        }
-
-        public async Task<ReturnViewModel> Adds(mst_patrol_schedule inputModel)
-        {
-            var result = new ReturnViewModel();
-            try
-            {
-                var reqData = JsonConvert.SerializeObject(inputModel);
-                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
-
-                string requestUrl = $"{_baseReqURL}/Add";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
-
-                result = response;
-                if (result.ReturnCode == 200)
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk jadual rondaan.", 1, LoggerName, "");
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
-                }
-            }
-            catch (Exception ex)
-            {
-                result = new ReturnViewModel();
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-            }
-            return result;
-        }
-
-        public async Task<ReturnViewModel> Updates(mst_patrol_schedule inputModel)
-        {
-            var result = new ReturnViewModel();
-            try
-            {
-                int id = inputModel.schedule_id;
-                var reqData = JsonConvert.SerializeObject(inputModel);
-                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
-
-                string requestUrl = $"{_baseReqURL}/Update/{id}";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
-
-                result = response;
-                if (result.ReturnCode == 200)
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
-                }
-            }
-            catch (Exception ex)
-            {
-                result = new ReturnViewModel();
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-            }
-            return result;
-        }
-
-        public async Task<ReturnViewModel> Deletes(int id)
-        {
-            var result = new ReturnViewModel();
-            try
-            {
-                string requestUrl = $"{_baseReqURL}/Delete/{id}";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
-
-                result = response;
-                if (result.ReturnCode == 200)
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk jadual rondaan.", 1, LoggerName, "");
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
-                }
-            }
-            catch (Exception ex)
-            {
-                result = new ReturnViewModel();
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-            }
-            return result;
-        }        
-        
-        public async Task<mst_patrol_schedule> ViewDetails(int id)
-        {
-            var result = new mst_patrol_schedule();
-            try
-            {
-                string requestquery = $"/{id}";
-                string requestUrl = $"{_baseReqURL}/ViewDetail{requestquery}";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl);
-
-                if (response.ReturnCode == 200)
-                {
-                    string? dataString = response?.Data?.ToString();
-                    if (!string.IsNullOrWhiteSpace(dataString))
-                    {
-                        result = JsonConvert.DeserializeObject<mst_patrol_schedule>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya lihat maklumat terperinci data untuk jadual rondaan.", 1, LoggerName, "");
-                    }
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, 1, LoggerName, "");
-                }
-            }
-            catch (Exception ex)
-            {
-                result = new mst_patrol_schedule();
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-            }
-
-            return result;
-        }
-
-        public async Task<List<mst_patrol_schedule>> ListByTabType(string tabType)
-        {
-            var result = new List<mst_patrol_schedule>();
+            var result = new List<PatrolViewModel>();
             try
             {
                 string requestquery = $"?tabType={tabType}";
@@ -417,18 +235,17 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<mst_patrol_schedule>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<PatrolViewModel>>(dataString);
                     }
                 }
             }
             catch (Exception ex)
             {
-                result = new List<mst_patrol_schedule>();
+                result = new List<PatrolViewModel>();
             }
 
             return result;
         }
 
-        #endregion
     }
 }

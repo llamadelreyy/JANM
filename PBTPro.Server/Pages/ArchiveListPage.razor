@@ -61,7 +61,7 @@
 
         <DxGrid @ref="Grid"
                 Data="_lstAudits"
-                KeyFieldName="ArchiveId"
+                KeyFieldName="archive_id"
                 ShowGroupPanel="true"
                 ShowFilterRow="false"
                 TextWrapEnabled="true"
@@ -86,20 +86,20 @@
                 CssClass="mv-1000">
 
             <Columns>
-                <DxGridDataColumn FieldName="@nameof(auditlog_archive_info.created_date)" Caption="Tarikh Dicipta" MinWidth="120" Width="13%" TextAlignment="GridTextAlignment.Center" DisplayFormat="dd/MM/yyyy HH:mm:ss" AllowGroup="false" />
-                <DxGridDataColumn FieldName="@nameof(auditlog_archive_info.archive_username)" Caption="Nama Pengguna" MinWidth="150" Width="12%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
-                <DxGridDataColumn FieldName="@nameof(auditlog_archive_info.archive_type)" Caption="Jenis Maklumat" MinWidth="120" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                <DxGridDataColumn FieldName="created_at" Caption="Tarikh Dicipta" MinWidth="120" Width="13%" TextAlignment="GridTextAlignment.Center" DisplayFormat="dd/MM/yyyy HH:mm:ss" AllowGroup="false" />
+                <DxGridDataColumn FieldName="archive_username" Caption="Nama Pengguna" MinWidth="150" Width="12%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
+                <DxGridDataColumn FieldName="archive_type" Caption="Jenis Maklumat" MinWidth="120" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                     <CellDisplayTemplate>
                             <div>@GetStatusAuditIconHtml(((auditlog_archive_info)context.DataItem).archive_type)</div>
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
-                <DxGridDataColumn FieldName="@nameof(auditlog_archive_info.archive_module_name)" MinWidth="130" Width="13%" Caption="Nama Modul" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
-                <DxGridDataColumn FieldName="@nameof(auditlog_archive_info.archive_method)" Caption="Method" MinWidth="200" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
-                <DxGridDataColumn FieldName="@nameof(auditlog_archive_info.archive_description)" Caption="Penerangan" MinWidth="200" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                <DxGridDataColumn FieldName="archive_module_name" MinWidth="130" Width="13%" Caption="Nama Modul" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
+                <DxGridDataColumn FieldName="archive_method" Caption="Method" MinWidth="200" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
+                <DxGridDataColumn FieldName="archive_desc" Caption="Penerangan" MinWidth="200" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             </Columns>
 
             <TotalSummary>
-                <DxGridSummaryItem FooterColumnName="created_date"
+                <DxGridSummaryItem FooterColumnName="created_at"
                                    Name="Custom"
                                    SummaryType=GridSummaryItemType.Count />
             </TotalSummary>

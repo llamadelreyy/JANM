@@ -265,56 +265,56 @@ namespace PBTPro.DAL.Services
         #endregion
 
         #region audit
-        [HttpPost]
-        [AllowAnonymous]
-        public async Task<ReturnViewModel> CreateAuditLog(int intType, string strMethod, string strMessage, int userId, string uname, string moduleName, int roleid=0)
-        {
-            try
-            {
-                var result = new ReturnViewModel();
-                auditlog_info auditlog = new auditlog_info();
+        //[HttpPost]
+        //[AllowAnonymous]
+        //public async Task<ReturnViewModel> CreateAuditLog(int intType, string strMethod, string strMessage, int userId, string uname, string moduleName, int roleid=0)
+        //{
+        //    try
+        //    {
+        //        var result = new ReturnViewModel();
+        //        auditlog_info auditlog = new auditlog_info();
 
-                auditlog.audit_role_id = roleid;
-                auditlog.audit_module_name = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName;
-                auditlog.audit_description = strMessage;
-                auditlog.created_by = userId;
-                auditlog.audit_type = intType;
-                auditlog.audit_username = uname;
-                auditlog.audit_method = strMethod;
+        //        auditlog.role_id = roleid;
+        //        auditlog.module_name = string.IsNullOrEmpty(moduleName) ? "NA" : moduleName;
+        //        auditlog.log_descr = strMessage;
+        //        auditlog.creator_id = userId;
+        //        auditlog.log_type = intType;
+        //        auditlog.username = uname;
+        //        auditlog.log_method = strMethod;
 
-                var accessToken = CheckToken();
-                var platformApiUrl = _apiBaseUrl;//_configuration["PlatformAPI"];
-                var request = CheckRequest("/api/Audit/InsertAudit");
+        //        var accessToken = CheckToken();
+        //        var platformApiUrl = _apiBaseUrl;//_configuration["PlatformAPI"];
+        //        var request = CheckRequest("/api/Audit/InsertAudit");
 
-                var client = new HttpClient();
-                client.BaseAddress = new Uri(platformApiUrl);
-                string value = JsonConvert.SerializeObject(auditlog);
-                StringContent jsonContent = new(value, Encoding.UTF8, "application/json");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                HttpResponseMessage response = await client.PostAsync("/api/Audit/InsertAudit", jsonContent).ConfigureAwait(false);
+        //        var client = new HttpClient();
+        //        client.BaseAddress = new Uri(platformApiUrl);
+        //        string value = JsonConvert.SerializeObject(auditlog);
+        //        StringContent jsonContent = new(value, Encoding.UTF8, "application/json");
+        //        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        //        HttpResponseMessage response = await client.PostAsync("/api/Audit/InsertAudit", jsonContent).ConfigureAwait(false);
 
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    var results = await response.Content.ReadAsStringAsync();
-                    return result;
-                }
-                else
-                {
-                    //================================== Comment For Testing - Azmee =====================================
-                    //////var errorContent = await response.Content.ReadAsStringAsync();
-                    //////throw new Exception($"API request failed with status code {response.StatusCode}: {errorContent}");
-                    return result;
-                    //====================================================================================================
-                }
-            }
-            catch (Exception ex)
-            {
-                throw (ex);
-            }           
-            //skip for development - azmee
-            //await Task.Delay(500); // Wait for 1/2 seconds
-            //return true;
-        }
+        //        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+        //        {
+        //            var results = await response.Content.ReadAsStringAsync();
+        //            return result;
+        //        }
+        //        else
+        //        {
+        //            //================================== Comment For Testing - Azmee =====================================
+        //            //////var errorContent = await response.Content.ReadAsStringAsync();
+        //            //////throw new Exception($"API request failed with status code {response.StatusCode}: {errorContent}");
+        //            return result;
+        //            //====================================================================================================
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw (ex);
+        //    }           
+        //    //skip for development - azmee
+        //    //await Task.Delay(500); // Wait for 1/2 seconds
+        //    //return true;
+        //}
 
         /// <summary>
         /// Get current method name
