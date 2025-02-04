@@ -515,190 +515,191 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<patrol_info>>> ListAll()
-        {
-            try
-            {
-                var data = await _dbContext.patrol_infos.Where(x => x.active_flag == true).Select(x => new
-                {
-                    patrol_id = x.patrol_id,
-                    patrol_cnt_notice = x.patrol_cnt_notice,
-                    patrol_cnt_compound = x.patrol_cnt_compound,
-                    patrol_cnt_notes = x.patrol_cnt_notes,
-                    patrol_cnt_seizure = x.patrol_cnt_seizure,
-                    patrol_status = x.patrol_status,
-                    patrol_start_dtm = x.patrol_start_dtm,
-                    patrol_end_dtm = x.patrol_end_dtm,
-                    active_flag = x.active_flag,
-                    created_by = x.created_by,
-                    created_date = x.created_date,
-                    updated_by = x.updated_by,
-                    patrol_officer_name = x.patrol_officer_name,
-                    patrol_location = x.patrol_location,
-                    updated_date = x.updated_date,
-                    patrol_dept_name = x.patrol_dept_name,
-                    patrol_scheduled = x.patrol_scheduled,
-                    patrol_start_location = x.patrol_start_location != null
-                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_start_location))
-                                    : null,
+        //[AllowAnonymous]
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<patrol_info>>> ListAll()
+        //{
+        //    try
+        //    {
+        //        var data = await _dbContext.patrol_infos.Where(x => x.active_flag == true).Select(x => new
+        //        {
+        //            patrol_id = x.patrol_id,
+        //            patrol_cnt_notice = x.patrol_cnt_notice,
+        //            patrol_cnt_compound = x.patrol_cnt_compound,
+        //            patrol_cnt_notes = x.patrol_cnt_notes,
+        //            patrol_cnt_seizure = x.patrol_cnt_seizure,
+        //            patrol_status = x.patrol_status,
+        //            patrol_start_dtm = x.patrol_start_dtm,
+        //            patrol_end_dtm = x.patrol_end_dtm,
+        //            active_flag = x.active_flag,
+        //            created_by = x.created_by,
+        //            created_date = x.created_date,
+        //            updated_by = x.updated_by,
+        //            patrol_officer_name = x.patrol_officer_name,
+        //            patrol_location = x.patrol_location,
+        //            updated_date = x.updated_date,
+        //            patrol_dept_name = x.patrol_dept_name,
+        //            patrol_scheduled = x.patrol_scheduled,
+        //            patrol_start_location = x.patrol_start_location != null
+        //                            ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_start_location))
+        //                            : null,
 
-                    patrol_end_location = x.patrol_end_location != null
-                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_end_location))
-                                    : null
-                }).AsNoTracking().ToListAsync();
-                return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
+        //            patrol_end_location = x.patrol_end_location != null
+        //                            ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.patrol_end_location))
+        //                            : null
+        //        }).AsNoTracking().ToListAsync();
+        //        return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+        //    }
+        //}
 
-        [AllowAnonymous]
-        [HttpPost]
-        public async Task<IActionResult> Add([FromBody] patrol_info InputModel)
-        {
-            try
-            {
-                var runUserID = await getDefRunUserId();
-                var runUser = await getDefRunUser();
+        //[AllowAnonymous]
+        //[HttpPost]
+        //public async Task<IActionResult> Add([FromBody] patrol_info InputModel)
+        //{
+        //    try
+        //    {
+        //        var runUserID = await getDefRunUserId();
+        //        var runUser = await getDefRunUser();
 
-                #region Validation
-                //var isPatrolDup = await _dbContext.patrol_infos
-                //                        .AnyAsync(y => y.patrol_officer_name == InputModel.patrol_officer_name &&
-                //                        (y.patrol_start_dtm < DateTime.Now || y.patrol_start_dtm == InputModel.patrol_start_dtm) &&
-                //                        (y.patrol_end_dtm < DateTime.Now || y.patrol_end_dtm == InputModel.patrol_end_dtm) &&
-                //                        y.patrol_location == InputModel.patrol_location);
+        //        #region Validation
+        //        //var isPatrolDup = await _dbContext.patrol_infos
+        //        //                        .AnyAsync(y => y.patrol_officer_name == InputModel.patrol_officer_name &&
+        //        //                        (y.patrol_start_dtm < DateTime.Now || y.patrol_start_dtm == InputModel.patrol_start_dtm) &&
+        //        //                        (y.patrol_end_dtm < DateTime.Now || y.patrol_end_dtm == InputModel.patrol_end_dtm) &&
+        //        //                        y.patrol_location == InputModel.patrol_location);
 
-                //if (isPatrolDup)
-                //{
-                //    return Error("", SystemMesg(_feature, "MEMBERS_ASSIGNED", MessageTypeEnum.Error, string.Format("pegawai sedang dalam rondaan")));
-                //}
-                #endregion
+        //        //if (isPatrolDup)
+        //        //{
+        //        //    return Error("", SystemMesg(_feature, "MEMBERS_ASSIGNED", MessageTypeEnum.Error, string.Format("pegawai sedang dalam rondaan")));
+        //        //}
+        //        #endregion
 
-                #region store data
-                patrol_info patrolinfo = new patrol_info
-                {
-                    //patrol_id = InputModel.patrol_id,
-                    patrol_dept_name = InputModel.patrol_dept_name,
-                    patrol_officer_name = InputModel.patrol_officer_name,
-                    patrol_location = InputModel.patrol_location,
-                    patrol_start_dtm = InputModel.patrol_start_dtm,
-                    patrol_end_dtm = InputModel.patrol_end_dtm,
-                    patrol_status = InputModel.patrol_status,
-                    created_by = runUserID,
-                    created_date = DateTime.Now,
-                    active_flag = true,
-                };
+        //        #region store data
+        //        patrol_info patrolinfo = new patrol_info
+        //        {
+        //            //patrol_id = InputModel.patrol_id,
+        //            patrol_dept_name = InputModel.patrol_dept_name,
+        //            patrol_officer_name = InputModel.patrol_officer_name,
+        //            patrol_location = InputModel.patrol_location,
+        //            patrol_start_dtm = InputModel.patrol_start_dtm,
+        //            patrol_end_dtm = InputModel.patrol_end_dtm,
+        //            patrol_status = InputModel.patrol_status,
+        //            created_by = runUserID,
+        //            created_date = DateTime.Now,
+        //            active_flag = true,
+        //        };
 
-                _dbContext.patrol_infos.Add(patrolinfo);
-                await _dbContext.SaveChangesAsync();
+        //        _dbContext.patrol_infos.Add(patrolinfo);
+        //        await _dbContext.SaveChangesAsync();
 
-                #endregion               
-                return Ok(patrolinfo, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya tambah jadual rondaan")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
+        //        #endregion               
+        //        return Ok(patrolinfo, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya tambah jadual rondaan")));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+        //    }
+        //}
 
-        [AllowAnonymous]
-        [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] patrol_info InputModel)
-        {
-            try
-            {
-                int runUserID = await getDefRunUserId();
-                string runUser = await getDefRunUser();
+        //[AllowAnonymous]
+        //[HttpPut("{Id}")]
+        //public async Task<IActionResult> Update(int Id, [FromBody] patrol_info InputModel)
+        //{
+        //    try
+        //    {
+        //        int runUserID = await getDefRunUserId();
+        //        string runUser = await getDefRunUser();
 
-                #region Validation
-                var formField = await _dbContext.patrol_infos
-                                .FirstOrDefaultAsync(x => x.patrol_id == InputModel.patrol_id);
-                if (formField == null)
-                {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
-                if (string.IsNullOrWhiteSpace(InputModel.patrol_officer_name))
-                {
-                    return Error("", SystemMesg(_feature, "PATROL_OFFICER_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Pegawai diperlukan")));
-                }
-                if (string.IsNullOrWhiteSpace(InputModel.patrol_location))
-                {
-                    return Error("", SystemMesg(_feature, "PATROL_LOCATION", MessageTypeEnum.Error, string.Format("Ruangan Lokasi Rondaan diperlukan")));
-                }
-                #endregion
-                formField.patrol_dept_name = InputModel.patrol_dept_name;
-                formField.patrol_officer_name = InputModel.patrol_officer_name;
-                formField.patrol_location = InputModel.patrol_location;
-                formField.patrol_start_dtm = InputModel.patrol_start_dtm;
-                formField.patrol_end_dtm = InputModel.patrol_end_dtm;
-                formField.patrol_status = InputModel.patrol_status;
-                formField.updated_by = runUserID;
-                formField.updated_date = DateTime.Now;
+        //        #region Validation
+        //        var formField = await _dbContext.patrol_infos
+        //                        .FirstOrDefaultAsync(x => x.patrol_id == InputModel.patrol_id);
+        //        if (formField == null)
+        //        {
+        //            return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+        //        }
+        //        if (string.IsNullOrWhiteSpace(InputModel.patrol_officer_name))
+        //        {
+        //            return Error("", SystemMesg(_feature, "PATROL_OFFICER_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Pegawai diperlukan")));
+        //        }
+        //        if (string.IsNullOrWhiteSpace(InputModel.patrol_location))
+        //        {
+        //            return Error("", SystemMesg(_feature, "PATROL_LOCATION", MessageTypeEnum.Error, string.Format("Ruangan Lokasi Rondaan diperlukan")));
+        //        }
+        //        #endregion
+        //        formField.patrol_dept_name = InputModel.patrol_dept_name;
+        //        formField.patrol_officer_name = InputModel.patrol_officer_name;
+        //        formField.patrol_location = InputModel.patrol_location;
+        //        formField.patrol_start_dtm = InputModel.patrol_start_dtm;
+        //        formField.patrol_end_dtm = InputModel.patrol_end_dtm;
+        //        formField.patrol_status = InputModel.patrol_status;
+        //        formField.updated_by = runUserID;
+        //        formField.updated_date = DateTime.Now;
 
-                _dbContext.patrol_infos.Update(formField);
-                await _dbContext.SaveChangesAsync();
+        //        _dbContext.patrol_infos.Update(formField);
+        //        await _dbContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
+        //        return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+        //    }
+        //}
 
-        [AllowAnonymous]
-        [HttpDelete("{Id}")]
-        public async Task<IActionResult> Delete(int Id)
-        {
-            try
-            {
-                string runUser = await getDefRunUser();
+        //[AllowAnonymous]
+        //[HttpDelete("{Id}")]
+        //public async Task<IActionResult> Delete(int Id)
+        //{
+        //    try
+        //    {
+        //        string runUser = await getDefRunUser();
 
-                #region Validation
-                var formField = await _dbContext.patrol_infos.Where(x => x.patrol_status == "Belum Mula").FirstOrDefaultAsync(x => x.patrol_id == Id);
+        //        #region Validation
+        //        var formField = await _dbContext.patrol_infos.Where(x => x.patrol_status == "Belum Mula").FirstOrDefaultAsync(x => x.patrol_id == Id);
 
-                if (formField == null)
-                {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah. Status Belum Mula sahaja boleh dipadam.")));
-                }
+        //        if (formField == null)
+        //        {
+        //            return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah. Status Belum Mula sahaja boleh dipadam.")));
+        //        }
 
-                #endregion
+        //        #endregion
 
-                _dbContext.patrol_infos.Remove(formField);
-                await _dbContext.SaveChangesAsync();
+        //        _dbContext.patrol_infos.Remove(formField);
+        //        await _dbContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
+        //        return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+        //    }
+        //}
 
-        [HttpGet]
-        public async Task<IActionResult> GetListByTabType(string tabType)
-        {
-            try
-            {
-                var parFormfields = await _dbContext.patrol_infos.Where(x => x.active_flag == true && x.patrol_status == tabType).OrderBy(x => x.patrol_status)
-                                    .AsNoTracking().ToListAsync();
+        //[HttpGet]
+        //public async Task<IActionResult> GetListByTabType(string tabType)
+        //{
+        //    try
+        //    {
+        //        var parFormfields = await _dbContext.patrol_infos.Where(x => x.active_flag == true && x.patrol_status == tabType).OrderBy(x => x.patrol_status)
+        //                            .AsNoTracking().ToListAsync();
 
-                if (parFormfields.Count == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
+        //        if (parFormfields.Count == 0)
+        //        {
+        //            return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+        //        }
 
-                return Ok(parFormfields, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
+        //        return Ok(parFormfields, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+        //    }
+        //}
+
         #endregion
 
         [AllowAnonymous]

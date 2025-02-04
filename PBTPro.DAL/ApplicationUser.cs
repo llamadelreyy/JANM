@@ -37,5 +37,7 @@ namespace PBTPro.DAL
         public int? ModifierId { get; set; }
 
         public string Text => $"{UserName} ({full_name})";
+
+        public string TextName => $"{full_name}";
     }
 }

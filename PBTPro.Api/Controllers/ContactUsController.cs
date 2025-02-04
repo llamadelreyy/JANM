@@ -20,6 +20,8 @@ using PBTPro.Api.Services;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using System.Diagnostics;
+using System.Reactive.Subjects;
 
 namespace PBTPro.Api.Controllers
 {
@@ -109,14 +111,14 @@ namespace PBTPro.Api.Controllers
                 #region store data
                 contact_us contact_us = new contact_us
                 {
-                    contact_inq_no = InputModel.contact_inq_no,
+                    contact_inq_no = "TIKET-" + GenerateRandomString(9),
                     contact_name = InputModel.contact_name,
                     contact_email = InputModel.contact_email,
                     contact_telno = InputModel.contact_telno,
                     contact_subject = InputModel.contact_subject,
                     contact_message = InputModel.contact_message,
                     contact_status = InputModel.contact_status,
-                    response_message = InputModel.response_message,
+                    response_message = "Kami akan merespon pertanyaan anda dengan segara. <br/> Terima kasih atas kesabaran anda",
                     creator_id = runUserID,
                     created_at = DateTime.Now,
                 };
@@ -124,7 +126,7 @@ namespace PBTPro.Api.Controllers
                 _dbContext.contact_us.Add(contact_us);
                 await _dbContext.SaveChangesAsync();
 
-                await SendEmailContactUs(contact_us.contact_email, contact_us.contact_name, contact_us.response_message, contact_us.contact_status);
+                await SendEmailContactUs(contact_us.contact_email, contact_us.contact_name, contact_us.contact_status, contact_us.response_message);
 
                 #endregion
 
@@ -154,14 +156,22 @@ namespace PBTPro.Api.Controllers
                 #endregion
 
                 formField.contact_status = InputModel.contact_status;
-                formField.response_message = InputModel.response_message;
+
+                if (formField.contact_status.ToLower() == "dalam proses")
+                {
+                    formField.response_message = "Status pertanyaan anda adalah dalam proses. Kami akan merespon pertanyaan anda dengan segara. <br/> Terima kasih atas kesabaran anda";
+                }
+                else if (formField.contact_status.ToLower() == "selesai")
+                {
+                    formField.response_message = "Pertanyaan anda telah selesai diproses. Terima kasih atas kesabaran anda";
+                }
                 formField.modifier_id = runUserID;
                 formField.modified_at = DateTime.Now;
 
                 _dbContext.contact_us.Update(formField);
                 await _dbContext.SaveChangesAsync();
 
-                await SendEmailContactUs(InputModel.contact_email, InputModel.contact_name, InputModel.response_message, InputModel.contact_status);
+                await SendEmailContactUs(formField.contact_email, InputModel.contact_name, formField.contact_status, formField.response_message);
 
                 return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
@@ -202,58 +212,52 @@ namespace PBTPro.Api.Controllers
             return (_dbContext.contact_us?.Any(e => e.contact_id == id)).GetValueOrDefault();
         }
 
-        private async Task<bool> SendEmailContactUs(string recipient, string username, string response, string status)
+        private async Task<bool> SendEmailContactUs(string recipient, string username, string status, string response)
         {
             try
             {
                 EmailContent defaultContent = new EmailContent();
-                switch (status)
+                switch (status.ToLower())
                 {
-                    case "Menunggu":
-                        defaultContent = new EmailContent
+                    case "menunggu":
+                        defaultContent = new EmailContent()
                         {
                             subject = "Terima kasih atas pertanyaan anda.",
-                            body = "Hai [0], Anda telah menghantar pertanyaaan anda kepada kami.<br/><br/>" +
-                                    "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBT Pro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
-                        };
-                        break;
-                    case "Dalam Proses":
-                        defaultContent = new EmailContent
-                        {
-                            subject = "Terima kasih atas pertanyaan anda. Pertanyaan anda dalam proses.",
-                            body = "Hai [0], Anda telah menghantar pertanyaaan anda kepada kami. Kami sedang memprosesnya. Terima kasih atas kesabaran anda. <br/><br/>" +
-                                    "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBT Pro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
-                        };
-                        break;
-                    case "Selesai":
-                        defaultContent = new EmailContent
-                        {
-                            subject = "Terima kasih atas pertanyaan anda. Pertanyaan anda dalam sudah selesai.",
-                            body = "Hai [0], Pertanyaan anda sudah selesai. Terima kasih atas kesabaran anda. <br/><br/>" +
-                                     "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBT Pro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
-                        };
-                        break;
-                    default:
-                        defaultContent = new EmailContent
-                        {
-                            subject = "Terima kasih atas pertanyaan anda.",
-                            body = "Hai [0], Anda telah menghantar pertanyaaan anda kepada kami. Kami sedang memprosesnya. Terima kasih atas kesabaran anda. <br/><br/>" +
-                                    "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBT Pro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
-                        };
-                        break;
-                }
+                            body = "Hai [0], <br/> [1] <br/><br/>" +
+                            "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBT Pro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
 
-                string[] param = { username, response, status };
+                        };
+                        break;
+                    case "dalam proses":
+                        defaultContent = new EmailContent()
+                        {
+                            subject = "Terima kasih atas pertanyaan anda.",
+                            body = "Hai [0], <br/> [1] <br/><br/>" +
+                                "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBT Pro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
+                        };
+                        break;
+                    case "selesai":
+                        defaultContent = new EmailContent()
+                        {
+                            subject = "Terima kasih atas pertanyaan anda.",
+                            body = "Hai [0], <br/> [1] <br/><br/>" +
+                               "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBT Pro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
+                        };
+                        break;
+                };
+                string[] param = { username, response,  };
 
                 var emailHelper = new EmailHelper(_dbContext, _emailSender);
                 EmailContent emailContent = await emailHelper.getEmailContent("CONTACT_US", param, defaultContent);
 
                 var emailRs = await emailHelper.QueueEmail(emailContent.subject, emailContent.body, recipient);
                 var sentRs = await emailHelper.ForceProcessQueue(emailRs);
+
                 return true;
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error: {ex.Message}");
                 return false;
             }
         }
@@ -280,7 +284,7 @@ namespace PBTPro.Api.Controllers
 
                         return Ok(new { totalCount = totalCount }, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, "Senarai rekod berjaya dijana"));
                     }
-                }               
+                }
             }
             catch (Exception ex)
             {
@@ -288,7 +292,18 @@ namespace PBTPro.Api.Controllers
             }
             finally
             {
-            }           
+            }
+        }
+        static string GenerateRandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            Random random = new Random();
+            char[] stringChars = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                stringChars[i] = chars[random.Next(chars.Length)];
+            }
+            return new String(stringChars);
         }
     }
 }

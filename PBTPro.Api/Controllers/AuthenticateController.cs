@@ -249,7 +249,7 @@ namespace PBTPro.Api.Controllers
                     if (userRoles.Any(x => x.Name.ToUpper() == "ANGGOTA PENGUATKUASA")) { isMobileUser = true; }
 
                     user_profile_role currDefRole = new user_profile_role { Name = "Public", Id = 0, IsDefaultRole = true };
-                    if (userRoles != null)
+                    if (userRoles != null && userRoles.Count > 0)
                     {
                         currDefRole = userRoles.FirstOrDefault(x => x.IsDefaultRole == true);
                         if (currDefRole == null)

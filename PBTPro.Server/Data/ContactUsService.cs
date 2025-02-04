@@ -138,24 +138,6 @@ namespace PBTPro.Data
             var result = new ReturnViewModel();
             try
             {
-                switch (inputModel.contact_status)
-                {
-                    case "Menunggu":
-                        inputModel.response_message = "Terima kasih atas pertanyaan anda.";
-                        break;
-                    case "Dalam Proses":
-                        inputModel.response_message = "Kami sedang memprosesnya. Terima kasih atas kesabaran anda.";
-                        break;
-                    case "Selesai":
-                        inputModel.response_message = "Pertanyaan anda telah selesai diproses. Terima kasih atas kesabaran anda.";
-                        break;
-                    default:
-                        inputModel.response_message = "Status tidak dikenali.";
-                        break;
-                }   
-                
-                inputModel.contact_inq_no= "TIKET-" + GenerateRandomString(9);
-
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
@@ -185,22 +167,6 @@ namespace PBTPro.Data
             var result = new ReturnViewModel();
             try
             {
-                switch (inputModel.contact_status)
-                {
-                    case "Menunggu":
-                        inputModel.response_message = "Terima kasih atas pertanyaan anda.";
-                        break;
-                    case "Dalam Proses":
-                        inputModel.response_message = "Kami sedang memprosesnya. Terima kasih atas kesabaran anda.";
-                        break;
-                    case "Selesai":
-                        inputModel.response_message = "Pertanyaan anda telah selesai diproses. Terima kasih atas kesabaran anda.";
-                        break;
-                    default:
-                        inputModel.response_message = "Status tidak dikenali.";
-                        break;
-                }
-
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
@@ -289,16 +255,6 @@ namespace PBTPro.Data
             return result;
         }
 
-        static string GenerateRandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            Random random = new Random();
-            char[] stringChars = new char[length];
-            for (int i = 0; i < length; i++)
-            {
-                stringChars[i] = chars[random.Next(chars.Length)];
-            }
-            return new String(stringChars);
-        }
+        
     }
 }

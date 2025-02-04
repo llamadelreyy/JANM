@@ -1,17 +1,4 @@
-﻿/*
-Project: PBT Pro
-Description: Faq service to handle FAQ form field
-Author: Nurulfarhana
-Date: November 2024
-Version: 1.0
-Additional Notes:
-- 
-Changes Logs:
-14/11/2024 - initial create
-10/01/2025 - add audit log
-*/
-
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PBTPro.DAL;
@@ -24,7 +11,7 @@ using System.Text;
 namespace PBTPro.Data
 {
     [AllowAnonymous]
-    public partial class FaqService : IDisposable
+    public class RefPatrolStatusService : IDisposable
     {
 
         private bool disposed = false;
@@ -39,29 +26,30 @@ namespace PBTPro.Data
                 }
 
                 // Dispose unmanaged resources here
-
                 disposed = true;
             }
         }
+
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
+        }       
+
         public IConfiguration _configuration { get; }
 
         private readonly PBTProDbContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         protected readonly AuditLogger _cf;
-        private readonly ILogger<FaqService> _logger;
+        private readonly ILogger<RefPatrolStatusService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
 
-        private string _baseReqURL = "/api/Faq";
+        private string _baseReqURL = "/api/RefPatrolStatus";
         private string LoggerName = "";
-        private List<ref_faq> _Faq { get; set; }
+        private List<ref_patrol_status> _ref_patrol_status { get; set; }
 
-        public FaqService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<FaqService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
+        public RefPatrolStatusService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<RefPatrolStatusService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
             _PBTAuthStateProvider = PBTAuthStateProvider;
@@ -69,11 +57,10 @@ namespace PBTPro.Data
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
         }
-
         [HttpGet]
-        public async Task<List<ref_faq>> ListAll()
+        public async Task<List<ref_patrol_status>> ListAll()
         {
-            var result = new List<ref_faq>();
+            var result = new List<ref_patrol_status>();
             string requestUrl = $"{_baseReqURL}/ListAll";
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
@@ -84,27 +71,27 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<ref_faq>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_patrol_status>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya jana senarai soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai tetapan bangsa.", 1, LoggerName, "");
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
                 }
             }
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<ref_faq>();
+                result = new List<ref_patrol_status>();
             }
             return result;
         }
 
         [HttpGet]
-        public async Task<List<ref_faq>> Refresh()
+        public async Task<List<ref_patrol_status>> Refresh()
         {
-            var result = new List<ref_faq>();
+            var result = new List<ref_patrol_status>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/ListAll";
@@ -115,25 +102,25 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<ref_faq>>(dataString); 
+                        result = JsonConvert.DeserializeObject<List<ref_patrol_status>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya jana senarai soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai tetapan bangsa.", 1, LoggerName, "");
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
                 }
 
             }
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
-                result = new List<ref_faq>();
+                result = new List<ref_patrol_status>();
             }
             return result;
         }
 
-        public async Task<ReturnViewModel> Add(ref_faq inputModel)
+        public async Task<ReturnViewModel> Add(ref_patrol_status inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -145,14 +132,7 @@ namespace PBTPro.Data
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;
-                if (response.ReturnCode == 200)
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk soalan lazim.", 1, LoggerName, "");
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
-                }
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data.", 1, LoggerName, "");
             }
             catch (Exception ex)
             {
@@ -162,7 +142,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, ref_faq inputModel)
+        public async Task<ReturnViewModel> Update(int id, ref_patrol_status inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -170,18 +150,11 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/Update/{inputModel.faq_id}";
+                string requestUrl = $"{_baseReqURL}/Update/{inputModel.status_id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
-                if (response.ReturnCode == 200)
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
-                }
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data.", 1, LoggerName, "");
 
             }
             catch (Exception ex)
@@ -201,14 +174,7 @@ namespace PBTPro.Data
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
                 result = response;
-                if (response.ReturnCode == 200)
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk soalan lazim.", 1, LoggerName, "");
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
-                }
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data.", 1, LoggerName, "");
             }
             catch (Exception ex)
             {
@@ -218,15 +184,15 @@ namespace PBTPro.Data
             return result;
         }
 
-        public Task<List<ref_faq>> GetFAQAsync(CancellationToken ct = default)
+        public Task<List<ref_patrol_status>> GetRaceAsync(CancellationToken ct = default)
         {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk soalan lazim.", 1, LoggerName, "");
-            return Task.FromResult(_Faq);
+            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai tetapan bangsa.", 1, LoggerName, "");
+            return Task.FromResult(_ref_patrol_status);
         }
 
-        public async Task<ref_faq> ViewDetail(int id)
+        public async Task<ref_patrol_status> ViewDetail(int id)
         {
-            var result = new ref_faq();
+            var result = new ref_patrol_status();
             try
             {
                 string requestquery = $"/{id}";
@@ -238,18 +204,18 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<ref_faq>(dataString);
+                        result = JsonConvert.DeserializeObject<ref_patrol_status>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci.", 1, LoggerName, "");
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, 1, LoggerName, "");
                 }
             }
             catch (Exception ex)
             {
-                result = new ref_faq(); 
+                result = new ref_patrol_status();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;

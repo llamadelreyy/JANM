@@ -111,7 +111,9 @@ builder.Services.AddTransient<ContactUsService>();
 builder.Services.AddTransient<MenuService>();
 builder.Services.AddTransient<PermissionService>();
 builder.Services.AddTransient<EmailerService>();
-builder.Services.AddTransient<ScheduleService>();   
+builder.Services.AddTransient<ScheduleService>();
+builder.Services.AddTransient<RefPatrolStatusService>();
+
 
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();

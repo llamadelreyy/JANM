@@ -10,7 +10,7 @@ Changes Logs:
 *@
 
 @page "/senarai_hubungikami"
-@attribute [Authorize(Roles = "Administrator")]
+@attribute [Authorize]
 
 @implements IDisposable
 
@@ -23,6 +23,7 @@ Changes Logs:
 @using PBTPro.Data
 @using PBTPro.DAL.Models.CommonServices
 
+@inject PBTAuthPermissionService PermissionService
 @inject ContactUsService _contactus
 @inject NavigationManager NavigationManager
 @inject IToastService toastService
@@ -36,6 +37,12 @@ Changes Logs:
     }
 </style>
 
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
 <DxLoadingPanel @bind-Visible="PanelVisible"
                 IsContentBlocked="true"
                 ApplyBackgroundShading="true"
@@ -176,7 +183,7 @@ Changes Logs:
 
         @*This is to count the summary*@
         <TotalSummary>
-                <DxGridSummaryItem FooterColumnName="contact_inq_no"
+                    <DxGridSummaryItem FooterColumnName="contact_status"
                                Name="Custom"
                                SummaryType=GridSummaryItemType.Count />
         </TotalSummary>
@@ -196,7 +203,7 @@ Changes Logs:
         </div>
     </BodyContentTemplate>
 </DxPopup>
-
+}
 @code {
     bool PanelVisible { get; set; }
 
