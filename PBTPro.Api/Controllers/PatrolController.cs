@@ -781,8 +781,6 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var resultData = new List<dynamic>();
-
                 var patrol_member = await (from p in _dbContext.patrol_infos
                                            join pm in _dbContext.patrol_members on p.patrol_id equals pm.member_patrol_id
                                            where pm.member_username == username
@@ -810,16 +808,22 @@ namespace PBTPro.Api.Controllers
                                                pm.member_username,
                                            }).FirstOrDefaultAsync();
 
-                resultData.Add(new
+                var totalMembers = await (from p in _dbContext.patrol_infos
+                                          join pm in _dbContext.patrol_members on p.patrol_id equals pm.member_patrol_id
+                                          where pm.member_patrol_id == patrol_member.patrol_id
+                                          select pm).CountAsync();
+
+                var resultData = new
                 {
                     patrol_id = patrol_member.patrol_id,
                     patrol_leader = patrol_member_leader.member_username,
+                    total_member = totalMembers,
                     patrol_status = patrol_member.patrol_status,
                     current_user = patrol_member.member_username,
                     patrol_start_dtm = patrol_member.patrol_start_dtm,
                     member_end_dtm = patrol_member.member_end_dtm,
                     patrolDuration = patrol_member.PatrolDuration,
-                });
+                };
 
                 return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
