@@ -38,6 +38,9 @@ namespace PBTPro.Data
         private string LoggerName = "administrator";
         private List<license_history> _licensehistory { get; set; }
         private List<license_view> _license_view { get; set; }
+
+        private List<premis_history_view> _premis_history_view { get; set; }
+
         public LicenseService(IConfiguration configuration, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
@@ -108,6 +111,36 @@ namespace PBTPro.Data
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
                 result = new List<license_view>();
+            }
+            return result;
+        }
+
+        public async Task<List<premis_history_view>> GetList()
+        {
+            var result = new List<premis_history_view>();
+            try
+            {
+                string requestUrl = $"{_baseReqURL}/GetList";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<premis_history_view>>(dataString);
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua sejarah lesen premis.", 1, LoggerName, "");
+                    }
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response.ReturnCode, 1, LoggerName, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                result = new List<premis_history_view>();
             }
             return result;
         }

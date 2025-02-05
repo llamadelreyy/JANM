@@ -11,8 +11,9 @@
 @using PBTPro.DAL.Services
 @using PBTPro.DAL.Models.CommonServices
 @using DevExpress.Blazor
+@using PBTPro.DAL.Models.PayLoads
 
-@inject PremisService _PremisService
+@inject LicenseService _LicenseService
 @inject NavigationManager NavigationManager
 @inject IToastNotificationService ToastService
 
@@ -32,31 +33,326 @@
     <div class="d-lg-flex border-bottom">
         <div class="col-md-12 py-1 dx-helptitle pageTitle">
             <img class="imgTitle" src="\images\icons-small\toolbox.png" />
-            <div class="textTitle">Peranan</div>
+            <div class="textTitle">Senarai Premis dan lesen</div>
         </div>
     </div>
 
     <div class="item-container-x">
+        <DxGrid @ref="Grid"
+                Data="@dtPremis"
+                KeyFieldName="gid"
+                ShowGroupPanel="true"
+                ShowFilterRow="false"
+                TextWrapEnabled="true"
+                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                EditorRenderMode="GridEditorRenderMode.Integrated"
+                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                ShowSearchBox="true"
+                AllowSelectRowByClick="true"
+                @bind-SearchText="@GridSearchText"
+                PageSize="25"
+                @bind-PageIndex="@GridPageIndex"
+                PagerPosition="GridPagerPosition.Bottom"
+                PagerNavigationMode="PagerNavigationMode.InputBox"
+                EditModelSaving="Grid_EditModelSaving"
+                EditFormButtonsVisible="false"
+                PageSizeSelectorVisible="true"
+                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                PageSizeSelectorAllRowsItemVisible="true"
+                PagerAutoHideNavButtons="false"
+                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                HighlightRowOnHover="true"
+                CssClass="mv-1000">
+            <Columns>
+                <DxGridCommandColumn Width="55px">
+                    <HeaderTemplate>
+                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                    </HeaderTemplate>
+                    <CellDisplayTemplate>
+                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                    </CellDisplayTemplate>
+                </DxGridCommandColumn>
+                <DxGridDataColumn FieldName="nama_pemilik" Caption="Nama Pemilik" Width="15%" TextAlignment="GridTextAlignment.Left" />
+                <DxGridDataColumn FieldName="nama_perniagaan" Caption="Nama Perniagaan" Width="25%" TextAlignment="GridTextAlignment.Left" />
+                <DxGridDataColumn FieldName="alamat_premis1" Caption="Alamat Premis" Width="36%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                <DxGridDataColumn FieldName="jumlah_bisness" Caption="Jumlah Lesen Perniagaan" Width="36%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+            </Columns>
 
+            <EditFormTemplate Context="editFormContext">
+                @{
+                    var dtData = (premis_history_view)editFormContext.EditModel;
+                }
+                <DxFormLayout CssClass="w-100">
+                    <DxFormLayoutItem ColSpanMd="6" ColSpanLg="8" BeginRow="true">
+                        <div class="d-lg-flex border-bottom mb-4">
+                            <div class="col-md-12 py-1">
+                                <img class="imgTitle" src="/images/icons-small/lock.png" />
+                                <div class="textTitle">MAKLUMAT PREMIS</div>
+                            </div>
+                        </div>
+
+                        <table class="layout_edit">
+                            <tr height="30px">
+                                <td nowrap>Nama Pemilik</td>
+                                <td nowrap>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    @if (dtData.nama_pemilik != null || dtData.nama_pemilik != "" || dtData.nama_pemilik != string.Empty)
+                                    {
+                                        @dtData.nama_pemilik
+                                    }
+                                    else
+                                    {
+                                        <div>-</div>
+                                    }
+                                </td>
+                                <td width="100px">&nbsp;</td>
+                                <td nowrap></td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td width="50%"></td>
+                            </tr>
+
+                            <tr height="30px">
+                                <td nowrap>Tempoh Sah Lesen</td>
+                                <td nowrap>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    @if (dtData.tempoh_sah_cukai != null)
+                                    {
+                                        @dtData.tempoh_sah_cukai
+                                    }
+                                    else
+                                    {
+                                        <div>-</div>
+                                    }
+                                </td>
+                                <td width="100px">&nbsp;</td>
+                                <td nowrap></td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td width="50%"></td>
+                            </tr>
+                            <tr height="30px">
+                                <td nowrap>Tempoh Sah Cukai</td>
+                                <td nowrap>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    @if (dtData.tempoh_sah_cukai != null)
+                                    {
+                                        @dtData.tempoh_sah_cukai
+                                    }
+                                    else
+                                    {
+                                        <div>-</div>
+                                    }
+                                </td>
+                                <td width="100px">&nbsp;</td>
+                                <td nowrap></td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td width="50%"></td>
+                            </tr>
+                            <tr height="30px">
+                                <td nowrap>Jumlah Perniagaan</td>
+                                <td nowrap>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    @{
+                                        string JumlahPerniagaan = Convert.ToString(dtData.jumlah_bisness);
+                                    }
+                                    @JumlahPerniagaan
+                                </td>
+                                <td width="100px">&nbsp;</td>
+                                <td nowrap></td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td width="50%"></td>
+                            </tr>
+                        </table>
+
+                        <div class="mt-4"></div>
+
+                        <div class="d-lg-flex border-bottom mb-4">
+                            <div class="col-md-12 py-1">
+                                <img class="imgTitle" src="/images/icons-small/lock.png" />
+                                <div class="textTitle">MAKLUMAT LESEN</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            @foreach (var itm in dtPremis)
+                            {
+                                if (itm.nama_pemilik == dtData.nama_pemilik)
+                                {
+                                    if (!@itm.Equals(dtPremis.FirstOrDefault()))
+                                    {
+                                    <tr><td colspan="7"><hr /></td></tr>
+                                    }
+
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            Nama Perniagaan
+                                        </div>
+                                        <div class="col-md-6">
+                                                @itm.nama_perniagaan
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            No Kad Pengenalan
+                                        </div>
+                                        <div class="col-md-6">
+                                                @itm.no_ic_pemilik
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            No Lesen
+                                        </div>
+                                        <div class="col-md-6">
+                                                @itm.no_lesen_bisness
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            Status Lesen
+                                        </div>
+                                        <div class="col-md-6">
+                                                @itm.status_lesen
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12 mt-4">
+                                    <div class="row">
+                                            @{
+                                                bool headersShown = false;
+                                            }
+                                            @foreach (var itmSaman in dtPremis)
+                                            {
+                                                if (itmSaman.no_lesen_bisness == itm.no_lesen_bisness)
+                                                {
+                                                    @if (!headersShown)
+                                                    {
+                                                    <div class="col-md-4">
+                                                        <span>No. Rujukan</span>
+                                                        <hr />
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <span>Jenis Saman</span>
+                                                        <hr />
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <span>Tempoh Saman</span>
+                                                        <hr />
+                                                    </div>
+                                                        headersShown = true;
+                                                    }
+
+                                                <div class="col-md-4">
+                                                        @if (!string.IsNullOrEmpty(itmSaman.no_rujukan_notis))
+                                                        {
+                                                        <p>@itmSaman.no_rujukan_notis</p>
+                                                        }
+                                                        else
+                                                        {
+                                                        <p>-</p>
+                                                        }
+                                                </div>
+
+                                                <div class="col-md-4">
+                                                        @if (!string.IsNullOrEmpty(itmSaman.jenis_saman_notis))
+                                                        {
+                                                        <p>@itmSaman.jenis_saman_notis</p>
+                                                        }
+                                                        else
+                                                        {
+                                                        <p>TIADA</p>
+                                                        }
+                                                </div>
+
+                                                <div class="col-md-4">
+                                                        @if (!string.IsNullOrEmpty(itmSaman.tempoh_saman_notis))
+                                                        {
+                                                        <p>@itmSaman.tempoh_saman_notis</p>
+                                                        }
+                                                        else
+                                                        {
+                                                        <p>TIADA</p>
+                                                        }
+                                                </div>
+                                                }
+                                            }
+                                    </div>
+                                </div>
+
+                                <hr />
+                                }
+                            }
+
+                            </div>
+
+    </DxFormLayoutItem>
+    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+    <DxFormLayoutItem ColSpanMd="12">
+        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Tutup" />
+    </DxFormLayoutItem>
+    </DxFormLayout>
+    </EditFormTemplate>
+    </DxGrid>
     </div>
 </DxLoadingPanel>
 
 
-    @code {
+@code {
 
-        bool PanelVisible { get; set; }
-        IGrid Grid { get; set; }
-        int GridPageIndex { get; set; } = 0;
-        string GridSearchText = "";
+    IEnumerable<premis_history_view> dtPremis;
 
-        bool ConfirmationShown { get; set; } = false;
-        string strSelected { get; set; }
+    bool PanelVisible { get; set; }
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
 
-        TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    bool ConfirmationShown { get; set; } = false;
+    string strSelected { get; set; }
 
-        public void Dispose()
-        {
-        DataLoadedTcs.TrySetCanceled();
-        }
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+    protected override async Task OnInitializedAsync()
+    {
+        dtPremis = await _LicenseService.GetList();
+        DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+            await Grid.CancelEditAsync();
+        }
+    }
+
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        ReturnViewModel response = new ReturnViewModel();
+        bool blnSuccess = false;
+        var editModel = e.EditModel as premis_history_view;
+        try
+        {
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+}
