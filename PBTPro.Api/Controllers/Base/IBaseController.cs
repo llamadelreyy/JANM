@@ -217,6 +217,26 @@ namespace PBTPro.Api.Controllers.Base
             return result;
         }
 
+        protected async Task<int> getDefTenantId()
+        {
+            int result = 1;
+            try
+            {
+                //var UserIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                result = int.Parse(User.FindFirstValue("TenantId"));
+                //if (!int.TryParse(UserIdString, out result))
+                //{
+                //    result = 0;
+                //}
+            }
+            catch (Exception ex)
+            {
+                result = 1;
+            }
+
+            return result;
+        }
+
         protected string SystemMesg(string features, string code, MessageTypeEnum type, string msg, List<string>? param = null)
         {
             var name = ".";

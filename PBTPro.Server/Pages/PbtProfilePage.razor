@@ -1,0 +1,420 @@
+﻿@page "/pbt_profile"
+@attribute [Authorize]
+@implements IDisposable
+@using PBTPro.DAL.Models.PayLoads
+@using PBTPro.DAL.Services
+@using PBTPro.Data
+@using PBTPro.DAL.Models
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components
+
+@inject PBTAuthPermissionService PermissionService
+@inject NavigationManager Navigation
+@inject TenantService _TenantService
+@inject CountryService _CountryService
+@inject StateService _StateService
+@inject DistrictService _DistrictService
+@inject TownService _TownService
+
+@if (!PermissionService.HasPermission("View"))
+{
+    Navigation.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+    IsContentBlocked="true"
+    ApplyBackgroundShading="true"
+    IndicatorAreaVisible="false"
+    Text="Capaian Data...">
+
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="/images/icons-small/user--pencil.png" />
+                <div class="textTitle">Profail PBT</div>
+            </div>
+        </div>
+
+        <div class="item-container-y">
+            <div class="ProfileBox" style="border:solid 1px #999;border-radius: 5px;box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);">
+                <div class="card-body">
+                    <EditForm Model="@pbtInfo" OnValidSubmit="@HandleValidSubmit" Context="EditFormContext">
+                        <DataAnnotationsValidator />
+                        <DxFormLayout>
+                            <DxFormLayoutItem ColSpanMd="2">
+                                <div class="align-items-center align-content-center">
+                                    @if (imageDataUrl != null)
+                                    {
+                                        <img class="tenant-logo" src="@imageDataUrl" alt="Uploaded Image" />
+                                    }
+                                    else
+                                    {
+                                        <img class="tenant-logo" src="@pbtInfo.tn_photo_url" alt="@pbtInfo.tn_photo_url" />
+                                    }
+                                </div>
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="10">
+                                <div class="upload-container">
+                                    <div style="display: none">
+                                        <span class="drop-file-label mb-1">Tekan butang Pilih untuk pilih fail imej</span>
+                                    </div>
+                                    <div class="bottom-upload">
+                                        <PBTProDxUpload AllowMultiFileUpload="false"
+                                        ShowFileList="false"
+                                        ShowSelectButton="true"
+                                        SelectButtonText="Pilih fail imej"
+                                        FilesUploading="@OnFilesUploading" SelectedFilesChanged="@OnSelectedFilesChanged" @ref="fileInputRef" />
+                                    </div>
+                                </div>
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="10">
+
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="12">
+                                <div>Nama PBT</div>
+                                <DxTextBox @bind-Text="@pbtInfo.tn_name"
+                                NullText="Nama PBT ..."
+                                BindValueMode="BindValueMode.OnInput"
+                                ShowValidationIcon="true"
+                                CssClass="cw-480" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="12">
+                                <div>Alamat 1</div>
+                                <DxTextBox @bind-Text="@pbtInfo.addr_line1"
+                                NullText="Alamat 1 ..."
+                                BindValueMode="BindValueMode.OnInput"
+                                ShowValidationIcon="true"
+                                CssClass="cw-480" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="12">
+                                <div>Alamat 2</div>
+                                <DxTextBox @bind-Text="@pbtInfo.addr_line2"
+                                NullText="Alamat 2 ..."
+                                BindValueMode="BindValueMode.OnInput"
+                                ShowValidationIcon="true"
+                                CssClass="cw-480" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="4">
+                                <div>Negara</div>
+                                <DxComboBox Data="@CountryOps"
+                                NullText="Pilih Negara.."
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                @bind-Value="@pbtInfo.country_code"
+                                SelectedItemChanged="@((mst_country country) => SelectedCountryChanged(country))"
+                                TextFieldName="country_name"
+                                ValueFieldName="country_code"
+                                ShowValidationIcon="true"
+                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                CssClass="cw-480" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="4">
+                                <div>Negeri</div>
+                                <DxComboBox Data="@StateOps"
+                                NullText="Pilih Negeri.."
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                @bind-Value="@pbtInfo.state_code"
+                                SelectedItemChanged="@((mst_state state) => SelectedStateChanged(state))"
+                                TextFieldName="state_name"
+                                ValueFieldName="state_code"
+                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                ShowValidationIcon="true"
+                                CssClass="cw-480" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="4">
+                                <div>Mukim</div>
+                                <DxComboBox Data="@DistrictOps"
+                                NullText="Pilih Mukim.."
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                @bind-Value="@pbtInfo.district_code"
+                                SelectedItemChanged="@((mst_district district) => SelectedDistrictChanged(district))"
+                                TextFieldName="district_name"
+                                ValueFieldName="district_code"
+                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                ShowValidationIcon="true"
+                                CssClass="cw-480" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="4">
+                                <div>Bandar</div>
+                                <DxComboBox Data="@TownOps"
+                                NullText="Pilih Bandar.."
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                @bind-Value="@pbtInfo.town_code"
+                                TextFieldName="town_name"
+                                ValueFieldName="town_code"
+                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                ShowValidationIcon="true"
+                                CssClass="cw-480" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="4">
+                                <div>Postkod</div>
+                                <DxTextBox @bind-Text="@pbtInfo.postcode"
+                                NullText="Postkod ..."
+                                BindValueMode="BindValueMode.OnInput"
+                                ShowValidationIcon="true"
+                                CssClass="cw-480" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="12"><hr /></DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="12">
+                                @if (PermissionService.HasPermission("Add") || PermissionService.HasPermission("Edit"))
+                                {
+                                    <DxButton CssClass="w-100 normal-btn" Text="Simpan"
+                                    RenderStyle="ButtonRenderStyle.Primary"
+                                    Enabled="true"
+                                    SubmitFormOnClick="true">
+                                    </DxButton>
+                                }
+                            </DxFormLayoutItem>
+                        </DxFormLayout>
+                        <div class="row w-100 mx-0">
+                            <p class="demo-text col-12 mt-2">
+                                Pengesahan Maklumat :
+                                <b>@FormValidationState</b>
+                            </p>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </DxLoadingPanel>
+}
+
+@code {
+    private bool isRendered = false;
+    bool PanelVisible { get; set; }
+    [Inject] IToastNotificationService ToastService { get; set; }
+    tenant_profile_view pbtInfo = new tenant_profile_view();
+    update_tenant_profile_input_model inputModel = new update_tenant_profile_input_model();
+    string FormValidationState = @"Sila tekan butang ""Simpan"" untuk sahkan data.";
+
+    private List<mst_country> CountryOps;
+    private List<mst_state> StateOps;
+    private List<mst_district> DistrictOps;
+    private List<mst_town> TownOps;
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        PanelVisible = true;
+        pbtInfo = await _TenantService.GetProfile();
+        await initPopulateDropItem();
+        DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
+    }
+
+    protected async Task initPopulateDropItem(){
+        CountryOps = await _CountryService.ListAll();
+        if(pbtInfo?.country_code != null){
+            StateOps = await _StateService.ViewListByCountry(pbtInfo.country_code);
+        }
+        if (pbtInfo?.state_code != null)
+        {
+            DistrictOps = await _DistrictService.ViewListByState(pbtInfo.state_code);
+        }
+        if (pbtInfo?.district_code != null)
+        {
+            TownOps = await _TownService.ViewListByDistrict(pbtInfo.district_code);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+        }
+        isRendered = true;
+    }
+
+    async Task SelectedCountryChanged(mst_country country)
+    {
+        if (isRendered)
+        {
+            StateOps = new List<mst_state>();
+            DistrictOps = new List<mst_district>();
+            TownOps = new List<mst_town>();
+
+            pbtInfo.state_code = null;
+            pbtInfo.district_code = null;
+            pbtInfo.town_code = null;
+
+            if (country?.country_code != null)
+            {
+                StateOps = await _StateService.ViewListByCountry(country.country_code);
+            }
+            //StateHasChanged();
+        }
+    }
+
+    async Task SelectedStateChanged(mst_state state)
+    {
+        if (isRendered)
+        {
+            DistrictOps = new List<mst_district>();
+            TownOps = new List<mst_town>();
+
+            pbtInfo.district_code = null;
+            pbtInfo.town_code = null;
+
+            if (state?.state_code != null)
+            {
+                DistrictOps = await _DistrictService.ViewListByState(state.state_code);
+            }
+            //StateHasChanged();
+        }
+    }
+
+    async Task SelectedDistrictChanged(mst_district district)
+    {
+        if (isRendered)
+        {
+            TownOps = new List<mst_town>();
+
+            pbtInfo.town_code = null;
+
+            if (district?.district_code != null)
+            {
+                TownOps = await _TownService.ViewListByDistrict(district?.district_code);
+            }
+            //StateHasChanged();
+        }
+    }
+
+    public async Task HandleValidSubmit()
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            inputModel.tenant_id = pbtInfo.tenant_id;
+            inputModel.tn_name = pbtInfo.tn_name;
+            inputModel.addr_line1 = pbtInfo.addr_line1;
+            inputModel.addr_line2 = pbtInfo.addr_line2;
+            inputModel.town_code = pbtInfo.town_code;
+            inputModel.district_code = pbtInfo.district_code;
+            inputModel.state_code = pbtInfo.state_code;
+            inputModel.country_code = pbtInfo.country_code;
+            inputModel.postcode = pbtInfo.postcode;
+
+            response = await _TenantService.UpdateProfile(inputModel);
+
+            if (response.ReturnCode == 200)
+            {
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleResponse("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.", "Error");
+        }
+    }
+
+    #region Files
+    private string imageDataUrl;
+    private PBTProDxUpload fileInputRef { get; set; }
+    long MaxFileSize = 5 * 1024 * 1024;
+    List<string> AllowedFileExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
+
+    async Task OnFilesUploading(FilesUploadingEventArgs args)
+    {
+        var file = args.Files[0];
+
+        #region Validation
+        if (file.Size > MaxFileSize)
+        {
+            string errorMessage = "Saiz fail melebihi had maksimum yang dibenarkan iaitu 5MB. Sila kurangkan saiz fail dan cuba lagi.";
+            HandleResponse(errorMessage, "Error");
+            fileInputRef.CancelAllFilesUpload();
+            fileInputRef.RemoveAllFiles();
+            InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        var fileExtension = Path.GetExtension(file.Name).ToLower();
+        if (!AllowedFileExtensions.Contains(fileExtension))
+        {
+            string errorMessage = $"Jenis fail tidak sah. Hanya fail {string.Join(", ", AllowedFileExtensions)} dibenarkan.";
+            HandleResponse(errorMessage, "Error");
+            fileInputRef.CancelAllFilesUpload();
+            fileInputRef.RemoveAllFiles();
+            InvokeAsync(StateHasChanged);
+            return;
+        }
+        #endregion
+
+        inputModel.tn_photo_file = await ConvertToIFormFile(file);
+        StateHasChanged();
+    }
+
+    async Task OnSelectedFilesChanged(IEnumerable<UploadFileInfo> files)
+    {
+        if(files.Count() == 0)
+        {
+            inputModel.tn_photo_file = null;
+            imageDataUrl = null;
+        }
+    }
+
+    async Task<IFormFile?> ConvertToIFormFile(IFileInputSelectedFile file)
+    {
+        try
+        {
+            var ContentType = file.Type;
+            using var stream = new System.IO.MemoryStream();
+            await file.OpenReadStream(file.Size).CopyToAsync(stream);
+            
+            //prepare iformfile
+            var fileBytes = stream.ToArray();
+            long fileSize = Convert.ToInt64(file.Size);
+            var formFile = new FormFile(new MemoryStream(fileBytes), 0, fileSize, file.Name, file.Name);
+            formFile.Headers = new HeaderDictionary();
+            formFile.Headers.Add("Content-Type", file.Type);
+
+            //prepare view
+            stream.Position = 0;
+            var base64String = Convert.ToBase64String(stream.ToArray());
+            imageDataUrl = $"data:{file.Type};base64,{base64String}";
+
+            return formFile;
+        }catch{
+            return null;
+        }
+    }
+    #endregion
+
+    
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+}
