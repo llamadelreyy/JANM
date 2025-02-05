@@ -364,7 +364,7 @@ namespace PBTPro.Api.Controllers
 
                                     if (!string.IsNullOrWhiteSpace(record.act_code))
                                     {
-                                        var isActCodeExists = await _dbContext.ref_law_acts.FirstOrDefaultAsync(x => x.act_code.ToUpper() == record.act_code.ToUpper());
+                                        var isActCodeExists = await _dbcontext.ref_law_acts.FirstOrDefaultAsync(x => x.act_code.ToUpper() == record.act_code.ToUpper());
                                         if(isActCodeExists == null)
                                         {
                                             continue;
@@ -373,7 +373,7 @@ namespace PBTPro.Api.Controllers
 
                                     if (!string.IsNullOrWhiteSpace(record.section_code))
                                     {
-                                        var isSectionCodeExists = await _dbContext.ref_law_sections.FirstOrDefaultAsync(x => x.section_code.ToUpper() == record.section_code.ToUpper());
+                                        var isSectionCodeExists = await _dbcontext.ref_law_sections.FirstOrDefaultAsync(x => x.section_code.ToUpper() == record.section_code.ToUpper());
                                         if (isSectionCodeExists == null)
                                         {
                                             continue;
@@ -382,7 +382,7 @@ namespace PBTPro.Api.Controllers
 
                                     if (!string.IsNullOrWhiteSpace(record.uuk_code))
                                     {
-                                        var isUUKCodeExists = await _dbContext.ref_law_uuks.FirstOrDefaultAsync(x => x.uuk_code.ToUpper() == record.uuk_code.ToUpper());
+                                        var isUUKCodeExists = await _dbcontext.ref_law_uuks.FirstOrDefaultAsync(x => x.uuk_code.ToUpper() == record.uuk_code.ToUpper());
                                         if (isUUKCodeExists == null)
                                         {
                                             continue;
