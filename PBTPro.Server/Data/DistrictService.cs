@@ -234,9 +234,9 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<mst_district> ViewListByState(string CountryCode)
+        public async Task<List<mst_district>> ViewListByState(string CountryCode)
         {
-            var result = new mst_district();
+            var result = new List<mst_district>();
             try
             {
                 string requestquery = $"/{CountryCode}";
@@ -248,7 +248,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<mst_district>(dataString);
+                        result = JsonConvert.DeserializeObject<List<mst_district>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai mengikut negeri.", 1, LoggerName, "");
                 }
@@ -259,7 +259,7 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new mst_district();
+                result = new List<mst_district>();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;

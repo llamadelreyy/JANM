@@ -234,9 +234,9 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<mst_state> ViewListByCountry(string CountryCode)
+        public async Task<List<mst_state>> ViewListByCountry(string CountryCode)
         {
-            var result = new mst_state();
+            var result = new List<mst_state>();
             try
             {
                 string requestquery = $"/{CountryCode}";
@@ -248,7 +248,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<mst_state>(dataString);
+                        result = JsonConvert.DeserializeObject<List<mst_state>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai mengikut negara.", 1, LoggerName, "");
                 }
@@ -259,7 +259,7 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new mst_state();
+                result = new List<mst_state>();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;
