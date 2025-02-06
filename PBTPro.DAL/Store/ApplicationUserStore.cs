@@ -252,7 +252,7 @@ namespace PBTPro.DAL.Store
             {
                 return Task.FromResult<IList<string>>(new List<string>());
             }
-            
+
             var userRolesTask = _context.UserRoles
                 .Where(ur => ur.UserId == user.Id)
                 .ToListAsync(cancellationToken);
@@ -414,7 +414,7 @@ namespace PBTPro.DAL.Store
 
         // IUserTwoFactorStore methods
         #region IUserTwoFactorStore Methods
-        
+
         public Task<bool> GetTwoFactorEnabledAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.TwoFactorEnabled);
@@ -425,9 +425,9 @@ namespace PBTPro.DAL.Store
             user.TwoFactorEnabled = enabled;
             return Task.CompletedTask;
         }
-        
+
         #endregion
-        
+
         // IUserLockoutStore methods
         #region IUserLockoutStore Methods
         public Task<int> GetAccessFailedCountAsync(ApplicationUser user, CancellationToken cancellationToken)
@@ -482,8 +482,11 @@ namespace PBTPro.DAL.Store
 
         public Task ResetAccessFailedCountAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
+            var maxFailedAttempts = _identityOptions.Lockout.MaxFailedAccessAttempts;
+            var lockoutTimeSpan = _identityOptions.Lockout.DefaultLockoutTimeSpan;
+
             user.AccessFailedCount = 0;
-            user.LockoutEnd = DateTimeOffset.UtcNow.AddMinutes(15);
+            user.LockoutEnd = DateTimeOffset.UtcNow.Add(lockoutTimeSpan);
             user.LockoutEnabled = true;
 
             _context.Users.Update(user);

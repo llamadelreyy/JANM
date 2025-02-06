@@ -209,7 +209,7 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "USER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pengguna tidak sah.")));
                 }
-                
+
                 string Fullname = user.full_name ?? user.UserName;
 
                 var LoginResult = await _signInManager.PasswordSignInAsync(user, model.Password, false, true);
@@ -245,7 +245,7 @@ namespace PBTPro.Api.Controllers
                             Name = roles.Name,
                             IsDefaultRole = userRole.IsDefaultRole,
                         }
-                    ).AsNoTracking().OrderBy(x=>x.Name).ToListAsync();
+                    ).AsNoTracking().OrderBy(x => x.Name).ToListAsync();
                     if (userRoles.Any(x => x.Name.ToUpper() == "ANGGOTA PENGUATKUASA")) { isMobileUser = true; }
 
                     user_profile_role currDefRole = new user_profile_role { Name = "Public", Id = 0, IsDefaultRole = true };
@@ -267,7 +267,7 @@ namespace PBTPro.Api.Controllers
 
                     int PassExpDays = int.Parse(_configuration["Identity:Password:ExpiredEveryDays"] ?? "0");
                     if (PassExpDays > 0)
-                    { 
+                    {
                         DateTime passChgDTM = user.PwdUpdateAt ?? user.CreatedAt;
                         DateTime currDTM = DateTime.Now;
 
@@ -277,20 +277,22 @@ namespace PBTPro.Api.Controllers
                         if (daysDifference > PassExpDays)
                         {
                             isPasswordExpired = true;
-                        }                        
+                        }
                     }
 
                     var token = _tokenService.GenerateJwtToken(authClaims, model.RememberMe);
-                    return Ok(new LoginResult {
-                        Fullname = Fullname, 
-                        Userid = user.Id, 
-                        Username = user.UserName, 
-                        Token = token, 
+                    return Ok(new LoginResult
+                    {
+                        Fullname = Fullname,
+                        Userid = user.Id,
+                        Username = user.UserName,
+                        Token = token,
                         Role = currDefRole?.Name,
                         Roleid = currDefRole.Id,
                         IsPasswordExpired = isPasswordExpired,
-                        IsMobileUser = isMobileUser, 
-                        Roles = userRoles.Select(x => x.Name).ToList() },
+                        IsMobileUser = isMobileUser,
+                        Roles = userRoles.Select(x => x.Name).ToList()
+                    },
                     SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
                 }
                 else if (LoginResult.IsLockedOut)
@@ -302,7 +304,7 @@ namespace PBTPro.Api.Controllers
                         TimeSpan difference = lockoutEnd.Value - currentTime;
 
                         string Message = "";
-                        if(difference.Days > 0)
+                        if (difference.Days > 0)
                         {
                             Message += $" {difference.Days} hari";
                         }
@@ -343,7 +345,7 @@ namespace PBTPro.Api.Controllers
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
@@ -371,7 +373,7 @@ namespace PBTPro.Api.Controllers
 
                 var resetPasswordUrl = endpoint + "?token=" + token;
                 await SendEmailForgotPassword(user.Email, user.UserName, resetPasswordUrl);
-                
+
                 return Ok("", SystemMesg(_feature, "FORGOT_PASSWORD", MessageTypeEnum.Success, string.Format("Berjaya menjana pautan terlupa kata laluan.")));
             }
             catch (Exception ex)
@@ -380,7 +382,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-        
+
         [HttpPost]
         [AllowAnonymous]
         [Route("ForgotPasswordModel")]
@@ -547,7 +549,7 @@ namespace PBTPro.Api.Controllers
 
                 var emailRs = await emailHelper.QueueEmail(emailContent.subject, emailContent.body, recipient);
                 var sentRs = await emailHelper.ForceProcessQueue(emailRs);
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -577,7 +579,7 @@ namespace PBTPro.Api.Controllers
                 EmailContent emailContent = await emailHelper.getEmailContent("FORGOT_PASSWORD", param, defaultContent);
 
                 var emailRs = await emailHelper.QueueEmail(emailContent.subject, emailContent.body, recipient);
-                var sentRs = await emailHelper.ForceProcessQueue(emailRs);     
+                var sentRs = await emailHelper.ForceProcessQueue(emailRs);
                 return true;
             }
             catch (Exception ex)
