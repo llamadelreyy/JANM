@@ -45,6 +45,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string no_lesen_premis { get; set; }
         public string no_lesen_bisness { get; set; }
         public string no_cukai { get; set; }
+        public int status_id { get; set; }
         public string status_lesen { get; set; }
         public string status_cukai { get; set; }
         public string nama_perniagaan { get; set; }
@@ -65,6 +66,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public DateOnly? tempoh_sah_lesen { get; set; }
         public DateOnly? tempoh_sah_cukai { get; set; }
         public int jumlah_bisness { get; set; }
+        public DateTime? tarikh_daftar { get; set; }
         public string no_rujukan_notis { get; set; }
         public string jenis_saman_notis { get; set; }
         public string tempoh_saman_notis { get; set; }
@@ -74,6 +76,9 @@ namespace PBTPro.DAL.Models.PayLoads
         public string amoun_saman_kompaun { get; set; }
         public string jenis_saman_sita { get; set; }
         public string tempoh_saman_sita { get; set; }
+        public string ssm_no { get; set; }
+        public string tax_acc_no { get; set; }
+        public string ops_name { get; set; }
 
     }
 }
