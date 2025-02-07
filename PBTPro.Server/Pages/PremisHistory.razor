@@ -14,13 +14,15 @@
 @using PBTPro.DAL.Models.PayLoads
 
 @inject LicenseService _LicenseService
+
 @inject NavigationManager NavigationManager
+@inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 
 <style>
     .dxbl-grid {
-        height: 98.5%;
-        max-height: 98.5%;
+        height: 82.5vh;
+        max-height: 82.5vh;
     }
 </style>
 
@@ -32,19 +34,25 @@
 
     <div class="d-lg-flex border-bottom">
         <div class="col-md-12 py-1 dx-helptitle pageTitle">
-            <img class="imgTitle" src="\images\icons-small\toolbox.png" />
-            <div class="textTitle">Senarai Premis dan lesen</div>
+            <img class="imgTitle" src="/images/icons-small/table-heatmap.png" />
+            <div class="textTitle">Rondaan - Senarai Jadual Rondaan</div>
         </div>
     </div>
 
-    <div class="item-container-x">
+    <div class="item-container-x" style="padding-top:2px;">
+        <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="@OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+            @{
+                <DxTab Text="Premis"></DxTab>
+                <DxTab Text="Lesen"></DxTab>
+            }
+        </DxTabs>
+
         <DxGrid @ref="Grid"
-                Data="@dtPremis"
-                KeyFieldName="gid"
+                Data="@dtTabPremis"
+                KeyFieldName="strgid"
                 ShowGroupPanel="true"
                 ShowFilterRow="false"
                 TextWrapEnabled="true"
-                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
                 EditorRenderMode="GridEditorRenderMode.Integrated"
                 FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
                 ShowSearchBox="true"
@@ -64,246 +72,392 @@
                 GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
                 HighlightRowOnHover="true"
                 CssClass="mv-1000">
+
+
             <Columns>
-                <DxGridCommandColumn Width="55px">
-                    <HeaderTemplate>
-                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                    </HeaderTemplate>
-                    <CellDisplayTemplate>
-                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    </CellDisplayTemplate>
-                </DxGridCommandColumn>
-                <DxGridDataColumn FieldName="nama_pemilik" Caption="Nama Pemilik" Width="15%" TextAlignment="GridTextAlignment.Left" />
-                <DxGridDataColumn FieldName="nama_perniagaan" Caption="Nama Perniagaan" Width="25%" TextAlignment="GridTextAlignment.Left" />
-                <DxGridDataColumn FieldName="alamat_premis1" Caption="Alamat Premis" Width="36%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-                <DxGridDataColumn FieldName="jumlah_bisness" Caption="Jumlah Lesen Perniagaan" Width="36%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                @if (formType == "Premis")
+                {
+                    <DxGridCommandColumn Width="55px">
+                        <CellDisplayTemplate>
+                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn Caption="Pemilik" MinWidth="100" Width="20%" FieldName="nama_pemilik" TextAlignment="GridTextAlignment.Left">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="No Kad Pengenalan" MinWidth="100" Width="20%" FieldName="no_ic_pemilik" TextAlignment="GridTextAlignment.Left">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="100" Width="20%" FieldName="nama_perniagaan" TextAlignment="GridTextAlignment.Left">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Alamat" MinWidth="200" Width="30%" FieldName="alamat_premis1" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Jumlah Lesen Perniagaan" MinWidth="200" Width="30%" FieldName="jumlah_bisness" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                    </DxGridDataColumn>
+                }
+                else
+                {
+                    <DxGridCommandColumn Width="55px">
+                        <CellDisplayTemplate>
+                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="100" Width="20%" FieldName="nama_perniagaan" TextAlignment="GridTextAlignment.Left">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Alamat" MinWidth="200" Width="30%" FieldName="alamat_premis1" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="No Lesen" MinWidth="200" Width="30%" FieldName="no_lesen_bisness" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Status Lesen" MinWidth="120" Width="13%" FieldName="status_lesen" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                        <CellDisplayTemplate>
+                            <div>@GetStatusLesenIconHtml(((premis_history_view)context.DataItem).status_lesen)</div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn FieldName="tarikh_daftar"
+                                      Caption="Tarikh Daftar" TextAlignment="GridTextAlignment.Center"
+                                      MinWidth="120" Width="14%"
+                                      AllowGroup="false"
+                                      SortOrder="GridColumnSortOrder.Descending"
+                                      DisplayFormat="dd/MM/yyyy" />
+                }
             </Columns>
 
-            <EditFormTemplate Context="editFormContext">
+            <EditFormTemplate Context="EditFormContext">
                 @{
-                    var dtData = (premis_history_view)editFormContext.EditModel;
+                    var dtData = (premis_history_view)EditFormContext.EditModel;
                 }
                 <DxFormLayout CssClass="w-100">
-                    <DxFormLayoutItem ColSpanMd="6" ColSpanLg="8" BeginRow="true">
-                        <div class="d-lg-flex border-bottom mb-4">
-                            <div class="col-md-12 py-1">
-                                <img class="imgTitle" src="/images/icons-small/lock.png" />
-                                <div class="textTitle">MAKLUMAT PREMIS</div>
-                            </div>
-                        </div>
-
-                        <table class="layout_edit">
-                            <tr height="30px">
-                                <td nowrap>Nama Pemilik</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    @if (dtData.nama_pemilik != null || dtData.nama_pemilik != "" || dtData.nama_pemilik != string.Empty)
-                                    {
-                                        @dtData.nama_pemilik
-                                    }
-                                    else
-                                    {
-                                        <div>-</div>
-                                    }
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-
-                            <tr height="30px">
-                                <td nowrap>Tempoh Sah Lesen</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    @if (dtData.tempoh_sah_cukai != null)
-                                    {
-                                        @dtData.tempoh_sah_cukai
-                                    }
-                                    else
-                                    {
-                                        <div>-</div>
-                                    }
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-                            <tr height="30px">
-                                <td nowrap>Tempoh Sah Cukai</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    @if (dtData.tempoh_sah_cukai != null)
-                                    {
-                                        @dtData.tempoh_sah_cukai
-                                    }
-                                    else
-                                    {
-                                        <div>-</div>
-                                    }
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-                            <tr height="30px">
-                                <td nowrap>Jumlah Perniagaan</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    @{
-                                        string JumlahPerniagaan = Convert.ToString(dtData.jumlah_bisness);
-                                    }
-                                    @JumlahPerniagaan
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-                        </table>
-
-                        <div class="mt-4"></div>
-
-                        <div class="d-lg-flex border-bottom mb-4">
-                            <div class="col-md-12 py-1">
-                                <img class="imgTitle" src="/images/icons-small/lock.png" />
-                                <div class="textTitle">MAKLUMAT LESEN</div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            @foreach (var itm in dtPremis)
-                            {
-                                if (itm.nama_pemilik == dtData.nama_pemilik)
-                                {
-                                    if (!@itm.Equals(dtPremis.FirstOrDefault()))
-                                    {
-                                    <tr><td colspan="7"><hr /></td></tr>
-                                    }
-
-                                <div class="col-md-12">
-                                    <div class="row">
-                                        <div class="col-md-2">
-                                            Nama Perniagaan
-                                        </div>
-                                        <div class="col-md-6">
-                                                @itm.nama_perniagaan
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-2">
-                                            No Kad Pengenalan
-                                        </div>
-                                        <div class="col-md-6">
-                                                @itm.no_ic_pemilik
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-2">
-                                            No Lesen
-                                        </div>
-                                        <div class="col-md-6">
-                                                @itm.no_lesen_bisness
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-2">
-                                            Status Lesen
-                                        </div>
-                                        <div class="col-md-6">
-                                                @itm.status_lesen
-                                        </div>
-                                    </div>
+                    @if (formType == "Premis")
+                    {
+                        <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                            <div class="d-lg-flex border-bottom mb-4">
+                                <div class="col-md-12 py-1">
+                                    <img class="imgTitle" src="/images/icons-small/lock.png" />
+                                    <div class="textTitle">MAKLUMAT PREMIS</div>
                                 </div>
+                            </div>
+                        </DxFormLayoutItem>
 
-                                <div class="col-md-12 mt-4">
-                                    <div class="row">
-                                            @{
-                                                bool headersShown = false;
-                                            }
-                                            @foreach (var itmSaman in dtPremis)
-                                            {
-                                                if (itmSaman.no_lesen_bisness == itm.no_lesen_bisness)
-                                                {
-                                                    @if (!headersShown)
-                                                    {
-                                                    <div class="col-md-4">
-                                                        <span>No. Rujukan</span>
-                                                        <hr />
-                                                    </div>
-
-                                                    <div class="col-md-4">
-                                                        <span>Jenis Saman</span>
-                                                        <hr />
-                                                    </div>
-
-                                                    <div class="col-md-4">
-                                                        <span>Tempoh Saman</span>
-                                                        <hr />
-                                                    </div>
-                                                        headersShown = true;
-                                                    }
-
-                                                <div class="col-md-4">
-                                                        @if (!string.IsNullOrEmpty(itmSaman.no_rujukan_notis))
-                                                        {
-                                                        <p>@itmSaman.no_rujukan_notis</p>
-                                                        }
-                                                        else
-                                                        {
-                                                        <p>-</p>
-                                                        }
-                                                </div>
-
-                                                <div class="col-md-4">
-                                                        @if (!string.IsNullOrEmpty(itmSaman.jenis_saman_notis))
-                                                        {
-                                                        <p>@itmSaman.jenis_saman_notis</p>
-                                                        }
-                                                        else
-                                                        {
-                                                        <p>TIADA</p>
-                                                        }
-                                                </div>
-
-                                                <div class="col-md-4">
-                                                        @if (!string.IsNullOrEmpty(itmSaman.tempoh_saman_notis))
-                                                        {
-                                                        <p>@itmSaman.tempoh_saman_notis</p>
-                                                        }
-                                                        else
-                                                        {
-                                                        <p>TIADA</p>
-                                                        }
-                                                </div>
-                                                }
-                                            }
-                                    </div>
-                                </div>
-
-                                <hr />
-                                }
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <div class="align-items-center align-content-center">
+                                <img class="profile-photo" src="@dtData.gambar_premis" />
+                            </div>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="6">
+                            <div>Nama Pemilik</div>
+                            <DxTextBox @bind-Text="@dtData.nama_pemilik"
+                                       NullText="Nama Pemilik ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="6">
+                            <div>No Kad Pengenalan</div>
+                            <DxTextBox @bind-Text="@dtData.no_ic_pemilik"
+                                       NullText="No Kad Pengenalan Pemilik ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <div>Alamat Premis</div>
+                            <DxTextBox @bind-Text="@dtData.alamat_premis1"
+                                       NullText="Alamat Premis ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="4">
+                            @{
+                                string ssm_no = (!string.IsNullOrEmpty(dtData.ssm_no) ? dtData.ssm_no : "-");
                             }
+                            <div>No SSM</div>
+                            <DxTextBox @bind-Text="@ssm_no"
+                                       NullText="No. SSM ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="4">
+                            @{
+                                string tax_acc_no = (!string.IsNullOrEmpty(dtData.tax_acc_no) ? dtData.tax_acc_no : "-");
+                            }
+                            <div>No Akaun Cukai</div>
+                            <DxTextBox @bind-Text="@tax_acc_no"
+                                       NullText="No. Akuan Cukai ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="4">
+                            @{
+                                string tempohSahLesen = dtData.tempoh_sah_lesen.HasValue
+                                ? dtData.tempoh_sah_lesen.Value.ToString("dd/MM/yyyy")
+                                : "-";
+                            }
+                            <div>Tempoh Sah Lesen</div>
+                            <DxTextBox @bind-Text="@tempohSahLesen"
+                                       NullText="Tempoh Sah Lesen ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="4">
+                            @{
+                                string tempohSahCukai = dtData.tempoh_sah_cukai.HasValue
+                                ? dtData.tempoh_sah_cukai.Value.ToString("dd/MM/yyyy")
+                                : "-";
+                            }
+                            <div>Tempoh Sah Lesen</div>
+                            <DxTextBox @bind-Text="@tempohSahCukai"
+                                       NullText="Tempoh Sah Lesen ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="4">
+                            @{
+                                string JumlahPerniagaan = Convert.ToString(dtData.jumlah_bisness);
+                            }
+                            <div>Jumlah Perniagaan</div>
+                            <DxTextBox @bind-Text="@JumlahPerniagaan"
+                                       NullText="Jumlah Perniagaan ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
 
+                        <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                            <div class="d-lg-flex border-bottom mb-4">
+                                <div class="col-md-12 py-1">
+                                    <img class="imgTitle" src="/images/icons-small/lock.png" />
+                                    <div class="textTitle">SENARAI PERNIAGAAN DIBAWAH PREMIS</div>
+                                </div>
                             </div>
+                        </DxFormLayoutItem>
+                        @foreach (var itm in dtTabPremis)
+                        {
+                            if (itm.no_ic_pemilik == dtData.no_ic_pemilik)
+                            {
+                                if (!@itm.Equals(dtPremis.FirstOrDefault()))
+                                {
+                                    <tr><td colspan="7"><hr /></td></tr>
+                                }
+                                <DxFormLayoutItem ColSpanMd="12">
+                                    <table class="layout_edit">
+                                        <tr height="30px">
+                                            <td nowrap>Nama Perniagaan</td>
+                                            <td nowrap>&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                @(!string.IsNullOrEmpty(@itm.nama_perniagaan) ? @itm.nama_perniagaan : "-")
+                                            </td>
+                                            <td width="100px">&nbsp;</td>
+                                            <td nowrap></td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
 
-    </DxFormLayoutItem>
-    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-    <DxFormLayoutItem ColSpanMd="12">
-        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Tutup" />
-    </DxFormLayoutItem>
-    </DxFormLayout>
-    </EditFormTemplate>
-    </DxGrid>
+                                        <tr height="30px">
+                                            <td nowrap>No Kad Pengenalan</td>
+                                            <td nowrap>&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                @itm.no_ic_pemilik
+                                            </td>
+                                            <td width="100px">&nbsp;</td>
+                                            <td nowrap></td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
+                                        <tr height="30px">
+                                            <td nowrap>No Lesen</td>
+                                            <td nowrap>&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                @itm.no_lesen_bisness
+                                            </td>
+                                            <td width="100px">&nbsp;</td>
+                                            <td nowrap></td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
+                                        <tr height="30px">
+                                            <td nowrap>Tarikh Daftar Perniagaan</td>
+                                            <td nowrap>&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                @(itm.tarikh_daftar.HasValue ? itm.tarikh_daftar.Value.ToString("dd/MM/yyyy") : "-")
+                                            </td>
+                                            <td width="100px">&nbsp;</td>
+                                            <td nowrap></td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
+                                        <tr height="30px">
+                                            <td nowrap>Status Lesen</td>
+                                            <td nowrap>&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                @if (itm.status_lesen == "Tiada Data")
+                                                {
+                                                    <span class='badge priority-warning py-1 px-2' title='@itm.status_lesen.ToUpper()'>@itm.status_lesen.ToUpper()</span>
+                                                }
+                                                else if (itm.status_lesen == "Aktif")
+                                                {
+                                                    <span class='badge priority-info py-1 px-2' title='@itm.status_lesen.ToUpper()'>@itm.status_lesen.ToUpper()</span>
+                                                }
+                                                else if (itm.status_lesen == "Tamat Tempoh")
+                                                {
+                                                    <span class='badge priority-danger py-1 px-2' title='@itm.status_lesen.ToUpper()'>@itm.status_lesen.ToUpper()</span>
+                                                }
+                                            </td>
+                                            <td width="100px">&nbsp;</td>
+                                            <td nowrap></td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
+                                    </table>
+                                </DxFormLayoutItem>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <table class="layout_edit">
+                                <tr height="30px">
+                                    <td nowrap>Nama Perniagaan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        @(!string.IsNullOrEmpty(dtData.nama_perniagaan) ? dtData.nama_perniagaan : "-")
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+                                <tr height="30px">
+                                    <td nowrap>Alamat</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        @dtData.alamat_premis1
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+                                <tr height="30px">
+                                    <td nowrap>No Lesen & Status</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        @dtData.no_lesen_bisness &nbsp;&nbsp; @if (dtData.status_lesen == "Tiada Data")
+                                        {
+                                            <span class='badge priority-warning py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                                        }
+                                        else if (dtData.status_lesen == "Aktif")
+                                        {
+                                            <span class='badge priority-info py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                                        }
+                                        else if (dtData.status_lesen == "Tamat Tempoh")
+                                        {
+                                            <span class='badge priority-danger py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                                        }
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+                                <tr height="30px">
+                                    <td nowrap>Operasi Perniagaan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        @dtData.ops_name
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>                                
+                            </table>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                            <div class="d-lg-flex border-bottom mb-4">
+                                <div class="col-md-12 py-1">
+                                    <img class="imgTitle" src="/images/icons-small/lock.png" />
+                                    <div class="textTitle">AKTIVIT PERNIAGAAN</div>
+                                </div>
+                            </div>
+                        </DxFormLayoutItem>
+
+                        foreach (var itm in dtTabPremis)
+                        {
+                            if (itm.no_ic_pemilik == dtData.no_ic_pemilik && itm.lesen == dtData.lesen)
+                            {
+                                <DxFormLayoutItem ColSpanMd="12">
+                                    <table class="layout_edit">
+                                        <tr height="30px">
+                                            <td nowrap>Jumlah Notis</td>
+                                            <td nowrap>&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                @dtData.jumlah_notis
+                                            </td>
+                                            <td width="100px">&nbsp;</td>
+                                            <td nowrap></td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
+                                        <tr height="30px">
+                                            <td nowrap>Jumlah Kompaun</td>
+                                            <td nowrap>&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                @dtData.jumlah_kompaun
+                                            </td>
+                                            <td width="100px">&nbsp;</td>
+                                            <td nowrap></td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
+                                        <tr height="30px">
+                                            <td nowrap>Jumlah Sitaan</td>
+                                            <td nowrap>&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                @dtData.jumlah_sita
+                                            </td>
+                                            <td width="100px">&nbsp;</td>
+                                            <td nowrap></td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
+                                        <tr height="30px">
+                                            <td nowrap>Maklumat Nota Pemeriksaan </td>
+                                            <td nowrap>&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                @dtData.jumlah_nota_pemeriksaan
+                                            </td>
+                                            <td width="100px">&nbsp;</td>
+                                            <td nowrap></td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
+                                    </table>
+                                </DxFormLayoutItem>
+
+                            }
+                        }
+                    }
+                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Tutup" />
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+            </EditFormTemplate>
+        </DxGrid>
+
     </div>
 </DxLoadingPanel>
+
 
 
 @code {
 
     IEnumerable<premis_history_view> dtPremis;
+    IEnumerable<premis_history_view> dtTabPremis;
 
     bool PanelVisible { get; set; }
     IGrid Grid { get; set; }
@@ -312,12 +466,16 @@
 
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
+    int ActiveTabIndex;
+    private string formType = "Premis";
 
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
         dtPremis = await _LicenseService.GetList();
+        dtTabPremis = await GetListDataAsync(formType);
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
     }
@@ -329,6 +487,33 @@
             await DataLoadedTcs.Task;
             await Grid.CancelEditAsync();
         }
+    }
+
+    private async Task OnActiveTabIndexChanged(int index)
+    {
+        ActiveTabIndex = index;
+
+        switch (ActiveTabIndex)
+        {
+            case 0:
+                formType = "Premis";
+                break;
+            case 1:
+                formType = "Lesen";
+                break;
+            default:
+                formType = "Premis";
+                break;
+        }
+
+        dtTabPremis = await GetListDataAsync(formType);
+        StateHasChanged();
+    }
+
+    private async Task<IEnumerable<premis_history_view>> GetListDataAsync(string? formType = "Premis")
+    {
+        IEnumerable<premis_history_view> result = await _LicenseService.ListByTabType(formType);
+        return result;
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
@@ -349,6 +534,37 @@
     {
         if (e.Item.Name == "Custom")
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    public MarkupString GetStatusLesenIconHtml(string? status)
+    {
+        string priorytyClass = "";
+        string title = "";
+
+        if (status == "Aktif")
+        {
+            priorytyClass = "info";
+            title = " AKTIF ";
+        }
+        else if (status == "Tamat Tempoh")
+        {
+            priorytyClass = "danger";
+            title = " TAMAT TEMPOH ";
+        }
+        else if (status == "Gantung")
+        {
+            priorytyClass = "warning";
+            title = " GANTUNG ";
+        }
+        else if (status == "Tiada Data")
+        {
+            priorytyClass = "warning";
+            title = " TIADA DATA ";
+        }
+
+        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+        title);
+        return new MarkupString(html);
     }
 
     public void Dispose()

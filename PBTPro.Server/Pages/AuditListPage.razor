@@ -87,10 +87,10 @@
                 <DxGridDataColumn FieldName="@nameof(auditlog_info.created_at)"
                                   Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center"
                                   MinWidth="120" Width="14%"
-                                  AllowGroup="false"
+                                  AllowGroup="false" AllowSort="true"
                                   SortOrder="GridColumnSortOrder.Descending"
                                   DisplayFormat="dd/MM/yyyy HH:mm:ss" />
-                <DxGridDataColumn FieldName="@nameof(auditlog_info.username)" Caption="Nama Pengguna" MinWidth="150" Width="13%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
+                <DxGridDataColumn FieldName="@nameof(auditlog_info.username)" Caption="Nama Pengguna" MinWidth="150" Width="13%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" AllowSort="true"/>
                 <DxGridDataColumn FieldName="@nameof(auditlog_info.log_type)" Caption="Jenis Maklumat" MinWidth="120" Width="13%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                     <CellDisplayTemplate>
                         <div>@GetStatusAuditIconHtml(((auditlog_info)context.DataItem).log_type)</div>
