@@ -114,7 +114,7 @@ builder.Services.AddTransient<EmailerService>();
 builder.Services.AddTransient<ScheduleService>();
 builder.Services.AddTransient<RefPatrolStatusService>();
 builder.Services.AddTransient<TenantService>();
-
+builder.Services.AddTransient<LicenseService>();
 
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();
