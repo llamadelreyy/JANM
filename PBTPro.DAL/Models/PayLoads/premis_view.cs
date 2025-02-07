@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NpgsqlTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -34,5 +35,50 @@ namespace PBTPro.DAL.Models.PayLoads
         public string nama_pemilik { get; set; }
         public string alamat_premis { get; set; }
         public string status_lesen { get; set; }
+    }
+
+    public class premis_history_view
+    {
+        public int gid { get; set; }
+        public string strgid { get; set; }
+        public string lot { get; set; }
+        public string no_lesen_premis { get; set; }
+        public string no_lesen_bisness { get; set; }
+        public string no_cukai { get; set; }
+        public int status_id { get; set; }
+        public string status_lesen { get; set; }
+        public string status_cukai { get; set; }
+        public string nama_perniagaan { get; set; }
+        public string nama_pemilik { get; set; }
+        public string no_ic_pemilik { get; set; }
+        public string alamat_premis1 { get; set; }
+        public string alamat_premis2 { get; set; }
+        public string status_notice { get; set; }
+        public string status_expired_notice { get; set; }
+        public string status_kompaun { get; set; }
+        public string status_nota_pemeriksaan { get; set; }
+        public List<string>? gambar_premis { get; set; }
+        public List<premis_license_view>? lesen { get; set; }
+        public int jumlah_notis { get; set; }
+        public int jumlah_kompaun { get; set; }
+        public int jumlah_sita { get; set; }
+        public int jumlah_nota_pemeriksaan { get; set; }
+        public DateOnly? tempoh_sah_lesen { get; set; }
+        public DateOnly? tempoh_sah_cukai { get; set; }
+        public int jumlah_bisness { get; set; }
+        public DateTime? tarikh_daftar { get; set; }
+        public string no_rujukan_notis { get; set; }
+        public string jenis_saman_notis { get; set; }
+        public string tempoh_saman_notis { get; set; }
+        public string no_rujukan_kompaun { get; set; }
+        public string jenis_saman_kompaun { get; set; }
+        public string tempoh_saman_kompaun { get; set; }
+        public string amoun_saman_kompaun { get; set; }
+        public string jenis_saman_sita { get; set; }
+        public string tempoh_saman_sita { get; set; }
+        public string ssm_no { get; set; }
+        public string tax_acc_no { get; set; }
+        public string ops_name { get; set; }
+
     }
 }
