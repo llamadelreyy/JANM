@@ -33,8 +33,8 @@ namespace PBTPro.Api.Controllers
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
         private readonly IHubContext<PushDataHub> _hubContext;
+        private readonly ILogger<ScheduleController> _logger;
 
-        private string LoggerName = "administrator";
         private readonly string _feature = "SCHEDULE";
 
         public ScheduleController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<ScheduleController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
@@ -43,6 +43,88 @@ namespace PBTPro.Api.Controllers
             _configuration = configuration;
             _hubContext = hubContext;
             _tenantDBContext = tntdbContext;
+            _logger = logger;
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetList(string? crs = null)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                var data = await _tenantDBContext.mst_patrol_schedules.Where(x => x.is_deleted == false).Select(x => new
+                {
+                    schedule_id = x.schedule_id,
+                    idno = x.idno,
+                    start_time = x.start_time,
+                    end_time = x.end_time,
+                    status_id = x.status_id,
+                    is_scheduled = false,
+                    loc_name = x.loc_name,
+                    type_id = x.type_id,
+                    dept_id = x.dept_id,
+                    cnt_cmpd = x.cnt_cmpd,
+                    cnt_notice = x.cnt_notice,
+                    cnt_notes = x.cnt_notes,
+                    cnt_seizure = x.cnt_seizure,
+                    creator_id = runUserID,
+                    created_at = DateTime.Now,
+                    modifier_id = runUserID,
+                    modified_at = DateTime.Now,
+                    is_deleted = false,
+                    start_location = x.start_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.start_location))
+                                    : null,
+
+                    end_location = x.end_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.end_location))
+                                    : null,
+                    district_code = x.district_code,
+                    town_code = x.town_code,
+
+                }).AsNoTracking().ToListAsync();
+
+                var result = (
+                        from schedule in data
+                        join user in _dbContext.Users on schedule.idno equals user.IdNo
+                        join department in _tenantDBContext.ref_departments on user.dept_id equals department.dept_id
+                        join seksyen in _tenantDBContext.ref_divisions on user.div_id equals seksyen.div_id
+                        join unit in _tenantDBContext.ref_units on user.unit_id equals unit.unit_id
+                        join daerah in _dbContext.mst_districts on schedule.district_code equals daerah.district_code
+                        join bandar in _dbContext.mst_towns on schedule.town_code equals bandar.town_code
+
+                        // Group by `schedule_id` to avoid duplicates
+                        group new { schedule, user, department, seksyen, unit, daerah, bandar } by schedule.schedule_id into grouped
+                        select new PatrolViewModel
+                        {
+                            scheduleId = grouped.First().schedule.schedule_id,
+                            OfficerName = grouped.First().user.full_name,
+                            CreatedAt = grouped.First().schedule.created_at,
+                            DeptName = grouped.First().department.dept_name,
+                            SectionName = grouped.First().seksyen.div_name,
+                            UnitName = grouped.First().unit.unit_name,
+                            StartTime = grouped.First().schedule.start_time,
+                            EndTime = grouped.First().schedule.end_time,
+                            DistrictCode = grouped.First().daerah.district_code,
+                            DistrictName = grouped.First().daerah.district_name,
+                            TownCode = grouped.First().bandar.town_code,
+                            TownName = grouped.First().bandar.town_name,
+                            PatrolStatus = Convert.ToString(grouped.First().schedule.status_id),
+                            is_deleted = false,
+                        }
+
+                    ).ToList();
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
         }
 
         [AllowAnonymous]
@@ -103,6 +185,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -171,6 +254,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -250,6 +334,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
@@ -284,6 +369,7 @@ namespace PBTPro.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
