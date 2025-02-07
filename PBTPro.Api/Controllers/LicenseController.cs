@@ -172,9 +172,9 @@ namespace PBTPro.Api.Controllers
                                   join lesen in _tenantDBContext.mst_licensees on data.no_ic_pemilik equals lesen.owner_icno
                                   select new premis_history_view
                                   {
-                                      
 
-                                  }
+
+                                  };
 
                     return Ok(resultPremis, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
                 }
