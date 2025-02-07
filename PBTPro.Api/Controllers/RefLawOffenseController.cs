@@ -263,6 +263,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                int runUserID = await getDefRunUserId();
                 #region Validation
                 var ref_law_offense = await _dbContext.ref_law_offenses.FirstOrDefaultAsync(x => x.offense_id == Id);
                 if (ref_law_offense == null)
@@ -271,8 +272,22 @@ namespace PBTPro.Api.Controllers
                 }
                 #endregion
 
-                _dbContext.ref_law_offenses.Remove(ref_law_offense);
-                await _dbContext.SaveChangesAsync();
+                try
+                {
+                    _dbContext.ref_law_offenses.Remove(ref_law_offense);
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    ref_law_offense.is_deleted = true;
+                    ref_law_offense.modifier_id = runUserID;
+                    ref_law_offense.modified_at = DateTime.Now;
+
+                    _dbContext.ref_law_offenses.Update(ref_law_offense);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                }
 
                 return Ok(ref_law_offense, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang kesalahan")));
             }

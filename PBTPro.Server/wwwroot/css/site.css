@@ -1386,28 +1386,36 @@ label {
 
 }
 
-    .password-container #dummyPwd {
-        padding-left: 0px; /* Adjust based on your icon size */    
-        margin-top:-26px;
-        margin-left:30px;
-        position:absolute;
-        z-index:0;
-        border:0px solid #000;
-    }
+.password-container #dummyPwd {
+    padding-left: 0px; /* Adjust based on your icon size */    
+    margin-top:-26px;
+    margin-left:30px;
+    position:absolute;
+    z-index:0;
+    border:0px solid #000;
+}
 
-    .password-container #dummyPwd:focus {
-        outline: none;
-    }
+.password-container #dummyPwd:focus {
+    outline: none;
+}
 
-    .password-container #dummybtn {
-        position: absolute;
-        right:10px;
-        left:225px;
-        width:20px;
-        top: 0px;
-        bottom: 0;
-        border: 0px;
-        background: none;
-        cursor: pointer;
-        padding: 0 0px;
-    }
+.password-container #dummybtn {
+    position: absolute;
+    right:10px;
+    left:225px;
+    width:20px;
+    top: 0px;
+    bottom: 0;
+    border: 0px;
+    background: none;
+    cursor: pointer;
+    padding: 0 0px;
+}
+
+.tenant-logo {
+    border: 1px solid #666;
+    object-fit: contain;
+    object-position: center middle;
+    width: 150px;
+    height: 150px;
+}

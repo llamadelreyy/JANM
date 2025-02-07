@@ -213,6 +213,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                int runUserID = await getDefRunUserId();
                 #region Validation
                 var ref_law_section = await _dbContext.ref_law_sections.FirstOrDefaultAsync(x => x.section_id == Id);
                 if (ref_law_section == null)
@@ -221,8 +222,22 @@ namespace PBTPro.Api.Controllers
                 }
                 #endregion
 
-                _dbContext.ref_law_sections.Remove(ref_law_section);
-                await _dbContext.SaveChangesAsync();
+                try
+                {
+                    _dbContext.ref_law_sections.Remove(ref_law_section);
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    ref_law_section.is_deleted = true;
+                    ref_law_section.modifier_id = runUserID;
+                    ref_law_section.modified_at = DateTime.Now;
+
+                    _dbContext.ref_law_sections.Update(ref_law_section);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                }
 
                 return Ok(ref_law_section, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang seksyen")));
             }
