@@ -233,9 +233,9 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<mst_town> ViewListByDistrict(string DistrictCode)
+        public async Task<List<mst_town>> ViewListByDistrict(string DistrictCode)
         {
-            var result = new mst_town();
+            var result = new List<mst_town>();
             try
             {
                 string requestquery = $"/{DistrictCode}";
@@ -247,7 +247,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<mst_town>(dataString);
+                        result = JsonConvert.DeserializeObject<List<mst_town>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai mengikut daerah.", 1, LoggerName, "");
                 }
@@ -258,7 +258,7 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new mst_town();
+                result = new List<mst_town>();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
             return result;

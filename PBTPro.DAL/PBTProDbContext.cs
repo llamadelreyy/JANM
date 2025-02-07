@@ -99,6 +99,8 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<contact_us> contact_us { get; set; }
 
+    public virtual DbSet<tenant> tenants { get; set; }
+
     public virtual DbSet<trn_email_queue> trn_email_queues { get; set; }
 
     public virtual DbSet<ref_faq> ref_faqs { get; set; }
@@ -1294,6 +1296,40 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.response_message).HasColumnType("character varying");
             entity.Property(e => e.creator_id).HasComment("User ID of the creator ");
             entity.Property(e => e.modifier_id).HasComment("User ID of the modifier");
+        });
+
+        modelBuilder.Entity<tenant>(entity =>
+        {
+            entity.HasKey(e => e.tenant_id).HasName("tenants_pkey");
+
+            entity.ToTable("tenants", "core");
+
+            entity.Property(e => e.addr_line1).HasMaxLength(50);
+            entity.Property(e => e.addr_line2).HasMaxLength(50);
+            entity.Property(e => e.confirm_website_link).HasMaxLength(50);
+            entity.Property(e => e.connection_string).HasMaxLength(50);
+            entity.Property(e => e.contact_name).HasMaxLength(50);
+            entity.Property(e => e.country_code).HasMaxLength(10);
+            entity.Property(e => e.created_at).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.district_code).HasMaxLength(10);
+            entity.Property(e => e.modified_at).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.phone_number).HasMaxLength(20);
+            entity.Property(e => e.postcode).HasMaxLength(20);
+            entity.Property(e => e.recipe_name).HasMaxLength(50);
+            entity.Property(e => e.schema_name).HasMaxLength(50);
+            entity.Property(e => e.site_name).HasMaxLength(50);
+            entity.Property(e => e.state_code).HasMaxLength(10);
+            entity.Property(e => e.table_prefix).HasMaxLength(50);
+            entity.Property(e => e.tn_doc_filename).HasMaxLength(255);
+            entity.Property(e => e.tn_doc_url).HasMaxLength(255);
+            entity.Property(e => e.tn_email).HasMaxLength(50);
+            entity.Property(e => e.tn_handle).HasMaxLength(50);
+            entity.Property(e => e.tn_name).HasMaxLength(50);
+            entity.Property(e => e.tn_photo_filename).HasMaxLength(255);
+            entity.Property(e => e.tn_photo_url).HasMaxLength(255);
+            entity.Property(e => e.town_code).HasMaxLength(10);
+            entity.Property(e => e.url_prefix).HasMaxLength(50);
+            entity.Property(e => e.website_link).HasMaxLength(50);
         });
 
         modelBuilder.Entity<trn_email_queue>(entity =>
