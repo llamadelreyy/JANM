@@ -79,7 +79,6 @@ namespace PBTPro.DAL.Models.PayLoads
         public string ssm_no { get; set; }
         public string tax_acc_no { get; set; }
         public string ops_name { get; set; }
-        ////komen
 
     }
 }
