@@ -25,6 +25,7 @@ using PBTPro.DAL.Services;
 using Serilog;
 using Serilog.Events;
 using PBTPro.DAL.Models;
+using Microsoft.AspNetCore.Identity;
 
 
 

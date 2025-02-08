@@ -43,6 +43,7 @@ builder.Logging.AddSerilog(Log.Logger);
 // Add services to the container.
 // Register the configuration for IConfiguration
 builder.Services.AddSingleton<IConfiguration>(configuration);
+builder.Services.AddTransient<IPasswordValidator<ApplicationUser>, CustomPasswordValidator>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
