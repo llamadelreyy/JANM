@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using PBTPro.DAL.Models.CommonServices;
 using System.Reflection;
 using System.Text;
+using PBTPro.DAL.Models.PayLoads;
 
 namespace PBTPro.Data
 {
@@ -215,6 +216,31 @@ namespace PBTPro.Data
                 result = new mst_premis();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
+            return result;
+        }
+        public async Task<List<premis_history_view>> ListByTabType(string tabType)
+        {
+            var result = new List<premis_history_view>();
+            try
+            {
+                string requestquery = $"?tabType={tabType}";
+                string requestUrl = $"{_baseReqURL}/GetListByTabType{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<premis_history_view>>(dataString);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result = new List<premis_history_view>();
+            }
+
             return result;
         }
     }
