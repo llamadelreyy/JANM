@@ -29,6 +29,8 @@ using static System.Collections.Specialized.BitVector32;
 using System.Reactive;
 using PBTPro.Api.Services;
 using DevExpress.XtraPrinting.Export;
+using System.Reflection;
+using System.IO;
 
 namespace PBTPro.Api.Controllers
 {
@@ -44,14 +46,16 @@ namespace PBTPro.Api.Controllers
         private readonly long _maxFileSize = 5 * 1024 * 1024;
         private readonly List<string> _imageFileExt = new List<string> { ".jpg", ".jpeg", ".png" };
         private readonly IEmailSender _emailSender;
+        private readonly IPasswordValidator<ApplicationUser> _passwordValidator;
 
-        public UserController(PBTProDbContext dbContext, ILogger<UserController> logger, UserManager<ApplicationUser> userManager, IOptions<IdentityOptions> identityOptions, IEmailSender emailSender) : base(dbContext)
+        public UserController(PBTProDbContext dbContext, ILogger<UserController> logger, UserManager<ApplicationUser> userManager, IOptions<IdentityOptions> identityOptions, IEmailSender emailSender, IPasswordValidator<ApplicationUser> passwordValidator) : base(dbContext)
         {
             _logger = logger;
             _userManager = userManager;
             _identityOptions = identityOptions.Value;
             _emailSender = emailSender;
             SetTenantDbContext("tenant");
+            _passwordValidator = passwordValidator;
         }
 
         [HttpGet]
@@ -694,6 +698,21 @@ namespace PBTPro.Api.Controllers
                         return Error("", "Nama pengguna telah berdaftar");
                     }
                 }
+                string dayOfBirth = model.ICNo.Substring(4,8);
+                string firstTwoDigits = dayOfBirth.Substring(0, 2);  
+                string lastTwoDigits = dayOfBirth.Substring(2, 2);
+
+                string icLastDigits = model.ICNo.Substring(model.ICNo.Length - 4);
+
+                model.Password = firstTwoDigits + lastTwoDigits + icLastDigits;
+
+                var validationResult = await _passwordValidator.ValidateAsync(null, null, model.Password);
+
+                if (!validationResult.Succeeded)
+                {
+                    return Error("", "Kata laluan tidak menepati kriteria.");
+                }
+
                 #endregion
 
                 #region store data
@@ -712,21 +731,15 @@ namespace PBTPro.Api.Controllers
                     UserName = model.Username.Trim(new char[] { (char)39 }).Replace(" ", ""),
                     CreatedAt = DateTime.Now,
                     CreatorId = runUserID,
-                    //PasswordHash = "AQAAAAIAAYagAAAAEPGX5Ds9agERax0qx8EOJNeHDJOrdURhb/Nwndx0lYbcXfz/yTYxLfyp/pJkW8GB1Q==",
                     PhotoFilename = "",
                     PhotoPathUrl = "",
                     SignFilename = "",
                     IsDeleted = false,
                     ModifiedAt = DateTime.Now,
                     ModifierId = runUserID,
-
-                };
-
-                // disable this manual add, will create user using _userManager below.
-                //_dbContext.Users.Add(au);
-                //await _dbContext.SaveChangesAsync();
-
+                };        
                 #endregion
+
                 var result = await _userManager.CreateAsync(au, model.Password);
                 if (!result.Succeeded)
                 {
@@ -815,10 +828,25 @@ namespace PBTPro.Api.Controllers
 
                 #region Validation
                 var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == Id);
-                users.IsDeleted = true;
+
                 if (users == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                if (users != null)
+                {
+                    bool userHasRole = await _dbContext.UserRoles
+                        .AnyAsync(ur => ur.UserId == users.Id);
+
+                    if (userHasRole)
+                    {
+                        return Error("", SystemMesg(_feature, "", MessageTypeEnum.Error, string.Format("Pengguna masih mempunyai akses di Pengguna & Peranan.  ")));
+                    }
+                    else
+                    {
+                        users.IsDeleted = true;
+                    }
                 }
                 #endregion
 
@@ -904,7 +932,6 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                //var users = await _dbContext.Users.FirstOrDefaultAsync(x => x.IdNo == icno)
                 var users = await _dbContext.Users.Where(x => x.IdNo == icno)
               .Select(x => new user_profile_view
               {

@@ -174,9 +174,25 @@ namespace PBTPro.Api.Controllers
 
                 #region Validation
                 var formField = await _dbContext.Roles.FirstOrDefaultAsync(x => x.Id == Id);
+
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                if (formField != null)
+                {
+                    bool userUseRole = await _dbContext.UserRoles
+                        .AnyAsync(ur => ur.RoleId == formField.Id);
+
+                    if (userUseRole)
+                    {
+                        return Error("", SystemMesg(_feature, "", MessageTypeEnum.Error, string.Format("Pengguna masih menggunakan peranan ini.  ")));
+                    }
+                    else
+                    {
+                        formField.IsDeleted = true;
+                    }
                 }
                 #endregion
 
