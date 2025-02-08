@@ -10,8 +10,7 @@ Changes Logs:
 22/11/2024 - initial create
 26/11/2024 - change all hardcoded sql query to EF function
 30/01/2025 (Author: Fakhrul) - added GetFilteredListByBound function where it will return the status value for both lesen and cukai based on traffic light priority
-8/2/2925 - 
- */
+*/
 using DevExpress.Utils.Filtering.Internal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -98,7 +97,7 @@ namespace PBTPro.Api.Controllers
         [HttpGet]
         [Route("GetListByBound")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, string? filterType, int? crs = null)
+        public async Task<IActionResult> GetListByBound(double minLng, double minLat, double maxLng, double maxLat,  string? filterType, int? crs = null)
         {
             try
             {
@@ -114,10 +113,10 @@ namespace PBTPro.Api.Controllers
                 {
                     initQuery = initQuery
                         .Where(x => PostGISFunctions.ST_Within(x.geom, PostGISFunctions.ST_Transform(PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value), _defCRS)))
-                        .Select(x => new mst_premis { gid = x.gid, geom = (NetTopologySuite.Geometries.Point)PostGISFunctions.ST_Transform(x.geom, crs.Value) });
+                        .Select(x => new mst_premis { gid = x.gid, geom = (NetTopologySuite.Geometries.Point)PostGISFunctions.ST_Transform(x.geom,crs.Value) });
                 }
 
-
+               
 
                 var mst_premis = await initQuery
                 .Select(x => new PremisMarkerViewModel
@@ -140,7 +139,7 @@ namespace PBTPro.Api.Controllers
                 .ToListAsync();
 
                 // comment error mobile 216
-                //List<String> ft = JsonConvert.DeserializeObject<List<String>>(filterType);
+               //List<String> ft = JsonConvert.DeserializeObject<List<String>>(filterType);
 
                 if (filterType != null && filterType.Any())
                 {
@@ -191,7 +190,7 @@ namespace PBTPro.Api.Controllers
                     no_cukai = GenerateRandomString(10),
                     no_lesen = GenerateRandomString(8),
                     nama_perniagaan = GenerateRandomString(15),
-                    nama_pemilik = GenerateRandomString(12),
+                    nama_pemilik = GenerateRandomString(12),  
                     alamat_premis1 = GenerateRandomString(30),
                     alamat_premis2 = GenerateRandomString(30),
                     status_notice = random.Next(0, 2) == 0 ? "Issued" : "Not Issued",
@@ -439,7 +438,7 @@ namespace PBTPro.Api.Controllers
                             statusLesens.Any(sl => sl.Equals("Tiada Data", StringComparison.OrdinalIgnoreCase));
 
                         isDibayar = statusFilters.Contains("Dibayar", StringComparer.OrdinalIgnoreCase) &&
-                            premis.status_cukai.IndexOf("Dibayar", StringComparison.OrdinalIgnoreCase) >= 0;
+                            premis.status_cukai.IndexOf("Dibayar", StringComparison.OrdinalIgnoreCase) >= 0; 
 
                         isTertunggak = statusFilters.Contains("Tertunggak", StringComparer.OrdinalIgnoreCase) &&
                             premis.status_cukai.IndexOf("Tertunggak", StringComparison.OrdinalIgnoreCase) >= 0;
@@ -453,7 +452,7 @@ namespace PBTPro.Api.Controllers
                     if (isTertunggak)
                     {
                         marker_cukai_status = "Tertunggak";
-                    }
+                    } 
                     else if (isDibayar)
                     {
                         marker_cukai_status = "Dibayar";
@@ -545,35 +544,5 @@ namespace PBTPro.Api.Controllers
             return statuses[random.Next(statuses.Length)];
         }
         #endregion
-
-        ///Added by farhana
-        ///#038, Mod: Premis History 
-        ///Created on : 8/2/2025 
-
-        [HttpGet]
-        public async Task<IActionResult> GetListByTabType(string tabType)
-        {
-            try
-            {
-                int runUserID = await getDefRunUserId();
-                string runUser = await getDefRunUser();
-
-                if (tabType == "Premis")
-                {
-                    var result = from premis in _tenantDBContext.mst_premis
-                                 select new premis_history_view
-                                 {
-
-                                 };
-
-                }
-                return Ok("", SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
     }
 }
