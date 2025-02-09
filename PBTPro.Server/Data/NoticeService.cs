@@ -53,6 +53,7 @@ namespace PBTPro.Data
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
             CreateNotice();
+            LoggerName = _PBTAuthStateProvider.CurrentUser.Fullname;
         }
 
         //public NoticeService(IConfiguration configuration)

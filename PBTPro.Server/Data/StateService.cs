@@ -52,7 +52,8 @@ namespace PBTPro.Data
             _PBTAuthStateProvider = PBTAuthStateProvider;
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
-            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
+            _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider); 
+            LoggerName = _PBTAuthStateProvider.CurrentUser.Fullname;
         }
 
         [HttpGet]

@@ -56,6 +56,7 @@ namespace PBTPro.Data
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
+            LoggerName = _PBTAuthStateProvider.CurrentUser.Fullname;
         }
         [HttpGet]
         public async Task<List<ref_race>> ListAll()
@@ -73,7 +74,7 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<ref_race>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai tetapan bangsa.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai data.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -104,7 +105,7 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<ref_race>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai tetapan bangsa.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai data.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -186,7 +187,7 @@ namespace PBTPro.Data
 
         public Task<List<ref_race>> GetRaceAsync(CancellationToken ct = default)
         {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai tetapan bangsa.", 1, LoggerName, "");
+            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai data.", 1, LoggerName, "");
             return Task.FromResult(_Race);
         }
 

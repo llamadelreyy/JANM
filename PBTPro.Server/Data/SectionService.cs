@@ -56,6 +56,7 @@ namespace PBTPro.Data
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
+            LoggerName = _PBTAuthStateProvider.CurrentUser.Fullname;
         }
         [HttpGet]
         public async Task<List<ref_division>> ListAll()
@@ -73,7 +74,7 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<ref_division>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai data.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -104,7 +105,7 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<ref_division>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai data.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -132,7 +133,7 @@ namespace PBTPro.Data
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
 
                 result = response;
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk soalan lazim.", 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data.", 1, LoggerName, "");
             }
             catch (Exception ex)
             {
@@ -154,7 +155,7 @@ namespace PBTPro.Data
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data.", 1, LoggerName, "");
 
             }
             catch (Exception ex)
@@ -174,7 +175,7 @@ namespace PBTPro.Data
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
                 result = response;
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk soalan lazim.", 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data.", 1, LoggerName, "");
             }
             catch (Exception ex)
             {
@@ -186,7 +187,7 @@ namespace PBTPro.Data
 
         public Task<List<ref_division>> GetSectionAsync(CancellationToken ct = default)
         {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk soalan lazim.", 1, LoggerName, "");
+            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai data.", 1, LoggerName, "");
             return Task.FromResult(_Section);
         }
 
@@ -206,7 +207,7 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<ref_division>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci.", 1, LoggerName, "");
                 }
                 else
                 {

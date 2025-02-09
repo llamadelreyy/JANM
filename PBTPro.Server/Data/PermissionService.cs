@@ -55,6 +55,7 @@ namespace PBTPro.Data
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
+            LoggerName = _PBTAuthStateProvider.CurrentUser.Fullname;
         }
 
         public async Task<List<permission>> ListAll()

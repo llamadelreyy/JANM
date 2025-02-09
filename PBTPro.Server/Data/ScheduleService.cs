@@ -53,7 +53,7 @@ namespace PBTPro.Data
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
 
         private string _baseReqURL = "/api/Schedule";
-        private string LoggerName = "administrator";
+        private string LoggerName = "";
         private List<PatrolViewModel> _Schedules { get; set; }
 
         public ScheduleService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<ScheduleService> logger, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
@@ -63,11 +63,12 @@ namespace PBTPro.Data
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
+            LoggerName = _PBTAuthStateProvider.CurrentUser.Fullname;
         }
 
         public Task<List<PatrolViewModel>> GetScheduleAsync(CancellationToken ct = default)
         {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai untuk jadual rondaan.", 1, LoggerName, "");
+            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai data.", 1, LoggerName, "");
 
             return Task.FromResult(_Schedules);
         }
@@ -87,7 +88,7 @@ namespace PBTPro.Data
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
                         result = JsonConvert.DeserializeObject<List<PatrolViewModel>>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai jadual rondaan.", 1, LoggerName, "");
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai data.", 1, LoggerName, "");
                     }
                 }
                 else
@@ -118,7 +119,7 @@ namespace PBTPro.Data
                 result = response;
                 if (result.ReturnCode == 200)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data untuk jadual rondaan.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -148,7 +149,7 @@ namespace PBTPro.Data
                 result = response;
                 if (result.ReturnCode == 200)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk jadual rondaan.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -174,7 +175,7 @@ namespace PBTPro.Data
                 result = response;
                 if (result.ReturnCode == 200)
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data untuk jadual rondaan.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -204,7 +205,7 @@ namespace PBTPro.Data
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
                         result = JsonConvert.DeserializeObject<PatrolViewModel>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya lihat maklumat terperinci data untuk jadual rondaan.", 1, LoggerName, "");
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya lihat maklumat terperinci data.", 1, LoggerName, "");
                     }
                 }
                 else
@@ -236,12 +237,14 @@ namespace PBTPro.Data
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
                         result = JsonConvert.DeserializeObject<List<PatrolViewModel>>(dataString);
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai data mengikut jenis.", 1, LoggerName, "");
                     }
                 }
             }
             catch (Exception ex)
             {
                 result = new List<PatrolViewModel>();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
             }
 
             return result;
