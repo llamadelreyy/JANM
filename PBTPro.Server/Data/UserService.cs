@@ -57,6 +57,7 @@ namespace PBTPro.Data
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
+            LoggerName = _PBTAuthStateProvider.CurrentUser.Fullname;
         }
 
         [HttpGet]
@@ -75,7 +76,7 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<ApplicationUser>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai tetapan bangsa.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai pengguna.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -106,7 +107,7 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<RegisterModel>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai tetapan bangsa.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai pengguna.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -137,7 +138,7 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<List<RegisterModel>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai tetapan bangsa.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai pengguna.", 1, LoggerName, "");
                 }
                 else
                 {
@@ -234,7 +235,7 @@ namespace PBTPro.Data
 
         public Task<List<user_profile_view>> GetUserAsync(CancellationToken ct = default)
         {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai tetapan bangsa.", 1, LoggerName, "");
+            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai pengguna.", 1, LoggerName, "");
             return Task.FromResult(_user);
         }
 
@@ -287,7 +288,7 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<user_profile_view>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci pengguna mengikut no kad pengenalan.", 1, LoggerName, "");
                 }
                 else
                 {

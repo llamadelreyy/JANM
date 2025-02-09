@@ -55,6 +55,7 @@ namespace PBTPro.Data
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken;
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
             CreateRoleMenu();
+            LoggerName = _PBTAuthStateProvider.CurrentUser.Fullname;
         }       
 
         public async void CreateRoleMenu()

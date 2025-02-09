@@ -50,7 +50,7 @@ namespace PBTPro.Data
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
         protected readonly AuditLogger _cf;
         private string _baseReqURL = "/api/Audit";
-        private string LoggerName = "administrator";
+        private string LoggerName = "";
         private List<auditlog_info> _Audit { get; set; }
 
         public AuditService(IConfiguration configuration, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
@@ -60,6 +60,7 @@ namespace PBTPro.Data
             _apiConnector = apiConnector;
             _apiConnector.accessToken = _PBTAuthStateProvider.accessToken; 
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
+            LoggerName = _PBTAuthStateProvider.CurrentUser.Fullname;
         }
         public Task<List<auditlog_info>> GetAuditAsync(CancellationToken ct = default)
         {
