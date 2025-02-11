@@ -41,24 +41,6 @@
     </div>
 
     <div class="item-container-x">
-@*     <DxGrid @ref="Grid"
-            Data="@_lstAudits"
-            KeyFieldName="audit_id"
-            ShowGroupPanel="true"
-            ShowFilterRow="true"
-            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-            PageSize="25"
-            @bind-PageIndex="@GridPageIndex"
-            PagerPosition="GridPagerPosition.Bottom"
-            PagerNavigationMode="PagerNavigationMode.InputBox"
-            PageSizeSelectorVisible="true"
-            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-            PageSizeSelectorAllRowsItemVisible="true"
-            PagerAutoHideNavButtons="false"
-            ColumnResizeMode="@ColumnResizeMode"
-            HighlightRowOnHover="true"
-            CssClass="mv-1000"> *@
-
         <DxGrid @ref="Grid"
                 Data="_lstAudits"
                 KeyFieldName="audit_id"

@@ -43,166 +43,182 @@ Changes Logs:
 }
 else
 {
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+                    IsContentBlocked="true"
+                    ApplyBackgroundShading="true"
+                    IndicatorAreaVisible="false"
+                    Text="Capaian Data...">
 
-<div class="d-lg-flex border-bottom">
-    <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="\images\icons-small\document-task.png" />
-        <div class="textTitle">Hubungi Kami</div>
-    </div>
-</div>
-
-<div class="item-container-x">
-
-    <DxGrid @ref="Grid"
-            Data="@_lstcontact"
-            KeyFieldName="contact_id"
-            ShowGroupPanel="true"
-            ShowFilterRow="false"
-            TextWrapEnabled="true"
-            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-            EditorRenderMode="GridEditorRenderMode.Integrated"
-            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-            ShowSearchBox="true"
-            AllowSelectRowByClick="true"
-            @bind-SearchText="@GridSearchText"
-            PageSize="25"
-            @bind-PageIndex="@GridPageIndex"
-            PagerPosition="GridPagerPosition.Bottom"
-            PagerNavigationMode="PagerNavigationMode.InputBox"
-            EditModelSaving="Grid_EditModelSaving"
-            EditFormButtonsVisible="false"
-            PageSizeSelectorVisible="true"
-            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-            PageSizeSelectorAllRowsItemVisible="true"
-            PagerAutoHideNavButtons="false"
-            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-            HighlightRowOnHover="true"
-            CssClass="mv-1000">
-
-        <Columns>
-
-            <DxGridCommandColumn Width="55px">
-                <HeaderTemplate>
-                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                </HeaderTemplate>
-                <CellDisplayTemplate>
-                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((contact_us)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                </CellDisplayTemplate>
-            </DxGridCommandColumn>
-            <DxGridDataColumn FieldName="@nameof(contact_us.contact_inq_no)" Caption="Tiket No" Width="20%" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn FieldName="@nameof(contact_us.contact_name)" Caption="Nama" Width="23%" TextAlignment="GridTextAlignment.Left" />
-            <DxGridDataColumn FieldName="@nameof(contact_us.contact_email)" Caption="Emel" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn FieldName="@nameof(contact_us.contact_status)" Caption="Status Tiket" Width="20%" TextAlignment="GridTextAlignment.Center">
-                <CellDisplayTemplate>
-                    <div>@GetStatusIconHtml(((contact_us)context.DataItem).contact_status)</div>
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-            <DxGridDataColumn FieldName=@nameof(contact_us.created_at)
-                              DisplayFormat="dd/MM/yyyy"
-                              Caption="Tarikh Data"
-                              MinWidth="120"
-                              Width="12%"
-                              TextAlignment="GridTextAlignment.Center"
-                              SortOrder="GridColumnSortOrder.Ascending"
-                              SortIndex="0" />
-        </Columns>
-
-        <EditFormTemplate Context="editFormContext">
-            @{
-                var dtData = (contact_us)editFormContext.EditModel;
-            }
-            <DxFormLayout CssClass="w-100">
-                <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
-                    <table class="layout_edit">
-                        <tr>
-                            <td nowrap>Nama</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.contact_name" ReadOnly/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Emel</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.contact_email" ReadOnly/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>No Telefon</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.contact_telno" ReadOnly style="width:120px"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Subjek</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.contact_subject" ReadOnly/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Catatan</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.contact_message" ReadOnly/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Status Tiket</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxComboBox Data="@StatusOptions"
-                                            ShowValidationIcon="true"
-                                            NullText="Pilih Status..."
-                                            @bind-Value="@dtData.contact_status"
-                                            CssClass="cw-320" style="width:350px;">
-                                </DxComboBox>
-                            </td>
-                        </tr>                                                
-                    </table>
-                </DxFormLayoutItem>
-                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-                <DxFormLayoutItem ColSpanMd="12">
-                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
-                    <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
-                </DxFormLayoutItem>
-            </DxFormLayout>
-        </EditFormTemplate>
-        <CustomValidators>
-            <MyCustomValidator DataItemValidating="ValidateGridData" />
-        </CustomValidators>
-
-        @*This is to count the summary*@
-        <TotalSummary>
-                    <DxGridSummaryItem FooterColumnName="contact_status"
-                               Name="Custom"
-                               SummaryType=GridSummaryItemType.Count />
-        </TotalSummary>
-
-    </DxGrid>
-
-</div>
-</DxLoadingPanel>
-
-<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
-    <BodyContentTemplate>
-        Anda pasti untuk menghapuskan rekod ini?
-        <br /><br />
-        <div class="confirm-dialog-buttons">
-            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="\images\icons-small\document-task.png" />
+                <div class="textTitle">Hubungi Kami</div>
+            </div>
         </div>
-    </BodyContentTemplate>
-</DxPopup>
+
+        <div class="item-container-x">
+
+            <DxGrid @ref="Grid"
+                    Data="@_lstcontact"
+                    KeyFieldName="contact_id"
+                    ShowGroupPanel="true"
+                    ShowFilterRow="false"
+                    TextWrapEnabled="true"
+                    CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                    EditorRenderMode="GridEditorRenderMode.Integrated"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    ShowSearchBox="true"
+                    AllowSelectRowByClick="true"
+                    @bind-SearchText="@GridSearchText"
+                    PageSize="25"
+                    @bind-PageIndex="@GridPageIndex"
+                    PagerPosition="GridPagerPosition.Bottom"
+                    PagerNavigationMode="PagerNavigationMode.InputBox"
+                    EditModelSaving="Grid_EditModelSaving"
+                    EditFormButtonsVisible="false"
+                    PageSizeSelectorVisible="true"
+                    PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PagerAutoHideNavButtons="false"
+                    ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                    GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                    HighlightRowOnHover="true"
+                    CssClass="mv-1000">
+
+                <Columns>
+
+                    <DxGridCommandColumn Width="55px">
+                        <HeaderTemplate>
+                            <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                            <a @onclick="@(() => Delete((contact_us)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn FieldName="@nameof(contact_us.contact_inq_no)" Caption="Tiket No" Width="20%" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn FieldName="@nameof(contact_us.contact_name)" Caption="Nama" Width="23%" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn FieldName="@nameof(contact_us.contact_email)" Caption="Emel" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                    <DxGridDataColumn FieldName="@nameof(contact_us.contact_status)" Caption="Status Tiket" Width="20%" TextAlignment="GridTextAlignment.Center">
+                        <CellDisplayTemplate>
+                            <div>@GetStatusIconHtml(((contact_us)context.DataItem).contact_status)</div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn FieldName=@nameof(contact_us.created_at)
+                                      DisplayFormat="dd/MM/yyyy"
+                                      Caption="Tarikh Data"
+                                      MinWidth="120"
+                                      Width="12%"
+                                      TextAlignment="GridTextAlignment.Center"
+                                      SortOrder="GridColumnSortOrder.Ascending"
+                                      SortIndex="0" />
+                </Columns>
+
+                <EditFormTemplate Context="editFormContext">
+                    @{
+                        var dtData = (contact_us)editFormContext.EditModel;
+                    }
+                    <DxFormLayout CssClass="w-100">
+                        <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
+                            <table class="layout_edit">
+                                <tr>
+                                    <td nowrap>Nama</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="7">
+                                        <DxTextBox @bind-Text="@dtData.contact_name" ReadOnly />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Emel</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="7">
+                                        <DxTextBox @bind-Text="@dtData.contact_email" ReadOnly />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>No Telefon</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="7">
+                                        <DxTextBox @bind-Text="@dtData.contact_telno" ReadOnly style="width:120px" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Subjek</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="7">
+                                        <DxTextBox @bind-Text="@dtData.contact_subject" ReadOnly />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Catatan</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="7">
+                                        <DxTextBox @bind-Text="@dtData.contact_message" ReadOnly />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Status Tiket</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="7">
+                                        @{
+                                            if (dtData.contact_status != "Selesai")
+                                            {
+                                                <DxComboBox Data="@StatusOptions"
+                                                            ShowValidationIcon="true"
+                                                            NullText="Pilih Status..."
+                                                            @bind-Value="@dtData.contact_status"
+                                                            CssClass="cw-320" 
+                                                            style="width:350px;">
+                                                </DxComboBox>
+                                            }
+                                            else{
+                                                <DxComboBox Data="@StatusOptions"
+                                                            ShowValidationIcon="true"
+                                                            NullText="Pilih Status..."
+                                                            @bind-Value="@dtData.contact_status"
+                                                            CssClass="cw-320" 
+                                                            style="width:350px;" 
+                                                            Enabled="false">
+                                                </DxComboBox>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            </table>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                            <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditFormTemplate>
+                <CustomValidators>
+                    <MyCustomValidator DataItemValidating="ValidateGridData" />
+                </CustomValidators>
+
+                @*This is to count the summary*@
+                <TotalSummary>
+                    <DxGridSummaryItem FooterColumnName="contact_status"
+                                       Name="Custom"
+                                       SummaryType=GridSummaryItemType.Count />
+                </TotalSummary>
+
+            </DxGrid>
+
+        </div>
+    </DxLoadingPanel>
+
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
 }
 @code {
     bool PanelVisible { get; set; }
@@ -223,13 +239,13 @@ else
         PanelVisible = true;
         _lstcontact = await _contactus.GetContactUsAsync();
         try
-        { 
-            _lstcontact = await _contactus.ListAll(); 
+        {
+            _lstcontact = await _contactus.ListAll();
             DataLoadedTcs.TrySetResult(true);
         }
         catch (Exception ex)
-        { 
-            Console.Error.WriteLine($"Error loading actions: {ex.Message}"); 
+        {
+            Console.Error.WriteLine($"Error loading actions: {ex.Message}");
         }
         PanelVisible = false;
     }
@@ -317,7 +333,7 @@ else
         if (_data.contact_status == null)
         {
             e.AddError(nameof(_data.contact_status), "Status tidak sah. Medan perlu diisi.");
-        }      
+        }
     }
     #endregion
 
@@ -347,14 +363,14 @@ else
         title);
         return new MarkupString(html);
     }
-  
+
     private List<string> StatusOptions = new List<string>
     {
         "Menunggu",
         "Dalam Proses",
         "Selesai"
-    };   
-    
+    };
+
     #endregion
 
     #region response

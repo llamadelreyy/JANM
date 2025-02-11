@@ -13,6 +13,8 @@
 @using PBTPro.DAL.Services
 
 @inject ArchiveAuditService _audit
+@inject RoleService _RoleService
+
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 @inject NavigationManager NavigationManager
@@ -41,23 +43,6 @@
 
 
 <div class="item-container-x">
-@*     <DxGrid @ref="Grid"
-        Data="@_lstAudits" 
-        KeyFieldName="ArchiveId"
-        ShowGroupPanel="true"
-        ShowFilterRow="true"
-        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-        PageSize="25"
-        @bind-PageIndex="@GridPageIndex"
-        PagerPosition="GridPagerPosition.Bottom"
-        PagerNavigationMode="PagerNavigationMode.InputBox"
-        PageSizeSelectorVisible="true"
-        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-        PageSizeSelectorAllRowsItemVisible="true"
-        PagerAutoHideNavButtons="false"
-        ColumnResizeMode="@ColumnResizeMode"
-        HighlightRowOnHover="true"
-        CssClass="mv-1000"> *@
 
         <DxGrid @ref="Grid"
                 Data="_lstAudits"
@@ -86,8 +71,14 @@
                 CssClass="mv-1000">
 
             <Columns>
-                <DxGridDataColumn FieldName="created_at" Caption="Tarikh Dicipta" MinWidth="120" Width="13%" TextAlignment="GridTextAlignment.Center" DisplayFormat="dd/MM/yyyy HH:mm:ss" AllowGroup="false" />
+                <DxGridDataColumn FieldName="created_at" Caption="Tarikh Dicipta" MinWidth="120" Width="13%" TextAlignment="GridTextAlignment.Center" DisplayFormat="dd/MM/yyyy" AllowGroup="false" />
                 <DxGridDataColumn FieldName="archive_username" Caption="Nama Pengguna" MinWidth="150" Width="12%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
+                <DxGridDataColumn FieldName="role_id" Caption="Peranan" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                    <CellDisplayTemplate>
+                        <div>@RoleName(((auditlog_archive_info)context.DataItem).role_id)</div>
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+
                 <DxGridDataColumn FieldName="archive_type" Caption="Jenis Maklumat" MinWidth="120" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                     <CellDisplayTemplate>
                             <div>@GetStatusAuditIconHtml(((auditlog_archive_info)context.DataItem).archive_type)</div>
@@ -113,6 +104,8 @@
     bool PanelVisible { get; set; }
     private List<auditlog_archive_info> _lstAudits = new List<auditlog_archive_info>();
     auditlog_archive_info dtData { get; set; }
+    IEnumerable<ApplicationRole> dtRole { get; set; }
+
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
@@ -128,6 +121,7 @@
         try
         {
             _lstAudits = await _audit.ListAll();
+            dtRole = await _RoleService.ListAll();
             DataLoadedTcs.TrySetResult(true);
             PanelVisible = false;
         }
@@ -172,6 +166,21 @@
 
         string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
         title);
+        return new MarkupString(html);
+    }
+
+    public MarkupString RoleName(int? roleid)
+    {
+        string rolename = "";
+        foreach (var itm in dtRole)
+        {
+            if (roleid == itm.Id)
+            {
+                rolename = itm.Name;
+            }
+        }
+
+        string html = string.Format("<span>{0}</span>", rolename);
         return new MarkupString(html);
     }
     #endregion
