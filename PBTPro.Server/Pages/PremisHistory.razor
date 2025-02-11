@@ -1,5 +1,5 @@
 ﻿@page "/premishistory"
-@attribute [AllowAnonymous]
+@attribute [Authorize]
 
 @implements IDisposable
 
@@ -35,7 +35,7 @@
     <div class="d-lg-flex border-bottom">
         <div class="col-md-12 py-1 dx-helptitle pageTitle">
             <img class="imgTitle" src="/images/icons-small/table-heatmap.png" />
-            <div class="textTitle">Rondaan - Senarai Jadual Rondaan</div>
+            <div class="textTitle">Premis/Perniagaan - Senarai Sejarah Premis/Perniagaan</div>
         </div>
     </div>
 
@@ -48,8 +48,8 @@
         </DxTabs>
 
         <DxGrid @ref="Grid"
-                Data="@dtTabPremis"
-                KeyFieldName="premis_id"
+                Data="dtSource"
+                KeyFieldName="gid"
                 ShowGroupPanel="true"
                 ShowFilterRow="false"
                 TextWrapEnabled="true"
@@ -73,11 +73,13 @@
                 HighlightRowOnHover="true"
                 CssClass="mv-1000">
 
-
             <Columns>
                 @if (formType == "Premis")
                 {
                     <DxGridCommandColumn Width="55px">
+                        <HeaderTemplate>
+                            <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none; display:none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                        </HeaderTemplate>
                         <CellDisplayTemplate>
                             <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
                         </CellDisplayTemplate>
@@ -90,6 +92,37 @@
                     </DxGridDataColumn>
                     <DxGridDataColumn Caption="Lot" MinWidth="200" Width="30%" FieldName="lot" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
                     </DxGridDataColumn>
+
+                }
+                else
+                {
+                    <DxGridCommandColumn Width="55px">
+                        <HeaderTemplate>
+                            <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none; display:none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn Caption="No Akaun Lesen" MinWidth="100" Width="11%" FieldName="no_acc_lesen" TextAlignment="GridTextAlignment.Left">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Nama Pemilik" MinWidth="100" Width="15%" FieldName="nama_pemilik" TextAlignment="GridTextAlignment.Left">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="100" Width="20%" FieldName="nama_perniagaan" TextAlignment="GridTextAlignment.Left">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Alamat" MinWidth="200" Width="21%" FieldName="alamat_premis" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Status Lesen" MinWidth="200" Width="10%" FieldName="status_lesen_perniagaan" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                        <CellDisplayTemplate>
+                            <div>@GetStatusLesenIconHtml(((premis_history_view)context.DataItem).status_lesen_perniagaan)</div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn FieldName="CreatedAt"
+                                      Caption="Tarikh Data" TextAlignment="GridTextAlignment.Center"
+                                      MinWidth="120" Width="10%"
+                                      AllowGroup="false" AllowSort="true"
+                                      SortOrder="GridColumnSortOrder.Descending"
+                                      DisplayFormat="dd/MM/yyyy" />
 
                 }
             </Columns>
@@ -109,7 +142,6 @@
                                 </div>
                             </div>
                         </DxFormLayoutItem>
-
                         <DxFormLayoutItem ColSpanMd="12">
                             <div class="align-items-center align-content-center">
                                 <img class="profile-photo" src="@dtData.gambar_premis" />
@@ -187,7 +219,7 @@
                                        CssClass="cw-480"
                                        Enabled="false" />
                         </DxFormLayoutItem>
-                       @*  <DxFormLayoutItem ColSpanMd="4">
+                        @*  <DxFormLayoutItem ColSpanMd="4">
                             @{
                                 string JumlahPerniagaan = Convert.ToString(dtData.jumlah_bisness);
                             }
@@ -208,6 +240,119 @@
                             </div>
                         </DxFormLayoutItem>
                     }
+                    else
+                    {
+                        <DxFormLayoutItem ColSpanMd="12" BeginRow="true">
+                            <div class="d-lg-flex border-bottom mb-4">
+                                <div class="col-md-12 py-1">
+                                    <img class="imgTitle" src="/images/icons-small/lock.png" />
+                                    <div class="textTitle">MAKLUMAT PERNIAGAAN</div>
+                                </div>
+                            </div>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="3">
+                            <div>Nama Pemilik</div>
+                            <DxTextBox @bind-Text="@dtData.nama_pemilik"
+                                       NullText="Nama Pemilik ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="3">
+                            <div>No Kad Pengenalan</div>
+                            <DxTextBox @bind-Text="@dtData.no_ic_pemilik"
+                                       NullText="No Kad Pengenalan Pemilik ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="3">
+                            <div>No Akaun Lesen</div>
+                            <DxTextBox @bind-Text="@dtData.no_acc_lesen"
+                                       NullText="No Akaun Lesen ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="3">
+                            <div>Nama Perniagaan</div>
+                            <DxTextBox @bind-Text="@dtData.nama_perniagaan"
+                                       NullText="Nama Perniagaan ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <div>Alamat Premis</div>
+                            <DxTextBox @bind-Text="@dtData.alamat_premis"
+                                       NullText="Alamat Premis ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <div>Operasi Perniagaan</div>
+                            <DxTextBox @bind-Text="@dtData.nama_ops"
+                                       NullText="Operasi Perniagaan ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <div>Status Lesen</div>
+                            @if (dtData.status_lesen_perniagaan == "Tiada Data")
+                            {
+                                <span class='badge priority-warning py-1 px-2' title='@dtData.status_lesen_perniagaan.ToUpper()'>@dtData.status_lesen_perniagaan.ToUpper()</span>
+                            }
+                            else if (dtData.status_lesen_perniagaan == "Aktif")
+                            {
+                                <span class='badge priority-info py-1 px-2' title='@dtData.status_lesen_perniagaan.ToUpper()'>@dtData.status_lesen_perniagaan.ToUpper()</span>
+                            }
+                            else if (dtData.status_lesen_perniagaan == "Tamat Tempoh")
+                            {
+                                <span class='badge priority-danger py-1 px-2' title='@dtData.status_lesen_perniagaan.ToUpper()'>@dtData.status_lesen_perniagaan.ToUpper()</span>
+                            }
+
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="3">
+                            @{
+                                string tarikh_daftar = dtData.tarikh_daftar.HasValue
+                                ? dtData.tarikh_daftar.Value.ToString("dd/MM/yyyy")
+                                : "-";
+                            }
+                            <div>Tarikh Daftar Perniagaan</div>
+                            <DxTextBox @bind-Text="@tarikh_daftar"
+                                       NullText="Parlimen ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="3">
+                            <div>Parlimen</div>
+                            <DxTextBox @bind-Text="@dtData.nama_parlimen"
+                                       NullText="Parlimen ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="3">
+                            <div>Zon</div>
+                            <DxTextBox @bind-Text="@dtData.nama_zon"
+                                       NullText="Zon ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="3">
+                            <div>Dun</div>
+                            <DxTextBox @bind-Text="@dtData.nama_dun"
+                                       NullText="Dun ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+                        </DxFormLayoutItem>
+
+                    }
                     <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="12">
                         <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Tutup" />
@@ -223,7 +368,7 @@
 
 @code {
 
-    IEnumerable<premis_history_view> dtTabPremis;
+    IEnumerable<premis_history_view> dtSource;
 
     bool PanelVisible { get; set; }
     IGrid Grid { get; set; }
@@ -234,13 +379,14 @@
     string strSelected { get; set; }
     int ActiveTabIndex;
     private string formType = "Premis";
+    private bool isVisible = false;
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
-        dtTabPremis = await GetListDataAsync(formType);
+        dtSource = await GetListDataAsync(formType);
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
     }
@@ -271,13 +417,21 @@
                 break;
         }
 
-        dtTabPremis = await GetListDataAsync(formType);
+        dtSource = await GetListDataAsync(formType);
         StateHasChanged();
     }
 
     private async Task<IEnumerable<premis_history_view>> GetListDataAsync(string? formType = "Premis")
     {
-        IEnumerable<premis_history_view> result = await _PremisService.ListByTabType(formType);
+        IEnumerable<premis_history_view> result;
+        if (formType == "Premis")
+        {
+            result = await _PremisService.ListByTabType(formType);
+        }
+        else
+        {
+            result = await _LicenseService.ListByTabType(formType);
+        }
         return result;
     }
 

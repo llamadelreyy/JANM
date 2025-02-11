@@ -112,9 +112,9 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
         modelBuilder.Entity<auditlog_archive_info>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("auditlog_archive_info", "core");
+            entity.HasKey(e => e.archive_id).HasName("auditlog_archive_info_pkey");
+
+            entity.ToTable("auditlog_archive_info", "core");
 
             entity.Property(e => e.archive_id).HasDefaultValueSql("nextval('core.archive_info_archive_id_seq'::regclass)");
             entity.Property(e => e.archive_method).HasMaxLength(255);
@@ -129,32 +129,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.is_archived).HasDefaultValue(true);
             entity.Property(e => e.role_id).HasDefaultValue(0);
         });
-
-
-        //modelBuilder.Entity<auditlog_archive_info>(entity =>
-        //{
-        //    //entity
-        //    //    .HasNoKey()
-        //    //    .ToTable("auditlog_archive_info", "audit");
-
-        //    entity.HasKey(e => e.archive_id).HasName("auditlog_archive_info_pkey");
-
-        //    entity.ToTable("auditlog_archive_info", "audit");
-
-        //    entity.Property(e => e.archive_id).HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)");
-        //    entity.Property(e => e.archive_isarchived).HasDefaultValue(true);
-        //    entity.Property(e => e.archive_method).HasMaxLength(255);
-        //    entity.Property(e => e.archive_module_name)
-        //        .HasMaxLength(255)
-        //        .HasDefaultValueSql("NULL::character varying");
-        //    entity.Property(e => e.archive_role_id).HasDefaultValue(0);
-        //    entity.Property(e => e.archive_username).HasMaxLength(25);
-        //    entity.Property(e => e.created_by).HasDefaultValue(0);
-        //    entity.Property(e => e.created_date)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasColumnType("timestamp without time zone");
-        //    entity.Property(e => e.archive_audit_id).HasDefaultValue(0);
-        //});
 
         modelBuilder.Entity<auditlog_info>(entity =>
         {

@@ -554,7 +554,7 @@ namespace PBTPro.Api.Controllers
 
                                    select new premis_history_view
                                    {
-                                       premis_id = premis.gid,
+                                       gid = premis.gid,
                                        no_lesen_premis = premis.lesen,
                                        tempoh_sah_lesen = premis.tempoh_sah_lesen,
                                        tempoh_sah_cukai = premis.tempoh_sah_cukai,

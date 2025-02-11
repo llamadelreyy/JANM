@@ -31,6 +31,7 @@ using PBTPro.Api.Services;
 using DevExpress.XtraPrinting.Export;
 using System.Reflection;
 using System.IO;
+using System.Text;
 
 namespace PBTPro.Api.Controllers
 {
@@ -607,67 +608,6 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        #region private logic
-        protected async Task<string?> getImageUploadPath(string? lv1 = null, string? lv2 = null, string? lv3 = null, string? lv4 = null)
-        {
-            string? result;
-
-            using (PBTProDbContext _iwkContext = new PBTProDbContext())
-            {
-                result = await _dbContext.app_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "BaseUploadPath").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
-
-                if (!string.IsNullOrEmpty(lv1))
-                {
-                    result = Path.Combine(result, lv1);
-                    if (!string.IsNullOrEmpty(lv2))
-                    {
-                        result = Path.Combine(result, lv2);
-                        if (!string.IsNullOrEmpty(lv3))
-                        {
-                            result = Path.Combine(result, lv3);
-                            if (!string.IsNullOrEmpty(lv4))
-                            {
-                                result = Path.Combine(result, lv4);
-                            }
-                        }
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(result) && !Directory.Exists(result)) { Directory.CreateDirectory(result); }
-            }
-            return result;
-        }
-
-        protected async Task<string?> getImageViewUrl(string? lv1 = null, string? lv2 = null, string? lv3 = null, string? lv4 = null)
-        {
-            string? result;
-
-            using (PBTProDbContext _iwkContext = new PBTProDbContext())
-            {
-                result = await _dbContext.app_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "ImageViewUrl").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
-
-                if (!string.IsNullOrEmpty(lv1))
-                {
-                    result = result + "/" + lv1;
-                    if (!string.IsNullOrEmpty(lv2))
-                    {
-                        result = result + "/" + lv2;
-                        if (!string.IsNullOrEmpty(lv3))
-                        {
-                            result = result + "/" + lv3;
-                            if (!string.IsNullOrEmpty(lv4))
-                            {
-                                result = result + "/" + lv4;
-                            }
-                        }
-                    }
-                }
-            }
-            return result;
-        }
-        #endregion
-
-        #region crud
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] RegisterModel model)
@@ -698,8 +638,8 @@ namespace PBTPro.Api.Controllers
                         return Error("", "Nama pengguna telah berdaftar");
                     }
                 }
-                string dayOfBirth = model.ICNo.Substring(4,8);
-                string firstTwoDigits = dayOfBirth.Substring(0, 2);  
+                string dayOfBirth = model.ICNo.Substring(4, 8);
+                string firstTwoDigits = dayOfBirth.Substring(0, 2);
                 string lastTwoDigits = dayOfBirth.Substring(2, 2);
 
                 string icLastDigits = model.ICNo.Substring(model.ICNo.Length - 4);
@@ -737,7 +677,7 @@ namespace PBTPro.Api.Controllers
                     IsDeleted = false,
                     ModifiedAt = DateTime.Now,
                     ModifierId = runUserID,
-                };        
+                };
                 #endregion
 
                 var result = await _userManager.CreateAsync(au, model.Password);
@@ -766,29 +706,7 @@ namespace PBTPro.Api.Controllers
             {
                 int runUserID = await getDefRunUserId();
 
-                #region Validation
-                /*
-                var users = await (from user in _dbContext.Users
-                                   join dept in _dbContext.ref_departments on user.dept_id equals dept.dept_id
-                                   join div in _dbContext.ref_divisions on user.div_id equals div.div_id
-                                   join unit in _dbContext.ref_units on user.unit_id equals unit.unit_id
-                                   where user.IdNo == model.ICNo
-                                   select new RegisterModel
-                                   {
-                                       Id = user.Id,
-                                       FullName = user.full_name,
-                                       Username = user.UserName,
-                                       Email = user.Email,
-                                       PhoneNo = user.PhoneNumber,
-                                       DepartmentName = dept.dept_name,
-                                       DivisionName = div.div_name,
-                                       UnitName = unit.unit_name,
-                                       ICNo = user.IdNo,
-                                       Name = user.UserName,
-                                       Password = user.PasswordHash,
-
-                                   }).FirstOrDefaultAsync();
-                */
+                #region Validation               
                 var users = await _dbContext.Users.Where(x => x.Id == model.Id).FirstOrDefaultAsync();
                 if (users == null)
                 {
@@ -797,9 +715,9 @@ namespace PBTPro.Api.Controllers
 
 
                 #endregion
-                //ApplicationUser au = new ApplicationUser();
                 users.full_name = model.FullName;
                 users.IdNo = model.ICNo;
+                users.Email = model.Email;
                 users.PhoneNumber = model.PhoneNo;
                 users.dept_id = model.DepartmentID;
                 users.div_id = model.DivisionID;
@@ -896,8 +814,102 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-        #endregion
 
+        [HttpGet("{icno}")]
+        public async Task<IActionResult> RetrievebyIc(string icno)
+        {
+            try
+            {
+                var users = await _dbContext.Users.Where(x => x.IdNo == icno).Select(x => new user_profile_view
+                {
+                    user_id = x.Id,
+                    user_name = x.UserName,
+                    unit_id = x.unit_id,
+                    div_id = x.div_id,
+                    dept_id = x.dept_id,
+                    full_name = x.full_name,
+                    idno = x.IdNo,
+                    photo_filename = x.PhotoFilename,
+                    sign_filename = x.SignFilename,
+                    email = x.Email,
+                    phone_number = x.PhoneNumber,
+                    last_login = x.LastLogin,
+                }).AsNoTracking().FirstOrDefaultAsync();
+
+                users.dept_name = await _tenantDBContext.ref_departments.Where(x => x.dept_id == users.dept_id).Select(x => x.dept_name).FirstOrDefaultAsync();
+                users.div_name = await _tenantDBContext.ref_divisions.Where(x => x.div_id == users.div_id).Select(x => x.div_name).FirstOrDefaultAsync();
+                users.unit_name = await _tenantDBContext.ref_units.Where(x => x.unit_id == users.unit_id).Select(x => x.unit_name).FirstOrDefaultAsync();
+
+                if (users == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(users, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> ResetPassword(int Id, [FromBody] RegisterModel model)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                var user = await _dbContext.Users.Where(x => x.Id == model.Id).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                var resultRM = await _userManager.RemovePasswordAsync(user);
+                if (resultRM != null && resultRM.Succeeded)
+                {
+                    string dayOfBirth = model.ICNo.Substring(4, 8);
+                    string firstTwoDigits = dayOfBirth.Substring(0, 2);
+                    string lastTwoDigits = dayOfBirth.Substring(2, 2);
+
+                    string icLastDigits = model.ICNo.Substring(model.ICNo.Length - 4);
+
+                    model.Password = firstTwoDigits + lastTwoDigits + icLastDigits;
+
+                    var resultADD = await _userManager.AddPasswordAsync(user, model.Password);
+
+                    if (resultADD != null && resultADD.Succeeded)
+                    {
+                        user.PwdUpdateAt = DateTime.Now;
+                        user.ModifierId = runUserID;
+                        user.ModifiedAt = DateTime.Now;
+                        await _dbContext.SaveChangesAsync();
+                        _dbContext.Users.Update(user);
+                        await SendEmailResetPassword(model.Email, model.Username, model.FullName, model.Password);
+                        return Ok("", SystemMesg(_feature, "RESET_PASSWORD", MessageTypeEnum.Success, string.Format("Berjaya tetap semula kata laluan")));
+                    }
+                    else
+                    {
+                        return Error("", SystemMesg(_feature, "RESET_PASSWORD", MessageTypeEnum.Error, string.Format("Gagal tetap semula kata laluan")));
+                    }
+                }
+                else
+                {
+                    return Error("", SystemMesg(_feature, "RESET_PASSWORD", MessageTypeEnum.Error, string.Format("Gagal tetap semula kata laluan")));
+                }               
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        #region email template        
         private async Task<bool> SendEmailCreateUser(string recipient, string username, string fullname, string password)
         {
             try
@@ -927,44 +939,124 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [HttpGet("{icno}")]
-        public async Task<IActionResult> RetrievebyIc(string icno)
+        private async Task<bool> SendEmailResetPassword(string recipient, string username, string fullname, string password)
         {
             try
             {
-                var users = await _dbContext.Users.Where(x => x.IdNo == icno)
-              .Select(x => new user_profile_view
-              {
-                  user_id = x.Id,
-                  user_name = x.UserName,
-                  unit_id = x.unit_id,
-                  div_id = x.div_id,
-                  dept_id = x.dept_id,
-                  full_name = x.full_name,
-                  idno = x.IdNo,
-                  photo_filename = x.PhotoFilename,
-                  sign_filename = x.SignFilename,
-                  email = x.Email,
-                  phone_number = x.PhoneNumber,
-                  last_login = x.LastLogin,
-              }).AsNoTracking().FirstOrDefaultAsync();
-
-                users.dept_name = await _tenantDBContext.ref_departments.Where(x => x.dept_id == users.dept_id).Select(x => x.dept_name).FirstOrDefaultAsync();
-                users.div_name = await _tenantDBContext.ref_divisions.Where(x => x.div_id == users.div_id).Select(x => x.div_name).FirstOrDefaultAsync();
-                users.unit_name = await _tenantDBContext.ref_units.Where(x => x.unit_id == users.unit_id).Select(x => x.unit_name).FirstOrDefaultAsync();
-
-                if (users == null)
+                EmailContent defaultContent = new EmailContent
                 {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
+                    subject = "Nama pengguna dan Katalaluan anda.",
+                    body = "Hai [0], berikut ialah maklumat nama pengguna dan katalaluan anda.<br/><br/>" +
+                            "Nama pengguna: [1]<br/>" +
+                            "Kata laluan: [2]<br/><br/>" +
+                            "Terima Kasih.<br/><br/>Yang benar,<br/>Pentadbir PBT Pro<br/><br/><i>**Ini adalah mesej automatik. sila jangan balas**</i>",
+                };
 
-                return Ok(users, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+                string[] param = { fullname, username, password };
+
+                var emailHelper = new EmailHelper(_dbContext, _emailSender);
+                EmailContent emailContent = await emailHelper.getEmailContent("RESET_PASSWORD", param, defaultContent);
+
+                var emailRs = await emailHelper.QueueEmail(emailContent.subject, emailContent.body, recipient);
+                var sentRs = await emailHelper.ForceProcessQueue(emailRs);
+                return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+                return false;
             }
         }
+        #endregion
+
+        #region private logic
+        protected async Task<string?> getImageUploadPath(string? lv1 = null, string? lv2 = null, string? lv3 = null, string? lv4 = null)
+        {
+            string? result;
+
+            using (PBTProDbContext _iwkContext = new PBTProDbContext())
+            {
+                result = await _dbContext.app_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "BaseUploadPath").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
+
+                if (!string.IsNullOrEmpty(lv1))
+                {
+                    result = Path.Combine(result, lv1);
+                    if (!string.IsNullOrEmpty(lv2))
+                    {
+                        result = Path.Combine(result, lv2);
+                        if (!string.IsNullOrEmpty(lv3))
+                        {
+                            result = Path.Combine(result, lv3);
+                            if (!string.IsNullOrEmpty(lv4))
+                            {
+                                result = Path.Combine(result, lv4);
+                            }
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(result) && !Directory.Exists(result)) { Directory.CreateDirectory(result); }
+            }
+            return result;
+        }
+
+        protected async Task<string?> getImageViewUrl(string? lv1 = null, string? lv2 = null, string? lv3 = null, string? lv4 = null)
+        {
+            string? result;
+
+            using (PBTProDbContext _iwkContext = new PBTProDbContext())
+            {
+                result = await _dbContext.app_system_params.Where(x => x.param_group == "UserProfile" && x.param_name == "ImageViewUrl").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
+
+                if (!string.IsNullOrEmpty(lv1))
+                {
+                    result = result + "/" + lv1;
+                    if (!string.IsNullOrEmpty(lv2))
+                    {
+                        result = result + "/" + lv2;
+                        if (!string.IsNullOrEmpty(lv3))
+                        {
+                            result = result + "/" + lv3;
+                            if (!string.IsNullOrEmpty(lv4))
+                            {
+                                result = result + "/" + lv4;
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        public static string GeneratePassword()
+        {
+            var random = new Random();
+            var length = 4; 
+
+            var lowerCaseChars = "abcdefghijklmnopqrstuvwxyz";
+            var upperCaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var digits = "0123456789";
+            var specialChars = "#._@-!";
+
+            var allChars = lowerCaseChars + upperCaseChars + digits + specialChars;
+
+            var password = new StringBuilder();
+            password.Append(lowerCaseChars[random.Next(lowerCaseChars.Length)]);
+            password.Append(upperCaseChars[random.Next(upperCaseChars.Length)]);
+            password.Append(digits[random.Next(digits.Length)]);
+            password.Append(specialChars[random.Next(specialChars.Length)]);
+
+            for (int i = password.Length; i < length; i++)
+            {
+                password.Append(allChars[random.Next(allChars.Length)]);
+            }
+
+            var shuffledPassword = password.ToString().OrderBy(c => random.Next()).ToArray();
+
+            return new string(shuffledPassword);
+        }
+
+        #endregion
+
     }
 }

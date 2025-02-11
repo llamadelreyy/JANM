@@ -44,6 +44,8 @@ namespace PBTPro.Data
 
         private string _baseReqURL = "/api/License";
         private string LoggerName = "";
+        private int LoggerID = 0;
+        private int RoleID = 0;
 
         public NoticeService(IConfiguration configuration, PBTProDbContext dbContext, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
@@ -54,6 +56,8 @@ namespace PBTPro.Data
             _cf = new AuditLogger(configuration, apiConnector, PBTAuthStateProvider);
             CreateNotice();
             LoggerName = _PBTAuthStateProvider.CurrentUser.Fullname;
+            LoggerID = _PBTAuthStateProvider.CurrentUser.Userid;
+            RoleID = _PBTAuthStateProvider.CurrentUser.Roleid;
         }
 
         //public NoticeService(IConfiguration configuration)
@@ -404,11 +408,11 @@ namespace PBTPro.Data
                         DateCreated = DateTime.Parse("2023/03/11")
                     }
                  };
-                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai notis.", 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua senarai notis.", LoggerID, LoggerName, GetType().Name, RoleID);
             }
             catch (Exception ex)
             {
-                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, 1, LoggerName, "");
+                await _cf.CreateAuditLog((int)AuditType.Error, className + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
             }
             finally
             {
@@ -417,7 +421,7 @@ namespace PBTPro.Data
 
         public Task<List<NoticeProp>> GetNoticeAsync(CancellationToken ct = default)
         {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai notis.", 1, LoggerName, "");
+            var result = _cf.CreateAuditLog((int)AuditType.Information, className + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai notis.", LoggerID, LoggerName, GetType().Name, RoleID);
             return Task.FromResult(_Notice);
         }
 
