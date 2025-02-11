@@ -39,20 +39,33 @@ namespace PBTPro.DAL.Models.PayLoads
 
     public class premis_history_view
     {
-        public int premis_id { get; set; }
-        public string nama_pemilik { get; set; }
+        public int gid { get; set; }
         public string no_ic_pemilik { get; set; }
-        public string no_tel { get; set; }
-        public string alamat_premis { get; set; }
         public string nama_perniagaan { get; set; }
+        public string alamat_premis { get; set; }
+        public string status_lesen_perniagaan { get; set; }
+        public List<string>? gambar_premis { get; set; }
+
+        #region PREMIS
+        public string nama_pemilik { get; set; }
+        public string no_tel { get; set; }   
         public string jenis_premis { get; set; }
         public string lot { get; set; }
         public string no_lesen_premis { get; set; }
         public DateOnly? tempoh_sah_lesen { get; set; }
-        public string status_lesen_premis { get; set; }
         public DateOnly? tempoh_sah_cukai { get; set; } 
         public string status_cukai_premis { get; set; }
-        public List<string>? gambar_premis { get; set; }
+        #endregion
+
+        #region LESEN
+        public string no_acc_lesen { get; set; }
+        public DateTime? tarikh_daftar { get; set; }
+        public string nama_ops { get; set; }
+        public string nama_parlimen { get; set; }
+        public string nama_dun { get; set; }
+        public string nama_zon { get; set; }
+        public DateTime CreatedAt { get; set; }
+        #endregion
 
 
     }

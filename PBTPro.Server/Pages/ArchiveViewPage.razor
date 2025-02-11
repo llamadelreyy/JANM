@@ -84,17 +84,27 @@
         {
             result = await _archive.ArchiveByMonth(archiveDuration);
         }
-
+        
         if (response.ReturnCode == 200)
         {
-            StateHasChanged();
-            HandleResponse(response.ReturnMessage);
-            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+            await UpdateDataAsync();
+            if (result.Count == 0)
+            {
+                HandleResponse("Tiada rekod untuk diarkibkan dalam tempoh " + dtm + " bulan lepas. ", "Error");
+            }
+            else{
+                HandleResponse("Proses arkib selesai.");
+            }
         }
         else
         {
             HandleResponse(response.ReturnMessage, "Error");
-        }
+        }        
+    }
+    
+    async Task UpdateDataAsync()
+    {
+        dtAudit = await _audit.ListAll();
     }
 
     private List<string> archiveDtm = new List<string>

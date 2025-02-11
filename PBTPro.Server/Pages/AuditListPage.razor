@@ -13,6 +13,8 @@
 @using PBTPro.DAL.Services
 
 @inject AuditService _audit
+@inject RoleService _RoleService
+
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 @inject NavigationManager NavigationManager
@@ -31,14 +33,14 @@
                 IndicatorAreaVisible="false"
                 Text="Capaian Data...">
 
-<div class="d-lg-flex border-bottom">
-    <div class="col-md-12 py-1 dx-helptitle pageTitle">
+    <div class="d-lg-flex border-bottom">
+        <div class="col-md-12 py-1 dx-helptitle pageTitle">
             <img class="imgTitle" src="\images\icons-small\wrench-screwdriver.png" />
-        <div class="textTitle">Log Audit - Senarai Log Audit</div>
+            <div class="textTitle">Log Audit - Senarai Log Audit</div>
+        </div>
     </div>
-</div>
 
-<div class="item-container-x">
+    <div class="item-container-x">
 @*     <DxGrid @ref="Grid"
             Data="@_lstAudits"
             KeyFieldName="audit_id"
@@ -84,20 +86,25 @@
                 CssClass="mv-1000">
 
             <Columns>
-                <DxGridDataColumn FieldName="@nameof(auditlog_info.created_at)"
-                                  Caption="Tarikh Dicipta" TextAlignment="GridTextAlignment.Center"
+                <DxGridDataColumn FieldName="created_at"
+                                  Caption="Tarikh Data" TextAlignment="GridTextAlignment.Center"
                                   MinWidth="120" Width="14%"
                                   AllowGroup="false" AllowSort="true"
                                   SortOrder="GridColumnSortOrder.Descending"
-                                  DisplayFormat="dd/MM/yyyy HH:mm:ss" />
-                <DxGridDataColumn FieldName="@nameof(auditlog_info.username)" Caption="Nama Pengguna" MinWidth="150" Width="13%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" AllowSort="true"/>
-                <DxGridDataColumn FieldName="@nameof(auditlog_info.log_type)" Caption="Jenis Maklumat" MinWidth="120" Width="13%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                                  DisplayFormat="dd/MM/yyyy" />
+                <DxGridDataColumn FieldName="username" Caption="Nama Pengguna" MinWidth="150" Width="13%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" AllowSort="true" />
+                <DxGridDataColumn FieldName="role_id" Caption="Peranan" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                    <CellDisplayTemplate>
+                        <div>@RoleName(((auditlog_info)context.DataItem).role_id)</div>
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn FieldName="log_type" Caption="Jenis Maklumat" MinWidth="120" Width="13%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                     <CellDisplayTemplate>
                         <div>@GetStatusAuditIconHtml(((auditlog_info)context.DataItem).log_type)</div>
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
-                <DxGridDataColumn FieldName="@nameof(auditlog_info.log_method)" Caption="Method" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
-                <DxGridDataColumn FieldName="@nameof(auditlog_info.log_descr)" Caption="Penerangan" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                <DxGridDataColumn FieldName="log_method" Caption="Method" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
+                <DxGridDataColumn FieldName="log_descr" Caption="Penerangan" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
             </Columns>
 
             <TotalSummary>
@@ -105,20 +112,22 @@
                                    Name="Custom"
                                    SummaryType=GridSummaryItemType.Count />
             </TotalSummary>
-    </DxGrid>
-    <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
-    <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
-    <DxButton Text="Export XLS" Click="ExportXls_Click" />
-    <DxButton Text="Export CSV" Click="ExportCsv_Click" />
-    <DxButton Text="Arkib" @onclick="RedirectToPage" />
-    @* <DxButton Text="Archive Audit Log within 6 months data" Click="InsertArchiveAudit_Click" />  *@  
-</div>
+        </DxGrid>
+        <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
+        <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
+        <DxButton Text="Export XLS" Click="ExportXls_Click" />
+        <DxButton Text="Export CSV" Click="ExportCsv_Click" />
+        <DxButton Text="Arkib" @onclick="RedirectToPage" />
+        @* <DxButton Text="Archive Audit Log within 6 months data" Click="InsertArchiveAudit_Click" />  *@  
+    </div>
 </DxLoadingPanel>
 
 @code {
     bool PanelVisible { get; set; }
     private List<auditlog_info> _lstAudits = new List<auditlog_info>();
     auditlog_info dtData { get; set; }
+    IEnumerable<ApplicationRole> dtRole { get; set; }
+
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
@@ -132,8 +141,9 @@
         PanelVisible = true;
         _lstAudits = await _audit.GetAuditAsync();
         try
-        { 
-            _lstAudits = await _audit.ListAll(); 
+        {
+            _lstAudits = await _audit.ListAll();
+            dtRole = await _RoleService.ListAll();
             DataLoadedTcs.TrySetResult(true);
             PanelVisible = false;
         }
@@ -141,7 +151,6 @@
         {
             PanelVisible = false;
         }
-
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -159,7 +168,7 @@
     }
 
     #endregion
-    
+
     #region lookup
     public MarkupString GetStatusAuditIconHtml(int? status)
     {
@@ -179,6 +188,22 @@
 
         string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
         title);
+        return new MarkupString(html);
+    }
+
+
+    public MarkupString RoleName(int? roleid)
+    {
+        string rolename = "";
+        foreach (var itm in dtRole)
+        {
+            if (roleid == itm.Id)
+            {
+                rolename = itm.Name;
+            }
+        }
+       
+        string html = string.Format("<span>{0}</span>",rolename);
         return new MarkupString(html);
     }
 
@@ -205,7 +230,7 @@
     {
         await Grid.ExportToCsvAsync("ExportResult");
     }
-    
+
     private void RedirectToPage()
     {
         // Redirect to the desired page

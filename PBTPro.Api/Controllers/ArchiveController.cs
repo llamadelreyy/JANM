@@ -12,7 +12,7 @@ namespace PBTPro.Api.Controllers
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class ArchiveController : IBaseController
-    {       
+    {
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
         private readonly ILogger<ArchiveController> _logger;
@@ -84,21 +84,26 @@ namespace PBTPro.Api.Controllers
                 #region retrieve auditlog and copy to archive table
                 var dataFromTableA = _dbContext.auditlog_infos.AsNoTracking().ToList();
 
-                var dataForTableB = dataFromTableA.Where(x=>x.created_at <= strMonth).Select(a => new auditlog_archive_info
+                var dataForTableB = dataFromTableA.Where(x => x.created_at <= strMonth).Select(a => new auditlog_archive_info
                 {
                     archive_id = a.log_id,
                     role_id = a.role_id,
                     archive_module_name = a.module_name,
                     archive_desc = a.log_descr,
-                    creator_id =a.creator_id,
+                    creator_id = a.creator_id,
                     created_at = a.created_at,
-                    archive_type= a.log_type,
-                    archive_username = a.username ,
+                    archive_type = a.log_type,
+                    archive_username = a.username,
                     archive_method = a.log_method,
-                    is_archived = true 
+                    is_archived = true
                 })
                 .Where(x => !_dbContext.auditlog_archive_infos.Any(a => a.archive_id == x.archive_id))
                 .ToList();
+
+                if (!dataForTableB.Any())
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Tiada rekod untuk diarkibkan dalam tempoh {0} bulan lepas.", dtm)));
+                }
 
                 _dbContext.auditlog_archive_infos.AddRange(dataForTableB);
                 _dbContext.SaveChanges();
@@ -110,7 +115,7 @@ namespace PBTPro.Api.Controllers
                 _dbContext.auditlog_infos.RemoveRange(recordsToDelete);
                 _dbContext.SaveChanges();
                 #endregion
-                
+
                 await Task.Delay(1000);
 
                 #region display list archive log
