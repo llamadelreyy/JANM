@@ -12,7 +12,8 @@ namespace PBTPro.DAL.Models.PayLoads
     {
         public int tenant_id { get; set; }
 
-        public string tn_name { get; set; }
+        [Required(ErrorMessage = "Ruangan Name diperlukan.")]
+        public string tn_name { get; set; } = null!;
 
         public string? tn_photo_url { get; set; }
 
