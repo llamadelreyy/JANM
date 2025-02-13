@@ -31,6 +31,7 @@ Changes Logs:
 @inject NavigationManager NavigationManager
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
+@inject PBTAuthPermissionService PermissionService
 
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -38,42 +39,48 @@ Changes Logs:
         <div class="textTitle">Soalan Lazim</div>
     </div>
 </div>
-
-<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
-<div class="item-container-x">
-    <DxFormLayout>
-        <DxFormLayoutTabPages @bind-ActiveTabIndex="@ActiveTabIndex">
-            @{
-                @if (DataSource != null && DataSource.Any())
-                {
-                    var groupedItems = DataSource.GroupBy(item => item.faq_category);
-                    foreach (var group in groupedItems)
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+    <div class="item-container-x">
+        <DxFormLayout>
+            <DxFormLayoutTabPages @bind-ActiveTabIndex="@ActiveTabIndex">
+                @{
+                    @if (DataSource != null && DataSource.Any())
                     {
-                        var combine = @group.Key + " (" + @group.Count() + ")";
-                        <DxFormLayoutTabPage Caption="@combine">
-                            <DxAccordion ExpandMode="ExpandMode"
-                                         ExpandCollapseAction="ExpandCollapseAction"
-                                         AnimationType="LayoutAnimationType.Slide">
-                                <Items>
-                                    @foreach (var item in group)
-                                    {
-                                        <DxAccordionItem Text=@($"{item.faq_question}") Expanded="@(group.First() == item)">
-                                            <ContentTemplate>
-                                                <div class="py-3 px-3" tabindex="0">
-                                                    <FaqDetailPage FaqInfo="@item" />
-                                                </div>
-                                            </ContentTemplate>
-                                        </DxAccordionItem>
-                                    }
-                                </Items>
-                            </DxAccordion>
-                        </DxFormLayoutTabPage>
+                        var groupedItems = DataSource.GroupBy(item => item.faq_category);
+                        foreach (var group in groupedItems)
+                        {
+                            var combine = @group.Key + " (" + @group.Count() + ")";
+                            <DxFormLayoutTabPage Caption="@combine">
+                                <DxAccordion ExpandMode="ExpandMode"
+                                             ExpandCollapseAction="ExpandCollapseAction"
+                                             AnimationType="LayoutAnimationType.Slide">
+                                    <Items>
+                                        @foreach (var item in group)
+                                        {
+                                            <DxAccordionItem Text=@($"{item.faq_question}") Expanded="@(group.First() == item)">
+                                                <ContentTemplate>
+                                                    <div class="py-3 px-3" tabindex="0">
+                                                        <FaqDetailPage FaqInfo="@item" />
+                                                    </div>
+                                                </ContentTemplate>
+                                            </DxAccordionItem>
+                                        }
+                                    </Items>
+                                </DxAccordion>
+                            </DxFormLayoutTabPage>
+                        }
                     }
                 }
-            }
-        </DxFormLayoutTabPages>
-    </DxFormLayout>
-</div>
+            </DxFormLayoutTabPages>
+        </DxFormLayout>
+    </div>
+}
 
 @code {
 
