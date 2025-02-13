@@ -75,7 +75,10 @@ else
                 <Columns>
                     <DxGridCommandColumn Width="75px">
                         <HeaderTemplate>
-                            <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                            @if (PermissionService.HasPermission("Add"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                            }
                         </HeaderTemplate>
                         <CellDisplayTemplate>
                             <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
