@@ -398,6 +398,11 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                #region Change Password Validator
+                _userManager.PasswordValidators.Clear();
+                _userManager.PasswordValidators.Add(new PasswordValidator<ApplicationUser>());
+                #endregion
+
                 #region Validation
                 if (string.IsNullOrWhiteSpace(model.new_password))
                 {
@@ -431,7 +436,7 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RESET_PASSWORD_TOKEN", MessageTypeEnum.Error, string.Format("Token tidak sah.")));
                 }
-
+                /*
                 List<string> passwordErrors = new List<string>();
                 var validators = _userManager.PasswordValidators;
                 foreach (var validator in validators)
@@ -487,6 +492,7 @@ namespace PBTPro.Api.Controllers
                     List<string> param = new List<string> { "- " + ValidationErr };
                     return Error("", SystemMesg(_feature, "INVALID_PASS_COMBINATION", MessageTypeEnum.Error, string.Format("Kombinasi katalaluan tidak diterima :\r\n[0]"), param));
                 }
+                */
                 #endregion
 
                 var resultd = await _userManager.ResetPasswordAsync(user, decodedToken, model.new_password);
@@ -502,7 +508,53 @@ namespace PBTPro.Api.Controllers
                 }
                 else
                 {
-                    return Error("", SystemMesg(_feature, "RESET_PASSWORD", MessageTypeEnum.Error, string.Format("Gagal menetap semula kata laluan")));
+                    List<string> passwordErrors = new List<string>();
+                    foreach (var error in resultd.Errors)
+                    {
+                        switch (error.Code.ToLower())
+                        {
+                            case "passwordtooshort":
+                                var requiredPasswordLength = _identityOptions.Password.RequiredLength;
+                                List<string> param = new List<string> { requiredPasswordLength.ToString() };
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_TOO_SHORT", MessageTypeEnum.Error, string.Format("Kata laluan mestilah sekurang-kurangnya [0] aksara.", param)));
+                                break;
+
+                            case "passwordrequiresdigit":
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_DIGIT", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu digit ('0'-'9').")));
+                                break;
+
+                            case "passwordrequiresnonalphanumeric":
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_NONALPHA", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu aksara bukan abjad angka.")));
+                                break;
+
+                            case "passwordrequiresuniquechars":
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_UNIQUE", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu aksara unik.")));
+                                break;
+
+                            case "passwordrequireslower":
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_LOWER", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu huruf kecil ('a'-'z').")));
+                                break;
+
+                            case "passwordrequiresupper":
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_REQUIRED_UPPER", MessageTypeEnum.Error, string.Format("Kata laluan mesti mempunyai sekurang-kurangnya satu huruf besar ('A'-'Z').")));
+                                break;
+
+                            default:
+                                passwordErrors.Add(SystemMesg("AUTH", "PASSWORD_UNKNOWN_ERROR", MessageTypeEnum.Error, error.Description));
+                                break;
+                        }
+                    }
+
+                    if (passwordErrors.Count > 0)
+                    {
+                        var ValidationErr = String.Join("\r\n- ", passwordErrors.ToList());
+                        List<string> param = new List<string> { "- " + ValidationErr };
+                        return Error("", SystemMesg(_feature, "INVALID_PASS_COMBINATION", MessageTypeEnum.Error, string.Format("Kombinasi kata laluan tidak diterima :\r\n[0]"), param));
+                    }
+                    else
+                    {
+                        return Error("", SystemMesg(_feature, "UPDATE_PASSWORD", MessageTypeEnum.Error, string.Format("Gagal mengemaskini kata laluan")));
+                    }
                 }
             }
             catch (Exception ex)

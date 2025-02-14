@@ -52,12 +52,17 @@ namespace PBTPro.DAL.Models.PayLoads
 
     public class update_password_input_model
     {
-        [Required(ErrorMessage = "Medan Kata Laluan perlu diisi."), RegularExpression(@"^(?=.*\d)(?=.*[~`!@#$%^&*()--+={}\[\]|\\:;""'<>,.?/_])(?=.*[a-z])(?=.*[A-Z]).{8,}$", ErrorMessage = "Kata laluan tidak sah!")]
+        [Required(ErrorMessage = "Medan kata laluan semasa perlu diisi."), RegularExpression(@"^(?=.*\d)(?=.*[~`!@#$%^&*()--+={}\[\]|\\:;""'<>,.?/_])(?=.*[a-z])(?=.*[A-Z]).{8,}$", ErrorMessage = "Kata laluan semasa tidak sah!")]
+        [DataType(DataType.Password)]
+        [StringLength(255, ErrorMessage = "Min panjang adalah 8 aksara campuran abjad, nombor dan aksara khas.", MinimumLength = 8)]
+        public string? current_password { get; set; }
+
+        [Required(ErrorMessage = "Medan kata laluan baharu perlu diisi."), RegularExpression(@"^(?=.*\d)(?=.*[~`!@#$%^&*()--+={}\[\]|\\:;""'<>,.?/_])(?=.*[a-z])(?=.*[A-Z]).{8,}$", ErrorMessage = "Kata laluan baharu tidak sah!")]
         [DataType(DataType.Password)]
         [StringLength(255, ErrorMessage = "Min panjang adalah 8 aksara campuran abjad, nombor dan aksara khas.", MinimumLength = 8)]
         public string? new_password { get; set; }
 
-        [Required(ErrorMessage = "Medan Sahkan Katalaluan perlu diisi.")]
+        [Required(ErrorMessage = "Medan sahkan katalaluan perlu diisi.")]
         [DataType(DataType.Password)]
         [StringLength(255, ErrorMessage = "Min panjang adalah 8 aksara.", MinimumLength = 8)]
         [Compare("new_password", ErrorMessage = "Katalaluan yang dimasukkan tidak sama.")]
