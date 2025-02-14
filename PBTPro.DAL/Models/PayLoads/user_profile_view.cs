@@ -52,7 +52,7 @@ namespace PBTPro.DAL.Models.PayLoads
 
     public class update_password_input_model
     {
-        [Required(ErrorMessage = "Medan kata laluan semasa perlu diisi."), RegularExpression(@"^(?=.*\d)(?=.*[~`!@#$%^&*()--+={}\[\]|\\:;""'<>,.?/_])(?=.*[a-z])(?=.*[A-Z]).{8,}$", ErrorMessage = "Kata laluan semasa tidak sah!")]
+        [Required(ErrorMessage = "Medan kata laluan semasa perlu diisi.")]
         [DataType(DataType.Password)]
         [StringLength(255, ErrorMessage = "Min panjang adalah 8 aksara campuran abjad, nombor dan aksara khas.", MinimumLength = 8)]
         public string? current_password { get; set; }
