@@ -112,6 +112,8 @@ builder.Services.AddTransient<MenuService>();
 builder.Services.AddTransient<PermissionService>();
 builder.Services.AddTransient<EmailerService>();
 builder.Services.AddTransient<ScheduleService>();
+builder.Services.AddTransient<DeliverService>();
+builder.Services.AddTransient<NoticeDurationService>();
 builder.Services.AddTransient<RefPatrolStatusService>();
 
 

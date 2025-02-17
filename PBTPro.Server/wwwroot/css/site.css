@@ -834,17 +834,38 @@ img.dxbl-image {
 }
 
 .dashboard-style {
-    border: 0.3rem solid #b5b4b4;
+    border: 0.05rem solid #666;
     padding: 5px 5px;
-    border-radius: 20px;
+    border-radius: 2px;
     box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);
     width: 95%;
+
+}
+
+.notis-color {
+    background: linear-gradient(0deg, rgba(230,31,41,1) 0%, rgba(246,196,196,1) 100%);
+}
+
+.kompaun-color {
+    background: linear-gradient(0deg, rgba(2,159,223,1) 0%, rgba(181,218,233,1) 100%);
+}
+
+.nota-color {
+    background: linear-gradient(0deg, rgba(21,143,30,1) 0%, rgba(74,236,86,1) 100%);
+}
+
+.sitaan-color {
+    background: linear-gradient(0deg, rgba(143,123,21,1) 0%, rgba(245,211,41,1) 100%);
+}
+
+.big-color {
+    background: linear-gradient(0deg, rgba(1,39,91,1) 0%, rgba(75,105,145,1) 100%);
 }
 
 .dashboard-style-big {
-    border: 0.3rem solid #b5b4b4;
+    border: 0.05rem solid #666;
     padding: 5px 5px;
-    border-radius: 20px;
+    border-radius: 2px;
     box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);
     width: 97.8%;
 }
@@ -877,16 +898,18 @@ img.dxbl-image {
 
     .totalinnumber {
         font-weight: bold;
-        font-size: 2.2rem;
-        letter-spacing: 0.08rem;
+        font-size: 2.7rem;
+        letter-spacing: 0.2rem;
         align-self: center;
+        color:#fff;
+
     }
 
     .dashboard-wrap span.totalinword {
         font-weight: bold;
-        color: #666;
+        color: #fff;
         font-size: 1rem;
-        letter-spacing: 0.08rem;
+        letter-spacing: 0.2rem;
         text-transform: uppercase;
         align-self: center;
     }
