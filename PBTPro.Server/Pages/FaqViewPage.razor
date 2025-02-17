@@ -21,6 +21,7 @@ Changes Logs:
 @using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
+
 @using PBTPro.DAL.Models;
 @using PBTPro.DAL.Services
 @using PBTPro.Data
@@ -32,17 +33,23 @@ Changes Logs:
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 
-<div class="d-lg-flex border-bottom mb-2">
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+<div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons/information.png" />
+        <img class="imgTitle" src="lib/remixicon/png/question-answer-line.png" />
         <div class="textTitle">Soalan Lazim</div>
     </div>
 </div>
 
-<hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+<hr style="background-color:transparent; padding:0.1em 0;margin:auto;" />
 <div class="item-container-x">
     <DxFormLayout>
-        <DxFormLayoutTabPages @bind-ActiveTabIndex="@ActiveTabIndex">
+            <DxFormLayoutTabPages @bind-ActiveTabIndex="@ActiveTabIndex">
             @{
                 @if (DataSource != null && DataSource.Any())
                 {
@@ -52,8 +59,8 @@ Changes Logs:
                         var combine = @group.Key + " (" + @group.Count() + ")";
                         <DxFormLayoutTabPage Caption="@combine">
                             <DxAccordion ExpandMode="ExpandMode"
-                                         ExpandCollapseAction="ExpandCollapseAction"
-                                         AnimationType="LayoutAnimationType.Slide">
+                                ExpandCollapseAction="ExpandCollapseAction"
+                                AnimationType="LayoutAnimationType.Slide" style="width:100%;">
                                 <Items>
                                     @foreach (var item in group)
                                     {
@@ -74,8 +81,10 @@ Changes Logs:
         </DxFormLayoutTabPages>
     </DxFormLayout>
 </div>
+</DxLoadingPanel>
 
 @code {
+    bool PanelVisible { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     IEnumerable<ref_faq> DataSource;
@@ -91,6 +100,7 @@ Changes Logs:
 
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         try
         {
             DataSource = await _faq.ListAll();
@@ -107,11 +117,12 @@ Changes Logs:
         }
         catch (Exception ex)
         {
+            PanelVisible = false;
             Console.Error.WriteLine($"Error loading actions: {ex.Message}");
         }
         DataLoadedTcs.TrySetResult(true);
         await base.OnInitializedAsync();
-
+        PanelVisible = false;
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

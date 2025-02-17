@@ -36,6 +36,14 @@ public partial class role_menu
     public bool bln_delete { get; set; }
 
     public bool bln_print { get; set; }
+    public bool bln_upload { get; set; }
+    public bool bln_download { get; set; }
+    public bool bln_import_data { get; set; }
+    public bool bln_export_data { get; set; }
+    public bool bln_authorize { get; set; }
+    public bool bln_approve_changes { get; set; }
+    public bool bln_execute { get; set; }
+
 
     public DateTime? created_date { get; set; }
 
