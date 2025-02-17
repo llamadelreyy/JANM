@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -16,7 +17,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using PBTPro.DAL.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -46,7 +46,41 @@ builder.Services.AddSingleton<IConfiguration>(configuration);
 builder.Services.AddTransient<IPasswordValidator<ApplicationUser>, CustomPasswordValidator>();
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddControllers();
+//builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+
+            var errorResponse = new ReturnViewModel
+            {
+                ReturnCode = 400,
+                Status = "Error"
+            };
+
+            var errors = context.ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Where(e => e.ErrorMessage != null)
+                .Select(e => e.ErrorMessage);
+
+            if (errors.Count() > 0)
+            {
+                var ValidationErr = String.Join("\r\n- ", errors.ToList());
+                List<string> param = new List<string> { "- " + ValidationErr };
+
+                errorResponse.ReturnParameter = errors.ToList();
+                errorResponse.ReturnMessage = string.Format("Terdapat masalah dengan permintaan :\r\n{0}", param[0]);
+                //errorResponse.ReturnMessage = string.Join("\r\n", errors);
+            }
+            else
+            {
+                errorResponse.ReturnMessage = "Maaf nampaknya terdapat masalah dengan permintaan anda. Sila semak butiran dan cuba lagi.";
+            }
+
+            return new BadRequestObjectResult(errorResponse);
+        };
+    });
 
 builder.Services.AddSignalR(hubOptions =>
 {

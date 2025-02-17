@@ -21,6 +21,7 @@ Changes Logs:
 @using Blazored.Toast.Services
 @using Newtonsoft.Json
 @using System.ComponentModel
+
 @using PBTPro.DAL.Models;
 @using PBTPro.DAL.Services
 @using PBTPro.Data
@@ -31,58 +32,59 @@ Changes Logs:
 @inject NavigationManager NavigationManager
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
-@inject PBTAuthPermissionService PermissionService
 
-<div class="d-lg-flex border-bottom mb-2">
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+<div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons/information.png" />
+        <img class="imgTitle" src="lib/remixicon/png/question-answer-line.png" />
         <div class="textTitle">Soalan Lazim</div>
     </div>
 </div>
-@if (!PermissionService.HasPermission("View"))
-{
-    NavigationManager.NavigateTo("/no-permission");
-}
-else
-{
-    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
-    <div class="item-container-x">
-        <DxFormLayout>
+
+<hr style="background-color:transparent; padding:0.1em 0;margin:auto;" />
+<div class="item-container-x">
+    <DxFormLayout>
             <DxFormLayoutTabPages @bind-ActiveTabIndex="@ActiveTabIndex">
-                @{
-                    @if (DataSource != null && DataSource.Any())
+            @{
+                @if (DataSource != null && DataSource.Any())
+                {
+                    var groupedItems = DataSource.GroupBy(item => item.faq_category);
+                    foreach (var group in groupedItems)
                     {
-                        var groupedItems = DataSource.GroupBy(item => item.faq_category);
-                        foreach (var group in groupedItems)
-                        {
-                            var combine = @group.Key + " (" + @group.Count() + ")";
-                            <DxFormLayoutTabPage Caption="@combine">
-                                <DxAccordion ExpandMode="ExpandMode"
-                                             ExpandCollapseAction="ExpandCollapseAction"
-                                             AnimationType="LayoutAnimationType.Slide">
-                                    <Items>
-                                        @foreach (var item in group)
-                                        {
-                                            <DxAccordionItem Text=@($"{item.faq_question}") Expanded="@(group.First() == item)">
-                                                <ContentTemplate>
-                                                    <div class="py-3 px-3" tabindex="0">
-                                                        <FaqDetailPage FaqInfo="@item" />
-                                                    </div>
-                                                </ContentTemplate>
-                                            </DxAccordionItem>
-                                        }
-                                    </Items>
-                                </DxAccordion>
-                            </DxFormLayoutTabPage>
-                        }
+                        var combine = @group.Key + " (" + @group.Count() + ")";
+                        <DxFormLayoutTabPage Caption="@combine">
+                            <DxAccordion ExpandMode="ExpandMode"
+                                ExpandCollapseAction="ExpandCollapseAction"
+                                AnimationType="LayoutAnimationType.Slide" style="width:100%;">
+                                <Items>
+                                    @foreach (var item in group)
+                                    {
+                                        <DxAccordionItem Text=@($"{item.faq_question}") Expanded="@(group.First() == item)">
+                                            <ContentTemplate>
+                                                <div class="py-3 px-3" tabindex="0">
+                                                    <FaqDetailPage FaqInfo="@item" />
+                                                </div>
+                                            </ContentTemplate>
+                                        </DxAccordionItem>
+                                    }
+                                </Items>
+                            </DxAccordion>
+                        </DxFormLayoutTabPage>
                     }
                 }
-            </DxFormLayoutTabPages>
-        </DxFormLayout>
-    </div>
-}
+            }
+        </DxFormLayoutTabPages>
+    </DxFormLayout>
+</div>
+</DxLoadingPanel>
 
 @code {
+    bool PanelVisible { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     IEnumerable<ref_faq> DataSource;
@@ -98,6 +100,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         try
         {
             DataSource = await _faq.ListAll();
@@ -114,11 +117,12 @@ else
         }
         catch (Exception ex)
         {
+            PanelVisible = false;
             Console.Error.WriteLine($"Error loading actions: {ex.Message}");
         }
         DataLoadedTcs.TrySetResult(true);
         await base.OnInitializedAsync();
-
+        PanelVisible = false;
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

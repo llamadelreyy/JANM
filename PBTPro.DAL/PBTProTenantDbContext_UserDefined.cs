@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using NetTopologySuite.Geometries;
 using PBTPro.DAL.Services;
 
 namespace PBTPro.DAL
@@ -55,6 +56,46 @@ namespace PBTPro.DAL
                     entity.SetSchema(_tenantSchema);
                 }
             }
+
+            #region PostGIS Function
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+            .GetMethod(nameof(PostGISFunctions.ST_IsValid), new[] { typeof(Geometry) }))
+            .HasName("st_isvalid");
+
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_Within), new[] { typeof(Geometry), typeof(Geometry) }))
+                .HasName("st_within");
+
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_MakeEnvelope), new[] { typeof(double), typeof(double), typeof(double), typeof(double), typeof(int) }))
+                .HasName("st_makeenvelope");
+
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_AsGeoJSON), new[] { typeof(Geometry) }))
+                .HasName("st_asgeojson");
+
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_Transform), new[] { typeof(Geometry), typeof(int) }))
+                .HasName("st_transform");
+
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_Buffer), new[] { typeof(Geometry), typeof(int) }))
+                .HasName("st_buffer");
+
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_Intersects), new[] { typeof(Geometry), typeof(Geometry) }))
+                .HasName("st_intersects");
+
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_Union), new[] { typeof(Geometry) }))
+                .HasName("st_union");
+
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_Collect), new[] { typeof(Geometry) }))
+                .HasName("st_collect");
+
+            #endregion 
+
         }
     }
 }
