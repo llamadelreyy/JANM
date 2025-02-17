@@ -1,0 +1,317 @@
+﻿@page "/cara_serahan"
+@attribute [Authorize]
+
+@implements IDisposable
+
+@using PBTPro
+@using PBTPro.Shared
+@using PBTPro.Data
+@using PBTPro.DAL
+@using PBTPro.DAL.Models
+@using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.CommonServices
+@using DevExpress.Blazor
+
+@inject DeliverService _DeliverService
+@inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastService
+
+<style>
+    .dxbl-grid {
+        height: 98.5%;
+        max-height: 98.5%;
+    }
+</style>
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+    <div class="d-lg-flex border-bottom">
+        <div class="col-md-12 py-1 dx-helptitle pageTitle">
+            <img class="imgTitle" src="\images\icons-small\envelope--arrow.png" />
+            <div class="textTitle">Cara Serahan</div>
+        </div>
+    </div>
+
+    <div class="item-container-x">
+
+        <DxGrid @ref="Grid"
+                Data="dataSource"
+                KeyFieldName="deliver_id"
+                ShowGroupPanel="true"
+                ShowFilterRow="false"
+                TextWrapEnabled="true"
+                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                EditorRenderMode="GridEditorRenderMode.Integrated"
+                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                ShowSearchBox="true"
+                AllowSelectRowByClick="true"
+                @bind-SearchText="@GridSearchText"
+                PageSize="25"
+                @bind-PageIndex="@GridPageIndex"
+                PagerPosition="GridPagerPosition.Bottom"
+                PagerNavigationMode="PagerNavigationMode.InputBox"
+                EditModelSaving="Grid_EditModelSaving"
+                EditFormButtonsVisible="false"
+                PageSizeSelectorVisible="true"
+                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                PageSizeSelectorAllRowsItemVisible="true"
+                PagerAutoHideNavButtons="false"
+                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                HighlightRowOnHover="true"
+                CssClass="mv-1000">
+
+            <Columns>
+                <DxGridCommandColumn Width="55px">
+                    <HeaderTemplate>
+                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                    </HeaderTemplate>
+                    <CellDisplayTemplate>
+                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        <a @onclick="@(() => Delete((ref_deliver)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                    </CellDisplayTemplate>
+                </DxGridCommandColumn>
+                <DxGridDataColumn Caption="Cara Serahan" MinWidth="250" Width="88%" FieldName="deliver_name" />
+
+                <DxGridDataColumn FieldName="created_at"
+                                  DisplayFormat="dd/MM/yyyy"
+                                  Caption="Tarikh Data"
+                                  MinWidth="100"
+                                  Width="12%"
+                                  TextAlignment="GridTextAlignment.Center"
+                                  SortOrder="GridColumnSortOrder.Ascending"
+                                  SortIndex="0">
+                    <FilterMenuTemplate>
+                        <DateRange FilterContext="context" />
+                    </FilterMenuTemplate>
+                </DxGridDataColumn>
+            </Columns>
+
+            <EditFormTemplate Context="EditFormContext">
+                @{
+                    var dtEdit = (ref_deliver)EditFormContext.EditModel;
+                }
+                <DxFormLayout CssClass="w-100">
+                    <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                        <table class="layout_edit">
+                            <tr>
+                                <td nowrap>Cara Serahan</td>
+                                <td nowrap>&nbsp;&nbsp;</td>
+                                <td>
+                                    <DxTextBox @bind-Text="@dtEdit.deliver_name"
+                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                               BindValueMode="BindValueMode.OnInput"
+                                               NullText="Keterangan cara serahan ..."
+                                               Maxlength="120"
+                                               ShowValidationIcon="true"
+                                               style="width:300px;"
+                                               CssClass="cw-320" />
+                                </td>
+                            </tr>
+                        </table>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+            </EditFormTemplate>
+            <CustomValidators>
+                <MyCustomValidator DataItemValidating="ValidateGridData" />
+            </CustomValidators>
+
+            @*This is to count the summary*@
+            <TotalSummary>
+                <DxGridSummaryItem FooterColumnName="Name"
+                                   Name="Custom"
+                                   SummaryType=GridSummaryItemType.Count />
+            </TotalSummary>
+
+        </DxGrid>
+    </div>
+</DxLoadingPanel>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+        <br />Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
+
+
+@code {
+    bool PanelVisible { get; set; }
+    IEnumerable<ref_deliver> dataSource;
+
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
+    bool ConfirmationShown { get; set; } = false;
+    string strSelected { get; set; }
+    ref_deliver dtData { get; set; }
+
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    protected override async Task OnInitializedAsync()
+    {
+        PanelVisible = true;
+        dataSource = await _DeliverService.ListAll();
+        DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+            await Grid.CancelEditAsync(); //.StartEditRowAsync(0);
+        }
+    }
+
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (ref_deliver)e.EditModel;
+        if (_data.deliver_name == null || _data.deliver_name.Trim() == "")
+        {
+            e.AddError(nameof(_data.deliver_name), "Medan Cara Serahan perlu diisi.");
+        }
+
+
+        if (Grid.IsEditingNewRow())
+        {
+            var _dtAdd = dataSource.Where(x => x.deliver_name == _data.deliver_name).FirstOrDefault();
+
+            if (_dtAdd != null)
+                e.AddError(nameof(_data.deliver_name), "Nama cara serahan telah wujud.");
+        }
+        else
+        {
+            var _dtEdit = dataSource.Where(x => x.deliver_id != _data.deliver_id && x.deliver_name == _data.deliver_name).FirstOrDefault();
+
+            if (_dtEdit != null)
+                e.AddError(nameof(_data.deliver_name), "Nama cara serahan telah wujud.");
+        }
+    }
+
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        ReturnViewModel response = new ReturnViewModel();
+        var editModel = e.EditModel as ref_deliver;
+        try
+        {
+            if (e.IsNew)
+                response = await _DeliverService.Add(editModel);
+            else
+                response = await _DeliverService.Update(editModel.deliver_id, editModel);
+
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                HandleResponse("Proses kemaskini selesai.");
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
+
+    }
+
+    async Task UpdateDataAsync()
+    {
+        //Refresh back the data source
+        dataSource = await _DeliverService.Refresh();
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+    async Task Delete(ref_deliver item)
+    {
+        strSelected = item.deliver_name;
+        dtData = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            response = await _DeliverService.Delete(dtData.deliver_id);
+
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                ConfirmationShown = false;
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                ConfirmationShown = false;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while delete the edit model: {ex.Message}");
+        }
+    }
+
+    void OnNoButtonClick()
+    {
+        ConfirmationShown = false;
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
+
+}
