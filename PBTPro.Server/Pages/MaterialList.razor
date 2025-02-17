@@ -101,25 +101,25 @@ else
                             { *@
                         <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
                         @* } *@
-                        @if (PermissionService.HasPermission("Delete"))
-                        {
+                        @* @if (PermissionService.HasPermission("Delete"))
+                        { *@
                             <a @onclick="@(() => Delete((ref_doc)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                        }
+                       @*  } *@
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
-                <DxGridDataColumn FieldName="filename" Caption="Preview" Width="5%" TextAlignment="GridTextAlignment.Center">
+                <DxGridDataColumn FieldName="filename" Caption="Preview Fail" Width="15%" TextAlignment="GridTextAlignment.Center">
                     <CellDisplayTemplate>
                         <div>@DownloadIconHTML(((ref_doc)context.DataItem).filename, ((ref_doc)context.DataItem).pathurl)</div>
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
-                <DxGridDataColumn FieldName="filename" Caption="Nama" Width="25%" TextAlignment="GridTextAlignment.Left" />
-                <DxGridDataColumn FieldName="pathurl" Caption="Pautan" Width="25%" TextAlignment="GridTextAlignment.Left" />
                 <DxGridDataColumn FieldName="doc_cat" Caption="Kategori" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                <DxGridDataColumn FieldName="filename" Caption="Nama" Width="43%" TextAlignment="GridTextAlignment.Left" />
+
                 <DxGridDataColumn FieldName=created_at
                 DisplayFormat="dd/MM/yyyy"
                 Caption="Tarikh Data"
                 MinWidth="120"
-                Width="12%"
+                Width="10%"
                 TextAlignment="GridTextAlignment.Left"
                 SortOrder="GridColumnSortOrder.Ascending"
                 SortIndex="0" />
@@ -160,15 +160,20 @@ else
                     <DxFormLayoutItem ColSpanMd="9">
                         <div class="upload-container">
                             <div class="bottom-upload">
-                                <DxFileInput Visible="@UploadVisible"
+                                @* <DxFileInput Visible="@UploadVisible"
                                 ExternalSelectButtonCssSelector="#overviewDemoSelectButton"
                                 ExternalDropZoneCssSelector="#overviewDemoDropZone"
                                 ExternalDropZoneDragOverCssClass="custom-drop-zone-hover"
                                 MaxFileSize="15000000"
                                 FilesUploading="OnFilesUploading"
+                                @bind-File="File"
                                 SelectedFilesChanged="@SelectedFilesChanged">
-                                    @*  UploadUrl="@GetUploadUrl("api/Upload/UploadFile/")"> *@
-                                </DxFileInput>
+                                </DxFileInput> *@
+                                <DxUpload UploadMode=UploadMode.OnButtonClick
+                                          SelectedFilesChanged="@SelectedFilesChanged"
+                                          AllowMultiFileUpload="false"
+                                          @ref="MyUpload">
+                                </DxUpload>
                             </div>
                         </div>
                     </DxFormLayoutItem>
@@ -217,10 +222,27 @@ else
     string GridSearchText = "";
     bool ConfirmationShown { get; set; } = false;
     bool UploadVisible { get; set; } = false;
-    string strTempoFilePath { get; set; } = "";
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    IEnumerable<UploadFileInfo> Files { get; set; }
+    UploadFileInfo FirstFile { get; set; }
+    DxUpload MyUpload { get; set; }
+
+    protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
+    {
+        Files = files;
+        UploadVisible = files.ToList().Count > 0;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    // void OnButtonClick()
+    // {
+    //     FirstFile = Files.First();
+    //     MyUpload.UploadFile(FirstFile);
+    // }
 
     #region list
     protected override async Task OnInitializedAsync()
@@ -247,16 +269,16 @@ else
         {
             if (e.IsNew)
             {
-                editModel.pathurl = refdoc.pathurl;
+                FirstFile = Files.First();
+                MyUpload.UploadFile(FirstFile);
                 editModel.filename = refdoc.filename;
 
-                response = await _DocumentService.Add(editModel);
+                response = await _DocumentService.Add(editModel, IFormFile MyUpload);
             }
             else
             {
                 response = await _DocumentService.Update(editModel.doc_id, editModel);
             }
-
 
             if (response.ReturnCode == 200)
             {
@@ -329,65 +351,27 @@ else
 
     public MarkupString DownloadIconHTML(string strName, string strPautan)
     {
-        string html = string.Format("<a href='{1}'><img src='images/icons/blue-folder.png' alt='muat turun fail'/></a>", strName, strPautan);
+        string html = string.Format("<a href='{1}' target='_blank'><img src='images/icons/blue-folder.png' alt='muat turun fail' /></a>", strName, strPautan);
         return new MarkupString(html);
     }
 
-    protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
-    {
-        UploadVisible = files.ToList().Count > 0;
-        InvokeAsync(StateHasChanged);
-    }
-
-    protected async Task OnFilesUploading(FilesUploadingEventArgs args)
-    {
-        // var file = args.Files[0];
-        // var filePath = Path.Combine(new[] { Directory.GetCurrentDirectory(), "wwwroot", "document", file.Name });
-        //using var stream = new System.IO.MemoryStream();
-        //await file.OpenReadStream(file.Size).CopyToAsync(stream);
-        // using (var stream = new FileStream(filePath, FileMode.Create))
-        // {
-        //     await file.OpenReadStream(file.Size).CopyToAsync(stream);
-
-        // }
-        //IFormFile fileAttachment = file;
-        // string DocExt = Path.GetExtension(file.Name);
-        // string DocUrl = String.Format("{0}{1}", _DocumentService.AppendTimeStamp(file.Name), DocExt);
-        // await _DocumentService.UploadDocument(file, "document", DocUrl);
-
-        var file = args.Files[0];
-        var filePath = Path.Combine(new[] { Directory.GetCurrentDirectory(), "wwwroot", "document", file.Name });
-
-        // Convert IFileInputSelectedFile to IFormFile
-        using (var memoryStream = new MemoryStream())
-        {
-            await file.OpenReadStream().CopyToAsync(memoryStream);
-            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, file.Name, file.Name)
-                {
-                    Headers = new HeaderDictionary(),
-                    //ContentType = file.ContentType
-                };
-
-            string docExt = Path.GetExtension(file.Name);
-            string docUrl = String.Format("{0}{1}", _DocumentService.AppendTimeStamp(file.Name), docExt);
-            await _DocumentService.UploadDocument(formFile, "document", docUrl);
-            refdoc.pathurl = docUrl;
-            refdoc.filename = file.Name;
-        }
-    }
-
-    protected void OnFileUploaded(FileUploadEventArgs args, ref_doc item)
-    {
-        var fileUrl = _fileUrlStorageService.Get(Guid.Parse(args.FileInfo.Guid));
-        string[] pathFileName = fileUrl.Split(";");
-
-        item.pathurl = pathFileName[1];
-        item.filename = pathFileName[2];
-    }
-    // async void GetUploadUrl()
+    // protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
     // {
-    //     await _DocumentService.UploadDocument();
+    //     UploadVisible = files.ToList().Count > 0; 
+    //     InvokeAsync(StateHasChanged);
     // }
+
+    // protected async Task OnFilesUploading(FilesUploadingEventArgs args)
+    // {
+    //     var file = args.Files[0];        
+
+    //     var fileExt = Path.GetExtension(file.Name);
+    //     string newFileName = $"{file.Guid}{fileExt}";
+
+    //     using var stream = new System.IO.MemoryStream();
+    //     await file.OpenReadStream(file.Size).CopyToAsync(stream);        
+    // }    
+    
     #endregion
 
     #region response

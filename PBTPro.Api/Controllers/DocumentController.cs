@@ -5,6 +5,8 @@ using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace PBTPro.Api.Controllers
 {
@@ -32,7 +34,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var data = await _tenantDBContext.ref_docs.AsNoTracking().ToListAsync();
+                var data = await _tenantDBContext.ref_docs.Where(d=>d.is_deleted == false).AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -59,6 +61,7 @@ namespace PBTPro.Api.Controllers
                     doc_cat = InputModel.doc_cat,
                     creator_id = runUserID,
                     created_at = DateTime.Now,
+                    is_deleted = false,
                 };
 
                 _tenantDBContext.ref_docs.Add(ref_doc);
@@ -172,5 +175,6 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        
     }
 }
