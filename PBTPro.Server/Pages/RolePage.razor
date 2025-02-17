@@ -73,7 +73,7 @@
                 <CellDisplayTemplate>
                     @{
                         var intRoleID = ((ApplicationRole)context.DataItem).Id;
-                        if ((intRoleID != 1) && (intRoleID != 2))
+                        if ((intRoleID != 1) && (intRoleID != 2) && (intRoleID != 3))
                         {
                             <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
                             <a @onclick="@(() => Delete((ApplicationRole)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
