@@ -173,7 +173,7 @@ namespace PBTPro.Api.Controllers
                     is_deleted = false,
                     //need to add new field in the tbl district and town
                     district_code = InputModel.DistrictCode,
-                    town_code = InputModel.TownCode,         
+                    town_code = InputModel.TownCode,
                     status_id = Convert.ToInt32(InputModel.PatrolStatus),
                 };
 
@@ -364,8 +364,58 @@ namespace PBTPro.Api.Controllers
 
                 _tenantDBContext.mst_patrol_schedules.Update(formField);
                 await _tenantDBContext.SaveChangesAsync();
-               
+
                 return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{username}")]
+        public async Task<IActionResult> GetScheduleByUserId(string username)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                var data = await _tenantDBContext.mst_patrol_schedules.Where(x => x.idno == username).Select(x => new
+                {
+                    schedule_id = x.schedule_id,
+                    idno = x.idno,
+                    start_time = x.start_time,
+                    end_time = x.end_time,
+                    status_id = x.status_id,
+                    is_scheduled = false,
+                    loc_name = x.loc_name,
+                    type_id = x.type_id,
+                    dept_id = x.dept_id,
+                    cnt_cmpd = x.cnt_cmpd,
+                    cnt_notice = x.cnt_notice,
+                    cnt_notes = x.cnt_notes,
+                    cnt_seizure = x.cnt_seizure,
+                    creator_id = runUserID,
+                    created_at = DateTime.Now,
+                    modifier_id = runUserID,
+                    modified_at = DateTime.Now,
+                    is_deleted = false,
+                    start_location = x.start_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.start_location))
+                                    : null,
+
+                    end_location = x.end_location != null
+                                        ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.end_location))
+                                        : null,
+                    district_code = x.district_code,
+                    town_code = x.town_code,
+                })
+                .FirstOrDefaultAsync();
+
+                return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
