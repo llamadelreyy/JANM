@@ -81,8 +81,8 @@ namespace PBTPro.Data
                         NoLot = "101",
                         Position = new LatLngLiteral()
                         {
-                            Lat = 3.0501028427254098,
-                            Lng = 101.62482171721311
+                            Lat = 3.05051,
+                            Lng = 101.62411
                         },
                         NoRujukan = "K0808M341",
                         TarikhMasa = "08/08/2024 12:30:30PM",
@@ -114,8 +114,8 @@ namespace PBTPro.Data
                         NoLot = "102",
                         Position = new LatLngLiteral()
                         {
-                            Lat = 3.0502028427254098,
-                            Lng = 101.62482171721311
+                            Lat = 3.05049,
+                            Lng = 101.62404
                         },
                         NoRujukan = "K0808M876",
                         TarikhMasa = "08/08/2024 12:45:30PM",
@@ -147,8 +147,8 @@ namespace PBTPro.Data
                         NoLot = "103",
                         Position = new LatLngLiteral()
                         {
-                            Lat = 3.0503028427254098,
-                            Lng = 101.62482171721311
+                            Lat = 3.05045,
+                            Lng = 101.62400
                         },
                         NoRujukan = "K0808M001",
                         TarikhMasa = "08/08/2024 12:45:30PM",
@@ -180,8 +180,8 @@ namespace PBTPro.Data
                         NoLot = "104",
                         Position = new LatLngLiteral()
                         {
-                            Lat = 3.0504028427254098,
-                            Lng = 101.62482171721311
+                            Lat = 3.05041,
+                            Lng = 101.62396
                         },
                         NoRujukan = "K0808M102",
                         TarikhMasa = "08/08/2024 12:45:30PM",
@@ -213,8 +213,8 @@ namespace PBTPro.Data
                         NoLot = "105",
                         Position = new LatLngLiteral()
                         {
-                            Lat = 3.0505028427254098,
-                            Lng = 101.62482171721311
+                            Lat = 3.05037,
+                            Lng = 101.62391
                         },
                         NoRujukan = "K0809M122",
                         TarikhMasa = "09/08/2024 02:38:10PM",
@@ -246,8 +246,8 @@ namespace PBTPro.Data
                         NoLot = "106",
                         Position = new LatLngLiteral()
                         {
-                            Lat = 3.0506028427254098,
-                            Lng = 101.62482171721311
+                            Lat = 3.05033,
+                            Lng = 101.62387
                         },
                         NoRujukan = "K0809M172",
                         TarikhMasa = "09/08/2024 09:28:40AM",
@@ -280,8 +280,8 @@ namespace PBTPro.Data
                         NoLot = "107",
                         Position = new LatLngLiteral()
                         {
-                            Lat = 3.0507028427254098,
-                            Lng = 101.62482171721311
+                            Lat = 3.05030,
+                            Lng = 101.62382
                         },
                         NoRujukan = "K0809M152",
                         TarikhMasa = "09/08/2024 03:15:12PM",
@@ -313,8 +313,8 @@ namespace PBTPro.Data
                         NoLot = "108",
                         Position = new LatLngLiteral()
                         {
-                            Lat = 3.0508028427254098,
-                            Lng = 101.62482171721311
+                            Lat = 3.05025,
+                            Lng = 101.624378
                         },
                         NoRujukan = "K0809M176",
                         TarikhMasa = "09/08/2024 12:30:30PM",
@@ -346,8 +346,8 @@ namespace PBTPro.Data
                         NoLot = "109",
                         Position = new LatLngLiteral()
                         {
-                            Lat = 3.0509028427254098,
-                            Lng = 101.62482171721311
+                            Lat = 3.05022,
+                            Lng = 101.62373
                         },
                         NoRujukan = "K0810M112",
                         TarikhMasa = "10/08/2024 01:29:03PM",
@@ -380,8 +380,8 @@ namespace PBTPro.Data
                         NoLot = "110",
                         Position = new LatLngLiteral()
                         {
-                            Lat = 3.0510028427254098,
-                            Lng = 101.62482171721311
+                            Lat = 3.05017,
+                            Lng = 101.62369
                         },
                         NoRujukan = "K0810M122",
                         TarikhMasa = "10/08/2024 11:21:24AM",
