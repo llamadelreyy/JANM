@@ -680,7 +680,6 @@ public partial class PBTProTenantDbContext : DbContext
             entity.ToTable("ref_cfsc_scenarios", "tenant", tb => tb.HasComment("Table to store different scenarios related to confiscation cases."));
 
             entity.Property(e => e.scen_id)
-                .ValueGeneratedNever()
                 .HasComment("Unique identifier for each confiscation scenario.");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
