@@ -85,6 +85,7 @@ else
             EditModelSaving="Grid_EditModelSaving"
             EditFormTemplate="Form_AddEditTemplate"
             EditFormButtonsVisible="true"
+            CustomizeEditModel="OnCustomizeEditModel"
             PageSizeSelectorVisible="true"
             PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
             PageSizeSelectorAllRowsItemVisible="true"
@@ -99,6 +100,9 @@ else
                             @if (PermissionService.HasPermission("Add"))
                             {
                                 <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" title="Tambah Baru" alt="Tambah Baru"/></a>
+                                <!--<a @onclick="@(() => StartNewRowEdit())" style="text-decoration: none;" href="javascript:void(0);">
+                                <img src="images/icons/plus-circle.png" title="Tambah Baru" alt="Tambah Baru" />
+                                </a>-->
                             }
                             @if (PermissionService.HasPermission("ImportData"))
                             {
@@ -461,6 +465,31 @@ else
             }
         };
     };
+
+    private void OnCustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            switch (ActiveTabIndex)
+            {
+                case 0:
+                    e.EditModel = new ref_law_act();
+                    break;
+                case 1:
+                    e.EditModel = new ref_law_section();
+                    break;
+                case 2:
+                    e.EditModel = new ref_law_uuk();
+                    break;
+                case 3:
+                    e.EditModel = new ref_law_offense();
+                    break;
+                default:
+                    e.EditModel = new ref_law_act();
+                    break;
+            }
+        }
+    }
 
     // Get the correct EditContext for the active tab
     private EditContext GetEditContextForActiveTab(GridEditFormTemplateContext formContext)

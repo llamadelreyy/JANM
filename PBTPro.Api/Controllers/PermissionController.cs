@@ -452,5 +452,120 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> BulkSaveDynamic([FromBody] List<permission> InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+
+                #region Validation
+                if (!InputModel.Any())
+                {
+                    return Error("", SystemMesg(_feature, "EMPTY_PAYLOAD", MessageTypeEnum.Error, string.Format("Tiada data untuk disimpan")));
+                }
+
+                if (InputModel.Any(x => x.role_id == null))
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_ROLE", MessageTypeEnum.Error, string.Format("Peranan tidak sah")));
+                }
+
+                if (InputModel.Any(x => x.menu_id == null))
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_ROLE", MessageTypeEnum.Error, string.Format("Peranan tidak sah")));
+                }
+
+                var roleIds = InputModel.Select(x => x.role_id).Distinct().ToList();
+                var rolesExist = await _dbContext.Roles.Where(r => roleIds.Contains(r.Id)).ToListAsync();
+                if (rolesExist.Count != roleIds.Count)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_ROLE", MessageTypeEnum.Error, string.Format("Peranan tidak sah")));
+                }
+
+                var menuIds = InputModel.Select(x => x.menu_id).Distinct().ToList();
+                var menusExist = await _dbContext.menus.Where(r => menuIds.Contains(r.menu_id)).ToListAsync();
+                if (menusExist.Count != menuIds.Count)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_MENU", MessageTypeEnum.Error, string.Format("Menu tidak sah")));
+                }
+
+                var duplicateRoleMenuPairs = InputModel
+                    .GroupBy(x => new { x.role_id, x.menu_id })
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
+
+                if (duplicateRoleMenuPairs.Any())
+                {
+                    return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
+                }
+                #endregion
+
+                #region Prepare Data
+                var roleMenuPairs = InputModel.Where(im => im.permission_id == 0).Select(im => new { im.role_id, im.menu_id }).Distinct().ToList();
+
+                var existingPermissionsInDb = (from rmp in roleMenuPairs
+                                               join p in _dbContext.permissions.AsNoTracking()
+                                                   on new { rmp.role_id, rmp.menu_id } equals new { p.role_id, p.menu_id }
+                                               select p)
+                               .ToDictionary(p => (p.role_id, p.menu_id), p => p);
+
+                // var existingPermissionsInDb = _dbContext.permissions
+                //.Where(p => roleMenuPairs.Any(rmp => rmp.role_id == p.role_id && rmp.menu_id == p.menu_id))
+                //.ToList();
+
+                //var existingPermissionsDict = existingPermissionsInDb
+                //    .ToDictionary(p => (p.role_id, p.menu_id), p => p);
+
+                foreach (var inputPermission in InputModel)
+                {
+                    if (inputPermission.permission_id == 0)
+                    {
+                        if (existingPermissionsInDb.TryGetValue((inputPermission.role_id, inputPermission.menu_id), out var existingPermission))
+                        {
+                            inputPermission.permission_id = existingPermission.permission_id;
+                            inputPermission.creator_id = existingPermission.creator_id;
+                            inputPermission.created_at = existingPermission.created_at;
+                            inputPermission.modifier_id = runUserID;
+                            inputPermission.modified_at = DateTime.Now;
+                        }
+                        else
+                        {
+                            inputPermission.creator_id = runUserID;
+                            inputPermission.created_at = DateTime.Now;
+                        }
+                    }
+                    else
+                    {
+                        inputPermission.modifier_id = runUserID;
+                        inputPermission.modified_at = DateTime.Now;
+                    }
+                }
+
+                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
+                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
+                #endregion
+
+                if (newPermissions.Any() || existingPermissions.Any())
+                {
+                    if (newPermissions.Any())
+                    {
+                        _dbContext.permissions.AddRange(newPermissions);
+                    }
+                    if (existingPermissions.Any())
+                    {
+                        _dbContext.permissions.UpdateRange(existingPermissions);
+                    }
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                return Ok("", SystemMesg(_feature, "BULK_SAVE", MessageTypeEnum.Success, string.Format("Berjaya menyimpan kebenaran akses")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
     }
 }
