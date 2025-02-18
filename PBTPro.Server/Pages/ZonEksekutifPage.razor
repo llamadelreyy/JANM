@@ -1,6 +1,26 @@
 ﻿@page "/zon_Eksekutif"
-@attribute [AllowAnonymous]
-@using System.Globalization
+@attribute [Authorize]
+
+@implements IDisposable
+
+@using PBTPro
+@using PBTPro.Shared
+@using PBTPro.Data
+@using PBTPro.DAL
+@using PBTPro.DAL.Models
+@using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.CommonServices
+@using DevExpress.Blazor
+
+@inject DashboardService _DashboardService
+@inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastService
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
 
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -17,7 +37,7 @@
                 <div class="dashboard-style notis-color">
                     <div class="dashboard-wrap">
                         <p class="dashboard-center-text">
-                            <span class="totalinnumber">325</span>
+                            <span class="totalinnumber">@dataSource.JumlahNotis</span>
                             <span class="totalinword">Notis</span>
                         </p>
                     </div>
@@ -31,7 +51,7 @@
                 <div class="dashboard-style kompaun-color">
                     <div class="dashboard-wrap">
                         <p class="dashboard-center-text">
-                            <span class="totalinnumber">325</span>
+                            <span class="totalinnumber">@dataSource.JumlahKompaun</span>
                             <span class="totalinword">Kompaun</span>
                         </p>
                     </div>
@@ -45,7 +65,7 @@
                 <div class="dashboard-style nota-color">
                     <div class="dashboard-wrap">
                         <p class="dashboard-center-text">
-                            <span class="totalinnumber">325</span>
+                            <span class="totalinnumber">@dataSource.JumlahNotaPemeriksaan</span>
                             <span class="totalinword">Nota pemeriksaan</span>
                         </p>
                     </div>
@@ -59,7 +79,7 @@
                 <div class="dashboard-style sitaan-color">
                     <div class="dashboard-wrap">
                         <p class="dashboard-center-text">
-                            <span class="totalinnumber">325</span>
+                            <span class="totalinnumber">@dataSource.JumlahSitaan</span>
                             <span class="totalinword">Sitaan</span>
                         </p>
                     </div>
@@ -142,163 +162,35 @@
         </div>
     </div>
 
-    @*     <div class="d-lg-flex" style="padding:0 0 0 0;">
-    <div class="d-lg-flex col-12">
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">15,325</span>
-    <span class="totalinword">Jumlah Lesen Aktif</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="jumlesenaktif" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">520</span>
-    <span class="totalinword">Jumlah Lesen Tamat Tempoh</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">21,432</span>
-    <span class="totalinword">Jumlah Premis Perniagaan</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    </div>
-    </div>
-
-    <div class="d-lg-flex" style="padding:0 0 0 0;">
-    <div class="d-lg-flex col-12">
-    <div class="col-8 dashboard-box">
-    <div class="dashboard-style-big">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">RM 15,234,985.00</span>
-    <span class="totalinword">Hasil Tahun Semasa</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">15,325</span>
-    <span class="totalinword">Jumlah Lesen Berisiko</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-
-    <div class="d-lg-flex" style="padding:0 0 0 0;">
-    <div class="d-lg-flex col-12">
-
-    <div class="col-8 dashboard-box">
-    <div class="dashboard-style-big">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">RM 1,234,985.00</span>
-    <span class="totalinword">Potensi Hasil Belum Dikutip</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">15,325</span>
-    <span class="totalinword">Jumlah Lesen Tidak Berisiko</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-
-    <div class="d-lg-flex" style="padding:0 0 0 0;">
-    <div class="d-lg-flex col-12">
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">450</span>
-    <span class="totalinword">Pertambahan Lesen Tahun Semasa</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">258</span>
-    <span class="totalinword">Potensi Perniagaan Tanpa Lesen</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">35</span>
-    <span class="totalinword">Pertambahan Lesen Bulan Semasa</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div> *@
-
 </div>
+
+</DxLoadingPanel>
+
+@code {
+    bool PanelVisible { get; set; }
+    mst_dashboard dataSource;
+
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    protected override async Task OnInitializedAsync()
+    {
+        PanelVisible = true;
+        dataSource = await _DashboardService.ListAll();
+        DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+        }
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+}

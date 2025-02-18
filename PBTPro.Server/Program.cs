@@ -115,6 +115,7 @@ builder.Services.AddTransient<ScheduleService>();
 builder.Services.AddTransient<DeliverService>();
 builder.Services.AddTransient<NoticeDurationService>();
 builder.Services.AddTransient<RefPatrolStatusService>();
+builder.Services.AddTransient<DashboardService>();
 
 
 builder.Services.AddSingleton<FileUrlStorageService>();
