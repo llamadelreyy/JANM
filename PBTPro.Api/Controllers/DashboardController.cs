@@ -10,6 +10,7 @@ Changes Logs:
 14/11/2024 - initial create
 Ticket No: 053
 */
+using DevExpress.Data.Linq.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,7 @@ namespace PBTPro.Api.Controllers
                 var totalNota = await _tenantDBContext.trn_inspections.CountAsync();
                 var totalSita = await _tenantDBContext.trn_confiscations.CountAsync();
                 var premisBerlesen = await _tenantDBContext.mst_licensees.Where(t => t.status_id == 1).CountAsync();
+                //Dalam Rondaan
                 var premisDiperiksa = await _tenantDBContext.mst_patrol_schedules.Where(t => t.status_id == 2).CountAsync();
 
                 var premisTindakan = await _tenantDBContext.mst_licensees
@@ -67,6 +69,11 @@ namespace PBTPro.Api.Controllers
                     .ToListAsync();
 
                 var totalPremisTindakan = premisTindakan.Sum(x => x.NoticeCount + x.CompoundCount + x.ConfiscationCount);
+                var premisTiadaLesen = await _tenantDBContext.mst_premis.Where(p => p.lesen == null || p.lesen == "" || string.IsNullOrEmpty(p.lesen)).CountAsync();
+                //var premisTamatTempohLesen = await _tenantDBContext.mst_premis.Where(p => Convert.ToDateTime(p.tempoh_sah_lesen) <= DateTime.Today).CountAsync();
+                var premisTamatTempohLesen = await _tenantDBContext.mst_premis.Where(p => p.tempoh_sah_lesen <= DateOnly.FromDateTime(DateTime.Today)).CountAsync();
+
+                var bilCukaiTahunan = await _tenantDBContext.mst_premis.CountAsync();
 
                 var result = new dashboard_view
                 {
@@ -76,7 +83,11 @@ namespace PBTPro.Api.Controllers
                     total_confiscation = totalSita,
                     premis_berlesen = premisBerlesen,
                     premis_diperiksa = premisDiperiksa,
-                    premis_dikenakan_tindakan = totalPremisTindakan, 
+                    premis_dikenakan_tindakan = totalPremisTindakan,
+                    premis_tiada_lesen = premisTiadaLesen,
+                    premis_tamat_tempoh_lesen = premisTamatTempohLesen,
+                    total_cukai_tahunan = bilCukaiTahunan,
+                    amaun_kutipan_cukai = 4569.93
                 };
 
                 if (result == null)

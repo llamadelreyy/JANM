@@ -130,23 +130,11 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Add(ref_doc inputModel, IFormFile fileAttachment)
+        public async Task<ReturnViewModel> Add(ref_doc inputModel)
         {
             var result = new ReturnViewModel();
             try
-            {
-                if (fileAttachment != null)
-                {
-                    string DocExt = Path.GetExtension(fileAttachment.FileName);
-                    string DocUrl = String.Format("{0}{1}", "document", DocExt);
-                    await UploadDocument(fileAttachment, "document", DocUrl);
-                    inputModel.pathurl = DocUrl;
-                }
-                else
-                {
-                    inputModel.pathurl = "";
-                }
-
+            {             
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
@@ -249,38 +237,33 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<string> UploadDocument(IFormFile file, string folderName = "", string DocUrl = "")
+        public async Task<ReturnViewModel> UploadFile(ref_doc inputModel)
         {
             var result = new ReturnViewModel();
-            if (file == null || file.Length == 0)
+            try
             {
+                var reqData = JsonConvert.SerializeObject(inputModel);
+                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
+                string requestUrl = $"Upload/UploadFile";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
+
+                result = response;
+                if (response.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
             }
-
-            var fileName = Path.GetFileName(DocUrl);
-            var filePath = Path.Combine(new[] { Directory.GetCurrentDirectory(), "wwwroot", RemoveSymbols(folderName), fileName });
-
-            Directory.CreateDirectory(Path.Combine(new[] { Directory.GetCurrentDirectory(), "wwwroot", RemoveSymbols(folderName) }));
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            catch (Exception ex)
             {
-                await file.CopyToAsync(stream);
+                result = new ReturnViewModel();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
             }
-            return fileName;
-        }
-
-        public string RemoveSymbols(string input)
-        {
-            return Regex.Replace(input, @"[^a-zA-Z0-9\s]", "");
-        }
-
-        public string AppendTimeStamp(string fileName)
-        {
-            return string.Concat(
-                Path.GetFileNameWithoutExtension(fileName),
-                DateTime.Now.ToString("yyyyMMddHHmmssfff"),
-                Path.GetExtension(fileName)
-                );
+            return result;
         }
     }
 }
