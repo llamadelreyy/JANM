@@ -175,8 +175,10 @@ namespace PBTPro.Api.Controllers
                 _dbContext.contact_us.Update(formField);
                 await _dbContext.SaveChangesAsync();
 
-                await SendEmailContactUs(formField.contact_email, InputModel.contact_name, formField.contact_status, formField.response_message);
-
+                if (formField.contact_status.ToLower() != "menunggu")
+                {
+                    await SendEmailContactUs(formField.contact_email, InputModel.contact_name, formField.contact_status, formField.response_message);
+                }
                 return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
             catch (Exception ex)
@@ -251,7 +253,7 @@ namespace PBTPro.Api.Controllers
                         };
                         break;
                 };
-                string[] param = { username, response,  };
+                string[] param = { username, response, };
 
                 var emailHelper = new EmailHelper(_dbContext, _emailSender);
                 EmailContent emailContent = await emailHelper.getEmailContent("CONTACT_US", param, defaultContent);

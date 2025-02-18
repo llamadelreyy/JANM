@@ -25,6 +25,7 @@
 @inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
+@inject PBTAuthPermissionService PermissionService
 
 <style>
     .dxbl-grid {
@@ -32,282 +33,291 @@
         max-height: 82.5vh;
     }
 </style>
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+                    IsContentBlocked="true"
+                    ApplyBackgroundShading="true"
+                    IndicatorAreaVisible="false"
+                    Text="Capaian Data...">
 
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
-
-    <div class="d-lg-flex border-bottom">
-        <div class="col-md-12 py-1 dx-helptitle pageTitle">
-            <img class="imgTitle" src="/images/icons-small/table-heatmap.png" />
-            <div class="textTitle">Rondaan - Senarai Jadual Rondaan</div>
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="/images/icons-small/table-heatmap.png" />
+                <div class="textTitle">Rondaan - Senarai Jadual Rondaan</div>
+            </div>
         </div>
-    </div>
 
-    <div class="item-container-x" style="padding-top:2px;">
-        <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="@OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
-            @{
-                // <DxTab Text="Belum Meronda (0)"></DxTab>
-                // <DxTab Text="Dalam Rondaan (0)"></DxTab>     
-                // <DxTab Text="Selesai (0)"></DxTab>
-                string belummeronda = "Belum Meronda (" + belumMerondaCount + ")";
-                string dalamrondaan = "Dalam Rondaan (" + dalamRondaanCount + ")";
-                string selesai = "Selesai (" + selesaiCount + ")";
-
-                <DxTab Text="@belummeronda"></DxTab>
-                <DxTab Text="@dalamrondaan"></DxTab>
-                <DxTab Text="@selesai"></DxTab>
-            }            
-        </DxTabs>
-
-        <DxGrid @ref="Grid"
-        Data="@dataSchedule"
-        KeyFieldName="scheduleId"
-        ShowGroupPanel="true"
-        ShowFilterRow="false"
-        TextWrapEnabled="true"
-        EditorRenderMode="GridEditorRenderMode.Integrated"
-        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-        ShowSearchBox="true"
-        AllowSelectRowByClick="true"
-        @bind-SearchText="@GridSearchText"
-        PageSize="25"
-        @bind-PageIndex="@GridPageIndex"
-        PagerPosition="GridPagerPosition.Bottom"
-        PagerNavigationMode="PagerNavigationMode.InputBox"
-        EditModelSaving="Grid_EditModelSaving"
-        EditFormButtonsVisible="false"
-        PageSizeSelectorVisible="true"
-        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-        PageSizeSelectorAllRowsItemVisible="true"
-        PagerAutoHideNavButtons="false"
-        ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-        GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-        HighlightRowOnHover="true"
-        CssClass="mv-1000">
-
-            <Columns>
-                <DxGridCommandColumn Width="55px">
-                    <HeaderTemplate>
-                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                    </HeaderTemplate>
-                    <CellDisplayTemplate>
-                        @{
-                            var strStatus = ((PatrolViewModel)context.DataItem).PatrolStatus;
-                            if (strStatus == "3")
-                            {
-                                <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                                <a @onclick="@(() => Delete((PatrolViewModel)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                            }
-                        }
-                    </CellDisplayTemplate>
-                </DxGridCommandColumn>
-                <DxGridDataColumn Caption="Pegawai" MinWidth="100" Width="20%" FieldName="OfficerName" TextAlignment="GridTextAlignment.Left">
-                    <CellDisplayTemplate>
-                        <div>
-                            @CombineTextPegawai(((PatrolViewModel)context.DataItem).OfficerName, ((PatrolViewModel)context.DataItem).DeptName, ((PatrolViewModel)context.DataItem).SectionName, ((PatrolViewModel)context.DataItem).UnitName)
-                        </div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn Caption="Lokasi" MinWidth="100" Width="20%" FieldName="DistrictName" TextAlignment="GridTextAlignment.Left">
-                    <CellDisplayTemplate>
-                        <div>
-                            @CombineTextLokasi(((PatrolViewModel)context.DataItem).TownName, ((PatrolViewModel)context.DataItem).DistrictName)
-                        </div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn Caption="Rondaan Mula" MinWidth="200" Width="30%" FieldName="StartTime" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
-                    <CellDisplayTemplate>
-                        <div>
-                            @CombineTextStartPatrol(Convert.ToDateTime(((PatrolViewModel)context.DataItem).StartTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).StartTime))
-                        </div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn Caption="Rondaan Tamat" MinWidth="200" Width="30%" FieldName="EndTime" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
-                    <CellDisplayTemplate>
-                        <div>
-                            @CombineTextEndPatrol(Convert.ToDateTime(((PatrolViewModel)context.DataItem).EndTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).EndTime))
-                        </div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn FieldName="PatrolStatus" Caption="Status" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
-                    <CellDisplayTemplate>
-                        <div>@GetStatusRondaanIconHtml(((PatrolViewModel)context.DataItem).PatrolStatus)</div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn FieldName="CreatedAt"
-                DisplayFormat="dd/MM/yyyy"
-                Caption="Tarikh Data"
-                MinWidth="100"
-                Width="12%"
-                TextAlignment="GridTextAlignment.Center"
-                SortOrder="GridColumnSortOrder.Ascending"
-                SortIndex="0">
-                    <FilterMenuTemplate>
-                        <DateRange FilterContext="context" />
-                    </FilterMenuTemplate>
-                </DxGridDataColumn>
-            </Columns>
-
-            <EditFormTemplate Context="EditFormContext">
+        <div class="item-container-x" style="padding-top:2px;">
+            <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged="@OnActiveTabIndexChanged" TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
                 @{
-                    var dtEdit = (PatrolViewModel)EditFormContext.EditModel;
-                    // This is to check whether in add new @ edit mode
-                    //boolLockDropDown = Grid.IsEditingNewRow();
+                    string belummeronda = "Belum Meronda (" + belumMerondaCount + ")";
+                    string dalamrondaan = "Dalam Rondaan (" + dalamRondaanCount + ")";
+                    string selesai = "Selesai (" + selesaiCount + ")";
+
+                    <DxTab Text="@belummeronda"></DxTab>
+                    <DxTab Text="@dalamrondaan"></DxTab>
+                    <DxTab Text="@selesai"></DxTab>
                 }
-                <DxFormLayout CssClass="w-100">
-                    <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
-                        <table class="">
-                            <tr>
-                                <td nowrap>Nama Pegawai</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxComboBox Data="@dataUser"
-                                    NullText="Pilih nama pegawai ..."
-                                    ShowValidationIcon="true"
-                                    SearchMode="ListSearchMode.AutoSearch"                                   
-                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                    TextFieldName="@nameof(ApplicationUser.TextName)"
-                                    ValueFieldName="IdNo"
-                                    CssClass="combo-width"
-                                    SelectedItemChanged="@((ApplicationUser x) => SelectedItemChanged(x))"
-                                    DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
-                                    @bind-Value="@dtEdit.ICNo"
-                                    @bind-Text="@dtEdit.OfficerName">
-                                    </DxComboBox>
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Jabatan</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxTextBox @bind-Text="@_itm.DeptName"
-                                    @bind-Value="@dtEdit.DeptId"
-                                    NullText="Jabatan pengguna ..."
-                                    BindValueMode="BindValueMode.OnInput"
-                                    Style="width: 320px;"
-                                    Enabled="false" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Seksyen</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxTextBox @bind-Text="@_itm.UnitName"
-                                    @bind-Value="@dtEdit.SectionId"
-                                    NullText="Seksyen pengguna ..."
-                                    BindValueMode="BindValueMode.OnInput"
-                                    Style="width: 320px;"
-                                    Enabled="false" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Unit</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxTextBox @bind-Text="@_itm.UnitName"
-                                    @bind-Value="@dtEdit.UnitId"
-                                    NullText="Unit pengguna ..."
-                                    BindValueMode="BindValueMode.OnInput"
-                                    Style="width: 320px;"
-                                    Enabled="false" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Daerah</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    <DxComboBox Data="@dtDistrict"
-                                    NullText="Pilih Daerah ..."
-                                    ShowValidationIcon="true"
-                                    FilteringMode="DataGridFilteringMode.Contains"
-                                    @bind-Value="@dtEdit.DistrictCode"
-                                    @bind-Text="@dtEdit.DistrictName"
-                                    TextFieldName="district_name"
-                                    ValueFieldName="district_code" style="width:300px">
-                                    </DxComboBox>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Bandar</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    @{
-                                        var strDistrict = dtDistrict.Where(c => c.district_code == dtEdit.DistrictCode).FirstOrDefault()?.district_code;
-                                        var TownData = dtTown.Where(x => x.district_code == strDistrict);
+            </DxTabs>
+
+            <DxGrid @ref="Grid"
+                    Data="@dataSchedule"
+                    KeyFieldName="scheduleId"
+                    ShowGroupPanel="true"
+                    ShowFilterRow="false"
+                    TextWrapEnabled="true"
+                    EditorRenderMode="GridEditorRenderMode.Integrated"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    ShowSearchBox="true"
+                    AllowSelectRowByClick="true"
+                    @bind-SearchText="@GridSearchText"
+                    PageSize="25"
+                    @bind-PageIndex="@GridPageIndex"
+                    PagerPosition="GridPagerPosition.Bottom"
+                    PagerNavigationMode="PagerNavigationMode.InputBox"
+                    EditModelSaving="Grid_EditModelSaving"
+                    EditFormButtonsVisible="false"
+                    PageSizeSelectorVisible="true"
+                    PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PagerAutoHideNavButtons="false"
+                    ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                    GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                    HighlightRowOnHover="true"
+                    CssClass="mv-1000">
+
+                <Columns>
+                    <DxGridCommandColumn Width="55px">
+                        <HeaderTemplate>
+                            @if (PermissionService.HasPermission("Add"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                            }
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            @{
+                                @if (PermissionService.HasPermission("Edit") || PermissionService.HasPermission("Delete"))
+                                {
+                                    var strStatus = ((PatrolViewModel)context.DataItem).PatrolStatus;
+                                    if (strStatus == "3")
+                                    {
+                                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                                        <a @onclick="@(() => Delete((PatrolViewModel)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                                     }
-                                    <DxComboBox Data="@TownData"
-                                    NullText="Pilih Bandar ..."
-                                    ShowValidationIcon="true"
-                                    FilteringMode="DataGridFilteringMode.Contains"
-                                    @bind-Value="@dtEdit.TownCode"
-                                    @bind-Text="@dtEdit.TownName"
-                                    TextFieldName="town_name"
-                                    ValueFieldName="town_code" style="width:300px">
-                                    </DxComboBox>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Masa Mula Rondaan</td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxDateEdit @bind-Date="@dtEdit.StartTime"
-                                    NullValue="@DateTimeValue"
-                                    NullText="@DateTimeValue.ToString()"
-                                    TimeSectionVisible="true"
-                                    CssClass="cw-320" />
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Masa Tamat Rondaan</td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxDateEdit @bind-Date="@dtEdit.EndTime"
-                                    NullValue="@DateTimeValue"
-                                    NullText="@DateTimeValue.ToString()"
-                                    TimeSectionVisible="true"
-                                    CssClass="cw-320" />
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
+                                }
+                            }
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn Caption="Pegawai" MinWidth="100" Width="20%" FieldName="OfficerName" TextAlignment="GridTextAlignment.Left">
+                        <CellDisplayTemplate>
+                            <div>
+                                @CombineTextPegawai(((PatrolViewModel)context.DataItem).OfficerName, ((PatrolViewModel)context.DataItem).DeptName, ((PatrolViewModel)context.DataItem).SectionName, ((PatrolViewModel)context.DataItem).UnitName)
+                            </div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Lokasi" MinWidth="100" Width="20%" FieldName="DistrictName" TextAlignment="GridTextAlignment.Left">
+                        <CellDisplayTemplate>
+                            <div>
+                                @CombineTextLokasi(((PatrolViewModel)context.DataItem).TownName, ((PatrolViewModel)context.DataItem).DistrictName)
+                            </div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Rondaan Mula" MinWidth="200" Width="30%" FieldName="StartTime" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                        <CellDisplayTemplate>
+                            <div>
+                                @CombineTextStartPatrol(Convert.ToDateTime(((PatrolViewModel)context.DataItem).StartTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).StartTime))
+                            </div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Rondaan Tamat" MinWidth="200" Width="30%" FieldName="EndTime" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                        <CellDisplayTemplate>
+                            <div>
+                                @CombineTextEndPatrol(Convert.ToDateTime(((PatrolViewModel)context.DataItem).EndTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).EndTime))
+                            </div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn FieldName="PatrolStatus" Caption="Status" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                        <CellDisplayTemplate>
+                            <div>@GetStatusRondaanIconHtml(((PatrolViewModel)context.DataItem).PatrolStatus)</div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn FieldName="CreatedAt"
+                                      DisplayFormat="dd/MM/yyyy"
+                                      Caption="Tarikh Data"
+                                      MinWidth="100"
+                                      Width="12%"
+                                      TextAlignment="GridTextAlignment.Center"
+                                      SortOrder="GridColumnSortOrder.Ascending"
+                                      SortIndex="0">
+                        <FilterMenuTemplate>
+                            <DateRange FilterContext="context" />
+                        </FilterMenuTemplate>
+                    </DxGridDataColumn>
+                </Columns>
 
-                        </table>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="12">
-                        <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
-                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
-                    </DxFormLayoutItem>
-                </DxFormLayout>
-            </EditFormTemplate>
-        </DxGrid>
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var dtEdit = (PatrolViewModel)EditFormContext.EditModel;
+                        // This is to check whether in add new @ edit mode
+                        //boolLockDropDown = Grid.IsEditingNewRow();
+                    }
+                    <DxFormLayout CssClass="w-100">
+                        <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                            <table class="">
+                                <tr>
+                                    <td nowrap>Nama Pegawai</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxComboBox Data="@dataUser"
+                                                    NullText="Pilih nama pegawai ..."
+                                                    ShowValidationIcon="true"
+                                                    SearchMode="ListSearchMode.AutoSearch"
+                                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                    TextFieldName="@nameof(ApplicationUser.TextName)"
+                                                    ValueFieldName="IdNo"
+                                                    CssClass="combo-width"
+                                                    SelectedItemChanged="@((ApplicationUser x) => SelectedItemChanged(x))"
+                                                    DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
+                                                    @bind-Value="@dtEdit.ICNo"
+                                                    @bind-Text="@dtEdit.OfficerName">
+                                        </DxComboBox>
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Jabatan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@_itm.DeptName"
+                                                   @bind-Value="@dtEdit.DeptId"
+                                                   NullText="Jabatan pengguna ..."
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   Style="width: 320px;"
+                                                   Enabled="false" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Seksyen</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@_itm.UnitName"
+                                                   @bind-Value="@dtEdit.SectionId"
+                                                   NullText="Seksyen pengguna ..."
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   Style="width: 320px;"
+                                                   Enabled="false" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Unit</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@_itm.UnitName"
+                                                   @bind-Value="@dtEdit.UnitId"
+                                                   NullText="Unit pengguna ..."
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   Style="width: 320px;"
+                                                   Enabled="false" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Daerah</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        <DxComboBox Data="@dtDistrict"
+                                                    NullText="Pilih Daerah ..."
+                                                    ShowValidationIcon="true"
+                                                    FilteringMode="DataGridFilteringMode.Contains"
+                                                    @bind-Value="@dtEdit.DistrictCode"
+                                                    @bind-Text="@dtEdit.DistrictName"
+                                                    TextFieldName="district_name"
+                                                    ValueFieldName="district_code" style="width:300px">
+                                        </DxComboBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Bandar</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        @{
+                                            var strDistrict = dtDistrict.Where(c => c.district_code == dtEdit.DistrictCode).FirstOrDefault()?.district_code;
+                                            var TownData = dtTown.Where(x => x.district_code == strDistrict);
+                                        }
+                                        <DxComboBox Data="@TownData"
+                                                    NullText="Pilih Bandar ..."
+                                                    ShowValidationIcon="true"
+                                                    FilteringMode="DataGridFilteringMode.Contains"
+                                                    @bind-Value="@dtEdit.TownCode"
+                                                    @bind-Text="@dtEdit.TownName"
+                                                    TextFieldName="town_name"
+                                                    ValueFieldName="town_code" style="width:300px">
+                                        </DxComboBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Masa Mula Rondaan</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxDateEdit @bind-Date="@dtEdit.StartTime"
+                                                    NullValue="@DateTimeValue"
+                                                    NullText="@DateTimeValue.ToString()"
+                                                    TimeSectionVisible="true"
+                                                    CssClass="cw-320" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Masa Tamat Rondaan</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxDateEdit @bind-Date="@dtEdit.EndTime"
+                                                    NullValue="@DateTimeValue"
+                                                    NullText="@DateTimeValue.ToString()"
+                                                    TimeSectionVisible="true"
+                                                    CssClass="cw-320" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
 
-    </div>
-</DxLoadingPanel>
+                            </table>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                            <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditFormTemplate>
+            </DxGrid>
 
-<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
-    <BodyContentTemplate>
-        Anda pasti untuk menghapuskan rekod ini?
-        <br /><br />
-        <div class="confirm-dialog-buttons">
-            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
-            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
         </div>
-    </BodyContentTemplate>
-</DxPopup>
+    </DxLoadingPanel>
+
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
+}
 
 @code {
     bool PanelVisible { get; set; }
@@ -356,11 +366,11 @@
         dataSchedule = await GetListDataAsync(tabType);
         dataTabSchedule = await _ScheduleService.ListsAll();
         dtPatrolStatus = await _RefPatrolStatus.ListAll();
-       
-        belumMerondaCount = dataTabSchedule.Count(x => x.PatrolStatus == "3" );
+
+        belumMerondaCount = dataTabSchedule.Count(x => x.PatrolStatus == "3");
         dalamRondaanCount = dataTabSchedule.Count(x => x.PatrolStatus == "2");
         selesaiCount = dataTabSchedule.Count(x => x.PatrolStatus == "1");
-        
+
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
     }
@@ -393,13 +403,13 @@
                 break;
         }
 
-        dataSchedule = await GetListDataAsync(tabType);        
+        dataSchedule = await GetListDataAsync(tabType);
         StateHasChanged();
     }
 
     private async Task<IEnumerable<PatrolViewModel>> GetListDataAsync(string? formType = "3")
     {
-        IEnumerable<PatrolViewModel> result = await _ScheduleService.ListByTabType(formType);        
+        IEnumerable<PatrolViewModel> result = await _ScheduleService.ListByTabType(formType);
         return result;
     }
 
@@ -452,7 +462,7 @@
                 editModel.OfficerName = _itm.OfficerName;
                 editModel.PatrolStatus = "3";
 
-                editModel.DistrictName = _itm.DistrictName;                
+                editModel.DistrictName = _itm.DistrictName;
 
                 response = await _ScheduleService.Update(editModel);
             }

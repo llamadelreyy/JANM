@@ -1,0 +1,393 @@
+﻿@*
+Project: PBT Pro
+Description: Page of Document
+Author: Farhana
+Date: February 2025
+Version: 1.0
+
+Changes Logs:
+13/02/2025 - initial create
+*@
+
+@page "/senarai_dokumen"
+@attribute [Authorize]
+
+@implements IDisposable
+
+@using System.Globalization
+@using Blazored.Toast.Services
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+@using PBTPro.DAL.Services
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+
+@inject PBTAuthPermissionService PermissionService
+@inject DocumentService _DocumentService
+@inject NavigationManager NavigationManager
+@inject IToastService toastService
+@inject PBTAuthStateProvider _PBTAuthStateProvider
+@inject IToastNotificationService ToastService
+@inject PBTAuthPermissionService PermissionService
+@inject FileUrlStorageService _fileUrlStorageService
+
+
+<style>
+    .dxbl-grid {
+        height: 98.5%;
+        max-height: 98.5%;
+    }
+</style>
+@* 
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{ *@
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+    <div class="d-lg-flex border-bottom">
+        <div class="col-md-12 py-1 dx-helptitle pageTitle">
+            <img class="imgTitle" src="\images\icons-small\document-task.png" />
+            <div class="textTitle">Dokumen - Senarai Dokumen</div>
+        </div>
+    </div>
+
+    <div class="item-container-x">
+        <DxGrid @ref="Grid"
+                Data="@dtSource"
+                KeyFieldName="doc_id"
+                ShowGroupPanel="true"
+                ShowFilterRow="false"
+                TextWrapEnabled="true"
+                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                EditorRenderMode="GridEditorRenderMode.Integrated"
+                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                ShowSearchBox="true"
+                AllowSelectRowByClick="true"
+                @bind-SearchText="@GridSearchText"
+                PageSize="25"
+                @bind-PageIndex="@GridPageIndex"
+                PagerPosition="GridPagerPosition.Bottom"
+                PagerNavigationMode="PagerNavigationMode.InputBox"
+                EditModelSaving="Grid_EditModelSaving"
+                EditFormButtonsVisible="false"
+                PageSizeSelectorVisible="true"
+                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                PageSizeSelectorAllRowsItemVisible="true"
+                PagerAutoHideNavButtons="false"
+                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                HighlightRowOnHover="true"
+                CssClass="mv-1000">
+
+            <Columns>
+
+                <DxGridCommandColumn Width="55px">
+                    <HeaderTemplate>
+                        @* @if (PermissionService.HasPermission("Add"))
+                        { *@
+                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                       @*  } *@
+                    </HeaderTemplate>
+                    <CellDisplayTemplate>
+                        @* @if (PermissionService.HasPermission("Edit"))
+                            { *@
+                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        @* } *@
+                        @* @if (PermissionService.HasPermission("Delete"))
+                        { *@
+                        <a @onclick="@(() => Delete((ref_doc)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                       @*  } *@
+                    </CellDisplayTemplate>
+                </DxGridCommandColumn>
+                <DxGridDataColumn FieldName="filename" Caption="Preview Fail" Width="15%" TextAlignment="GridTextAlignment.Center">
+                    <CellDisplayTemplate>
+                        <div>@DownloadIconHTML(((ref_doc)context.DataItem).filename, ((ref_doc)context.DataItem).pathurl)</div>
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn FieldName="doc_cat" Caption="Kategori" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                <DxGridDataColumn FieldName="filename" Caption="Nama" Width="43%" TextAlignment="GridTextAlignment.Left" />
+
+                <DxGridDataColumn FieldName=created_at
+                                  DisplayFormat="dd/MM/yyyy"
+                                  Caption="Tarikh Data"
+                                  MinWidth="120"
+                                  Width="10%"
+                                  TextAlignment="GridTextAlignment.Left"
+                                  SortOrder="GridColumnSortOrder.Ascending"
+                                  SortIndex="0" />
+            </Columns>
+
+            <EditFormTemplate Context="editFormContext">
+                @{
+                    var dtData = (ref_doc)editFormContext.EditModel;
+                }
+                <DxFormLayout CssClass="w-100">
+                    <DxFormLayoutItem ColSpanMd="6">
+                        <div>Nama Fail</div>
+                        <DxTextBox @bind-Text="@dtData.filename"
+                        NullText="Nama Fail ..."
+                        BindValueMode="BindValueMode.OnInput"
+                        CssClass="cw-480" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="6">
+                        <div>Kategori</div>
+                        <DxComboBox Data="@Category"
+                        ShowValidationIcon="true"
+                        NullText="Pilih Kategori..."
+                        @bind-Value="@dtData.doc_cat"
+                        @bind-Text="@dtData.doc_cat"
+                        CssClass="cw-480">
+                        </DxComboBox>
+                    </DxFormLayoutItem>                    
+                    <DxFormLayoutItem ColSpanMd="9">                       
+                        <div class="upload-container">
+                            <div style="@(SelectedFilesCount > 0 ? "display: none" : string.Empty)" id="overviewDemoDropZone" class="card custom-drop-zone rounded-3 w-100 m-0">
+                                <span class="drop-file-icon mb-3"></span>
+                                <span class="drop-file-label mb-3">Seret fail di sini atau klik butang pilih fail</span>
+                                <DxButton Id="overviewDemoSelectButton"
+                                CssClass="m-1"
+                                RenderStyle="ButtonRenderStyle.Primary"
+                                Text="Pilih Fail" />
+                            </div>
+                            <DxUpload Visible="@UploadVisible"
+                            Name="myFile"
+                            ExternalSelectButtonCssSelector="#overviewDemoSelectButton"
+                            ExternalDropZoneCssSelector="#overviewDemoDropZone"
+                            ExternalDropZoneDragOverCssClass="custom-drop-zone-hover"
+                            MaxFileSize="15000000"
+                            AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png", ".pdf" })"
+                            UploadUrl="@GetUploadUrl("api/Upload/UploadFile/")"
+                            SelectedFilesChanged="@SelectedFilesChanged">
+                            </DxUpload>
+                        </div>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+            </EditFormTemplate>
+            <CustomValidators>
+                <MyCustomValidator DataItemValidating="ValidateGridData" />
+            </CustomValidators>
+
+            @*This is to count the summary*@
+            <TotalSummary>
+                <DxGridSummaryItem FooterColumnName="doc_cat"
+                Name="Custom"
+                SummaryType=GridSummaryItemType.Count />
+            </TotalSummary>
+
+        </DxGrid>
+
+    </div>
+</DxLoadingPanel>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
+@* //} *@
+@code {
+    bool PanelVisible { get; set; }
+
+    private List<ref_doc> dtSource = new List<ref_doc>();
+    ref_doc refdoc = new ref_doc();
+
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+    bool ConfirmationShown { get; set; } = false;
+    bool UploadVisible { get; set; } = false;
+
+    GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    #region iformfile
+    int SelectedFilesCount { get; set; }
+    protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
+    {
+        SelectedFilesCount = files.ToList().Count;
+        InvokeAsync(StateHasChanged);
+    }
+
+    protected string GetUploadUrl(string url)
+    {
+        return NavigationManager.ToAbsoluteUri(url).AbsoluteUri;
+    }
+
+    async void UploadFileService(string url)
+    {
+        ReturnViewModel response = new ReturnViewModel();
+        response = await _DocumentService.UploadFile(url);
+    }
+
+    #endregion
+
+    #region list
+    protected override async Task OnInitializedAsync()
+    {
+        PanelVisible = false;
+
+        dtSource = await _DocumentService.ListAll();
+        DataLoadedTcs.TrySetResult(true);
+    }
+
+    async Task UpdateDataAsync()
+    {
+        dtSource = await _DocumentService.Refresh();
+    }
+    #endregion
+
+    #region add/edit/delete
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        ReturnViewModel response = new ReturnViewModel();
+        var editModel = e.EditModel as ref_doc;
+
+        try
+        {
+            if (e.IsNew)
+            {
+                editModel.filename = refdoc.filename;
+                UploadFileService(editModel.pathurl);
+
+                response = await _DocumentService.Add(editModel);
+            }
+            else
+            {
+                response = await _DocumentService.Update(editModel.doc_id, editModel);
+            }
+
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                HandleResponse("Proses kemaskini selesai.");
+            }
+            else
+            {
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        }
+    }
+
+    async Task Delete(ref_doc item)
+    {
+        refdoc = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        try
+        {
+            ReturnViewModel response = new ReturnViewModel();
+            response = await _DocumentService.Delete(refdoc.doc_id);
+
+            if (response.ReturnCode == 200)
+            {
+                await UpdateDataAsync();
+                ConfirmationShown = false;
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
+            }
+            else
+            {
+                ConfirmationShown = false;
+                HandleResponse(response.ReturnMessage, "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+    }
+
+    void OnNoButtonClick()
+    {
+        refdoc = null;
+        ConfirmationShown = false;
+    }
+
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (ref_doc)e.EditModel;
+        if (_data.filename == null)
+        {
+            e.AddError(nameof(_data.filename), "Nama fail tidak sah. Medan perlu diisi.");
+        }
+    }
+
+    private List<string> Category = new List<string>
+    {
+        "Umum",
+        "Manual Pengguna",
+        "Training Material"
+    };
+
+    public MarkupString DownloadIconHTML(string strName, string strPautan)
+    {
+        string html = string.Format("<a href='{1}' target='_blank'><img src='images/icons/blue-folder.png' alt='muat turun fail' /></a>", strName, strPautan);
+        return new MarkupString(html);
+    }
+
+
+    #endregion
+
+    #region response
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
+    #endregion
+}
