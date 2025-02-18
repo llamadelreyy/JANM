@@ -64,7 +64,7 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_ROLEID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
 
-                var permissions = await _dbContext.permissions.Where(x=> x.role_id == roleId)
+                var permissions = await _dbContext.permissions.Where(x => x.role_id == roleId)
                       .AsNoTracking()
                       .ToListAsync();
 
@@ -309,25 +309,44 @@ namespace PBTPro.Api.Controllers
                     .Select(g => g.Key)
                     .ToList();
 
-                var dbPermission = await _dbContext.permissions.Where(p=> p.menu_id == Id)
+                if (duplicateRoleMenuPairs.Any())
+                {
+                    return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
+                }
+
+                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
+                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
+                var dbPermission = await _dbContext.permissions//.Where(p => p.menu_id == Id)
                     .Select(p => new { p.role_id, p.menu_id, p.permission_id })
                     .ToListAsync();
 
+                if (existingPermissions.Any())
+                {
+                    var invalidRecId = dbPermission
+                    .Where(p => existingPermissions
+                    .Any(pair => pair.permission_id == p.permission_id && (pair.role_id != p.role_id || pair.menu_id != p.menu_id)))
+                    .Select(p => new { p.role_id, p.menu_id, p.permission_id })
+                    .ToList();
+
+                    if (invalidRecId.Any())
+                    {
+                        return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                    }
+                }
+
                 var duplicateRoleMenu = dbPermission
                 .Where(p => InputModel
-                .Any(pair => pair.role_id == p.role_id && pair.menu_id == p.menu_id && p.permission_id != pair.permission_id))
+                .Any(pair => pair.permission_id == p.permission_id && (pair.role_id != p.role_id || pair.menu_id != p.menu_id)))
                 .Select(p => new { p.role_id, p.menu_id, p.permission_id })
                 .ToList();
 
-
-                if (duplicateRoleMenu.Any() || duplicateRoleMenuPairs.Any())
+                if (duplicateRoleMenu.Any())
                 {
                     return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
                 }
 
                 #endregion
 
-                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
                 if (newPermissions.Any())
                 {
                     foreach (var newPermission in newPermissions)
@@ -338,7 +357,6 @@ namespace PBTPro.Api.Controllers
 
                     _dbContext.permissions.AddRange(newPermissions);
                 }
-                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
                 if (existingPermissions.Any())
                 {
                     foreach (var existingPermission in existingPermissions)
@@ -399,9 +417,30 @@ namespace PBTPro.Api.Controllers
                     .Select(g => g.Key)
                     .ToList();
 
-                var dbPermission = await _dbContext.permissions.Where(p => p.menu_id == Id)
+                if (duplicateRoleMenuPairs.Any())
+                {
+                    return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
+                }
+
+                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
+                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
+                var dbPermission = await _dbContext.permissions//.Where(p => p.role_id == Id)
                     .Select(p => new { p.role_id, p.menu_id, p.permission_id })
                     .ToListAsync();
+
+                if (existingPermissions.Any())
+                {
+                    var invalidRecId = dbPermission
+                    .Where(p => existingPermissions
+                    .Any(pair => pair.permission_id == p.permission_id && (pair.role_id != p.role_id || pair.menu_id != p.menu_id)))
+                    .Select(p => new { p.role_id, p.menu_id, p.permission_id })
+                    .ToList();
+
+                    if (invalidRecId.Any())
+                    {
+                        return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                    }
+                }
 
                 var duplicateRoleMenu = dbPermission
                 .Where(p => InputModel
@@ -409,15 +448,13 @@ namespace PBTPro.Api.Controllers
                 .Select(p => new { p.role_id, p.menu_id, p.permission_id })
                 .ToList();
 
-
-                if (duplicateRoleMenu.Any() || duplicateRoleMenuPairs.Any())
+                if (duplicateRoleMenu.Any())
                 {
                     return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
                 }
 
                 #endregion
 
-                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
                 if (newPermissions.Any())
                 {
                     foreach (var newPermission in newPermissions)
@@ -428,7 +465,7 @@ namespace PBTPro.Api.Controllers
 
                     _dbContext.permissions.AddRange(newPermissions);
                 }
-                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
+
                 if (existingPermissions.Any())
                 {
                     foreach (var existingPermission in existingPermissions)
