@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -26,7 +27,6 @@ namespace PBTPro.Data
                 }
 
                 // Dispose unmanaged resources here
-
                 disposed = true;
             }
         }
@@ -66,9 +66,12 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
+        public async Task<dashboard_view> GetDashboardData()
         {
+            var result = new dashboard_view();
             try
             {
+                string requestUrl = $"{_baseReqURL}/GetDashboardData";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -76,19 +79,21 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
+                        result = JsonConvert.DeserializeObject<dashboard_view>(dataString);
                     }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
                 else
                 {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
                 }
-
             }
             catch (Exception ex)
             {
+                result = new dashboard_view();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
             }
             return result;
-        }       
-
-
-   }
+        }
+    }
 }
