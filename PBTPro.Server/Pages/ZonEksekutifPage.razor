@@ -1,6 +1,19 @@
 ﻿@page "/zon_Eksekutif"
-@attribute [AllowAnonymous]
+@attribute [Authorize]
+
 @using System.Globalization
+@using Blazored.Toast.Services
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+@using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.PayLoads
+
+@inject DashboardService _DashboardService;
+@inject NavigationManager NavigationManager
+@inject PBTAuthPermissionService PermissionService
 
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -148,50 +161,18 @@ else
                 </div>
             </div>
         </div>
+        </div>
+ }
 
-    @*     <div class="d-lg-flex" style="padding:0 0 0 0;">
-    <div class="d-lg-flex col-12">
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">15,325</span>
-    <span class="totalinword">Jumlah Lesen Aktif</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="jumlesenaktif" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
+        @code {
 
-</DxLoadingPanel>
-
-@code {
-    bool PanelVisible { get; set; }
-    mst_dashboard dataSource;
-
-    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            dashboard_view dtSource = new dashboard_view();
 
     protected override async Task OnInitializedAsync()
-    {
-        PanelVisible = true;
-        dataSource = await _DashboardService.ListAll();
-        DataLoadedTcs.TrySetResult(true);
-        PanelVisible = false;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
         {
-            await DataLoadedTcs.Task;
+            if (dtSource != null)
+                dtSource = await _DashboardService.GetDashboardData();
         }
+
     }
 
-    public void Dispose()
-    {
-        DataLoadedTcs.TrySetCanceled();
-    }
-
-</div>
