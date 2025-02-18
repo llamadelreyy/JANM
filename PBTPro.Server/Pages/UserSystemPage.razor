@@ -15,6 +15,7 @@
 @inject SectionService _SectionService
 @inject NavigationManager NavigationManager
 @inject IToastNotificationService ToastService
+@inject PBTAuthPermissionService PermissionService
 
 <style>
     .dxbl-grid {
@@ -23,259 +24,274 @@
     }
 </style>
 
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+    IsContentBlocked="true"
+    ApplyBackgroundShading="true"
+    IndicatorAreaVisible="false"
+    Text="Capaian Data...">
 
-    <div class="d-lg-flex border-bottom">
-        <div class="col-md-12 py-1 dx-helptitle pageTitle">
-            <img class="imgTitle" src="\images\icons-small\xfn.png" />
-            <div class="textTitle">Pengguna Sistem</div>
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="\images\icons-small\xfn.png" />
+                <div class="textTitle">Pengguna Sistem</div>
+            </div>
         </div>
-    </div>
 
-    <div class="item-container-x">
+        <div class="item-container-x">
 
-        <DxGrid @ref="Grid"
-                Data="dataSource"
-                KeyFieldName="Id"
-                ShowGroupPanel="true"
-                ShowFilterRow="false"
-                TextWrapEnabled="true"
-                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-                EditorRenderMode="GridEditorRenderMode.Integrated"
-                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                ShowSearchBox="true"
-                AllowSelectRowByClick="true"
-                @bind-SearchText="@GridSearchText"
-                PageSize="25"
-                @bind-PageIndex="@GridPageIndex"
-                PagerPosition="GridPagerPosition.Bottom"
-                PagerNavigationMode="PagerNavigationMode.InputBox"
-                EditModelSaving="Grid_EditModelSaving"
-                EditFormButtonsVisible="false"
-                PageSizeSelectorVisible="true"
-                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-                PageSizeSelectorAllRowsItemVisible="true"
-                PagerAutoHideNavButtons="false"
-                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-                HighlightRowOnHover="true"
-                CssClass="mv-1000">
+            <DxGrid @ref="Grid"
+            Data="dataSource"
+            KeyFieldName="Id"
+            ShowGroupPanel="true"
+            ShowFilterRow="false"
+            TextWrapEnabled="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
 
-            <Columns>
-                <DxGridCommandColumn Width="75px">
-                    <HeaderTemplate>
-                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                    </HeaderTemplate>
-                    <CellDisplayTemplate>
-                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        <a @onclick="@(() => Delete((RegisterModel)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                        <a @onclick="@(() => ResetPassword((RegisterModel)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/lock.png" /></a>
-                    </CellDisplayTemplate>
-                </DxGridCommandColumn>
-                <DxGridDataColumn Caption="Jabatan" MinWidth="100" Width="14%" FieldName="DepartmentName" TextAlignment="GridTextAlignment.Left" />
-                <DxGridDataColumn Caption="Seksyen" MinWidth="120" Width="13%" FieldName="DivisionName" TextAlignment="GridTextAlignment.Left" />
-                <DxGridDataColumn Caption="Unit" MinWidth="120" Width="14%" FieldName="UnitName" TextAlignment="GridTextAlignment.Left" />
-                <DxGridDataColumn Caption="Id Pengguna" MinWidth="100" Width="10%" FieldName="Username" />
-                <DxGridDataColumn Caption="Nama Penuh" MinWidth="150" Width="20%" FieldName="FullName" TextAlignment="GridTextAlignment.Left" />
-                <DxGridDataColumn Caption="No Mobile" MinWidth="100" Width="10%" FieldName="PhoneNo" TextAlignment="GridTextAlignment.Left" />
-                <DxGridDataColumn Caption="Emel" MinWidth="150" Width="15%" FieldName="Email" TextAlignment="GridTextAlignment.Left" />
-                <DxGridDataColumn FieldName="CreatedAt"
-                                  DisplayFormat="dd/MM/yyyy"
-                                  Caption="Tarikh Data"
-                                  MinWidth="100"
-                                  Width="10%"
-                                  TextAlignment="GridTextAlignment.Center"
-                                  SortOrder="GridColumnSortOrder.Ascending"
-                                  SortIndex="0">
-                    <FilterMenuTemplate>
-                        <DateRange FilterContext="context" />
-                    </FilterMenuTemplate>
-                </DxGridDataColumn>
-            </Columns>
+                <Columns>
+                    <DxGridCommandColumn Width="75px">
+                        <HeaderTemplate>
+                            @if (PermissionService.HasPermission("Add"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                            }
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                            @if (PermissionService.HasPermission("Delete"))
+                            {
+                                <a @onclick="@(() => Delete((RegisterModel)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                            }
+                            @if (PermissionService.HasPermission("Edit"))
+                            {
+                                <a @onclick="@(() => ResetPassword((RegisterModel)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/lock.png" /></a>
+                            }
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn Caption="Jabatan" MinWidth="100" Width="14%" FieldName="DepartmentName" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn Caption="Seksyen" MinWidth="120" Width="13%" FieldName="DivisionName" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn Caption="Unit" MinWidth="120" Width="14%" FieldName="UnitName" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn Caption="Id Pengguna" MinWidth="100" Width="10%" FieldName="Username" />
+                    <DxGridDataColumn Caption="Nama Penuh" MinWidth="150" Width="20%" FieldName="FullName" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn Caption="No Mobile" MinWidth="100" Width="10%" FieldName="PhoneNo" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn Caption="Emel" MinWidth="150" Width="15%" FieldName="Email" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn FieldName="CreatedAt"
+                                      DisplayFormat="dd/MM/yyyy"
+                                      Caption="Tarikh Data"
+                                      MinWidth="100"
+                                      Width="10%"
+                                      TextAlignment="GridTextAlignment.Center"
+                                      SortOrder="GridColumnSortOrder.Ascending"
+                                      SortIndex="0">
+                        <FilterMenuTemplate>
+                            <DateRange FilterContext="context" />
+                        </FilterMenuTemplate>
+                    </DxGridDataColumn>
+                </Columns>
 
-            <EditFormTemplate Context="EditFormContext">
-                @{
-                    var dtEdit = (RegisterModel)EditFormContext.EditModel;
-                    if (Grid.IsEditingNewRow())
-                        strIdPengguna = string.Empty;
-                    else
-                        strIdPengguna = dtEdit.ICNo;
-                }
-                <DxFormLayout CssClass="w-100">
-                    <DxFormLayoutItem ColSpanMd="6" ColSpanLg="8" BeginRow="true">
-                        <table class="layout_edit">
-                            <tr height="30px">
-                                <td nowrap>Id Pengguna</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    @strIdPengguna
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Nama Penuh</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    <DxTextBox @bind-Text="@dtEdit.FullName"
-                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                    BindValueMode="BindValueMode.OnInput"
-                                    NullText="Masukkan nama penuh ..."
-                                    Maxlength="60"
-                                    ShowValidationIcon="true"
-                                    CssClass="cw-320" style="width:350px" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>No Kad Pengenalan</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxMaskedInput @bind-Value="@dtEdit.ICNo"
-                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                    NullText="cth: 701231161234"
-                                    Maxlength="12"
-                                    ShowValidationIcon="true"
-                                    CssClass="cw-320" style="width:170px"
-                                    Mask="000000000000" />
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap>No Tel. Bimbit</td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxMaskedInput @bind-Value="@dtEdit.PhoneNo"
-                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                    BindValueMode="BindValueMode.OnInput"
-                                    Maxlength="14"
-                                    ShowValidationIcon="true"
-                                    CssClass="cw-320" style="width:170px"
-                                    MaskMode=MaskMode.Text
-                                    Mask="99999999999999">
-                                        <DxTextMaskProperties SaveLiteral=false></DxTextMaskProperties>
-                                    </DxMaskedInput>
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var dtEdit = (RegisterModel)EditFormContext.EditModel;
+                        if (Grid.IsEditingNewRow())
+                            strIdPengguna = string.Empty;
+                        else
+                            strIdPengguna = dtEdit.ICNo;
+                    }
+                    <DxFormLayout CssClass="w-100">
+                        <DxFormLayoutItem ColSpanMd="6" ColSpanLg="8" BeginRow="true">
+                            <table class="layout_edit">
+                                <tr height="30px">
+                                    <td nowrap>Id Pengguna</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        @strIdPengguna
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Nama Penuh</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        <DxTextBox @bind-Text="@dtEdit.FullName"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Masukkan nama penuh ..."
+                                                   Maxlength="60"
+                                                   ShowValidationIcon="true"
+                                                   CssClass="cw-320" style="width:350px" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>No Kad Pengenalan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxMaskedInput @bind-Value="@dtEdit.ICNo"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       NullText="cth: 701231161234"
+                                                       Maxlength="12"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" style="width:170px"
+                                                       Mask="000000000000" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap>No Tel. Bimbit</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxMaskedInput @bind-Value="@dtEdit.PhoneNo"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       Maxlength="14"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" style="width:170px"
+                                                       MaskMode=MaskMode.Text
+                                                       Mask="99999999999999">
+                                            <DxTextMaskProperties SaveLiteral=false></DxTextMaskProperties>
+                                        </DxMaskedInput>
 
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Jabatan</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    <DxComboBox Data="@dtDepartment"
-                                    NullText="Pilih Jabatan ..."
-                                    ShowValidationIcon="true"
-                                    FilteringMode="DataGridFilteringMode.Contains"
-                                    @bind-Value="@dtEdit.DepartmentID"
-                                    @bind-Text="@dtEdit.DepartmentName"
-                                    TextFieldName="dept_name"
-                                    ValueFieldName="dept_id">
-                                    </DxComboBox>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Seksyen</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    @{
-                                        var _dtSection = dtSection.Where(x => x.dept_id == dtEdit?.DepartmentID);
-                                    }
-                                    <DxComboBox Data="@_dtSection"
-                                    NullText="Pilih Seksyen ..."
-                                    ShowValidationIcon="true"
-                                    FilteringMode="DataGridFilteringMode.Contains"
-                                    @bind-Value="@dtEdit.DivisionID"
-                                    @bind-Text="@dtEdit.DivisionName"
-                                    TextFieldName="div_name"
-                                    ValueFieldName="div_id">
-                                    </DxComboBox>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Unit</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    @{
-                                        var _dtUnit = dtUnit.Where(x => x.dept_id == dtEdit?.DepartmentID && x.div_id == dtEdit?.DivisionID);
-                                    }
-                                    <DxComboBox Data="@_dtUnit"
-                                    NullText="Pilih Unit ..."
-                                    ShowValidationIcon="true"
-                                    FilteringMode="DataGridFilteringMode.Contains"
-                                    @bind-Value="@dtEdit.UnitID"
-                                    @bind-Text="@dtEdit.UnitName"
-                                    TextFieldName="unit_name"
-                                    ValueFieldName="unit_id">
-                                    </DxComboBox>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Emel</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    <DxMaskedInput @bind-Value="@dtEdit.Email"
-                                    CssClass="cw-320"
-                                    NullText="@("_@_.__")"
-                                    Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"
-                                    Maxlength="60"
-                                    ShowValidationIcon="true"
-                                    MaskMode="MaskMode.RegEx">
-                                        <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
-                                        Placeholder="Placeholder"
-                                        PlaceholdersVisible="PlaceholderVisible"/>
-                                    </DxMaskedInput>
-                                </td>
-                            </tr>
-                        </table>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="12">
-                        <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
-                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
-                    </DxFormLayoutItem>
-                </DxFormLayout>
-            </EditFormTemplate>
-            <CustomValidators>
-                <MyCustomValidator DataItemValidating="ValidateGridData" />
-            </CustomValidators>
-            <TotalSummary>
-                <DxGridSummaryItem FooterColumnName="UserName"
-                Name="Custom"
-                SummaryType=GridSummaryItemType.Count />
-            </TotalSummary>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Jabatan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        <DxComboBox Data="@dtDepartment"
+                                                    NullText="Pilih Jabatan ..."
+                                                    ShowValidationIcon="true"
+                                                    FilteringMode="DataGridFilteringMode.Contains"
+                                                    @bind-Value="@dtEdit.DepartmentID"
+                                                    @bind-Text="@dtEdit.DepartmentName"
+                                                    TextFieldName="dept_name"
+                                                    ValueFieldName="dept_id">
+                                        </DxComboBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Seksyen</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        @{
+                                            var _dtSection = dtSection.Where(x => x.dept_id == dtEdit?.DepartmentID);
+                                        }
+                                        <DxComboBox Data="@_dtSection"
+                                                    NullText="Pilih Seksyen ..."
+                                                    ShowValidationIcon="true"
+                                                    FilteringMode="DataGridFilteringMode.Contains"
+                                                    @bind-Value="@dtEdit.DivisionID"
+                                                    @bind-Text="@dtEdit.DivisionName"
+                                                    TextFieldName="div_name"
+                                                    ValueFieldName="div_id">
+                                        </DxComboBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Unit</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        @{
+                                            var _dtUnit = dtUnit.Where(x => x.dept_id == dtEdit?.DepartmentID && x.div_id == dtEdit?.DivisionID);
+                                        }
+                                        <DxComboBox Data="@_dtUnit"
+                                                    NullText="Pilih Unit ..."
+                                                    ShowValidationIcon="true"
+                                                    FilteringMode="DataGridFilteringMode.Contains"
+                                                    @bind-Value="@dtEdit.UnitID"
+                                                    @bind-Text="@dtEdit.UnitName"
+                                                    TextFieldName="unit_name"
+                                                    ValueFieldName="unit_id">
+                                        </DxComboBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Emel</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        <DxMaskedInput @bind-Value="@dtEdit.Email"
+                                                       CssClass="cw-320"
+                                                       NullText="@("_@_.__")"
+                                                       Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"
+                                                       Maxlength="60"
+                                                       ShowValidationIcon="true"
+                                                       MaskMode="MaskMode.RegEx">
+                                            <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
+                                                                   Placeholder="Placeholder"
+                                                                   PlaceholdersVisible="PlaceholderVisible" />
+                                        </DxMaskedInput>
+                                    </td>
+                                </tr>
+                            </table>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                            <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditFormTemplate>
+                <CustomValidators>
+                    <MyCustomValidator DataItemValidating="ValidateGridData" />
+                </CustomValidators>
+                <TotalSummary>
+                    <DxGridSummaryItem FooterColumnName="UserName"
+                                       Name="Custom"
+                                       SummaryType=GridSummaryItemType.Count />
+                </TotalSummary>
 
-        </DxGrid>
+            </DxGrid>
 
-    </div>
-</DxLoadingPanel>
-
-<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
-    <BodyContentTemplate>
-        <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
-        <br />Anda pasti untuk menghapuskan rekod ini?
-        <br /><br />
-        <div class="confirm-dialog-buttons">
-            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
-            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
         </div>
-    </BodyContentTemplate>
-</DxPopup>
+    </DxLoadingPanel>
 
-<DxPopup @bind-Visible="@ConfirmationResetShown" HeaderText="Reset Password" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
-    <BodyContentTemplate>
-        <b>@strSelected</b> --> adalah rekod yang dipilih untuk tukar kata laluan.
-        <br />Anda pasti untuk tukar kata laluan untuk rekod ini?
-        <br /><br />
-        <div class="confirm-dialog-buttons">
-            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesResetButtonClick" />
-            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoResetButtonClick" />
-        </div>
-    </BodyContentTemplate>
-</DxPopup>
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+            <br />Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
 
+    <DxPopup @bind-Visible="@ConfirmationResetShown" HeaderText="Reset Password" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            <b>@strSelected</b> --> adalah rekod yang dipilih untuk tukar kata laluan.
+            <br />Anda pasti untuk tukar kata laluan untuk rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesResetButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoResetButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
+}
 
 @code {
     bool PanelVisible { get; set; }
@@ -314,7 +330,7 @@
         dtDepartment = await _DepartmentService.ListAll();
         dtSection = await _SectionService.ListAll();
         dtUnit = await _UnitService.ListAll();
-        dataUser = await _UserService.ListAll(); //get all user 
+        dataUser = await _UserService.ListAll(); //get all user
 
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
@@ -420,7 +436,7 @@
         }
     }
 
-  
+
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();

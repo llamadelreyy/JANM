@@ -19,6 +19,7 @@
 @inject IToastNotificationService ToastService
 @inject NavigationManager NavigationManager
 @inject IToastService toastService
+@inject PBTAuthPermissionService PermissionService
 
 <style>
     .dxbl-grid {
@@ -26,101 +27,101 @@
         max-height: 92%;
     }
 </style>
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+                    IsContentBlocked="true"
+                    ApplyBackgroundShading="true"
+                    IndicatorAreaVisible="false"
+                    Text="Capaian Data...">
 
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
-
-    <div class="d-lg-flex border-bottom">
-        <div class="col-md-12 py-1 dx-helptitle pageTitle">
-            <img class="imgTitle" src="\images\icons-small\wrench-screwdriver.png" />
-            <div class="textTitle">Log Audit - Senarai Log Audit</div>
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="\images\icons-small\wrench-screwdriver.png" />
+                <div class="textTitle">Log Audit - Senarai Log Audit</div>
+            </div>
         </div>
-    </div>
 
-    <div class="item-container-x">
-@*     <DxGrid @ref="Grid"
-            Data="@_lstAudits"
-            KeyFieldName="audit_id"
-            ShowGroupPanel="true"
-            ShowFilterRow="true"
-            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-            PageSize="25"
-            @bind-PageIndex="@GridPageIndex"
-            PagerPosition="GridPagerPosition.Bottom"
-            PagerNavigationMode="PagerNavigationMode.InputBox"
-            PageSizeSelectorVisible="true"
-            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-            PageSizeSelectorAllRowsItemVisible="true"
-            PagerAutoHideNavButtons="false"
-            ColumnResizeMode="@ColumnResizeMode"
-            HighlightRowOnHover="true"
-            CssClass="mv-1000"> *@
+        <div class="item-container-x">
+            <DxGrid @ref="Grid"
+                    Data="_lstAudits"
+                    KeyFieldName="audit_id"
+                    ShowGroupPanel="true"
+                    ShowFilterRow="false"
+                    TextWrapEnabled="true"
+                    CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                    EditorRenderMode="GridEditorRenderMode.Integrated"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    ShowSearchBox="true"
+                    AllowSelectRowByClick="false"
+                    @bind-SearchText="@GridSearchText"
+                    PageSize="25"
+                    @bind-PageIndex="@GridPageIndex"
+                    PagerPosition="GridPagerPosition.Bottom"
+                    PagerNavigationMode="PagerNavigationMode.InputBox"
+                    EditFormButtonsVisible="false"
+                    PageSizeSelectorVisible="true"
+                    PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PagerAutoHideNavButtons="false"
+                    ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                    GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                    HighlightRowOnHover="true"
+                    CssClass="mv-1000">
 
-        <DxGrid @ref="Grid"
-                Data="_lstAudits"
-                KeyFieldName="audit_id"
-                ShowGroupPanel="true"
-                ShowFilterRow="false"
-                TextWrapEnabled="true"
-                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-                EditorRenderMode="GridEditorRenderMode.Integrated"
-                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                ShowSearchBox="true"
-                AllowSelectRowByClick="false"
-                @bind-SearchText="@GridSearchText"
-                PageSize="25"
-                @bind-PageIndex="@GridPageIndex"
-                PagerPosition="GridPagerPosition.Bottom"
-                PagerNavigationMode="PagerNavigationMode.InputBox"
-                EditFormButtonsVisible="false"
-                PageSizeSelectorVisible="true"
-                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-                PageSizeSelectorAllRowsItemVisible="true"
-                PagerAutoHideNavButtons="false"
-                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-                HighlightRowOnHover="true"
-                CssClass="mv-1000">
+                <Columns>
+                    <DxGridDataColumn FieldName="created_at"
+                                      Caption="Tarikh Data" TextAlignment="GridTextAlignment.Center"
+                                      MinWidth="120" Width="14%"
+                                      AllowGroup="false" AllowSort="true"
+                                      SortOrder="GridColumnSortOrder.Descending"
+                                      DisplayFormat="dd/MM/yyyy" />
+                    <DxGridDataColumn FieldName="username" Caption="Nama Pengguna" MinWidth="150" Width="13%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" AllowSort="true" />
+                    <DxGridDataColumn FieldName="role_id" Caption="Peranan" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                        <CellDisplayTemplate>
+                            <div>@RoleName(((auditlog_info)context.DataItem).role_id)</div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn FieldName="log_type" Caption="Jenis Maklumat" MinWidth="120" Width="13%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                        <CellDisplayTemplate>
+                            <div>@GetStatusAuditIconHtml(((auditlog_info)context.DataItem).log_type)</div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn FieldName="log_method" Caption="Method" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
+                    <DxGridDataColumn FieldName="log_descr" Caption="Penerangan" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                </Columns>
 
-            <Columns>
-                <DxGridDataColumn FieldName="created_at"
-                                  Caption="Tarikh Data" TextAlignment="GridTextAlignment.Center"
-                                  MinWidth="120" Width="14%"
-                                  AllowGroup="false" AllowSort="true"
-                                  SortOrder="GridColumnSortOrder.Descending"
-                                  DisplayFormat="dd/MM/yyyy" />
-                <DxGridDataColumn FieldName="username" Caption="Nama Pengguna" MinWidth="150" Width="13%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" AllowSort="true" />
-                <DxGridDataColumn FieldName="role_id" Caption="Peranan" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
-                    <CellDisplayTemplate>
-                        <div>@RoleName(((auditlog_info)context.DataItem).role_id)</div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn FieldName="log_type" Caption="Jenis Maklumat" MinWidth="120" Width="13%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
-                    <CellDisplayTemplate>
-                        <div>@GetStatusAuditIconHtml(((auditlog_info)context.DataItem).log_type)</div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn FieldName="log_method" Caption="Method" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="true" />
-                <DxGridDataColumn FieldName="log_descr" Caption="Penerangan" MinWidth="200" Width="30%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            </Columns>
-
-            <TotalSummary>
-                <DxGridSummaryItem FooterColumnName="username"
-                                   Name="Custom"
-                                   SummaryType=GridSummaryItemType.Count />
-            </TotalSummary>
-        </DxGrid>
-        <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
-        <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
-        <DxButton Text="Export XLS" Click="ExportXls_Click" />
-        <DxButton Text="Export CSV" Click="ExportCsv_Click" />
-        <DxButton Text="Arkib" @onclick="RedirectToPage" />
-        @* <DxButton Text="Archive Audit Log within 6 months data" Click="InsertArchiveAudit_Click" />  *@  
-    </div>
-</DxLoadingPanel>
+                <TotalSummary>
+                    <DxGridSummaryItem FooterColumnName="username"
+                                       Name="Custom"
+                                       SummaryType=GridSummaryItemType.Count />
+                </TotalSummary>
+            </DxGrid>
+            <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
+            @if (PermissionService.HasPermission("ExportData"))
+            {
+                <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
+            }
+            @if (PermissionService.HasPermission("ExportData"))
+            {
+                <DxButton Text="Export XLS" Click="ExportXls_Click" />
+            }
+            @if (PermissionService.HasPermission("ExportData"))
+            {
+                <DxButton Text="Export CSV" Click="ExportCsv_Click" />
+            }
+            @if (PermissionService.HasPermission("View") || PermissionService.HasPermission("Execute"))
+            {
+                <DxButton Text="Arkib" @onclick="RedirectToPage" />
+            }
+            @* <DxButton Text="Archive Audit Log within 6 months data" Click="InsertArchiveAudit_Click" />  *@
+        </div>
+    </DxLoadingPanel>
+}
 
 @code {
     bool PanelVisible { get; set; }
@@ -202,8 +203,8 @@
                 rolename = itm.Name;
             }
         }
-       
-        string html = string.Format("<span>{0}</span>",rolename);
+
+        string html = string.Format("<span>{0}</span>", rolename);
         return new MarkupString(html);
     }
 

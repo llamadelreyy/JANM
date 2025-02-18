@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NpgsqlTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -81,5 +82,27 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? license_longitud { get; set; }
 
         public string? license_latitude { get; set; }
+    }
+    public class mst_licensee_view
+    {
+        public int lesen_id { get; set; }
+        public string? lesen_acc_no { get; set; }
+        public string icno_pemilik { get; set; }
+        public string? nama_perniagaan { get; set; }
+        public string alamat_perniagaan { get; set; }
+        public DateTime tarikh_daftar { get; set; }
+        public DateOnly? tarikh_mula_isu { get; set; }
+        public DateOnly? tarikh_tamat_isu { get; set; }
+        public DateOnly? tarikh_renewal { get; set; }
+        public string status_lesen { get; set; }
+        public string? status_regulatory { get; set; }
+        public string tempoh_lesen { get; set; }
+        public int status_id { get; set; }
+        public int type_id { get; set; }
+        public int cat_id { get; set; }
+        public int ops_id { get; set; }
+        public int parl_id { get; set; }
+        public int dun_id { get; set; }
+        public int zon_id { get; set; }
     }
 }
