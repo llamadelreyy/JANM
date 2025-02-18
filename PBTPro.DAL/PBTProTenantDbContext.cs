@@ -97,6 +97,8 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<trn_patrol_officer> trn_patrol_officers { get; set; }
 
+    public virtual DbSet<ref_doc> ref_docs { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
@@ -1822,6 +1824,21 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasForeignKey(d => d.schedule_id)
                 .HasConstraintName("schedule_id_refers_to_schedule_id");
         });
+
+        modelBuilder.Entity<ref_doc>(entity =>
+        {
+            entity.HasKey(e => e.doc_id).HasName("ref_doc_pkey");
+
+            entity.ToTable("ref_doc", "tenant");
+
+            entity.Property(e => e.created_at).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.doc_cat).HasColumnType("character varying");
+            entity.Property(e => e.filename).HasColumnType("character varying");
+            entity.Property(e => e.modified_at).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.pathurl).HasColumnType("character varying");
+        });
+
+
         modelBuilder.HasSequence("ref_department_dept_id_seq", "tenant");
         modelBuilder.HasSequence("ref_division_div_id_seq", "tenant");
         modelBuilder.HasSequence("ref_unit_unit_id_seq", "tenant");

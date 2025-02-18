@@ -16,6 +16,7 @@
 @inject NavigationManager NavigationManager
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
+@inject PBTAuthPermissionService PermissionService
 
 <style>
     .dxbl-grid {
@@ -23,180 +24,194 @@
         max-height: 98.5%;
     }
 </style>
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+    IsContentBlocked="true"
+    ApplyBackgroundShading="true"
+    IndicatorAreaVisible="false"
+    Text="Capaian Data...">
 
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
-
-<div class="d-lg-flex border-bottom">
-    <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="\images\icons-small\hard-hat--plus.png" />
-        <div class="textTitle">Seksyen</div>
-    </div>
-</div>
-
-<div class="item-container-x">
-        <DxGrid @ref="Grid"
-        Data="dataSource"
-        KeyFieldName="div_id"
-        ShowGroupPanel="true"
-        ShowFilterRow="false"
-        TextWrapEnabled="true"
-        CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-        EditorRenderMode="GridEditorRenderMode.Integrated"
-        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-        ShowSearchBox="true"
-        AllowSelectRowByClick="true"
-        @bind-SearchText="@GridSearchText"
-        PageSize="25"
-        @bind-PageIndex="@GridPageIndex"
-        PagerPosition="GridPagerPosition.Bottom"
-        PagerNavigationMode="PagerNavigationMode.InputBox"
-        EditModelSaving="Grid_EditModelSaving"
-        EditFormButtonsVisible="false"
-        PageSizeSelectorVisible="true"
-        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-        PageSizeSelectorAllRowsItemVisible="true"
-        PagerAutoHideNavButtons="false"
-        ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-        GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-        HighlightRowOnHover="true"
-        CssClass="mv-1000">
-
-            <Columns>
-                <DxGridCommandColumn Width="55px">
-                    <HeaderTemplate>
-                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                    </HeaderTemplate>
-                    <CellDisplayTemplate>
-                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        <a @onclick="@(() => Delete((ref_division)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                    </CellDisplayTemplate>
-                </DxGridCommandColumn>
-                <DxGridDataColumn Caption="Jabatan" MinWidth="120" Width="15%" FieldName="dept_name" />
-                <DxGridDataColumn Caption="Kod" MinWidth="100" Width="13%" FieldName="div_code" />
-                <DxGridDataColumn Caption="Nama" MinWidth="250" Width="25%" FieldName="div_name" TextAlignment="GridTextAlignment.Left" />
-                <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="35%" FieldName="div_desc" TextAlignment="GridTextAlignment.Left" />
-
-                <DxGridDataColumn FieldName="created_at"
-                DisplayFormat="dd/MM/yyyy"
-                Caption="Tarikh Data"
-                MinWidth="100"
-                Width="12%"
-                TextAlignment="GridTextAlignment.Center"
-                SortOrder="GridColumnSortOrder.Ascending"
-                SortIndex="0">
-                    <FilterMenuTemplate>
-                        <DateRange FilterContext="context" />
-                    </FilterMenuTemplate>
-                </DxGridDataColumn>
-            </Columns>
-
-            <EditFormTemplate Context="EditFormContext">
-                @{
-                    var dtEdit = (ref_division)EditFormContext.EditModel;
-                }
-                <DxFormLayout CssClass="w-100">
-                <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
-                    <table class="layout_edit">
-                        <tr>
-                            <td nowrap>Jabatan</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="6">
-                                <DxComboBox Data="@dtDepartment"
-                                            NullText="Pilih Jabatan ..."
-                                            ShowValidationIcon="true"
-                                            FilteringMode="DataGridFilteringMode.Contains"
-                                            @bind-Value="@dtEdit.dept_id"
-                                            @bind-Text ="@dtEdit.dept_name"
-                                            TextFieldName="dept_name" 
-                                            ValueFieldName="dept_id">
-                                </DxComboBox>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Kod</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%">
-                                <DxTextBox @bind-Text="@dtEdit.div_code"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Masukkan kod seksyen ..."
-                                           Maxlength="10"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" />
-                            </td>
-                            <td width="100px">&nbsp;</td>
-                            <td nowrap></td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%"></td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Nama</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="6">
-                                <DxTextBox @bind-Text="@dtEdit.div_name"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Masukkan nama seksyen ..."
-                                           Maxlength="60"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Keterangan</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="6">
-                                <DxTextBox @bind-Text="@dtEdit.div_desc"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Masukkan keterangan ..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" />
-                            </td>
-                        </tr>
-                    </table>
-                </DxFormLayoutItem>
-                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-                <DxFormLayoutItem ColSpanMd="12">
-                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
-                    <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
-                </DxFormLayoutItem>
-            </DxFormLayout>
-        </EditFormTemplate>
-        <CustomValidators>
-            <MyCustomValidator DataItemValidating="ValidateGridData" />
-        </CustomValidators>
-
-
-        <TotalSummary>
-            <DxGridSummaryItem FooterColumnName="div_code"
-                               Name="Custom"
-                               SummaryType=GridSummaryItemType.Count />
-        </TotalSummary>
-
-    </DxGrid>
-
-</div>
-</DxLoadingPanel>
-
-<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
-    <BodyContentTemplate>
-        <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
-        <br />Anda pasti untuk menghapuskan rekod ini?
-        <br /><br />
-        <div class="confirm-dialog-buttons">
-            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
-            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="\images\icons-small\hard-hat--plus.png" />
+                <div class="textTitle">Seksyen</div>
+            </div>
         </div>
-    </BodyContentTemplate>
-</DxPopup>
+
+        <div class="item-container-x">
+            <DxGrid @ref="Grid"
+            Data="dataSource"
+            KeyFieldName="div_id"
+            ShowGroupPanel="true"
+            ShowFilterRow="false"
+            TextWrapEnabled="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
+
+                <Columns>
+                    <DxGridCommandColumn Width="55px">
+                        <HeaderTemplate>
+                            @if (PermissionService.HasPermission("Add"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                            }
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            @if (PermissionService.HasPermission("Edit"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                            }
+                            @if (PermissionService.HasPermission("Delete"))
+                            {
+                                <a @onclick="@(() => Delete((ref_division)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                            }
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn Caption="Jabatan" MinWidth="120" Width="15%" FieldName="dept_name" />
+                    <DxGridDataColumn Caption="Kod" MinWidth="100" Width="13%" FieldName="div_code" />
+                    <DxGridDataColumn Caption="Nama" MinWidth="250" Width="25%" FieldName="div_name" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="35%" FieldName="div_desc" TextAlignment="GridTextAlignment.Left" />
+
+                    <DxGridDataColumn FieldName="created_at"
+                                      DisplayFormat="dd/MM/yyyy"
+                                      Caption="Tarikh Data"
+                                      MinWidth="100"
+                                      Width="12%"
+                                      TextAlignment="GridTextAlignment.Center"
+                                      SortOrder="GridColumnSortOrder.Ascending"
+                                      SortIndex="0">
+                        <FilterMenuTemplate>
+                            <DateRange FilterContext="context" />
+                        </FilterMenuTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var dtEdit = (ref_division)EditFormContext.EditModel;
+                    }
+                    <DxFormLayout CssClass="w-100">
+                        <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                            <table class="layout_edit">
+                                <tr>
+                                    <td nowrap>Jabatan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        <DxComboBox Data="@dtDepartment"
+                                                    NullText="Pilih Jabatan ..."
+                                                    ShowValidationIcon="true"
+                                                    FilteringMode="DataGridFilteringMode.Contains"
+                                                    @bind-Value="@dtEdit.dept_id"
+                                                    @bind-Text="@dtEdit.dept_name"
+                                                    TextFieldName="dept_name"
+                                                    ValueFieldName="dept_id">
+                                        </DxComboBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Kod</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@dtEdit.div_code"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Masukkan kod seksyen ..."
+                                                   Maxlength="10"
+                                                   ShowValidationIcon="true"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Nama</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        <DxTextBox @bind-Text="@dtEdit.div_name"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Masukkan nama seksyen ..."
+                                                   Maxlength="60"
+                                                   ShowValidationIcon="true"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Keterangan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        <DxTextBox @bind-Text="@dtEdit.div_desc"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Masukkan keterangan ..."
+                                                   Maxlength="120"
+                                                   ShowValidationIcon="true"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                            <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditFormTemplate>
+                <CustomValidators>
+                    <MyCustomValidator DataItemValidating="ValidateGridData" />
+                </CustomValidators>
 
 
+                <TotalSummary>
+                    <DxGridSummaryItem FooterColumnName="div_code"
+                                       Name="Custom"
+                                       SummaryType=GridSummaryItemType.Count />
+                </TotalSummary>
+
+            </DxGrid>
+
+        </div>
+    </DxLoadingPanel>
+
+    <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
+        <BodyContentTemplate>
+            <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+            <br />Anda pasti untuk menghapuskan rekod ini?
+            <br /><br />
+            <div class="confirm-dialog-buttons">
+                <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
+                <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
+
+}
 @code {
     bool PanelVisible { get; set; }
     IEnumerable<ref_department> dtDepartment;
@@ -351,7 +366,7 @@
         if (e.Item.Name == "Custom")
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
-    
+
 
     #region response
     private void HandleResponse(string message, string? status = "Success")

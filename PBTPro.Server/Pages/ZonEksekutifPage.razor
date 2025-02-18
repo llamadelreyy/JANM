@@ -1,26 +1,6 @@
 ﻿@page "/zon_Eksekutif"
-@attribute [Authorize]
-
-@implements IDisposable
-
-@using PBTPro
-@using PBTPro.Shared
-@using PBTPro.Data
-@using PBTPro.DAL
-@using PBTPro.DAL.Models
-@using PBTPro.DAL.Services
-@using PBTPro.DAL.Models.CommonServices
-@using DevExpress.Blazor
-
-@inject DashboardService _DashboardService
-@inject NavigationManager NavigationManager
-@inject IToastNotificationService ToastService
-
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
+@attribute [AllowAnonymous]
+@using System.Globalization
 
 <div class="d-lg-flex border-bottom">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -29,15 +9,22 @@
     </div>
 </div>
 
-<div class="item-container-y">
-    <div class="d-lg-flex" style="padding:0 0 0 0;">
-        <div class="d-lg-flex col-12">
+
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <div class="item-container-y">
+        <div class="d-lg-flex" style="padding:0 0 0 0;">
+            <div class="d-lg-flex col-12">
 
             <div class="col-3 dashboard-box">
                 <div class="dashboard-style notis-color">
                     <div class="dashboard-wrap">
                         <p class="dashboard-center-text">
-                            <span class="totalinnumber">@dataSource.JumlahNotis</span>
+                            <span class="totalinnumber">325</span>
                             <span class="totalinword">Notis</span>
                         </p>
                     </div>
@@ -51,7 +38,7 @@
                 <div class="dashboard-style kompaun-color">
                     <div class="dashboard-wrap">
                         <p class="dashboard-center-text">
-                            <span class="totalinnumber">@dataSource.JumlahKompaun</span>
+                            <span class="totalinnumber">325</span>
                             <span class="totalinword">Kompaun</span>
                         </p>
                     </div>
@@ -65,7 +52,7 @@
                 <div class="dashboard-style nota-color">
                     <div class="dashboard-wrap">
                         <p class="dashboard-center-text">
-                            <span class="totalinnumber">@dataSource.JumlahNotaPemeriksaan</span>
+                            <span class="totalinnumber">325</span>
                             <span class="totalinword">Nota pemeriksaan</span>
                         </p>
                     </div>
@@ -79,7 +66,7 @@
                 <div class="dashboard-style sitaan-color">
                     <div class="dashboard-wrap">
                         <p class="dashboard-center-text">
-                            <span class="totalinnumber">@dataSource.JumlahSitaan</span>
+                            <span class="totalinnumber">325</span>
                             <span class="totalinword">Sitaan</span>
                         </p>
                     </div>
@@ -89,80 +76,94 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-
-    <div class="d-lg-flex" style="padding:0 0 0 0;">
-        <div class="d-lg-flex col-12">
-
-            <div class="col-6 dashboard-box">
-                <div class="dashboard-style-big big-color">
-                    <div class="dashboard-wrap">
-                        <p /><p /><p />
-                        <p class="dashboard-center-text">
-                            <span class="totalinnumber">15,325</span>
-                            <span class="totalinword">Jumlah Premis Berlesen</span>
-                        </p>
-                        <p /><p /><p />
-                    </div>
-                    <div class="dashboard-button">
-                        <a href="jumlesenaktif" class="round-button">...</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 dashboard-box">
-                <div class="dashboard-style-big big-color">
-                    <div class="dashboard-wrap">
-                        <p class="dashboard-center-text">
-                            <span class="totalinnumber">1,291</span>
-                            <span class="totalinword">Jumlah Premis Tidak Berlesen</span>
-                        </p>
-                    </div>
-                    <div class="dashboard-button">
-                        <a href="jumlesenaktif" class="round-button">...</a>
-                    </div>
-                </div>
             </div>
         </div>
-    </div>
 
-    <div class="d-lg-flex" style="padding:0 0 0 0;">
-        <div class="d-lg-flex col-12">
+        <div class="d-lg-flex" style="padding:0 0 0 0;">
+            <div class="d-lg-flex col-12">
 
-            <div class="col-6 dashboard-box">
-                <div class="dashboard-style-big big-color">
-                    <div class="dashboard-wrap">
-                        <p /><p /><p />
-                        <p class="dashboard-center-text">
-                            <span class="totalinnumber">15,325</span>
-                            <span class="totalinword">Jumlah Premis DiPeriksa</span>
-                        </p>
-                        <p /><p /><p />
-                    </div>
-                    <div class="dashboard-button">
-                        <a href="jumlesenaktif" class="round-button">...</a>
+                <div class="col-6 dashboard-box">
+                    <div class="dashboard-style-big">
+                        <div class="dashboard-wrap">
+                            <p /><p /><p />
+                            <p class="dashboard-center-text">
+                                <span class="totalinnumber">@dtSource.premis_berlesen</span>
+                                <span class="totalinword">Jumlah Premis Berlesen</span>
+                            </p>
+                            <p /><p /><p />
+                        </div>
+                        <div class="dashboard-button">
+                            <a href="jumlesenaktif" class="round-button">...</a>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-6 dashboard-box">
-                <div class="dashboard-style-big big-color">
-                    <div class="dashboard-wrap">
-                        <p class="dashboard-center-text">
-                            <span class="totalinnumber">2,920</span>
-                            <span class="totalinword">Jumlah Premis Dikenakan Tindakan</span>
-                        </p>
-                    </div>
-                    <div class="dashboard-button">
-                        <a href="jumlesenaktif" class="round-button">...</a>
+                <div class="col-6 dashboard-box">
+                    <div class="dashboard-style-big">
+                        <div class="dashboard-wrap">
+                            <p class="dashboard-center-text">
+                                <span class="totalinnumber">@dtSource.premis_tamat_tempoh_lesen</span>
+                                <span class="totalinword">Jumlah Premis Tidak Berlesen</span>
+                            </p>
+                        </div>
+                        <div class="dashboard-button">
+                            <a href="jumlesenaktif" class="round-button">...</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-</div>
+        <div class="d-lg-flex" style="padding:0 0 0 0;">
+            <div class="d-lg-flex col-12">
+
+                <div class="col-6 dashboard-box">
+                    <div class="dashboard-style-big">
+                        <div class="dashboard-wrap">
+                            <p /><p /><p />
+                            <p class="dashboard-center-text">
+                                <span class="totalinnumber">@dtSource.premis_diperiksa</span>
+                                <span class="totalinword">Jumlah Premis DiPeriksa</span>
+                            </p>
+                            <p /><p /><p />
+                        </div>
+                        <div class="dashboard-button">
+                            <a href="jumlesenaktif" class="round-button">...</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 dashboard-box">
+                    <div class="dashboard-style-big">
+                        <div class="dashboard-wrap">
+                            <p class="dashboard-center-text">
+                                <span class="totalinnumber">@dtSource.premis_dikenakan_tindakan</span>
+                                <span class="totalinword">Jumlah Premis Dikenakan Tindakan</span>
+                            </p>
+                        </div>
+                        <div class="dashboard-button">
+                            <a href="jumlesenaktif" class="round-button">...</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    @*     <div class="d-lg-flex" style="padding:0 0 0 0;">
+    <div class="d-lg-flex col-12">
+    <div class="col-4 dashboard-box">
+    <div class="dashboard-style">
+    <div class="dashboard-wrap">
+    <p class="dashboard-center-text">
+    <span class="totalinnumber">15,325</span>
+    <span class="totalinword">Jumlah Lesen Aktif</span>
+    </p>
+    </div>
+    <div class="dashboard-button">
+    <a href="jumlesenaktif" class="round-button">...</a>
+    </div>
+    </div>
+    </div>
 
 </DxLoadingPanel>
 
@@ -193,4 +194,4 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-}
+</div>
