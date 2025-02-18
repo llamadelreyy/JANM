@@ -103,7 +103,7 @@ else
                         @* } *@
                         @* @if (PermissionService.HasPermission("Delete"))
                         { *@
-                            <a @onclick="@(() => Delete((ref_doc)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                        <a @onclick="@(() => Delete((ref_doc)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                        @*  } *@
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
@@ -116,13 +116,13 @@ else
                 <DxGridDataColumn FieldName="filename" Caption="Nama" Width="43%" TextAlignment="GridTextAlignment.Left" />
 
                 <DxGridDataColumn FieldName=created_at
-                DisplayFormat="dd/MM/yyyy"
-                Caption="Tarikh Data"
-                MinWidth="120"
-                Width="10%"
-                TextAlignment="GridTextAlignment.Left"
-                SortOrder="GridColumnSortOrder.Ascending"
-                SortIndex="0" />
+                                  DisplayFormat="dd/MM/yyyy"
+                                  Caption="Tarikh Data"
+                                  MinWidth="120"
+                                  Width="10%"
+                                  TextAlignment="GridTextAlignment.Left"
+                                  SortOrder="GridColumnSortOrder.Ascending"
+                                  SortIndex="0" />
             </Columns>
 
             <EditFormTemplate Context="editFormContext">
@@ -146,35 +146,27 @@ else
                         @bind-Text="@dtData.doc_cat"
                         CssClass="cw-480">
                         </DxComboBox>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="3">
-                        <div id="overviewDemoDropZone" class="card custom-drop-zone rounded-3 w-100 m-0 text-center">
-                            <span class="drop-file-icon mb-3"></span>
-                            <span class="drop-file-label">Seret fail di sini</span><span class="m-1">atau</span>
-                            <DxButton Id="overviewDemoSelectButton"
-                            CssClass="m-1"
-                            RenderStyle="ButtonRenderStyle.Primary"
-                            Text="Pilih Fail" />
-                        </div>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="9">
+                    </DxFormLayoutItem>                    
+                    <DxFormLayoutItem ColSpanMd="9">                       
                         <div class="upload-container">
-                            <div class="bottom-upload">
-                                @* <DxFileInput Visible="@UploadVisible"
-                                ExternalSelectButtonCssSelector="#overviewDemoSelectButton"
-                                ExternalDropZoneCssSelector="#overviewDemoDropZone"
-                                ExternalDropZoneDragOverCssClass="custom-drop-zone-hover"
-                                MaxFileSize="15000000"
-                                FilesUploading="OnFilesUploading"
-                                @bind-File="File"
-                                SelectedFilesChanged="@SelectedFilesChanged">
-                                </DxFileInput> *@
-                                <DxUpload UploadMode=UploadMode.OnButtonClick
-                                          SelectedFilesChanged="@SelectedFilesChanged"
-                                          AllowMultiFileUpload="false"
-                                          @ref="MyUpload">
-                                </DxUpload>
+                            <div style="@(SelectedFilesCount > 0 ? "display: none" : string.Empty)" id="overviewDemoDropZone" class="card custom-drop-zone rounded-3 w-100 m-0">
+                                <span class="drop-file-icon mb-3"></span>
+                                <span class="drop-file-label mb-3">Seret fail di sini atau klik butang pilih fail</span>
+                                <DxButton Id="overviewDemoSelectButton"
+                                CssClass="m-1"
+                                RenderStyle="ButtonRenderStyle.Primary"
+                                Text="Pilih Fail" />
                             </div>
+                            <DxUpload Visible="@UploadVisible"
+                            Name="myFile"
+                            ExternalSelectButtonCssSelector="#overviewDemoSelectButton"
+                            ExternalDropZoneCssSelector="#overviewDemoDropZone"
+                            ExternalDropZoneDragOverCssClass="custom-drop-zone-hover"
+                            MaxFileSize="15000000"
+                            AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png", ".pdf" })"
+                            UploadUrl="@GetUploadUrl("api/Upload/UploadFile/")"
+                            SelectedFilesChanged="@SelectedFilesChanged">
+                            </DxUpload>
                         </div>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
@@ -226,23 +218,26 @@ else
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    IEnumerable<UploadFileInfo> Files { get; set; }
-    UploadFileInfo FirstFile { get; set; }
-    DxUpload MyUpload { get; set; }
-
+    #region iformfile
+    int SelectedFilesCount { get; set; }
     protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
     {
-        Files = files;
-        UploadVisible = files.ToList().Count > 0;
-
+        SelectedFilesCount = files.ToList().Count;
         InvokeAsync(StateHasChanged);
     }
 
-    // void OnButtonClick()
-    // {
-    //     FirstFile = Files.First();
-    //     MyUpload.UploadFile(FirstFile);
-    // }
+    protected string GetUploadUrl(string url)
+    {
+        return NavigationManager.ToAbsoluteUri(url).AbsoluteUri;
+    }
+
+    async void UploadFileService(string url)
+    {
+        ReturnViewModel response = new ReturnViewModel();
+        response = await _DocumentService.UploadFile(url);
+    }
+
+    #endregion
 
     #region list
     protected override async Task OnInitializedAsync()
@@ -269,11 +264,10 @@ else
         {
             if (e.IsNew)
             {
-                FirstFile = Files.First();
-                MyUpload.UploadFile(FirstFile);
                 editModel.filename = refdoc.filename;
+                UploadFileService(editModel.pathurl);
 
-                response = await _DocumentService.Add(editModel, IFormFile MyUpload);
+                response = await _DocumentService.Add(editModel);
             }
             else
             {
@@ -355,23 +349,7 @@ else
         return new MarkupString(html);
     }
 
-    // protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
-    // {
-    //     UploadVisible = files.ToList().Count > 0; 
-    //     InvokeAsync(StateHasChanged);
-    // }
 
-    // protected async Task OnFilesUploading(FilesUploadingEventArgs args)
-    // {
-    //     var file = args.Files[0];        
-
-    //     var fileExt = Path.GetExtension(file.Name);
-    //     string newFileName = $"{file.Guid}{fileExt}";
-
-    //     using var stream = new System.IO.MemoryStream();
-    //     await file.OpenReadStream(file.Size).CopyToAsync(stream);        
-    // }    
-    
     #endregion
 
     #region response
