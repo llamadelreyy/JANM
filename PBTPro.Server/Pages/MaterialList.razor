@@ -231,11 +231,11 @@ else
         return NavigationManager.ToAbsoluteUri(url).AbsoluteUri;
     }
 
-    async void UploadFileService(string url)
-    {
-        ReturnViewModel response = new ReturnViewModel();
-        response = await _DocumentService.UploadFile(url);
-    }
+    // async void UploadFileService(string url)
+    // {
+    //     ReturnViewModel response = new ReturnViewModel();
+    //     response = await _DocumentService.UploadFile();
+    // }
 
     #endregion
 
@@ -265,7 +265,7 @@ else
             if (e.IsNew)
             {
                 editModel.filename = refdoc.filename;
-                UploadFileService(editModel.pathurl);
+                await _DocumentService.UploadFile(editModel);
 
                 response = await _DocumentService.Add(editModel);
             }
