@@ -119,6 +119,8 @@ builder.Services.AddTransient<RefPatrolStatusService>();
 builder.Services.AddTransient<TenantService>();
 builder.Services.AddTransient<LicenseService>();
 builder.Services.AddTransient<PremisService>();
+builder.Services.AddTransient<DashboardService>();
+builder.Services.AddTransient<DocumentService>();
 
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();

@@ -10,6 +10,7 @@ Changes Logs:
 14/11/2024 - initial create
 Ticket No: 053
 */
+using DevExpress.Data.Linq.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ using Npgsql;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 using System.Data;
 
 namespace PBTPro.Api.Controllers
@@ -24,12 +26,11 @@ namespace PBTPro.Api.Controllers
     [Route("api/[controller]/[Action]")]
     [ApiController]
     public class DashboardController : IBaseController
-    {       
+    {
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
         protected PBTProTenantDbContext _tenantDBContext;
         private readonly ILogger<DashboardController> _logger;
-        private string LoggerName = "administrator";
         private readonly string _feature = "DASHBOARD";
 
         public DashboardController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<DashboardController> logger) : base(dbContext)
@@ -39,6 +40,74 @@ namespace PBTPro.Api.Controllers
             _tenantDBContext = tntdbContext;
             _logger = logger;
         }
+
+
+        #region jenis-jenis saman
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<dashboard_view>> GetDashboardData()
+        {
+            try
+            {
+                var totalNotis = await _tenantDBContext.trn_notices.CountAsync();
+                var totalKompaun = await _tenantDBContext.trn_compounds.CountAsync();
+                var totalNota = await _tenantDBContext.trn_inspections.CountAsync();
+                var totalSita = await _tenantDBContext.trn_confiscations.CountAsync();
+                var premisBerlesen = await _tenantDBContext.mst_licensees.Where(t => t.status_id == 1).CountAsync();
+                //Dalam Rondaan
+                var premisDiperiksa = await _tenantDBContext.mst_patrol_schedules.Where(t => t.status_id == 2).CountAsync();
+
+                var premisTindakan = await _tenantDBContext.mst_licensees
+                    .Select(lesen => new
+                    {
+                        lesen.license_accno,
+                        NoticeCount = _tenantDBContext.trn_notices.Count(notis => notis.license_accno == lesen.license_accno),
+                        CompoundCount = _tenantDBContext.trn_compounds.Count(kompaun => kompaun.license_accno == lesen.license_accno),
+                        ConfiscationCount = _tenantDBContext.trn_confiscations.Count(sita => sita.license_accno == lesen.license_accno)
+                    })
+                    .ToListAsync();
+
+                var totalPremisTindakan = premisTindakan.Sum(x => x.NoticeCount + x.CompoundCount + x.ConfiscationCount);
+                var premisTiadaLesen = await _tenantDBContext.mst_premis.Where(p => p.lesen == null || p.lesen == "" || string.IsNullOrEmpty(p.lesen)).CountAsync();
+                //var premisTamatTempohLesen = await _tenantDBContext.mst_premis.Where(p => Convert.ToDateTime(p.tempoh_sah_lesen) <= DateTime.Today).CountAsync();
+                var premisTamatTempohLesen = await _tenantDBContext.mst_premis.Where(p => p.tempoh_sah_lesen <= DateOnly.FromDateTime(DateTime.Today)).CountAsync();
+
+                var bilCukaiTahunan = await _tenantDBContext.mst_premis.CountAsync();
+
+                var result = new dashboard_view
+                {
+                    total_notis = totalNotis,
+                    total_kompaun = totalKompaun,
+                    total_inspection = totalNota,
+                    total_confiscation = totalSita,
+                    premis_berlesen = premisBerlesen,
+                    premis_diperiksa = premisDiperiksa,
+                    premis_dikenakan_tindakan = totalPremisTindakan,
+                    premis_tiada_lesen = premisTiadaLesen,
+                    premis_tamat_tempoh_lesen = premisTamatTempohLesen,
+                    total_cukai_tahunan = bilCukaiTahunan,
+                    amaun_kutipan_cukai = 4569.93
+                };
+
+                if (result == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+
+
+        }
+
+        #endregion
+
 
         #region stoc proc example       
 
@@ -110,439 +179,6 @@ namespace PBTPro.Api.Controllers
         }
         #endregion
 
-        #region jenis-jenis notis
-        /// <summary>
-        /// item 1. Notis
-        /// </summary>
-        /// <returns></returns>       
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> JumlahNotis()
-        {
-            try
-            {
-                var result = await _tenantDBContext.trn_notices.CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        /// <summary>
-        /// item 2. kompaun
-        /// </summary>
-        /// <returns></returns>       
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> JumlahKompaun()
-        {
-            try
-            {
-                var result = await _tenantDBContext.trn_compounds.CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        /// <summary>
-        /// item 3. Nota Pemeriksaan
-        /// </summary>
-        /// <returns></returns>       
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> JumlahNotaPemeriksaan()
-        {
-            try
-            {
-                var result = await _tenantDBContext.trn_inspections.CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-
-        /// <summary>
-        /// item 4. Sitaan
-        /// </summary>
-        /// <returns></returns>       
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> JumlahSitaan()
-        {
-            try
-            {
-                var result = await _tenantDBContext.trn_confiscations.CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        #endregion
-
-        #region Jumlah Premis berlesen
-
-        /// <summary>
-        /// item c) jumlah premis berlesen
-        /// </summary>
-        /// <returns></returns>        
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> JumlahPremisBerlesen()
-        {
-            try
-            {
-                var result = await _tenantDBContext.mst_premis.Where(x => x.lesen != null).CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-
-            }
-        }
-
-
-        #endregion
-
-        #region Jumlah Premis tidak berlesen
-
-        /// <summary>
-        /// item c) jumlah premis tidak berlesen
-        /// </summary>
-        /// <returns></returns>        
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> JumlahPremisTidakBerlesen()
-        {
-            try
-            {
-                var result = await _tenantDBContext.mst_premis.Where(x => x.lesen == null).CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-
-            }
-        }
-
-
-        #endregion
-
-        #region tiket backlog
-        /// <summary>
-        /// item a) Jumlah lesen aktif
-        /// </summary>
-        /// <returns></returns>       
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> JumlahLesenAktif()
-        {
-            try
-            {
-                var result = await _tenantDBContext.mst_licensees.Where(x => x.status_id == 1).CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        /// <summary>
-        /// item b) jumlah lesen tamat tempoh
-        /// </summary>
-        /// <returns></returns> 
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> JumlahLesenTamatTempoh()
-        {
-            try
-            {
-                var result = await _tenantDBContext.mst_licensees.Where(x => x.status_id == 2).CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        /// <summary>
-        /// item a) Jumlah lesen gantung
-        /// </summary>
-        /// <returns></returns>       
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> JumlahLesenGantung()
-        {
-            try
-            {
-                var result = await _tenantDBContext.mst_licensees.Where(x => x.status_id == 3).CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        /// <summary>
-        /// item a) Jumlah lesen tiada data
-        /// </summary>
-        /// <returns></returns>       
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> JumlahLesenTiadaData()
-        {
-            try
-            {
-                var result = await _tenantDBContext.mst_licensees.Where(x => x.status_id == 4).CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        /// <summary>
-        /// item d) hasil tahunan semasa
-        /// </summary>
-        /// <returns></returns>        
-        //[AllowAnonymous]
-        //[HttpGet]
-        //public async Task<ActionResult<int>> TtlCurrentYear()
-        //{
-        //    try
-        //    {
-        //        var currentYear = DateTime.Now.Year;
-        //        var startOfYear = new DateTime(currentYear, 1, 1);
-        //        var endOfYear = new DateTime(currentYear, 12, 31);
-        //        var result = await _tenantDBContext.mst_licensees.Where(x => x.created_at >= startOfYear && x.created_at <= endOfYear).SumAsync(x => x.);
-        //        if (result == 0)
-        //        {
-        //            return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-        //        }
-        //        return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-        //    }
-        //}
-
-        /// <summary>
-        /// item e) jumlah lesen berisiko
-        /// </summary>
-        /// <returns></returns>        
-        //[AllowAnonymous]
-        //[HttpGet]
-        //public async Task<ActionResult<int>> TtlRiskLicense()
-        //{
-        //    try
-        //    {
-        //        var result = await _dbContext.license_informations.Where(x => x.license_risk_status == "Risiko").CountAsync();
-        //        if (result == 0)
-        //        {
-        //            return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-        //        }
-        //        return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-        //    }
-        //}
-
-        /// <summary>
-        /// item f) potensi hasil belum dikutip
-        /// </summary>
-        /// <returns></returns>
-        //[AllowAnonymous]
-        //[HttpGet]
-        //public async Task<ActionResult<int>> TtlPotentialResult()
-        //{
-        //    try
-        //    {
-        //        var result = await (from li in _dbContext.license_informations
-        //                            join lt in _dbContext.license_transactions on li.license_id equals lt.license_trans_info
-        //                            where li.license_payment_status == "Pending"
-        //                            group li by li.license_id into g
-        //                            select g.Sum(li => li.license_amount)).FirstOrDefaultAsync();
-        //        if (result == null)
-        //        {
-        //            return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-        //        }
-        //        return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-        //    }
-        //}
-
-        /// <summary>
-        /// item g) jumlah lesen tidak berisiko
-        /// </summary>
-        /// <returns></returns>
-        //[AllowAnonymous]
-        //[HttpGet]
-        //public async Task<ActionResult<int>> TtlNoRiskLicense()
-        //{
-        //    try
-        //    {
-        //        int result = await _dbContext.license_informations
-        //                    .Where(x => x.license_risk_status == "Tidak Berisiko").CountAsync();
-        //        if (result == 0)
-        //        {
-        //            return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-        //        }
-        //        return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-        //    }
-        //}
-
-        /// <summary>
-        /// item h) pertambahan lesen tahun semasa
-        /// </summary>
-        /// <returns></returns>
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> PertambahanLesenTahunSemasa()
-        {
-            try
-            {
-                var currentYear = DateTime.Now.Year;
-                var startOfYear = new DateTime(currentYear, 1, 1);
-                var endOfYear = new DateTime(currentYear, 12, 31);
-
-                var result = await _tenantDBContext.mst_licensees
-                            .Where(x => x.created_at >= startOfYear && x.created_at <= endOfYear)
-                            .CountAsync();
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        /// <summary>
-        /// item i) potensi perniagaan tanpa lesen
-        /// </summary>
-        /// <returns></returns>
-        //[AllowAnonymous]
-        //[HttpGet]
-        //public async Task<ActionResult<int>> TtlPotentialRsltWoLicense()
-        //{
-        //    try
-        //    {
-        //        var result = await _dbContext.license_informations
-        //                    .Where(x => x.license_risk_status == "Tanpa Lesen").CountAsync();
-        //        if (result == 0)
-        //        {
-        //            return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-        //        }
-        //        return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-        //    }
-        //}
-
-        /// <summary>
-        /// item j) pertambahan lesen bulan semasa
-        /// </summary>
-        /// <returns></returns>
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<int>> PertambahanLesenBulanSemasa()
-        {
-            try
-            {
-                var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-                var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
-
-                var result = await _tenantDBContext.mst_licensees
-                            .Where(x => x.created_at >= startOfMonth && x.created_at <= endOfMonth)
-                            .CountAsync();
-
-                if (result == 0)
-                {
-                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
-                }
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-        #endregion
     }
 }
 
