@@ -159,6 +159,8 @@ namespace PBTPro.DAL
                 entity.Property(r => r.IsDefaultRole).HasColumnName("is_default_role");
                 //entity.Property(r => r.IsTenant).HasColumnName("is_tenant");
                 entity.Property(r => r.IsDeleted).HasColumnName("is_deleted");
+                entity.Property(r => r.IsMobileUser).HasColumnName("is_mobile_user");
+                entity.Property(r => r.DefaultPage).HasColumnName("default_page");
                 //entity.Property(r => r.IsSelect).HasColumnName("role_select");
 
                 // Auditing fields

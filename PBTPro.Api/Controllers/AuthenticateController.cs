@@ -235,6 +235,7 @@ namespace PBTPro.Api.Controllers
                         authClaims.Add(new Claim(ClaimTypes.Role, role));
                     }
                     */
+                    string? DefaultPage = string.Empty;
                     var userRoles = await _dbContext.UserRoles.Where(x => x.UserId == user.Id).Join(
                         _dbContext.Roles,
                         userRole => userRole.RoleId,
@@ -244,9 +245,12 @@ namespace PBTPro.Api.Controllers
                             Id = userRole.RoleId,
                             Name = roles.Name,
                             IsDefaultRole = userRole.IsDefaultRole,
+                            IsMobileUser = roles.IsMobileUser,
+                            DefaultPage = roles.DefaultPage
                         }
                     ).AsNoTracking().OrderBy(x => x.Name).ToListAsync();
-                    if (userRoles.Any(x => x.Name.ToUpper() == "ANGGOTA PENGUATKUASA")) { isMobileUser = true; }
+                    //if (userRoles.Any(x => x.Name.ToUpper() == "ANGGOTA PENGUATKUASA")) { isMobileUser = true; }
+                    if (userRoles.Any(x => x.IsMobileUser == true)) { isMobileUser = true; }
 
                     user_profile_role currDefRole = new user_profile_role { Name = "Public", Id = 0, IsDefaultRole = true };
                     if (userRoles != null && userRoles.Count > 0)
@@ -255,6 +259,11 @@ namespace PBTPro.Api.Controllers
                         if (currDefRole == null)
                         {
                             currDefRole = userRoles.FirstOrDefault();
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(currDefRole?.DefaultPage))
+                        {
+                            DefaultPage = currDefRole.DefaultPage;
                         }
                     }
                     /*
@@ -288,10 +297,11 @@ namespace PBTPro.Api.Controllers
                         Username = user.UserName,
                         Token = token,
                         Role = currDefRole?.Name,
-                        Roleid = currDefRole.Id,
+                        Roleid = currDefRole?.Id ?? 0,
                         IsPasswordExpired = isPasswordExpired,
                         IsMobileUser = isMobileUser,
-                        Roles = userRoles.Select(x => x.Name).ToList()
+                        Roles = userRoles?.Select(x => x.Name).ToList(),
+                        DefaultPage = DefaultPage
                     },
                     SystemMesg(_feature, "LOGIN", MessageTypeEnum.Success, string.Format("Log masuk berjaya.")));
                 }
