@@ -421,7 +421,7 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
                 }
-
+                /* removing validate - will auto populate the existing data & new data based on db content
                 var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
                 var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
                 var dbPermission = await _dbContext.permissions//.Where(p => p.role_id == Id)
@@ -452,32 +452,76 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
                 }
-
+                */
                 #endregion
 
-                if (newPermissions.Any())
-                {
-                    foreach (var newPermission in newPermissions)
-                    {
-                        newPermission.creator_id = runUserID;
-                        newPermission.created_at = DateTime.Now;
-                    }
+                #region Building Record
+                var dbRolesPermissions = await _dbContext.permissions.Where(p => p.role_id == Id).AsNoTracking().ToListAsync();
+                var existingPermissionsInDb = InputModel
+                                    .Join(dbRolesPermissions,
+                                          ip => new { ip.role_id, ip.menu_id },
+                                          rp => new { rp.role_id, rp.menu_id },
+                                          (ip, rp) => rp)
+                                    .ToDictionary(rp => (rp.role_id, rp.menu_id), rp => rp);
 
-                    _dbContext.permissions.AddRange(newPermissions);
+                foreach (var inputPermission in InputModel)
+                {                    
+                    if (existingPermissionsInDb.TryGetValue((inputPermission.role_id, inputPermission.menu_id), out var existingPermission))
+                    {
+                        inputPermission.permission_id = existingPermission.permission_id;
+                        inputPermission.creator_id = existingPermission.creator_id;
+                        inputPermission.created_at = existingPermission.created_at;
+                        inputPermission.is_deleted = false;
+                        inputPermission.modifier_id = runUserID;
+                        inputPermission.modified_at = DateTime.Now;
+                    }
+                    else
+                    {
+                        inputPermission.permission_id = 0;
+                        inputPermission.is_deleted = false;
+                        inputPermission.creator_id = runUserID;
+                        inputPermission.created_at = DateTime.Now;
+                    }
                 }
 
-                if (existingPermissions.Any())
-                {
-                    foreach (var existingPermission in existingPermissions)
-                    {
-                        existingPermission.modifier_id = runUserID;
-                        existingPermission.modified_at = DateTime.Now;
-                    }
-                    _dbContext.permissions.UpdateRange(existingPermissions);
-                }
+                var removedPermissions = dbRolesPermissions.Where(rp => !InputModel.Any(ip => rp.role_id == ip.role_id && rp.menu_id == ip.menu_id)).ToList();
+                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
+                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
+                #endregion
+
                 if (newPermissions.Any() || existingPermissions.Any())
                 {
+                    if (newPermissions.Any())
+                    {
+                        _dbContext.permissions.AddRange(newPermissions);
+                    }
+                    if (existingPermissions.Any())
+                    {
+                        _dbContext.permissions.UpdateRange(existingPermissions);
+                    }
                     await _dbContext.SaveChangesAsync();
+                }
+
+                if (removedPermissions.Any())
+                {
+                    try
+                    {
+                        _dbContext.permissions.RemoveRange(removedPermissions);
+                    }
+                    catch (Exception ex)
+                    {
+                        foreach (var removedPermission in removedPermissions)
+                        {
+                            removedPermission.modifier_id = runUserID;
+                            removedPermission.modified_at = DateTime.Now;
+                            removedPermission.is_deleted = true;
+                        }
+                        _dbContext.permissions.UpdateRange(removedPermissions);
+                    }
+                    finally
+                    {
+                        await _dbContext.SaveChangesAsync();
+                    }
                 }
 
                 return Ok("", SystemMesg(_feature, "BULK_SAVE", MessageTypeEnum.Success, string.Format("Berjaya menyimpan kebenaran akses")));
