@@ -1,337 +1,206 @@
 ﻿@page "/zon_Eksekutif"
 @attribute [Authorize]
 
-@using System.Globalization
-@using Blazored.Toast.Services
-@using Newtonsoft.Json
-@using System.ComponentModel
-@using PBTPro.DAL.Models
+@implements IDisposable
+
+@using PBTPro
+@using PBTPro.Shared
 @using PBTPro.Data
-@using PBTPro.DAL.Models.CommonServices
+@using PBTPro.DAL
+@using PBTPro.DAL.Models
 @using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.CommonServices
+@using DevExpress.Blazor
 @using PBTPro.DAL.Models.PayLoads
 
-@inject DashboardService _DashboardService;
+@inject DashboardService _DashboardService
 @inject NavigationManager NavigationManager
 @inject PBTAuthPermissionService PermissionService
+@inject IToastNotificationService ToastService
 
-<div class="d-lg-flex border-bottom">
-    <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons-small/information-frame.png" />
-        <div class="textTitle">Ringkasan Eksekutif</div>
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+    <div class="d-lg-flex border-bottom">
+        <div class="col-md-12 py-1 dx-helptitle pageTitle">
+            <img class="imgTitle" src="/images/icons-small/information-frame.png" />
+            <div class="textTitle">Ringkasan Eksekutif</div>
+        </div>
     </div>
-</div>
 
+    @if (!PermissionService.HasPermission("View"))
+    {
+        NavigationManager.NavigateTo("/no-permission");
+    }
+    else
+    {
+        <div class="item-container-y">
+            <div class="d-lg-flex" style="padding:0 0 0 0;">
+                <div class="d-lg-flex col-12">
 
-@if (!PermissionService.HasPermission("View"))
-{
-    NavigationManager.NavigateTo("/no-permission");
-}
-else
-{
-    <div class="item-container-y">
-        <div class="d-lg-flex" style="padding:0 0 0 0;">
-            <div class="d-lg-flex col-12">
-
-                <div class="col-3 dashboard-box">
-                    <div class="dashboard-style">
-                        <div class="dashboard-wrap">
-                            <p class="dashboard-center-text">
-                                <span class="totalinnumber">@dtSource.total_notis</span>
-                                <span class="totalinword">Notis</span>
-                            </p>
-                        </div>
-                        <div class="dashboard-button">
-                            <a href="jumlesenaktif" class="round-button">...</a>
+                    <div class="col-3 dashboard-box">
+                        <div class="dashboard-style notis-color">
+                            <div class="dashboard-wrap">
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtSource.total_notis</span>
+                                    <span class="totalinword">Notis</span>
+                                </p>
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-3 dashboard-box">
-                    <div class="dashboard-style">
-                        <div class="dashboard-wrap">
-                            <p class="dashboard-center-text">
-                                <span class="totalinnumber">@dtSource.total_kompaun</span>
-                                <span class="totalinword">Kompaun</span>
-                            </p>
-                        </div>
-                        <div class="dashboard-button">
-                            <a href="jumlesenaktif" class="round-button">...</a>
+                    <div class="col-3 dashboard-box">
+                        <div class="dashboard-style kompaun-color">
+                            <div class="dashboard-wrap">
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtSource.total_kompaun</span>
+                                    <span class="totalinword">Kompaun</span>
+                                </p>
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-3 dashboard-box">
-                    <div class="dashboard-style">
-                        <div class="dashboard-wrap">
-                            <p class="dashboard-center-text">
-                                <span class="totalinnumber">@dtSource.total_inspection</span>
-                                <span class="totalinword">Nota pemeriksaan</span>
-                            </p>
-                        </div>
-                        <div class="dashboard-button">
-                            <a href="jumlesenaktif" class="round-button">...</a>
+                    <div class="col-3 dashboard-box">
+                        <div class="dashboard-style nota-color">
+                            <div class="dashboard-wrap">
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtSource.total_inspection</span>
+                                    <span class="totalinword">Nota pemeriksaan</span>
+                                </p>
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-3 dashboard-box">
-                    <div class="dashboard-style">
-                        <div class="dashboard-wrap">
-                            <p class="dashboard-center-text">
-                                <span class="totalinnumber">@dtSource.total_confiscation</span>
-                                <span class="totalinword">Sitaan</span>
-                            </p>
-                        </div>
-                        <div class="dashboard-button">
-                            <a href="jumlesenaktif" class="round-button">...</a>
+                    <div class="col-3 dashboard-box">
+                        <div class="dashboard-style sitaan-color">
+                            <div class="dashboard-wrap">
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtSource.total_confiscation</span>
+                                    <span class="totalinword">Sitaan</span>
+                                </p>
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-            </div>
-        </div>
-
-        <div class="d-lg-flex" style="padding:0 0 0 0;">
-            <div class="d-lg-flex col-12">
-
-                <div class="col-6 dashboard-box">
-                    <div class="dashboard-style-big">
-                        <div class="dashboard-wrap">
-                            <p /><p /><p />
-                            <p class="dashboard-center-text">
-                                <span class="totalinnumber">@dtSource.premis_berlesen</span>
-                                <span class="totalinword">Jumlah Premis Berlesen</span>
-                            </p>
-                            <p /><p /><p />
-                        </div>
-                        <div class="dashboard-button">
-                            <a href="jumlesenaktif" class="round-button">...</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-6 dashboard-box">
-                    <div class="dashboard-style-big">
-                        <div class="dashboard-wrap">
-                            <p class="dashboard-center-text">
-                                <span class="totalinnumber">@dtSource.premis_tamat_tempoh_lesen</span>
-                                <span class="totalinword">Jumlah Premis Tidak Berlesen</span>
-                            </p>
-                        </div>
-                        <div class="dashboard-button">
-                            <a href="jumlesenaktif" class="round-button">...</a>
-                        </div>
-                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="d-lg-flex" style="padding:0 0 0 0;">
-            <div class="d-lg-flex col-12">
+            <div class="d-lg-flex" style="padding:0 0 0 0;">
+                <div class="d-lg-flex col-12">
 
-                <div class="col-6 dashboard-box">
-                    <div class="dashboard-style-big">
-                        <div class="dashboard-wrap">
-                            <p /><p /><p />
-                            <p class="dashboard-center-text">
-                                <span class="totalinnumber">@dtSource.premis_diperiksa</span>
-                                <span class="totalinword">Jumlah Premis DiPeriksa</span>
-                            </p>
-                            <p /><p /><p />
-                        </div>
-                        <div class="dashboard-button">
-                            <a href="jumlesenaktif" class="round-button">...</a>
+                    <div class="col-6 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+                            <div class="dashboard-wrap">
+                                <p /><p /><p />
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtSource.premis_berlesen</span>
+                                    <span class="totalinword">Jumlah Premis Berlesen</span>
+                                </p>
+                                <p /><p /><p />
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-6 dashboard-box">
-                    <div class="dashboard-style-big">
-                        <div class="dashboard-wrap">
-                            <p class="dashboard-center-text">
-                                <span class="totalinnumber">@dtSource.premis_dikenakan_tindakan</span>
-                                <span class="totalinword">Jumlah Premis Dikenakan Tindakan</span>
-                            </p>
-                        </div>
-                        <div class="dashboard-button">
-                            <a href="jumlesenaktif" class="round-button">...</a>
+                    <div class="col-6 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+                            <div class="dashboard-wrap">
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtSource.premis_tamat_tempoh_lesen</span>
+                                    <span class="totalinword">Jumlah Premis Tidak Berlesen</span>
+                                </p>
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div class="d-lg-flex" style="padding:0 0 0 0;">
+                <div class="d-lg-flex col-12">
+
+                    <div class="col-6 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+                            <div class="dashboard-wrap">
+                                <p /><p /><p />
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtSource.premis_diperiksa</span>
+                                    <span class="totalinword">Jumlah Premis DiPeriksa</span>
+                                </p>
+                                <p /><p /><p />
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-6 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+                            <div class="dashboard-wrap">
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtSource.premis_dikenakan_tindakan</span>
+                                    <span class="totalinword">Jumlah Premis Dikenakan Tindakan</span>
+                                </p>
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
+    }
+</DxLoadingPanel>
 
-        @code {
+@code {
+    bool PanelVisible { get; set; }
+    dashboard_view dtSource = new dashboard_view();
 
-        dashboard_view dtSource = new dashboard_view();
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        protected override async Task OnInitializedAsync()
-        {
-            if (dtSource != null)
-                dtSource = await _DashboardService.GetDashboardData();
-        }
+    protected override async Task OnInitializedAsync()
+    {
+        PanelVisible = true;
+        if (dtSource != null)
+            dtSource = await _DashboardService.GetDashboardData();
 
+        DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
 
-    @*     <div class="d-lg-flex" style="padding:0 0 0 0;">
-    <div class="d-lg-flex col-12">
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">15,325</span>
-    <span class="totalinword">Jumlah Lesen Aktif</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="jumlesenaktif" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+        }
+    }
 
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">520</span>
-    <span class="totalinword">Jumlah Lesen Tamat Tempoh</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
 
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">21,432</span>
-    <span class="totalinword">Jumlah Premis Perniagaan</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    </div>
-    </div>
-
-    <div class="d-lg-flex" style="padding:0 0 0 0;">
-    <div class="d-lg-flex col-12">
-    <div class="col-8 dashboard-box">
-    <div class="dashboard-style-big">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">RM 15,234,985.00</span>
-    <span class="totalinword">Hasil Tahun Semasa</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">15,325</span>
-    <span class="totalinword">Jumlah Lesen Berisiko</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-
-    <div class="d-lg-flex" style="padding:0 0 0 0;">
-    <div class="d-lg-flex col-12">
-
-    <div class="col-8 dashboard-box">
-    <div class="dashboard-style-big">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">RM 1,234,985.00</span>
-    <span class="totalinword">Potensi Hasil Belum Dikutip</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">15,325</span>
-    <span class="totalinword">Jumlah Lesen Tidak Berisiko</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-
-    <div class="d-lg-flex" style="padding:0 0 0 0;">
-    <div class="d-lg-flex col-12">
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">450</span>
-    <span class="totalinword">Pertambahan Lesen Tahun Semasa</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">258</span>
-    <span class="totalinword">Potensi Perniagaan Tanpa Lesen</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-
-    <div class="col-4 dashboard-box">
-    <div class="dashboard-style">
-    <div class="dashboard-wrap">
-    <p class="dashboard-center-text">
-    <span class="totalinnumber">35</span>
-    <span class="totalinword">Pertambahan Lesen Bulan Semasa</span>
-    </p>
-    </div>
-    <div class="dashboard-button">
-    <a href="http://example.com" class="round-button">...</a>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div> *@
-
-</div>
 }
