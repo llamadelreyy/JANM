@@ -95,7 +95,7 @@ namespace PBTPro.Api.Controllers
 
                 if (existingDepartment != null)
                 {
-                    return Error("", SystemMesg("COMMON", "DUPLICATE_DEPT_CODE", MessageTypeEnum.Error, "The dept_code already exists."));
+                    return Error("", SystemMesg("COMMON", "DUPLICATE_DEPT_CODE", MessageTypeEnum.Error, "Kod jabatan telah wujud."));
                 }
                 #endregion
 
@@ -123,7 +123,7 @@ namespace PBTPro.Api.Controllers
                     is_deleted = ref_department.is_deleted,
                     created_at = ref_department.created_at
                 };
-                return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
+                return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya tambah data.")));
             }
             catch (Exception ex)
             {

@@ -117,7 +117,7 @@ namespace PBTPro.Api.Controllers
 
                 if (existingDivision != null)
                 {
-                    return Error("",SystemMesg("COMMON", "DUPLICATE_DIV_CODE_DEPT_NAME", MessageTypeEnum.Error, "The div_code with the same dept_name already exists."));
+                    return Error("",SystemMesg("COMMON", "DUPLICATE_DIV_CODE_DEPT_NAME", MessageTypeEnum.Error, "Kod Seksyen sama dengan kod jabatan telah wujud."));
                 }
                 #endregion
 
@@ -149,11 +149,11 @@ namespace PBTPro.Api.Controllers
                     is_deleted = division_infos.is_deleted,
                     created_at = division_infos.created_at
                 };
-                return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
+                return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya tambah data.")));
             }
             catch (PostgresException ex) when (ex.SqlState == "23505") // 23505 is the unique violation error code
             {
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("The combination of div_code and dept_name already exists.")));// BadRequest("The combination of div_code and dept_name already exists.");
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Kod Seksyen sama dengan kod jabatan telah wujud.")));// BadRequest("The combination of div_code and dept_name already exists.");
             }
             catch (Exception ex)
             {
@@ -180,11 +180,11 @@ namespace PBTPro.Api.Controllers
 
                 if (string.IsNullOrWhiteSpace(InputModel.div_code))
                 {
-                    return Error("", SystemMesg(_feature, "DIV_CODE", MessageTypeEnum.Error, string.Format("Ruangan Kod Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "DIV_CODE", MessageTypeEnum.Error, string.Format("Ruangan Kod seksyen diperlukan")));
                 }
                 if (string.IsNullOrWhiteSpace(InputModel.div_name))
                 {
-                    return Error("", SystemMesg(_feature, "DIV_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "DIV_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama seksyen diperlukan")));
                 }
 
                 #endregion

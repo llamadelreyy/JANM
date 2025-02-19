@@ -157,7 +157,7 @@ namespace PBTPro.Api.Controllers
                     is_deleted = division_infos.is_deleted,
                     created_at = division_infos.created_at
                 };
-                return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
+                return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya tambah data.")));
             }
             catch (Exception ex)
             {
@@ -184,11 +184,11 @@ namespace PBTPro.Api.Controllers
 
                 if (string.IsNullOrWhiteSpace(InputModel.unit_code))
                 {
-                    return Error("", SystemMesg(_feature, "UNIT_CODE", MessageTypeEnum.Error, string.Format("Ruangan Kod Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "UNIT_CODE", MessageTypeEnum.Error, string.Format("Ruangan Kod unit diperlukan")));
                 }
                 if (string.IsNullOrWhiteSpace(InputModel.unit_name))
                 {
-                    return Error("", SystemMesg(_feature, "DIV_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "DIV_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama unit diperlukan")));
                 }
                 
                 #endregion

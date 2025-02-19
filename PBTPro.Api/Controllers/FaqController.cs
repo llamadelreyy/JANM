@@ -90,19 +90,19 @@ namespace PBTPro.Api.Controllers
                 }
                 if (string.IsNullOrWhiteSpace(InputModel.faq_category))
                 {
-                    return Error("", SystemMesg(_feature, "DEPT_CODE", MessageTypeEnum.Error, string.Format("Ruangan Kod Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "KATEGORI", MessageTypeEnum.Error, string.Format("Ruangan kategoru soalan lazim diperlukan")));
                 }
                 if (string.IsNullOrWhiteSpace(InputModel.faq_question))
                 {
-                    return Error("", SystemMesg(_feature, "DEPT_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "SOALAN", MessageTypeEnum.Error, string.Format("Ruangan soalan lazim diperlukan")));
                 }
                 if (string.IsNullOrWhiteSpace(InputModel.faq_answer))
                 {
-                    return Error("", SystemMesg(_feature, "DEPT_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "JAWAPAN", MessageTypeEnum.Error, string.Format("Ruangan jawapan soalan lazim diperlukan")));
                 }
                 if (string.IsNullOrWhiteSpace(InputModel.faq_status))
                 {
-                    return Error("", SystemMesg(_feature, "DEPT_STATUS", MessageTypeEnum.Error, string.Format("Ruangan Status Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "STATUS", MessageTypeEnum.Error, string.Format("Ruangan status soalan lazim diperlukan")));
                 }
                 #endregion
 
@@ -122,7 +122,7 @@ namespace PBTPro.Api.Controllers
 
                 #endregion
                
-                return Ok(faq_info, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
+                return Ok(faq_info, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya tambah data.")));
             }
             catch (Exception ex)
             {
@@ -147,19 +147,19 @@ namespace PBTPro.Api.Controllers
                 }
                 if (string.IsNullOrWhiteSpace(InputModel.faq_category))
                 {
-                    return Error("", SystemMesg(_feature, "DEPT_CODE", MessageTypeEnum.Error, string.Format("Ruangan Kod Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "KATEGORI", MessageTypeEnum.Error, string.Format("Ruangan kategori soalan lazim diperlukan")));
                 }
                 if (string.IsNullOrWhiteSpace(InputModel.faq_question))
                 {
-                    return Error("", SystemMesg(_feature, "DEPT_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "SOALAN", MessageTypeEnum.Error, string.Format("Ruangan soalan soalan lazim diperlukan")));
                 }
                 if (string.IsNullOrWhiteSpace(InputModel.faq_answer))
                 {
-                    return Error("", SystemMesg(_feature, "DEPT_NAME", MessageTypeEnum.Error, string.Format("Ruangan Nama Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "JAWAPAN", MessageTypeEnum.Error, string.Format("Ruangan jawapan soalan lazim diperlukan")));
                 }
                 if (string.IsNullOrWhiteSpace(InputModel.faq_status))
                 {
-                    return Error("", SystemMesg(_feature, "DEPT_STATUS", MessageTypeEnum.Error, string.Format("Ruangan Status Jabatan diperlukan")));
+                    return Error("", SystemMesg(_feature, "STATUS", MessageTypeEnum.Error, string.Format("Ruangan satus soalan lazim diperlukan")));
                 }
                 #endregion
 
