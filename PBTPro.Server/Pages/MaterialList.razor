@@ -97,14 +97,20 @@ else
                        @*  } *@
                     </HeaderTemplate>
                     <CellDisplayTemplate>
-                        @* @if (PermissionService.HasPermission("Edit"))
-                            { *@
-                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        @* } *@
-                        @* @if (PermissionService.HasPermission("Delete"))
-                        { *@
-                        <a @onclick="@(() => Delete((ref_doc)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                       @*  } *@
+                        @{
+                            var docD = ((ref_doc)context.DataItem).doc_id;
+                            if ((docD != 1))
+                            {
+                                @* @if (PermissionService.HasPermission("Edit"))
+                                { *@
+                                <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                                @* } *@
+                                @* @if (PermissionService.HasPermission("Delete"))
+                                { *@
+                                <a @onclick="@(() => Delete((ref_doc)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                                @*  } *@
+                            }
+                        }
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
                 <DxGridDataColumn FieldName="filename" Caption="Preview Fail" Width="15%" TextAlignment="GridTextAlignment.Center">
@@ -116,27 +122,26 @@ else
                 <DxGridDataColumn FieldName="filename" Caption="Nama" Width="43%" TextAlignment="GridTextAlignment.Left" />
 
                 <DxGridDataColumn FieldName=created_at
-                                  DisplayFormat="dd/MM/yyyy"
-                                  Caption="Tarikh Data"
-                                  MinWidth="120"
-                                  Width="10%"
-                                  TextAlignment="GridTextAlignment.Left"
-                                  SortOrder="GridColumnSortOrder.Ascending"
-                                  SortIndex="0" />
+                DisplayFormat="dd/MM/yyyy"
+                Caption="Tarikh Data"
+                MinWidth="120"
+                Width="10%"
+                TextAlignment="GridTextAlignment.Left"
+                SortOrder="GridColumnSortOrder.Ascending"
+                SortIndex="0" />
             </Columns>
 
             <EditFormTemplate Context="editFormContext">
                 @{
                     var dtData = (ref_doc)editFormContext.EditModel;
+                    if (Grid.IsEditingNewRow())
+                        strFilename = string.Empty;
+                    else
+                        strFilename = dtData.filename;
                 }
+
                 <DxFormLayout CssClass="w-100">
-                    <DxFormLayoutItem ColSpanMd="6">
-                        <div>Nama Fail</div>
-                        <DxTextBox @bind-Text="@dtData.filename"
-                        NullText="Nama Fail ..."
-                        BindValueMode="BindValueMode.OnInput"
-                        CssClass="cw-480" />
-                    </DxFormLayoutItem>
+
                     <DxFormLayoutItem ColSpanMd="6">
                         <div>Kategori</div>
                         <DxComboBox Data="@Category"
@@ -146,27 +151,53 @@ else
                         @bind-Text="@dtData.doc_cat"
                         CssClass="cw-480">
                         </DxComboBox>
-                    </DxFormLayoutItem>                    
-                    <DxFormLayoutItem ColSpanMd="9">                       
+                    </DxFormLayoutItem>
+
+
+                    <DxFormLayoutItem ColSpanMd="6">
+                        <div>Nama Fail</div>                       
+                        <DxTextBox @bind-Text="@dtData.filename"
+                                   @bind-Value="@strFilename"
+                        NullText="Nama Fail ..."
+                        BindValueMode="BindValueMode.OnInput"
+                        CssClass="cw-480" 
+                        Enabled="false"/>
+ 
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <div>Penerangan</div>
+                        <DxMemo @bind-Text="@dtData.description"
+                        CssClass="cw-480"
+                        Rows="3" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="6">
                         <div class="upload-container">
                             <div style="@(SelectedFilesCount > 0 ? "display: none" : string.Empty)" id="overviewDemoDropZone" class="card custom-drop-zone rounded-3 w-100 m-0">
                                 <span class="drop-file-icon mb-3"></span>
-                                <span class="drop-file-label mb-3">Seret fail di sini atau klik butang pilih fail</span>
+                                <span class="drop-file-label">Seret fail di sini atau klik butang pilih fail</span>
                                 <DxButton Id="overviewDemoSelectButton"
                                 CssClass="m-1"
                                 RenderStyle="ButtonRenderStyle.Primary"
                                 Text="Pilih Fail" />
                             </div>
-                            <DxUpload Visible="@UploadVisible"
-                            Name="myFile"
-                            ExternalSelectButtonCssSelector="#overviewDemoSelectButton"
-                            ExternalDropZoneCssSelector="#overviewDemoDropZone"
-                            ExternalDropZoneDragOverCssClass="custom-drop-zone-hover"
-                            MaxFileSize="15000000"
-                            AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png", ".pdf" })"
-                            UploadUrl="@GetUploadUrl("api/Upload/UploadFile/")"
-                            SelectedFilesChanged="@SelectedFilesChanged">
-                            </DxUpload>
+                            <div class="bottom-upload">
+                                <DxUpload Visible="@UploadVisible" Name="DocUpload"
+                                MaxFileSize="4000000"
+                                SelectButtonText="Pilih fail pdf"
+                                AllowMultiFileUpload="false"
+                                FileUploaded="@((args) => OnFileUploaded(args, refdoc))"
+                                ChunkSize="20000"
+                                AllowedFileExtensions="@(new List<string> { ".pdf"})"
+                                UploadUrl="@GetUploadUrl("api/Upload/UploadDocument/")"
+                                ShowFileList="true"
+                                SelectedFilesChanged="@SelectedFilesChanged"
+                                ExternalSelectButtonCssSelector="#overviewDemoSelectButton"
+                                ExternalDropZoneCssSelector="#overviewDemoDropZone"
+                                ExternalDropZoneDragOverCssClass="custom-drop-zone-hover">
+                                </DxUpload>
+                            </div>
                         </div>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
@@ -214,29 +245,35 @@ else
     string GridSearchText = "";
     bool ConfirmationShown { get; set; } = false;
     bool UploadVisible { get; set; } = false;
+    string strTempoDocPath { get; set; } = "";
+    int SelectedFilesCount { get; set; }
+    string strFilename { get; set; }
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     #region iformfile
-    int SelectedFilesCount { get; set; }
-    protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
-    {
-        SelectedFilesCount = files.ToList().Count;
-        InvokeAsync(StateHasChanged);
-    }
-
     protected string GetUploadUrl(string url)
     {
         return NavigationManager.ToAbsoluteUri(url).AbsoluteUri;
     }
 
-    // async void UploadFileService(string url)
-    // {
-    //     ReturnViewModel response = new ReturnViewModel();
-    //     response = await _DocumentService.UploadFile();
-    // }
+    protected void OnFileUploaded(FileUploadEventArgs args, ref_doc item)
+    {
+        var fileUrl = _fileUrlStorageService.Get(Guid.Parse(args.FileInfo.Guid));
+        string[] pathFileName = fileUrl.Split(";");
 
+        strTempoDocPath = pathFileName[0];
+        item.pathurl = pathFileName[1]; //fileUrl;
+        item.filename = pathFileName[2];
+        refdoc.pathurl = pathFileName[1];
+        strFilename = item.filename;
+    }
+    protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files)
+    {
+        UploadVisible = files.ToList().Count > 0;
+        InvokeAsync(StateHasChanged);
+    }
     #endregion
 
     #region list
@@ -265,12 +302,12 @@ else
             if (e.IsNew)
             {
                 editModel.filename = refdoc.filename;
-                await _DocumentService.UploadFile(editModel);
-
+                editModel.pathurl = refdoc.pathurl;
                 response = await _DocumentService.Add(editModel);
             }
             else
             {
+                editModel.pathurl = refdoc.pathurl;
                 response = await _DocumentService.Update(editModel.doc_id, editModel);
             }
 
@@ -329,11 +366,11 @@ else
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (ref_doc)e.EditModel;
-        if (_data.filename == null)
-        {
-            e.AddError(nameof(_data.filename), "Nama fail tidak sah. Medan perlu diisi.");
-        }
+        // var _data = (ref_doc)e.EditModel;
+        // if (_data.filename == null)
+        // {
+        //     e.AddError(nameof(_data.filename), "Nama fail tidak sah. Medan perlu diisi.");
+        // }
     }
 
     private List<string> Category = new List<string>

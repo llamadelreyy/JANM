@@ -22,4 +22,6 @@ public partial class ref_doc
     public DateTime? modified_at { get; set; }
 
     public bool? is_deleted { get; set; }
+
+    public string? description { get; set; }
 }

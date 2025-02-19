@@ -54,8 +54,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\document\tempDocument\" />
     <Folder Include="wwwroot\images\tempProfile\" />
-    <Folder Include="wwwroot\document\" />
   </ItemGroup>
 
 </Project>

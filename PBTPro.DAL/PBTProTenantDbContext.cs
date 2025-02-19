@@ -1836,6 +1836,7 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.filename).HasColumnType("character varying");
             entity.Property(e => e.modified_at).HasColumnType("timestamp without time zone");
             entity.Property(e => e.pathurl).HasColumnType("character varying");
+            entity.Property(e => e.description).HasColumnType("character varying");
         });
 
 
