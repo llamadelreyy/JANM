@@ -120,11 +120,11 @@
 
                     // This is to check whether in add new @ edit mode
                     boolEditMode = Grid.IsEditingNewRow();
-                    intCurrentRoleId = dtEdit.role_id;
+                    // // // intCurrentRoleId = dtEdit.role_id;
 
 
-                    // MyTreeView.ClearCheck();
-                    OnPopulateRoleMenu();
+                    // // // // MyTreeView.ClearCheck();
+                    // // // OnPopulateRoleMenu();
                     // This is to marked that tree view is already populate
                     boolPopulateOnce = true;
                 }
@@ -349,11 +349,11 @@
             if (MyTreeView != null)
                 MyTreeView.ClearCheck();
 
-            if (intCurrentRoleId != args.DataItem.Id)
-            {   
-                intCurrentRoleId = args.DataItem.Id;
-                OnPopulateRoleMenu();
-            }
+            // if (intCurrentRoleId != args.DataItem.Id)
+            // {   
+            intCurrentRoleId = args.DataItem.Id;
+            OnPopulateRoleMenu();
+            // }
 
             OnPopulateSelectedMenu();
             // PanelTree = false;
@@ -832,7 +832,7 @@
     {
         // // string strParentId, strParentId2;
         // // string strMenuId, strMenuId2;
-
+        strSelectedMenu = "";
         for (var i = 0; i < count; i++)
         {
 
@@ -846,6 +846,13 @@
 
     string SortSelectedMenu()
     {
+        //Clean the string
+        strSelectedMenu = strSelectedMenu.Trim();
+        // Check if the last character is ";" and remove it if necessary
+        if (strSelectedMenu.EndsWith(";"))
+        {
+            strSelectedMenu = strSelectedMenu.Remove(strSelectedMenu.Length - 1);
+        }
 
         // Step 1: Split the string into an array of substrings
         string[] arr = strSelectedMenu.Split(';', StringSplitOptions.RemoveEmptyEntries);
@@ -900,7 +907,7 @@
                 // Create the permission object
                 permission menu1 = new permission
                 {
-                    permission_id = _intID,
+                    permission_id = 0, //_intID,
                     role_id = intCurrentRoleId,
                     menu_id = int.Parse(arrChildMenu[intIndex].Split('-')[intIndex]), // Set menu_id from x value of the first pair
                     can_view = arrChildMenu.Any(item => item.StartsWith("1-")),
@@ -924,7 +931,7 @@
 
         //Save the permission
         ReturnViewModel response = new ReturnViewModel();
-        response = await _PermissionService.BulkSaveByMenu(MenuAccess);
+        response = await _PermissionService.BulkSaveByRole(MenuAccess);
 
         if (response.ReturnCode == 200)
         {
@@ -954,6 +961,13 @@
     {
         //Refresh back the data source
         await PopulateMenuByRole();
+        intCurrentRoleId = 0;
+        // boolMarkOnce = false;
+        // boolPopulateOnce = false;
+        // strSelectedMenu = "";
+        // boolEditMode = false;
+        // OnPopulateRoleMenu();
+        // OnPopulateSelectedMenu();
     }
 
     public void Dispose()
