@@ -254,6 +254,34 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+        [AllowAnonymous]
+        [HttpGet("{TypeId}")]
+        public async Task<ActionResult<IEnumerable<ref_cfsc_inventory>>> GetListByInvType(int TypeId)
+        {
+            try
+            {
 
+                var data = await (from item in _tenantDBContext.ref_cfsc_inventories
+                                  join type in _tenantDBContext.ref_cfsc_invtypes on item.item_type equals type.inv_type_id
+                                  where item.is_deleted == false && type.inv_type_id == TypeId
+                                  select new
+                                  {
+                                      item.inv_id,
+                                      item.inv_name,
+                                      item.item_type,
+                                      type.inv_type_desc,
+                                      item.created_at,
+                                      item.modified_at,
+
+                                  }).ToListAsync();
+
+                return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
     }
 }
