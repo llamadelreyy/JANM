@@ -18,7 +18,14 @@ namespace PBTPro.DAL.Models.PayLoads
         public int premis_dikenakan_tindakan { get; set; }
         public int premis_tiada_lesen { get; set; }
         public int total_cukai_tahunan { get; set; }
-        public double amaun_kutipan_cukai { get; set; }
+        public decimal amaun_kutipan_cukai { get; set; }
+        public decimal cukai_taksiran_dibyr { get; set; }
+        public decimal cukai_taksiran_blm_dibyr {get; set;}
+        public decimal hsl_lesen_dibyr { get; set; }
+        public decimal hsl_lesen_blm_dibyr { get; set; }
+        public decimal? kompaun_dibyr { get; set; }
+        public decimal? kompaun_blm_dibyr { get; set; }
+
 
     }
 }
