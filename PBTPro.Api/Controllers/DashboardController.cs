@@ -70,10 +70,19 @@ namespace PBTPro.Api.Controllers
 
                 var totalPremisTindakan = premisTindakan.Sum(x => x.NoticeCount + x.CompoundCount + x.ConfiscationCount);
                 var premisTiadaLesen = await _tenantDBContext.mst_premis.Where(p => p.lesen == null || p.lesen == "" || string.IsNullOrEmpty(p.lesen)).CountAsync();
-                //var premisTamatTempohLesen = await _tenantDBContext.mst_premis.Where(p => Convert.ToDateTime(p.tempoh_sah_lesen) <= DateTime.Today).CountAsync();
                 var premisTamatTempohLesen = await _tenantDBContext.mst_premis.Where(p => p.tempoh_sah_lesen <= DateOnly.FromDateTime(DateTime.Today)).CountAsync();
 
                 var bilCukaiTahunan = await _tenantDBContext.mst_premis.CountAsync();
+
+                ///added by farhana 19/2/2025
+                ///pending to get information to sum up :
+                //var totalCukaiTaksiranByr 
+                //var totalCukaiTaksiranblmByr
+                //var totalHslLesenByr
+                //var totalHslLesenBlmByr
+
+                var totalKompaunDibyr = await _tenantDBContext.trn_compounds.Where(c => c.trnstatus_id == 5).SumAsync(c => c.amt_cmpd);
+                var totalKompaunBlmByr = await _tenantDBContext.trn_compounds.Where(xc => xc.trnstatus_id == 4).SumAsync(c => c.amt_cmpd);
 
                 var result = new dashboard_view
                 {
@@ -87,7 +96,13 @@ namespace PBTPro.Api.Controllers
                     premis_tiada_lesen = premisTiadaLesen,
                     premis_tamat_tempoh_lesen = premisTamatTempohLesen,
                     total_cukai_tahunan = bilCukaiTahunan,
-                    amaun_kutipan_cukai = 4569.93
+                    amaun_kutipan_cukai = 4569.93M,
+                    cukai_taksiran_dibyr = 100230,
+                    cukai_taksiran_blm_dibyr= 10230,
+                    hsl_lesen_dibyr = 150230,
+                    hsl_lesen_blm_dibyr = 15230,
+                    kompaun_dibyr = totalKompaunDibyr,
+                    kompaun_blm_dibyr = totalKompaunBlmByr,
                 };
 
                 if (result == null)
