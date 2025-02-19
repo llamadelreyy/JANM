@@ -11,6 +11,7 @@
 @inject RoleService _RoleService
 @inject PermissionService _PermissionService
 @inject NavigationManager NavigationManager
+@inject PBTAuthPermissionService PermissionService
 @inject IToastNotificationService ToastService
 
 <style>
@@ -20,22 +21,28 @@
     }
 </style>
 
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+    IsContentBlocked="true"
+    ApplyBackgroundShading="true"
+    IndicatorAreaVisible="false"
+    Text="Capaian Data...">
 
-<div class="d-lg-flex border-bottom">
-    <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="\images\icons-small\blue-document-tree.png" />
-        <div class="textTitle">Akses Peranan</div>
-    </div>
-</div>
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="\images\icons-small\blue-document-tree.png" />
+                <div class="textTitle">Akses Peranan</div>
+            </div>
+        </div>
 
-<div class="item-container-x">
+        <div class="item-container-x">
 
-    <DxGrid @ref="Grid"
+            <DxGrid @ref="Grid"
             Data="dataSource"
             KeyFieldName="_id"
             ShowGroupPanel="true"
@@ -62,173 +69,176 @@
             HighlightRowOnHover="true"
             CssClass="mv-1000">
 
-        <Columns>
-            <DxGridCommandColumn Width="0px">
-                <HeaderTemplate>
-                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                </HeaderTemplate>
-                 <CellDisplayTemplate>
+                <Columns>
+                    <DxGridCommandColumn Width="0px">
+                        <HeaderTemplate>
+                            @if ((PermissionService.HasPermission("Add")) || (PermissionService.HasPermission("Edit")))
+                            {
+                                <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                            }
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            @{
+                                //if (!boolStartEdit)
+                                //{
+                                // boolMarkOnce = false;
+                                // boolPopulateOnce = false;
+                                // strSelectedMenu = "";
+                                // boolEditMode = false;
+                                //<a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                                // <a @onclick="@(() => Delete((role_menu)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                                //}
+                            }
+                        </CellDisplayTemplate> 
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn Caption="Peranan" MinWidth="140" Width="18%" GroupIndex="0" FieldName="role_name" />
+                    <DxGridDataColumn Caption="Kategori" MinWidth="100" Width="14%" GroupIndex="1" FieldName="menu_name" TextAlignment="GridTextAlignment.Left" SortOrder="GridColumnSortOrder.Descending" />
+                    <DxGridDataColumn Caption="Menu" MinWidth="160" Width="20%" FieldName="submenu_name" TextAlignment="GridTextAlignment.Left" AllowGroup="false" AllowSort="false" />
+                    <DxGridDataColumn Caption="Papar" MinWidth="55" Width="3%" FieldName="bln_read" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Tambah" MinWidth="70" Width="4%" FieldName="bln_create" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Ubah" MinWidth="50" Width="3%" FieldName="bln_update" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Hapus" MinWidth="60" Width="3%" FieldName="bln_delete" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Cetak" MinWidth="60" Width="3%" FieldName="bln_print" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Muat Naik" MinWidth="55" Width="3%" FieldName="bln_upload" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Muat Turun" MinWidth="60" Width="3%" FieldName="bln_download" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Import Data" MinWidth="70" Width="4%" FieldName="bln_import_data" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Eksport Data" MinWidth="70" Width="4%" FieldName="bln_export_data" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Pengesahan" MinWidth="100" Width="5%" FieldName="bln_authorize" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Luluskan Perubahan" MinWidth="100" Width="5%" FieldName="bln_approve_changes" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Perlaksanaan" MinWidth="120" Width="5%" FieldName="bln_execute" TextAlignment="GridTextAlignment.Center" />
+
+                    <DxGridDataColumn FieldName="created_date"
+                    DisplayFormat="dd/MM/yyyy"
+                    Caption="Tarikh Data"
+                    MinWidth="90"
+                    Width="10%"
+                    TextAlignment="GridTextAlignment.Center">
+                        <FilterMenuTemplate>
+                            <DateRange FilterContext="context" />
+                        </FilterMenuTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+
+                <EditFormTemplate Context="EditFormContext">
                     @{
-                        //if (!boolStartEdit)
-                        //{
-                            // boolMarkOnce = false;
-                            // boolPopulateOnce = false;
-                            // strSelectedMenu = "";
-                            // boolEditMode = false;
-                          //<a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        // <a @onclick="@(() => Delete((role_menu)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                        //}
+                        // This is to check whether in add new @ edit mode
+                        if ((!boolEditMode) && (!boolPopulateOnce))
+                        //if ((!boolPopulateOnce))
+                        {
+                            var dtEdit = (role_menu)EditFormContext.EditModel;
+                            //var MenuContent = _dtContent; //FileMenu.Content;
+
+                            // This is to check whether in add new @ edit mode
+                            boolEditMode = Grid.IsEditingNewRow();
+                            // // // intCurrentRoleId = dtEdit.role_id;
+
+
+                            // // // // MyTreeView.ClearCheck();
+                            // // // OnPopulateRoleMenu();
+                            // This is to marked that tree view is already populate
+                            boolPopulateOnce = true;
                         }
-                </CellDisplayTemplate> 
-            </DxGridCommandColumn>
-            <DxGridDataColumn Caption="Peranan" MinWidth="140" Width="14%" GroupIndex="0" FieldName="role_name" />
-            <DxGridDataColumn Caption="Kategori" MinWidth="100" Width="10%" GroupIndex="1" FieldName="menu_name" TextAlignment="GridTextAlignment.Left" SortOrder="GridColumnSortOrder.Descending" />
-            <DxGridDataColumn Caption="Menu" MinWidth="160" Width="16%" FieldName="submenu_name" TextAlignment="GridTextAlignment.Left" AllowGroup="false" AllowSort="false" />
-            <DxGridDataColumn Caption="Papar" MinWidth="90" Width="5%" FieldName="bln_read" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Tambah" MinWidth="100" Width="5%" FieldName="bln_create" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Ubah" MinWidth="90" Width="5%" FieldName="bln_update" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Hapus" MinWidth="90" Width="5%" FieldName="bln_delete" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Cetak" MinWidth="90" Width="5%" FieldName="bln_print" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Muat Naik" MinWidth="90" Width="5%" FieldName="bln_upload" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Muat Turun" MinWidth="90" Width="5%" FieldName="bln_download" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Import Data" MinWidth="90" Width="5%" FieldName="bln_import_data" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Eksport Data" MinWidth="90" Width="5%" FieldName="bln_export_data" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Pengesahan" MinWidth="100" Width="5%" FieldName="bln_authorize" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Luluskan Perubahan" MinWidth="100" Width="5%" FieldName="bln_approve_changes" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Perlaksanaan" MinWidth="120" Width="5%" FieldName="bln_execute" TextAlignment="GridTextAlignment.Center" />
+                    }
 
-            <DxGridDataColumn FieldName="created_date"
-                              DisplayFormat="dd/MM/yyyy"
-                              Caption="Tarikh Data"
-                              MinWidth="90"
-                              Width="10%"
-                              TextAlignment="GridTextAlignment.Center">
-                <FilterMenuTemplate>
-                    <DateRange FilterContext="context" />
-                </FilterMenuTemplate>
-            </DxGridDataColumn>
-        </Columns>
-
-        <EditFormTemplate Context="EditFormContext">
-            @{
-                // This is to check whether in add new @ edit mode
-                if ((!boolEditMode) && (!boolPopulateOnce))
-                //if ((!boolPopulateOnce))
-                {
-                    var dtEdit = (role_menu)EditFormContext.EditModel;
-                    //var MenuContent = _dtContent; //FileMenu.Content;
-
-                    // This is to check whether in add new @ edit mode
-                    boolEditMode = Grid.IsEditingNewRow();
-                    // // // intCurrentRoleId = dtEdit.role_id;
-
-
-                    // // // // MyTreeView.ClearCheck();
-                    // // // OnPopulateRoleMenu();
-                    // This is to marked that tree view is already populate
-                    boolPopulateOnce = true;
-                }
-            }
-
-            <DxFormLayout CssClass="w-100">
-                <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
-                <table class="layout_edit">
-                        <tr hidden="@boolErrorMessage">
-                            <td style="color:red;" colspan="8">
-                                <img src="images/icons-small/exclamation-red.png" /> Sila pilih menu dari senarai.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Peranan</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%">
-                                <DxComboBox Data="@dataRole"
-                                            NullText="Pilih Peranan ..."
-                                            Enabled="@boolEditMode"
-                                            SearchFilterCondition="ListSearchFilterCondition.Contains"
-                                            ShowValidationIcon="true"
-                                            SelectedDataItemChanged="(SelectedDataItemChangedEventArgs<ApplicationRole> args) => OnSelectedRoleChanged(args)"
-                                            TextFieldName="Name"
-                                            ValueFieldName="Id"
-                                            @bind-Value="@intCurrentRoleId">
-                                </DxComboBox>
-                            </td>
-                            <td width="100px">&nbsp;</td>
-                            <td nowrap></td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%"></td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Menu</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="6">
-@*                             <DxLoadingPanel @bind-Visible="PanelTree"
+                    <DxFormLayout CssClass="w-100">
+                        <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                            <table class="layout_edit">
+                                <tr hidden="@boolErrorMessage">
+                                    <td style="color:red;" colspan="8">
+                                        <img src="images/icons-small/exclamation-red.png" /> Sila pilih menu dari senarai.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Peranan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxComboBox Data="@dataRole"
+                                        NullText="Pilih Peranan ..."
+                                        Enabled="@boolEditMode"
+                                        SearchFilterCondition="ListSearchFilterCondition.Contains"
+                                        ShowValidationIcon="true"
+                                        SelectedDataItemChanged="(SelectedDataItemChangedEventArgs<ApplicationRole> args) => OnSelectedRoleChanged(args)"
+                                        TextFieldName="Name"
+                                        ValueFieldName="Id"
+                                        @bind-Value="@intCurrentRoleId">
+                                        </DxComboBox>
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Menu</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        @*                             <DxLoadingPanel @bind-Visible="PanelTree"
                                 IsContentBlocked="true"
                                 ApplyBackgroundShading="true"
                                 IndicatorAreaVisible="false"
                                 Text="Isi Data..."> *@
 
-                                <div class="cw-320" id="menuAccess" style="height:280px;overflow-x:hidden;border:1px solid #ccc;">
-                                        <DxTreeView Data="@_dtContent"
-                                                @ref="@MyTreeView"
-                                                CheckMode="TreeViewCheckMode.Recursive"
-                                                CheckAllVisible="true"
-                                                CheckedChanged="CheckedChanged"
-                                                AllowSelectNodes="true"
-                                                CheckNodeByClick="true"
-                                                AnimationType="LayoutAnimationType.Slide"
-                                                CssClass="h-300">
-                                        <DataMappings>
-                                                <DxTreeViewDataMapping Children="Content"
-                                                                    Text="Name"
-                                                                    IconUrl="IconUrl"
-                                                                    CssClass="cssClass"
-                                                                    Checked="Selected"
-                                                                    IconCssClass="IconCssClass" />
-                                        </DataMappings>
-                                    </DxTreeView>
-                                </div>
-                                    @{
+                                        <div class="cw-320" id="menuAccess" style="height:280px;overflow-x:hidden;border:1px solid #ccc;">
+                                            <DxTreeView Data="@_dtContent"
+                                            @ref="@MyTreeView"
+                                            CheckMode="TreeViewCheckMode.Recursive"
+                                            CheckAllVisible="true"
+                                            CheckedChanged="CheckedChanged"
+                                            AllowSelectNodes="true"
+                                            CheckNodeByClick="true"
+                                            AnimationType="LayoutAnimationType.Slide"
+                                            CssClass="h-300">
+                                                <DataMappings>
+                                                    <DxTreeViewDataMapping Children="Content"
+                                                    Text="Name"
+                                                    IconUrl="IconUrl"
+                                                    CssClass="cssClass"
+                                                    Checked="Selected"
+                                                    IconCssClass="IconCssClass" />
+                                                </DataMappings>
+                                            </DxTreeView>
+                                        </div>
+                                        @{
 
-                                        // if (MyTreeView != null)
-                                        // {
-                                        //     if (!boolMarkOnce)
-                                        //         OnPopulateSelectedMenu();
-                                        // }
-                                        
-                                    }
-                                    @* </DxLoadingPanel>*@
-                            </td>
-                        </tr>
+                                            // if (MyTreeView != null)
+                                            // {
+                                            //     if (!boolMarkOnce)
+                                            //         OnPopulateSelectedMenu();
+                                            // }
 
-                    </table>
-                </DxFormLayoutItem>
-                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-                <DxFormLayoutItem ColSpanMd="12">
-                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
-                    @*<DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />*@
-                    <DxButton Click="OnCancelEditClick" class="btn-edit-grid" Text="Batal" />
-                </DxFormLayoutItem>
-            </DxFormLayout>
+                                        }
+                                        @* </DxLoadingPanel>*@
+                                    </td>
+                                </tr>
 
-        </EditFormTemplate>
+                            </table>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                        @*<DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />*@
+                        <DxButton Click="OnCancelEditClick" class="btn-edit-grid" Text="Batal" />
+                    </DxFormLayoutItem>
+                </DxFormLayout>
 
-        <CustomValidators>
-            <MyCustomValidator DataItemValidating="ValidateGridData" />
-        </CustomValidators>
+            </EditFormTemplate>
 
-        @*This is to count the summary*@
-        <TotalSummary>
-            <DxGridSummaryItem FooterColumnName="role_name"
-                               Name="Custom"
-                               SummaryType=GridSummaryItemType.Count />
-        </TotalSummary>
+            <CustomValidators>
+                <MyCustomValidator DataItemValidating="ValidateGridData" />
+            </CustomValidators>
 
-    </DxGrid>
-</div>
+            @*This is to count the summary*@
+            <TotalSummary>
+                <DxGridSummaryItem FooterColumnName="role_name"
+                                   Name="Custom"
+                                   SummaryType=GridSummaryItemType.Count />
+            </TotalSummary>
 
-</DxLoadingPanel>
+        </DxGrid>
+    </div>
 
+    </DxLoadingPanel>
+}
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
