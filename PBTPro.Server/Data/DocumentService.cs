@@ -134,7 +134,7 @@ namespace PBTPro.Data
         {
             var result = new ReturnViewModel();
             try
-            {             
+            {
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
@@ -146,7 +146,8 @@ namespace PBTPro.Data
                 {
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
-                else {
+                else
+                {
                     await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, LoggerID, LoggerName, GetType().Name, RoleID);
                 }
             }
@@ -190,7 +191,14 @@ namespace PBTPro.Data
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
 
                 result = response;
-                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data.", LoggerID, LoggerName, GetType().Name, RoleID);
+                if (response.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
             }
             catch (Exception ex)
             {
@@ -237,33 +245,6 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> UploadFile(ref_doc inputModel)
-        {
-            var result = new ReturnViewModel();
-            try
-            {
-                var reqData = JsonConvert.SerializeObject(inputModel);
-                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"Upload/UploadFile";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
-
-                result = response;
-                if (response.ReturnCode == 200)
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya tambah data.", LoggerID, LoggerName, GetType().Name, RoleID);
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, LoggerID, LoggerName, GetType().Name, RoleID);
-                }
-            }
-            catch (Exception ex)
-            {
-                result = new ReturnViewModel();
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-            }
-            return result;
-        }
     }
 }

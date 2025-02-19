@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting.Internal;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -59,6 +60,7 @@ namespace PBTPro.Api.Controllers
                     filename = InputModel.filename,
                     pathurl = InputModel.pathurl,
                     doc_cat = InputModel.doc_cat,
+                    description = InputModel.description,
                     creator_id = runUserID,
                     created_at = DateTime.Now,
                     is_deleted = false,
@@ -74,6 +76,7 @@ namespace PBTPro.Api.Controllers
                     filename = ref_doc.filename,
                     pathurl = ref_doc.pathurl,
                     doc_cat = ref_doc.doc_cat,
+                    description = ref_doc.description,
                     created_at = ref_doc.created_at
                 };
                 return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya tambah data.")));
@@ -111,6 +114,7 @@ namespace PBTPro.Api.Controllers
                 formField.filename = InputModel.filename;
                 formField.pathurl = InputModel.pathurl;
                 formField.doc_cat = InputModel.doc_cat;
+                formField.description = InputModel.description;
                 formField.modifier_id = runUserID;
                 formField.modified_at = DateTime.Now;
 
@@ -144,7 +148,7 @@ namespace PBTPro.Api.Controllers
 
                 _tenantDBContext.ref_docs.Remove(formField);
                 await _tenantDBContext.SaveChangesAsync();
-
+               
                 return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
             catch (Exception ex)

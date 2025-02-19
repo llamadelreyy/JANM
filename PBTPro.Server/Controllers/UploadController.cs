@@ -16,6 +16,11 @@ namespace PBTPro.Controllers {
     public class UploadController : Controller {
         private readonly IWebHostEnvironment _hostingEnvironment;
         FileUrlStorageService _fileUrlStorageService;
+
+
+        //const long MaxFileSize = 4_000_000;
+        //readonly string[] documentExtensions = { ".PDF" };
+
         public UploadController(IWebHostEnvironment hostingEnvironment, FileUrlStorageService fileUrlStorageService) {
             _hostingEnvironment = hostingEnvironment;
             _fileUrlStorageService = fileUrlStorageService;
@@ -114,5 +119,58 @@ namespace PBTPro.Controllers {
                 content.CopyTo(stream);
             }
         }
+
+        #region added by farhana
+        ///tix 056(B) & 057(B)
+        [HttpPost]
+        [Route("UploadDocument")]
+        [DisableRequestSizeLimit]
+        public ActionResult UploadDocument(IFormFile DocUpload, string chunkMetadata)
+        {
+            var tempPath = Path.Combine(_hostingEnvironment.WebRootPath, "document", "tempDocument");
+            // Removes temporary files
+            RemoveTempFilesAfterDelay(tempPath, new TimeSpan(0, 5, 0));
+
+            try
+            {
+                //var ext = Path.GetExtension(DocUpload.FileName).ToUpperInvariant();
+                //var isValidExtenstion = documentExtensions.Contains(ext);
+                //var isValidSize = DocUpload.Length <= MaxFileSize;
+                //if (!isValidExtenstion || !isValidSize)
+                //    throw new InvalidOperationException();
+
+                if (!string.IsNullOrEmpty(chunkMetadata))
+                {
+                    var metaDataObject = JsonConvert.DeserializeObject<ChunkMetadata>(chunkMetadata);
+                    var tempExtension = Path.GetExtension(metaDataObject.FileName);
+                    var tempFileName = metaDataObject.FileGuid + "tmp" + tempExtension;
+                    var tempFilePath = Path.Combine(tempPath, metaDataObject.FileGuid + "tmp" + tempExtension);
+                    if (!Directory.Exists(tempPath))
+                        Directory.CreateDirectory(tempPath);
+
+                    AppendContentToFile(tempFilePath, DocUpload);
+
+                    if (metaDataObject.Index == (metaDataObject.TotalCount - 1))
+                    {
+                        string fileName = Path.GetFileNameWithoutExtension(metaDataObject.FileName);
+                        string extension = Path.GetExtension(metaDataObject.FileName);
+                        string strNewFileName = fileName + "_" + DateTime.Now.ToString("yyMMddhhmmss") + extension;
+
+                        _fileUrlStorageService.Add(Guid.Parse(metaDataObject.FileGuid), tempFilePath + ";" + @"\document\tempDocument\" + tempFileName + ";" + strNewFileName);
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+            return Ok();
+        }
+
+        
+
+
+        #endregion
     }
 }
