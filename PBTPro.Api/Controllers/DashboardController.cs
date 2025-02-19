@@ -117,8 +117,43 @@ namespace PBTPro.Api.Controllers
                 _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
+        }
 
 
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<dashboard_view>> GetFinancialDashboard()
+        {
+            try
+            {
+                var totalLesenAktif = await _tenantDBContext.mst_licensees.Where(l=>l.status_id == 1).CountAsync();
+                var totalLesenTamatTempoh = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 2).CountAsync(); 
+                var totalPremisPerniagaan = await _tenantDBContext.mst_licensees.GroupBy(x=>x.owner_icno).CountAsync();
+                var pertambahanLsnThnSemasa = await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue && t.reg_date.Value.Year == DateTime.Now.Year).CountAsync();
+                var pertambahanLsnSemasa = await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue&& t.reg_date.Value.Year == DateTime.Now.Year && t.reg_date.Value.Month == DateTime.Now.Month).CountAsync();
+
+                var result = new dashboard_view
+                {
+                    total_lesen_aktif = totalLesenAktif,
+                    lesen_tamat_tempoh = totalLesenTamatTempoh,
+                    total_premis_perniagaan = totalPremisPerniagaan,
+                    hsl_tahunan_semasa = 202543.00M,
+                    ptmbahan_lesen_thn_semasa = pertambahanLsnThnSemasa,
+                    ptmbahan_lesen_semasa = pertambahanLsnSemasa,
+                };
+
+                if (result == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
         }
 
         #endregion
