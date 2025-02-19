@@ -14,6 +14,7 @@
 
 @inject DeliverService _DeliverService
 @inject NavigationManager NavigationManager
+@inject PBTAuthPermissionService PermissionService
 @inject IToastNotificationService ToastService
 
 <style>
@@ -23,79 +24,94 @@
     }
 </style>
 
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+    IsContentBlocked="true"
+    ApplyBackgroundShading="true"
+    IndicatorAreaVisible="false"
+    Text="Capaian Data...">
 
-    <div class="d-lg-flex border-bottom">
-        <div class="col-md-12 py-1 dx-helptitle pageTitle">
-            <img class="imgTitle" src="\images\icons-small\envelope--arrow.png" />
-            <div class="textTitle">Cara Serahan</div>
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="\images\icons-small\envelope--arrow.png" />
+                <div class="textTitle">Cara Serahan</div>
+            </div>
         </div>
-    </div>
 
-    <div class="item-container-x">
+        <div class="item-container-x">
 
-        <DxGrid @ref="Grid"
-                Data="dataSource"
-                KeyFieldName="deliver_id"
-                ShowGroupPanel="true"
-                ShowFilterRow="false"
-                TextWrapEnabled="true"
-                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-                EditorRenderMode="GridEditorRenderMode.Integrated"
-                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                ShowSearchBox="true"
-                AllowSelectRowByClick="true"
-                @bind-SearchText="@GridSearchText"
-                PageSize="25"
-                @bind-PageIndex="@GridPageIndex"
-                PagerPosition="GridPagerPosition.Bottom"
-                PagerNavigationMode="PagerNavigationMode.InputBox"
-                EditModelSaving="Grid_EditModelSaving"
-                EditFormButtonsVisible="false"
-                PageSizeSelectorVisible="true"
-                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-                PageSizeSelectorAllRowsItemVisible="true"
-                PagerAutoHideNavButtons="false"
-                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-                HighlightRowOnHover="true"
-                CssClass="mv-1000">
+            <DxGrid @ref="Grid"
+            Data="dataSource"
+            KeyFieldName="deliver_id"
+            ShowGroupPanel="true"
+            ShowFilterRow="false"
+            TextWrapEnabled="true"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
 
-            <Columns>
-                <DxGridCommandColumn Width="55px">
-                    <HeaderTemplate>
-                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                    </HeaderTemplate>
-                    <CellDisplayTemplate>
-                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        <a @onclick="@(() => Delete((ref_deliver)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                    </CellDisplayTemplate>
-                </DxGridCommandColumn>
-                <DxGridDataColumn Caption="Cara Serahan" MinWidth="250" Width="88%" FieldName="deliver_name" />
+                <Columns>
+                    <DxGridCommandColumn Width="55px">
+                        <HeaderTemplate>
+                            @if (PermissionService.HasPermission("Add"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                            }
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            @if (PermissionService.HasPermission("Edit"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                            }
+                            @if (PermissionService.HasPermission("Delete"))
+                            {
+                                <a @onclick="@(() => Delete((ref_deliver)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                            }
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn Caption="Cara Serahan" MinWidth="250" Width="88%" FieldName="deliver_name" />
 
-                <DxGridDataColumn FieldName="created_at"
-                                  DisplayFormat="dd/MM/yyyy"
-                                  Caption="Tarikh Data"
-                                  MinWidth="100"
-                                  Width="12%"
-                                  TextAlignment="GridTextAlignment.Center"
-                                  SortOrder="GridColumnSortOrder.Ascending"
-                                  SortIndex="0">
-                    <FilterMenuTemplate>
-                        <DateRange FilterContext="context" />
-                    </FilterMenuTemplate>
-                </DxGridDataColumn>
-            </Columns>
+                    <DxGridDataColumn FieldName="created_at"
+                    DisplayFormat="dd/MM/yyyy"
+                    Caption="Tarikh Data"
+                    MinWidth="100"
+                    Width="12%"
+                    TextAlignment="GridTextAlignment.Center"
+                    SortOrder="GridColumnSortOrder.Ascending"
+                    SortIndex="0">
+                        <FilterMenuTemplate>
+                            <DateRange FilterContext="context" />
+                        </FilterMenuTemplate>
+                    </DxGridDataColumn>
+                </Columns>
 
-            <EditFormTemplate Context="EditFormContext">
-                @{
-                    var dtEdit = (ref_deliver)EditFormContext.EditModel;
-                }
-                <DxFormLayout CssClass="w-100">
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var dtEdit = (ref_deliver)EditFormContext.EditModel;
+                    }
+                    <DxFormLayout CssClass="w-100">
                     <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
                         <table class="layout_edit">
                             <tr>
@@ -135,6 +151,8 @@
         </DxGrid>
     </div>
 </DxLoadingPanel>
+
+}
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
