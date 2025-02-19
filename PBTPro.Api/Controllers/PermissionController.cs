@@ -64,7 +64,7 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_ROLEID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
 
-                var permissions = await _dbContext.permissions.Where(x=> x.role_id == roleId)
+                var permissions = await _dbContext.permissions.Where(x => x.role_id == roleId)
                       .AsNoTracking()
                       .ToListAsync();
 
@@ -309,25 +309,44 @@ namespace PBTPro.Api.Controllers
                     .Select(g => g.Key)
                     .ToList();
 
-                var dbPermission = await _dbContext.permissions.Where(p=> p.menu_id == Id)
+                if (duplicateRoleMenuPairs.Any())
+                {
+                    return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
+                }
+
+                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
+                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
+                var dbPermission = await _dbContext.permissions//.Where(p => p.menu_id == Id)
                     .Select(p => new { p.role_id, p.menu_id, p.permission_id })
                     .ToListAsync();
 
+                if (existingPermissions.Any())
+                {
+                    var invalidRecId = dbPermission
+                    .Where(p => existingPermissions
+                    .Any(pair => pair.permission_id == p.permission_id && (pair.role_id != p.role_id || pair.menu_id != p.menu_id)))
+                    .Select(p => new { p.role_id, p.menu_id, p.permission_id })
+                    .ToList();
+
+                    if (invalidRecId.Any())
+                    {
+                        return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                    }
+                }
+
                 var duplicateRoleMenu = dbPermission
                 .Where(p => InputModel
-                .Any(pair => pair.role_id == p.role_id && pair.menu_id == p.menu_id && p.permission_id != pair.permission_id))
+                .Any(pair => pair.permission_id == p.permission_id && (pair.role_id != p.role_id || pair.menu_id != p.menu_id)))
                 .Select(p => new { p.role_id, p.menu_id, p.permission_id })
                 .ToList();
 
-
-                if (duplicateRoleMenu.Any() || duplicateRoleMenuPairs.Any())
+                if (duplicateRoleMenu.Any())
                 {
                     return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
                 }
 
                 #endregion
 
-                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
                 if (newPermissions.Any())
                 {
                     foreach (var newPermission in newPermissions)
@@ -338,7 +357,6 @@ namespace PBTPro.Api.Controllers
 
                     _dbContext.permissions.AddRange(newPermissions);
                 }
-                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
                 if (existingPermissions.Any())
                 {
                     foreach (var existingPermission in existingPermissions)
@@ -399,9 +417,30 @@ namespace PBTPro.Api.Controllers
                     .Select(g => g.Key)
                     .ToList();
 
-                var dbPermission = await _dbContext.permissions.Where(p => p.menu_id == Id)
+                if (duplicateRoleMenuPairs.Any())
+                {
+                    return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
+                }
+                /* removing validate - will auto populate the existing data & new data based on db content
+                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
+                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
+                var dbPermission = await _dbContext.permissions//.Where(p => p.role_id == Id)
                     .Select(p => new { p.role_id, p.menu_id, p.permission_id })
                     .ToListAsync();
+
+                if (existingPermissions.Any())
+                {
+                    var invalidRecId = dbPermission
+                    .Where(p => existingPermissions
+                    .Any(pair => pair.permission_id == p.permission_id && (pair.role_id != p.role_id || pair.menu_id != p.menu_id)))
+                    .Select(p => new { p.role_id, p.menu_id, p.permission_id })
+                    .ToList();
+
+                    if (invalidRecId.Any())
+                    {
+                        return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                    }
+                }
 
                 var duplicateRoleMenu = dbPermission
                 .Where(p => InputModel
@@ -409,38 +448,80 @@ namespace PBTPro.Api.Controllers
                 .Select(p => new { p.role_id, p.menu_id, p.permission_id })
                 .ToList();
 
-
-                if (duplicateRoleMenu.Any() || duplicateRoleMenuPairs.Any())
+                if (duplicateRoleMenu.Any())
                 {
                     return Error("", SystemMesg(_feature, "ROLE_MENU_ISEXISTS", MessageTypeEnum.Error, string.Format("Gabungan peranan dan menu telah wujud")));
                 }
-
+                */
                 #endregion
 
-                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
-                if (newPermissions.Any())
-                {
-                    foreach (var newPermission in newPermissions)
-                    {
-                        newPermission.creator_id = runUserID;
-                        newPermission.created_at = DateTime.Now;
-                    }
+                #region Building Record
+                var dbRolesPermissions = await _dbContext.permissions.Where(p => p.role_id == Id).AsNoTracking().ToListAsync();
+                var existingPermissionsInDb = InputModel
+                                    .Join(dbRolesPermissions,
+                                          ip => new { ip.role_id, ip.menu_id },
+                                          rp => new { rp.role_id, rp.menu_id },
+                                          (ip, rp) => rp)
+                                    .ToDictionary(rp => (rp.role_id, rp.menu_id), rp => rp);
 
-                    _dbContext.permissions.AddRange(newPermissions);
-                }
-                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
-                if (existingPermissions.Any())
-                {
-                    foreach (var existingPermission in existingPermissions)
+                foreach (var inputPermission in InputModel)
+                {                    
+                    if (existingPermissionsInDb.TryGetValue((inputPermission.role_id, inputPermission.menu_id), out var existingPermission))
                     {
-                        existingPermission.modifier_id = runUserID;
-                        existingPermission.modified_at = DateTime.Now;
+                        inputPermission.permission_id = existingPermission.permission_id;
+                        inputPermission.creator_id = existingPermission.creator_id;
+                        inputPermission.created_at = existingPermission.created_at;
+                        inputPermission.is_deleted = false;
+                        inputPermission.modifier_id = runUserID;
+                        inputPermission.modified_at = DateTime.Now;
                     }
-                    _dbContext.permissions.UpdateRange(existingPermissions);
+                    else
+                    {
+                        inputPermission.permission_id = 0;
+                        inputPermission.is_deleted = false;
+                        inputPermission.creator_id = runUserID;
+                        inputPermission.created_at = DateTime.Now;
+                    }
                 }
+
+                var removedPermissions = dbRolesPermissions.Where(rp => !InputModel.Any(ip => rp.role_id == ip.role_id && rp.menu_id == ip.menu_id)).ToList();
+                var newPermissions = InputModel.Where(x => x.permission_id == 0).ToList();
+                var existingPermissions = InputModel.Where(x => x.permission_id != 0).ToList();
+                #endregion
+
                 if (newPermissions.Any() || existingPermissions.Any())
                 {
+                    if (newPermissions.Any())
+                    {
+                        _dbContext.permissions.AddRange(newPermissions);
+                    }
+                    if (existingPermissions.Any())
+                    {
+                        _dbContext.permissions.UpdateRange(existingPermissions);
+                    }
                     await _dbContext.SaveChangesAsync();
+                }
+
+                if (removedPermissions.Any())
+                {
+                    try
+                    {
+                        _dbContext.permissions.RemoveRange(removedPermissions);
+                    }
+                    catch (Exception ex)
+                    {
+                        foreach (var removedPermission in removedPermissions)
+                        {
+                            removedPermission.modifier_id = runUserID;
+                            removedPermission.modified_at = DateTime.Now;
+                            removedPermission.is_deleted = true;
+                        }
+                        _dbContext.permissions.UpdateRange(removedPermissions);
+                    }
+                    finally
+                    {
+                        await _dbContext.SaveChangesAsync();
+                    }
                 }
 
                 return Ok("", SystemMesg(_feature, "BULK_SAVE", MessageTypeEnum.Success, string.Format("Berjaya menyimpan kebenaran akses")));
