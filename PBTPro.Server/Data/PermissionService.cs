@@ -343,5 +343,36 @@ namespace PBTPro.Data
             return result;
         }
 
+        public async Task<ReturnViewModel> BulkSaveDynamic(List<permission> inputModel)
+        {
+            var result = new ReturnViewModel();
+            try
+            {
+                int id = inputModel[0].role_id;
+                var reqData = JsonConvert.SerializeObject(inputModel);
+                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
+
+                string requestUrl = $"{_baseReqURL}/BulkSaveDynamic";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Post, reqContent);
+
+                if (response.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data untuk kebenaran.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+
+                result = response;
+            }
+            catch (Exception ex)
+            {
+                result = new ReturnViewModel();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+            }
+
+            return result;
+        }
     }
 }
