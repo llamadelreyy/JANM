@@ -91,9 +91,11 @@ public class PBTAuthStateProvider : AuthenticationStateProvider, IDisposable
                         Roleid = data.Roleid,
                         Roles = data.Roles,
                         IsPasswordExpired = data.IsPasswordExpired,
+                        DefaultPage = data.DefaultPage,
                         Password = password
                     };
 
+                    CurrentUser = user;
                     strUserFullNameNRole = user.Fullname + " (" + user.Roles + ")";
                     accessToken = user.Token ?? string.Empty;
 

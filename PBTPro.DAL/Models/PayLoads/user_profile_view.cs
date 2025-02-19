@@ -20,10 +20,10 @@ namespace PBTPro.DAL.Models.PayLoads
         public DateTime? last_login { get; set; }
         public string? photo_filename { get; set; }
         public string? sign_filename { get; set; }
-        public int? dept_id { get; set; }    
+        public int? dept_id { get; set; }
         public string? dept_name { get; set; }
         public int? div_id { get; set; }
-        public string? div_name { get; set; }        
+        public string? div_name { get; set; }
         public int? unit_id { get; set; }
         public string? unit_name { get; set; }
         public string? photo_path_url { get; set; }
@@ -36,6 +36,8 @@ namespace PBTPro.DAL.Models.PayLoads
         public int Id { get; set; }
         public string Name { get; set; }
         public bool IsDefaultRole { get; set; }
+        public bool IsMobileUser { get; set; }
+        public string? DefaultPage { get; set; }
     }
 
     public class update_signature_input_model
@@ -80,7 +82,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? phone_number { get; set; }
         public string? photo_filename { get; set; }
         public string? sign_filename { get; set; }
-        public int? dept_id { get; set; }    
+        public int? dept_id { get; set; }
         public int? div_id { get; set; }
         public int? unit_id { get; set; }
         public string? photo_path_url { get; set; }

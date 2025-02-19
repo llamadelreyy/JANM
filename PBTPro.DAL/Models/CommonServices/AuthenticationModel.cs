@@ -40,7 +40,8 @@ namespace PBTPro.DAL.Models.CommonServices
         public bool IsPasswordExpired { get; set; } = false;
         public string? Role { get; set; }
         public int Roleid { get; set; }
-        public List<string?> Roles { get; set; }
+        public List<string>? Roles { get; set; }
+        public string? DefaultPage { get; set; }
     }
 
     public class LoginModel
@@ -88,19 +89,32 @@ namespace PBTPro.DAL.Models.CommonServices
         public int Roleid { get; set; } = 0;
         public bool IsPasswordExpired { get; set; } = false;
         public List<string> Roles { get; set; } = new List<string>();
+        public string? DefaultPage { get; set; } = null;
 
         public ClaimsPrincipal ToClaimsPrincipal() => new(new ClaimsIdentity(new Claim[]
         {
+            new ("Fullname", Fullname),
+            new ("Userid", Userid.ToString()),
             new (ClaimTypes.Name, Username),
             new (ClaimTypes.Hash, Password),
-            new ("AccessToken", Token)
+            new ("AccessToken", Token),
+            new ("Role", Token),
+            new ("Roleid", Roleid.ToString()),
+            new ("IsPasswordExpired", IsPasswordExpired.ToString()),
+            new ("DefaultPage", DefaultPage)
         }.Concat(Roles.Select(r => new Claim(ClaimTypes.Role, r)).ToArray()), "AUTH"));
 
         public static AuthenticatedUser FromClaimsPrincipal(ClaimsPrincipal principal) => new()
         {
+            Fullname = principal.FindFirstValue("Fullname"),
+            Userid = int.TryParse(principal.FindFirstValue("Userid"), out var userid) ? userid : 0,
             Username = principal.FindFirstValue(ClaimTypes.Name),
             Password = principal.FindFirstValue(ClaimTypes.Hash),
             Token = principal.FindFirstValue("AccessToken"),
+            Role = principal.FindFirstValue("Role"),
+            Roleid = int.TryParse(principal.FindFirstValue("Roleid"), out var roleId) ? roleId : 0,
+            IsPasswordExpired = bool.TryParse(principal.FindFirstValue("IsPasswordExpired"), out var isPasswordExpired) && isPasswordExpired,
+            DefaultPage = principal.FindFirstValue("DefaultPage"),
             Roles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList()
         };
     }

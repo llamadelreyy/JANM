@@ -21,6 +21,8 @@ namespace PBTPro.DAL
         public bool role_select { get; set; }
         //is_deleted
         public bool IsDeleted { get; set; }
+        public bool IsMobileUser { get; set; }
+        public string? DefaultPage { get; set; }
         public DateTime CreatedAt { get; set; }
         public int CreatorId { get; set; }
         public DateTime? ModifiedAt { get; set; }

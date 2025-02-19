@@ -155,11 +155,22 @@
 
         if (response.ReturnCode == 200)
         {
-            if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
-                NavigationManager.NavigateTo("/", true);
-            else
-                NavigationManager.NavigateTo("zon_eksekutif", true);
+            if(string.IsNullOrWhiteSpace(PBTAuthStateProvider.CurrentUser.DefaultPage))
+            {
+                if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
+                {
+                    NavigationManager.NavigateTo("/", true);
+                }
+                else
+                {
+                    NavigationManager.NavigateTo("zon_eksekutif", true);
+                }
             }
+            else
+            {
+                NavigationManager.NavigateTo(PBTAuthStateProvider.CurrentUser.DefaultPage!, true);
+            }
+        }
         else
         {
             HandleResponse(response.ReturnMessage, "Error");
