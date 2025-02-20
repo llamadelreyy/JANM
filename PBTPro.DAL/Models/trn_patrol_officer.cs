@@ -34,4 +34,10 @@ public partial class trn_patrol_officer
     public bool? is_deleted { get; set; }
 
     public virtual mst_patrol_schedule? schedule { get; set; }
+
+    public bool? is_leader { get; set; }
+
+    public int? user_id { get; set; }
+
+    public int? visit_id { get; set; }
 }

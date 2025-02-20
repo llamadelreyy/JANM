@@ -9,6 +9,7 @@ Additional Notes:
 
 Changes Logs:
 06/11/2024 - initial create
+20/2/2024 - add user_id field for each method. Update method GetScheduleByUserId to list and filter by current date
 */
 using DevExpress.Data.ODataLinq.Helpers;
 using DevExpress.Utils.Filtering;
@@ -62,7 +63,7 @@ namespace PBTPro.Api.Controllers
                     start_time = x.start_time,
                     end_time = x.end_time,
                     status_id = x.status_id,
-                    is_scheduled = false,
+                    is_scheduled = x.is_scheduled,
                     loc_name = x.loc_name,
                     type_id = x.type_id,
                     dept_id = x.dept_id,
@@ -84,6 +85,7 @@ namespace PBTPro.Api.Controllers
                                     : null,
                     district_code = x.district_code,
                     town_code = x.town_code,
+                    user_id = x.user_id,
 
                 }).AsNoTracking().ToListAsync();
 
@@ -175,6 +177,8 @@ namespace PBTPro.Api.Controllers
                     district_code = InputModel.DistrictCode,
                     town_code = InputModel.TownCode,
                     status_id = Convert.ToInt32(InputModel.PatrolStatus),
+                    user_id = runUserID,
+                    is_scheduled= true,
                 };
 
                 _tenantDBContext.mst_patrol_schedules.Add(mst_Patrol);
@@ -245,7 +249,7 @@ namespace PBTPro.Api.Controllers
                 formField.district_code = InputModel.DistrictCode;
                 formField.town_code = InputModel.TownCode;
                 formField.modifier_id = runUserID;
-                formField.modified_at = DateTime.Now;
+                formField.user_id = runUserID;
 
                 _tenantDBContext.mst_patrol_schedules.Update(formField);
                 await _tenantDBContext.SaveChangesAsync();
@@ -274,7 +278,7 @@ namespace PBTPro.Api.Controllers
                     start_time = x.start_time,
                     end_time = x.end_time,
                     status_id = x.status_id,
-                    is_scheduled = false,
+                    is_scheduled = x.is_scheduled,
                     loc_name = x.loc_name,
                     type_id = x.type_id,
                     dept_id = x.dept_id,
@@ -296,6 +300,7 @@ namespace PBTPro.Api.Controllers
                                     : null,
                     district_code = x.district_code,
                     town_code = x.town_code,
+                    user_id = x.user_id,
 
                 }).AsNoTracking().ToListAsync();
 
@@ -383,14 +388,14 @@ namespace PBTPro.Api.Controllers
                 int runUserID = await getDefRunUserId();
                 string runUser = await getDefRunUser();
 
-                var data = await _tenantDBContext.mst_patrol_schedules.Where(x => x.idno == username).Select(x => new
+                var data = await _tenantDBContext.mst_patrol_schedules.Where(x => x.idno == username && x.created_at == DateTime.Today).Select(x => new
                 {
                     schedule_id = x.schedule_id,
                     idno = x.idno,
                     start_time = x.start_time,
                     end_time = x.end_time,
                     status_id = x.status_id,
-                    is_scheduled = false,
+                    is_scheduled = x.is_scheduled,
                     loc_name = x.loc_name,
                     type_id = x.type_id,
                     dept_id = x.dept_id,
@@ -412,8 +417,9 @@ namespace PBTPro.Api.Controllers
                                         : null,
                     district_code = x.district_code,
                     town_code = x.town_code,
+                    user_id = x.user_id,
                 })
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }

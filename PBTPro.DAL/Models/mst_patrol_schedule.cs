@@ -57,4 +57,6 @@ public partial class mst_patrol_schedule
     public string? district_code { get; set; }
 
     public string? town_code { get; set; }
+
+    public int? user_id { get; set; }
 }
