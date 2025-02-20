@@ -20,6 +20,7 @@
 @inject TownService _TownService
 @inject DistrictService _DistrictService
 @inject RefPatrolStatusService _RefPatrolStatus
+@inject RefPatrolTypeService _RefPatrolType
 
 @inject NavigationManager NavigationManager
 @inject IToastService toastService
@@ -40,10 +41,10 @@
 else
 {
     <DxLoadingPanel @bind-Visible="PanelVisible"
-                    IsContentBlocked="true"
-                    ApplyBackgroundShading="true"
-                    IndicatorAreaVisible="false"
-                    Text="Capaian Data...">
+    IsContentBlocked="true"
+    ApplyBackgroundShading="true"
+    IndicatorAreaVisible="false"
+    Text="Capaian Data...">
 
         <div class="d-lg-flex border-bottom">
             <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -66,30 +67,30 @@ else
             </DxTabs>
 
             <DxGrid @ref="Grid"
-                    Data="@dataSchedule"
-                    KeyFieldName="scheduleId"
-                    ShowGroupPanel="true"
-                    ShowFilterRow="false"
-                    TextWrapEnabled="true"
-                    EditorRenderMode="GridEditorRenderMode.Integrated"
-                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                    ShowSearchBox="true"
-                    AllowSelectRowByClick="true"
-                    @bind-SearchText="@GridSearchText"
-                    PageSize="25"
-                    @bind-PageIndex="@GridPageIndex"
-                    PagerPosition="GridPagerPosition.Bottom"
-                    PagerNavigationMode="PagerNavigationMode.InputBox"
-                    EditModelSaving="Grid_EditModelSaving"
-                    EditFormButtonsVisible="false"
-                    PageSizeSelectorVisible="true"
-                    PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-                    PageSizeSelectorAllRowsItemVisible="true"
-                    PagerAutoHideNavButtons="false"
-                    ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-                    GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-                    HighlightRowOnHover="true"
-                    CssClass="mv-1000">
+            Data="@dataSchedule"
+            KeyFieldName="scheduleId"
+            ShowGroupPanel="true"
+            ShowFilterRow="false"
+            TextWrapEnabled="true"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
 
                 <Columns>
                     <DxGridCommandColumn Width="55px">
@@ -141,19 +142,20 @@ else
                             </div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Jenis" MinWidth="100" Width="20%" FieldName="TypeName" TextAlignment="GridTextAlignment.Left"/>                       
                     <DxGridDataColumn FieldName="PatrolStatus" Caption="Status" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                         <CellDisplayTemplate>
                             <div>@GetStatusRondaanIconHtml(((PatrolViewModel)context.DataItem).PatrolStatus)</div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
                     <DxGridDataColumn FieldName="CreatedAt"
-                                      DisplayFormat="dd/MM/yyyy"
-                                      Caption="Tarikh Data"
-                                      MinWidth="100"
-                                      Width="12%"
-                                      TextAlignment="GridTextAlignment.Center"
-                                      SortOrder="GridColumnSortOrder.Ascending"
-                                      SortIndex="0">
+                    DisplayFormat="dd/MM/yyyy"
+                    Caption="Tarikh Data"
+                    MinWidth="100"
+                    Width="12%"
+                    TextAlignment="GridTextAlignment.Center"
+                    SortOrder="GridColumnSortOrder.Ascending"
+                    SortIndex="0">
                         <FilterMenuTemplate>
                             <DateRange FilterContext="context" />
                         </FilterMenuTemplate>
@@ -174,17 +176,17 @@ else
                                     <td nowrap>&nbsp;&nbsp;</td>
                                     <td width="50%">
                                         <DxComboBox Data="@dataUser"
-                                                    NullText="Pilih nama pegawai ..."
-                                                    ShowValidationIcon="true"
-                                                    SearchMode="ListSearchMode.AutoSearch"
-                                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                    TextFieldName="@nameof(ApplicationUser.TextName)"
-                                                    ValueFieldName="IdNo"
-                                                    CssClass="combo-width"
-                                                    SelectedItemChanged="@((ApplicationUser x) => SelectedItemChanged(x))"
-                                                    DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
-                                                    @bind-Value="@dtEdit.ICNo"
-                                                    @bind-Text="@dtEdit.OfficerName">
+                                        NullText="Pilih nama pegawai ..."
+                                        ShowValidationIcon="true"
+                                        SearchMode="ListSearchMode.AutoSearch"
+                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                        TextFieldName="@nameof(ApplicationUser.TextName)"
+                                        ValueFieldName="IdNo"
+                                        CssClass="combo-width"
+                                        SelectedItemChanged="@((ApplicationUser x) => SelectedItemChanged(x))"
+                                        DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
+                                        @bind-Value="@dtEdit.ICNo"
+                                        @bind-Text="@dtEdit.OfficerName">
                                         </DxComboBox>
                                     </td>
                                     <td width="100px">&nbsp;</td>
@@ -197,11 +199,11 @@ else
                                     <td nowrap>&nbsp;&nbsp;</td>
                                     <td width="50%">
                                         <DxTextBox @bind-Text="@_itm.DeptName"
-                                                   @bind-Value="@dtEdit.DeptId"
-                                                   NullText="Jabatan pengguna ..."
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   Style="width: 320px;"
-                                                   Enabled="false" />
+                                        @bind-Value="@dtEdit.DeptId"
+                                        NullText="Jabatan pengguna ..."
+                                        BindValueMode="BindValueMode.OnInput"
+                                        Style="width: 320px;"
+                                        Enabled="false" />
                                     </td>
                                 </tr>
                                 <tr>
@@ -209,11 +211,11 @@ else
                                     <td nowrap>&nbsp;&nbsp;</td>
                                     <td width="50%">
                                         <DxTextBox @bind-Text="@_itm.UnitName"
-                                                   @bind-Value="@dtEdit.SectionId"
-                                                   NullText="Seksyen pengguna ..."
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   Style="width: 320px;"
-                                                   Enabled="false" />
+                                        @bind-Value="@dtEdit.SectionId"
+                                        NullText="Seksyen pengguna ..."
+                                        BindValueMode="BindValueMode.OnInput"
+                                        Style="width: 320px;"
+                                        Enabled="false" />
                                     </td>
                                 </tr>
                                 <tr>
@@ -221,11 +223,11 @@ else
                                     <td nowrap>&nbsp;&nbsp;</td>
                                     <td width="50%">
                                         <DxTextBox @bind-Text="@_itm.UnitName"
-                                                   @bind-Value="@dtEdit.UnitId"
-                                                   NullText="Unit pengguna ..."
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   Style="width: 320px;"
-                                                   Enabled="false" />
+                                        @bind-Value="@dtEdit.UnitId"
+                                        NullText="Unit pengguna ..."
+                                        BindValueMode="BindValueMode.OnInput"
+                                        Style="width: 320px;"
+                                        Enabled="false" />
                                     </td>
                                 </tr>
                                 <tr>
@@ -233,13 +235,13 @@ else
                                     <td nowrap>&nbsp;&nbsp;</td>
                                     <td width="50%" colspan="6">
                                         <DxComboBox Data="@dtDistrict"
-                                                    NullText="Pilih Daerah ..."
-                                                    ShowValidationIcon="true"
-                                                    FilteringMode="DataGridFilteringMode.Contains"
-                                                    @bind-Value="@dtEdit.DistrictCode"
-                                                    @bind-Text="@dtEdit.DistrictName"
-                                                    TextFieldName="district_name"
-                                                    ValueFieldName="district_code" style="width:300px">
+                                        NullText="Pilih Daerah ..."
+                                        ShowValidationIcon="true"
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        @bind-Value="@dtEdit.DistrictCode"
+                                        @bind-Text="@dtEdit.DistrictName"
+                                        TextFieldName="district_name"
+                                        ValueFieldName="district_code" style="width:300px">
                                         </DxComboBox>
                                     </td>
                                 </tr>
@@ -252,13 +254,13 @@ else
                                             var TownData = dtTown.Where(x => x.district_code == strDistrict);
                                         }
                                         <DxComboBox Data="@TownData"
-                                                    NullText="Pilih Bandar ..."
-                                                    ShowValidationIcon="true"
-                                                    FilteringMode="DataGridFilteringMode.Contains"
-                                                    @bind-Value="@dtEdit.TownCode"
-                                                    @bind-Text="@dtEdit.TownName"
-                                                    TextFieldName="town_name"
-                                                    ValueFieldName="town_code" style="width:300px">
+                                        NullText="Pilih Bandar ..."
+                                        ShowValidationIcon="true"
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        @bind-Value="@dtEdit.TownCode"
+                                        @bind-Text="@dtEdit.TownName"
+                                        TextFieldName="town_name"
+                                        ValueFieldName="town_code" style="width:300px">
                                         </DxComboBox>
                                     </td>
                                 </tr>
@@ -267,10 +269,10 @@ else
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%">
                                         <DxDateEdit @bind-Date="@dtEdit.StartTime"
-                                                    NullValue="@DateTimeValue"
-                                                    NullText="@DateTimeValue.ToString()"
-                                                    TimeSectionVisible="true"
-                                                    CssClass="cw-320" />
+                                        NullValue="@DateTimeValue"
+                                        NullText="@DateTimeValue.ToString()"
+                                        TimeSectionVisible="true"
+                                        CssClass="cw-320" />
                                     </td>
                                     <td width="100px">&nbsp;</td>
                                     <td nowrap></td>
@@ -282,10 +284,30 @@ else
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%">
                                         <DxDateEdit @bind-Date="@dtEdit.EndTime"
-                                                    NullValue="@DateTimeValue"
-                                                    NullText="@DateTimeValue.ToString()"
-                                                    TimeSectionVisible="true"
-                                                    CssClass="cw-320" />
+                                        NullValue="@DateTimeValue"
+                                        NullText="@DateTimeValue.ToString()"
+                                        TimeSectionVisible="true"
+                                        CssClass="cw-320" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+
+                                <tr>
+                                    <td nowrap>Jenis Rondaan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxComboBox Data="@dtPatrolType"
+                                                    NullText="Pilih Jenis Rondaan ..."
+                                                    ShowValidationIcon="true"
+                                                    FilteringMode="DataGridFilteringMode.Contains"
+                                                    @bind-Value="@dtEdit.TypeId"
+                                                    @bind-Text="@dtEdit.TypeName"
+                                                    TextFieldName="type_name"
+                                                    ValueFieldName="type_id" style="width:300px">
+                                        </DxComboBox>
                                     </td>
                                     <td width="100px">&nbsp;</td>
                                     <td nowrap></td>
@@ -335,6 +357,7 @@ else
     IEnumerable<mst_district> dtDistrict;
     IEnumerable<mst_town> dtTown;
     IEnumerable<ref_patrol_status> dtPatrolStatus;
+    IEnumerable<ref_patrol_type> dtPatrolType;
 
     DateTime DateTimeValue { get; set; } = DateTime.Now;
 
@@ -366,6 +389,7 @@ else
         dataSchedule = await GetListDataAsync(tabType);
         dataTabSchedule = await _ScheduleService.ListsAll();
         dtPatrolStatus = await _RefPatrolStatus.ListAll();
+        dtPatrolType = await _RefPatrolType.ListAll();
 
         belumMerondaCount = dataTabSchedule.Count(x => x.PatrolStatus == "3");
         dalamRondaanCount = dataTabSchedule.Count(x => x.PatrolStatus == "2");
@@ -573,6 +597,7 @@ else
         string html = string.Format("{0}, {1}", strbandar.ToUpper(), strdaerah.ToUpper());
         return new MarkupString(html);
     }
+    
     #endregion
 
     #region response
