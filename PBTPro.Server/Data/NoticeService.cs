@@ -77,7 +77,7 @@ namespace PBTPro.Data
                     new NoticeProp {
                         IdNotice = 1,
                         Bil = 1,
-                        Type = 1,
+                        Type = "Aktif",
                         NoLot = "101",
                         Position = new LatLngLiteral()
                         {
@@ -110,7 +110,7 @@ namespace PBTPro.Data
                     new NoticeProp {
                         IdNotice = 2,
                         Bil = 2,
-                        Type = 1,
+                        Type = "Aktif",
                         NoLot = "102",
                         Position = new LatLngLiteral()
                         {
@@ -143,7 +143,7 @@ namespace PBTPro.Data
                     new NoticeProp {
                         IdNotice = 3,
                         Bil = 3,
-                        Type = 2,
+                        Type = "Tamat Tempoh",
                         NoLot = "103",
                         Position = new LatLngLiteral()
                         {
@@ -176,7 +176,7 @@ namespace PBTPro.Data
                     new NoticeProp {
                         IdNotice = 4,
                         Bil = 4,
-                        Type = 6,
+                        Type = "Gantung",
                         NoLot = "104",
                         Position = new LatLngLiteral()
                         {
@@ -209,7 +209,7 @@ namespace PBTPro.Data
                     new NoticeProp {
                         IdNotice = 5,
                         Bil = 5,
-                        Type = 2,
+                        Type = "Tamat Tempoh",
                         NoLot = "105",
                         Position = new LatLngLiteral()
                         {
@@ -242,7 +242,7 @@ namespace PBTPro.Data
                     new NoticeProp {
                         IdNotice = 6,
                         Bil = 6,
-                        Type = 1,
+                        Type = "Aktif",
                         NoLot = "106",
                         Position = new LatLngLiteral()
                         {
@@ -276,7 +276,7 @@ namespace PBTPro.Data
                     new NoticeProp {
                         IdNotice = 7,
                         Bil = 7,
-                        Type = 1,
+                        Type = "Aktif",
                         NoLot = "107",
                         Position = new LatLngLiteral()
                         {
@@ -309,7 +309,7 @@ namespace PBTPro.Data
                     new NoticeProp {
                         IdNotice = 8,
                         Bil = 8,
-                        Type = 6,
+                        Type = "Tiada Data",
                         NoLot = "108",
                         Position = new LatLngLiteral()
                         {
@@ -342,7 +342,7 @@ namespace PBTPro.Data
                     new NoticeProp {
                         IdNotice = 9,
                         Bil = 9,
-                        Type = 2,
+                        Type = "Tamat Tempoh",
                         NoLot = "109",
                         Position = new LatLngLiteral()
                         {
@@ -376,7 +376,7 @@ namespace PBTPro.Data
                     new NoticeProp {
                         IdNotice = 10,
                         Bil = 10,
-                        Type = 1,
+                        Type = "Aktif",
                         NoLot = "110",
                         Position = new LatLngLiteral()
                         {

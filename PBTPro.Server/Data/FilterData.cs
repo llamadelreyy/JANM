@@ -2,7 +2,7 @@
 {
     public class FilterData
     {
-        public int TypeId
+        public string TypeId
         { get; set; }
         public string Description
         { get; set; }

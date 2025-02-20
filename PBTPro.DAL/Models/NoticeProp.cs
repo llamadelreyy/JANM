@@ -6,7 +6,7 @@ namespace PBTPro.DAL.Models
     {
         public int IdNotice { get; set; }
         public int Bil { get; set; }
-        public int Type { get; set; }
+        public string Type { get; set; }
         public string NoLot { get; set; }
         public LatLngLiteral? Position { get; set; }
 
