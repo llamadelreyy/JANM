@@ -58,14 +58,127 @@ namespace PBTPro.Data
             RoleID = _PBTAuthStateProvider.CurrentUser.Roleid;
         }
 
-        public async Task<List<mst_premis>> ListAll()
+        public async Task<List<mst_premis>> GetList(int? crs = null)
         {
             var result = new List<mst_premis>();
-            string requestUrl = $"{_baseReqURL}/GetHistoryList";
-            var response = await _apiConnector.ProcessLocalApi(requestUrl);
+            try
+            {
+                string requestquery = "";
+                if (crs != null)
+                    requestquery = $"/{crs}";
+
+                string requestUrl = $"{_baseReqURL}/GetList{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<mst_premis>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai data premis.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+                result = new List<mst_premis>();
+            }
+            return result;
+        }
+
+
+        public async Task<List<mst_premis>> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, string? filterType, int? crs = null)
+        {
+            var result = new List<mst_premis>();
 
             try
             {
+                string requestquery = "";
+                if (filterType != null)
+                {
+                    if (filterType.Trim() != "")
+                        requestquery = $"/{filterType}";
+                }
+
+                if (crs != null)
+                    requestquery = $"{requestquery}/{crs}";
+
+
+                string requestUrl = $"{_baseReqURL}/GetListByBound/{minLng}/{minLat}/{maxLng}/{maxLat}{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<mst_premis>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat premis mengikut sempadan.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+                result = new List<mst_premis>();
+            }
+            return result;
+        }
+
+
+        public async Task<List<premis_view>> GetPremisInfo(int gid)
+        {
+            var result = new List<premis_view>();
+            try
+            {
+                string requestUrl = $"{_baseReqURL}/GetPremisInfo/{gid}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<premis_view>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat premis.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+                result = new List<premis_view>();
+            }
+            return result;
+        }
+
+
+        public async Task<List<mst_premis>> GetHistoryList(int? crs = null)
+        {
+            var result = new List<mst_premis>();
+            try
+            {
+                string requestquery = "";
+                if (crs != null)
+                    requestquery = $"/{crs}";
+
+                string requestUrl = $"{_baseReqURL}/GetHistoryList{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
                 if (response.ReturnCode == 200)
                 {
                     string? dataString = response?.Data?.ToString();
@@ -87,6 +200,50 @@ namespace PBTPro.Data
             }
             return result;
         }
+
+
+        public async Task<List<mst_premis>> GetFilteredListByBound(double minLng, double minLat, double maxLng, double maxLat, string? filterType, int? crs = null)
+        {
+            var result = new List<mst_premis>();
+
+            try
+            {
+                string requestquery = "";
+                if (filterType != null)
+                {
+                    if (filterType.Trim() != "")
+                        requestquery = $"/{filterType}";
+                }
+
+                if (crs != null)
+                    requestquery = $"{requestquery}/{crs}";
+
+
+                string requestUrl = $"{_baseReqURL}/GetFilteredListByBound/{minLng}/{minLat}/{maxLng}/{maxLat}{requestquery}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<mst_premis>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat premis mengikut sempadan.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat! Status Kod : " + response.ReturnCode + " " + response.ReturnMessage, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+                result = new List<mst_premis>();
+            }
+            return result;
+        }
+
 
         [HttpGet]
         public async Task<List<mst_premis>> Refresh()

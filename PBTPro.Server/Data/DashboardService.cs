@@ -95,5 +95,37 @@ namespace PBTPro.Data
             }
             return result;
         }
+
+
+        [HttpGet]
+        public async Task<dashboard_view> GetFinancialDashboard()
+        {
+            var result = new dashboard_view();
+            try
+            {
+                string requestUrl = $"{_baseReqURL}/GetFinancialDashboard";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<dashboard_view>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+            }
+            catch (Exception ex)
+            {
+                result = new dashboard_view();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+            }
+            return result;
+        }
     }
 }

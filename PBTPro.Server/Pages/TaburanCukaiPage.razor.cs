@@ -31,7 +31,7 @@ namespace PBTPro.Pages
         public List<FilterData> ObjectList { get; set; }
         public string OutPutValue { get; set; }
 
-        public List<FilterData> NotaList { get; set; }
+        //public List<FilterData> NotaList { get; set; }
         //=======================
 
         private string LesenID { get; set; } = string.Empty;
@@ -82,26 +82,20 @@ namespace PBTPro.Pages
             }
         }
 
-        string GetColorLot(int typeLot)
+        string GetColorLot(string _status)
         {
-            switch (typeLot)
+            switch (_status)
             {
-                case 1:
+                case "Aktif":
                     return "Green";
-                case 2:
+                case "Tamat Tempoh":
                     return "Red";
-                case 3:
-                    return "Blue";
-                case 4:
-                    return "Orange";
-                case 5:
+                case "Gantung":
                     return "Yellow";
-                case 6:
-                    return "#ccc";
-                case 7:
-                    return "Purple";
+                case "Tiada Data":
+                    return "Grey";
                 default:
-                    return "#ccc";
+                    return "Black";
             }
         }
 
@@ -161,7 +155,6 @@ namespace PBTPro.Pages
 
             //For check box
             FilterList = GetMockFilter();
-            NotaList = GetNotaFilter();
         }
 
         private async Task OnAfterMapInit()
@@ -372,67 +365,54 @@ namespace PBTPro.Pages
 
             var vSubOne = new FilterData()
             {
-                TypeId = 1,
+                TypeId = "Aktif",
                 Description = "Lesen Aktif",
                 Color = "Green"
             };
             var vSubTwo = new FilterData()
             {
-                TypeId = 2,
+                TypeId = "Tamat Tempoh",
                 Description = "Lesen Tamat Tempoh",
                 Color = "Red"
             };
             var vSubThree = new FilterData()
             {
-                TypeId = 3,
-                Description = "Tidak Berlesen",
-                Color = "Blue"
-            };
-            var vSubFour = new FilterData()
-            {
-                TypeId = 4,
-                Description = "Lesen Batal",
-                Color = "Orange"
-            };
-            var vSubFive = new FilterData()
-            {
-                TypeId = 5,
+                TypeId = "Gantung",
                 Description = "Lesen Gantung",
                 Color = "Yellow"
             };
-            var vSubSix = new FilterData()
+            var vSubFour = new FilterData()
             {
-                TypeId = 6,
-                Description = "Lot Kosong",
-                Color = "#ccc"
+                TypeId = "Tiada Data",
+                Description = "Lesen Tiada Data",
+                Color = "Grey"
             };
 
             var vSubList = new List<FilterData>
             {
                 vSubOne, vSubTwo,
-                vSubThree, vSubFour,
-                vSubFive,vSubSix
+                vSubThree, vSubFour
             };
 
             return vSubList;
         }
 
-        private List<FilterData> GetNotaFilter()
-        {
-            var vSubSeven = new FilterData()
-            {
-                TypeId = 7,
-                Description = "Nota Pemeriksaan",
-                Color = "Purple"
-            };
+        //private List<FilterData> GetNotaFilter()
+        //{
+        //    var vSubSeven = new FilterData()
+        //    {
+        //        TypeId = 7,
+        //        Description = "Nota Pemeriksaan",
+        //        Color = "Purple"
+        //    };
 
-            var vSubList = new List<FilterData>
-            {
-                vSubSeven
-            };
+        //    var vSubList = new List<FilterData>
+        //    {
+        //        vSubSeven
+        //    };
 
-            return vSubList;
-        }
+        //    return vSubList;
+        //}
 
         public void Dispose()
         {
@@ -780,7 +760,7 @@ namespace PBTPro.Pages
                 Title = title,
                 // Content = index.ToString()
                 Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30"">
-                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(1) + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
+                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot("Aktif") + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
             });
 
             _clusteringMarkers.Add(marker);
