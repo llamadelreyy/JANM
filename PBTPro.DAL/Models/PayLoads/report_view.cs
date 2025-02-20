@@ -13,7 +13,9 @@ namespace PBTPro.DAL.Models.PayLoads
         public string alamat { get; set; }
         public string no_lesen { get; set; }
         public string no_ssm { get; set; }
+        public int operasi_id { get; set; }
         public string operasi_lesen { get; set; }
+        public int kategori_id { get; set; }
         public string kategori_lesen { get; set; }
         public string no_cukai_taksiran { get; set; }
         public int parlimen_id { get; set; }
@@ -24,5 +26,6 @@ namespace PBTPro.DAL.Models.PayLoads
         public string zon_name { get; set; }
         public DateTime tarikh_mula { get; set; }
         public DateTime tarikh_tamat { get; set; }
+        public DateTime? created_at { get; set; }
     }
 }
