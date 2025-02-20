@@ -131,4 +131,9 @@ public partial class mst_licensee
     public virtual mst_owner? owner_icnoNavigation { get; set; }
 
     public virtual ref_license_status? status { get; set; }
+    public int? town_id { get; set; }
+
+    public int? gid { get; set; }
+
+    public string? ssm_no { get; set; }
 }
