@@ -1,4 +1,4 @@
-﻿@page "/zon_Eksekutif"
+﻿@page "/zon_Admin" 
 @attribute [Authorize]
 
 @implements IDisposable
@@ -103,28 +103,6 @@
             <div class="d-lg-flex" style="padding:0 0 0 0;">
                 <div class="d-lg-flex col-12">
 
-                    <div class="col-12 dashboard-box">
-                        <div class="dashboard-style-big big-color">
-                            <div class="dashboard-wrap">
-                                <p /><p /><p />
-                                <p class="dashboard-center-text">
-                                    <span class="totalinnumber">@dtFinancial.total_premis_perniagaan</span>
-                                    <span class="totalinword">Jumlah Premis Perniagaan</span>
-                                </p>
-                                <p /><p /><p />
-                            </div>
-                            <div class="dashboard-button">
-                                <a href="jumlesenaktif" class="round-button">...</a>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="d-lg-flex" style="padding:0 0 0 0;">
-                <div class="d-lg-flex col-12">
-
                     <div class="col-6 dashboard-box">
                         <div class="dashboard-style-big big-color">
                             <div class="dashboard-wrap">
@@ -165,8 +143,8 @@
                             <div class="dashboard-wrap">
                                 <p /><p /><p />
                                 <p class="dashboard-center-text">
-                                    <span class="totalinnumber">@dtFinancial.total_lesen_aktif</span>
-                                    <span class="totalinword">Jumlah Lesen Aktif</span>
+                                    <span class="totalinnumber">@dtSource.premis_diperiksa</span>
+                                    <span class="totalinword">Jumlah Premis DiPeriksa</span>
                                 </p>
                                 <p /><p /><p />
                             </div>
@@ -180,43 +158,8 @@
                         <div class="dashboard-style-big big-color">
                             <div class="dashboard-wrap">
                                 <p class="dashboard-center-text">
-                                    <span class="totalinnumber">@dtFinancial.lesen_tamat_tempoh</span>
-                                    <span class="totalinword">Jumlah Lesen Tamat Tempoh</span>
-                                </p>
-                            </div>
-                            <div class="dashboard-button">
-                                <a href="jumlesenaktif" class="round-button">...</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="d-lg-flex" style="padding:0 0 0 0;">
-                <div class="d-lg-flex col-12">
-
-                    <div class="col-6 dashboard-box">
-                        <div class="dashboard-style-big big-color">
-                            <div class="dashboard-wrap">
-                                <p /><p /><p />
-                                <p class="dashboard-center-text">
-                                    <span class="totalinnumber">@dtFinancial.ptmbahan_lesen_thn_semasa</span>
-                                    <span class="totalinword">Pertambahan Lesen Tahun Semasa</span>
-                                </p>
-                                <p /><p /><p />
-                            </div>
-                            <div class="dashboard-button">
-                                <a href="jumlesenaktif" class="round-button">...</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-6 dashboard-box">
-                        <div class="dashboard-style-big big-color">
-                            <div class="dashboard-wrap">
-                                <p class="dashboard-center-text">
-                                    <span class="totalinnumber">@dtFinancial.ptmbahan_lesen_semasa</span>
-                                    <span class="totalinword">Jumlah Lesen Bulan Semasa</span>
+                                    <span class="totalinnumber">@dtSource.premis_dikenakan_tindakan</span>
+                                    <span class="totalinword">Jumlah Premis Dikenakan Tindakan</span>
                                 </p>
                             </div>
                             <div class="dashboard-button">
@@ -234,16 +177,14 @@
 @code {
     bool PanelVisible { get; set; }
     dashboard_view dtSource = new dashboard_view();
-    dashboard_view dtFinancial = new dashboard_view();
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
         PanelVisible = true;
-
-        dtSource = await _DashboardService.GetDashboardData();
-        dtFinancial = await _DashboardService.GetFinancialDashboard();
+        if (dtSource != null)
+            dtSource = await _DashboardService.GetDashboardData();
 
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
