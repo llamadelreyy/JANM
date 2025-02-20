@@ -344,6 +344,11 @@ public partial class PBTProTenantDbContext : DbContext
             entity.HasOne(d => d.status).WithMany(p => p.mst_licensees)
                 .HasForeignKey(d => d.status_id)
                 .HasConstraintName("license_status_id_refers_to_license_status_id");
+
+            entity.Property(e => e.town_id).HasDefaultValue(0);
+            entity.Property(e => e.ssm_no).HasColumnType("character varying");
+            entity.Property(e => e.gid).HasDefaultValue(0);
+
         });
 
         modelBuilder.Entity<mst_lot>(entity =>
