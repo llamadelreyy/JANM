@@ -99,6 +99,8 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<ref_doc> ref_docs { get; set; }
 
+    public virtual DbSet<trn_premis_visit> trn_premis_visits { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
@@ -496,6 +498,7 @@ public partial class PBTProTenantDbContext : DbContext
 
             entity.Property(e => e.district_code).HasMaxLength(10);
             entity.Property(e => e.town_code).HasMaxLength(10);
+            entity.Property(e => e.user_id).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<mst_premi>(entity =>
@@ -1823,6 +1826,11 @@ public partial class PBTProTenantDbContext : DbContext
             entity.HasOne(d => d.schedule).WithMany(p => p.trn_patrol_officers)
                 .HasForeignKey(d => d.schedule_id)
                 .HasConstraintName("schedule_id_refers_to_schedule_id");
+
+            entity.Property(e => e.is_leader).HasDefaultValue(false);
+            entity.Property(e => e.user_id).HasDefaultValue(0);
+            entity.Property(e => e.visit_id).HasDefaultValue(0);
+
         });
 
         modelBuilder.Entity<ref_doc>(entity =>
@@ -1839,6 +1847,17 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.description).HasColumnType("character varying");
         });
 
+        modelBuilder.Entity<trn_premis_visit>(entity =>
+        {
+            entity.HasKey(e => e.visit_id).HasName("trn_premis_visit_pkey");
+
+            entity.ToTable("trn_premis_visit", "tenant", tb => tb.HasComment("This table stores status visited premis that has been done by officer"));
+
+            entity.Property(e => e.created_at).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.status_visit).HasDefaultValue(false);
+        });
 
         modelBuilder.HasSequence("ref_department_dept_id_seq", "tenant");
         modelBuilder.HasSequence("ref_division_div_id_seq", "tenant");
