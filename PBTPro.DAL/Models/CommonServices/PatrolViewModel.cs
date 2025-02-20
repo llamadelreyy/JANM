@@ -27,6 +27,8 @@ namespace PBTPro.DAL.Models.CommonServices
         public string? UnitName { get; set; }
         public string PatrolStatus { get; set; } = null!;
         public bool is_deleted { get; set; }
+        public int TypeId { get; set; }
+        public string TypeName { get; set; }
 
     }
 }

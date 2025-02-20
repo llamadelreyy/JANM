@@ -97,9 +97,10 @@ namespace PBTPro.Api.Controllers
                         join unit in _tenantDBContext.ref_units on user.unit_id equals unit.unit_id
                         join daerah in _dbContext.mst_districts on schedule.district_code equals daerah.district_code
                         join bandar in _dbContext.mst_towns on schedule.town_code equals bandar.town_code
+                        join type in _tenantDBContext.ref_patrol_types on schedule.type_id equals type.type_id
 
                         // Group by `schedule_id` to avoid duplicates
-                        group new { schedule, user, department, seksyen, unit, daerah, bandar } by schedule.schedule_id into grouped
+                        group new { schedule, user, department, seksyen, unit, daerah, bandar, type } by schedule.schedule_id into grouped
                         select new PatrolViewModel
                         {
                             scheduleId = grouped.First().schedule.schedule_id,
@@ -115,7 +116,8 @@ namespace PBTPro.Api.Controllers
                             TownCode = grouped.First().bandar.town_code,
                             TownName = grouped.First().bandar.town_name,
                             PatrolStatus = Convert.ToString(grouped.First().schedule.status_id),
-                            is_deleted = false,
+                            TypeId = grouped.First().type.type_id,
+                            TypeName = grouped.First().type.type_name,
                         }
 
                     ).ToList();
@@ -142,7 +144,6 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "PATROL_START_END_TIME", MessageTypeEnum.Error, string.Format("Tarikh hari sebelum tidak dibenarkan.")));
                 }
-
 
                 var existingSchedules = await _tenantDBContext.mst_patrol_schedules
                                 .Where(s => s.idno == InputModel.ICNo)
@@ -179,6 +180,7 @@ namespace PBTPro.Api.Controllers
                     status_id = Convert.ToInt32(InputModel.PatrolStatus),
                     user_id = runUserID,
                     is_scheduled= true,
+                    type_id = InputModel.TypeId,                    
                 };
 
                 _tenantDBContext.mst_patrol_schedules.Add(mst_Patrol);
@@ -250,6 +252,7 @@ namespace PBTPro.Api.Controllers
                 formField.town_code = InputModel.TownCode;
                 formField.modifier_id = runUserID;
                 formField.user_id = runUserID;
+                formField.type_id = InputModel.TypeId;
 
                 _tenantDBContext.mst_patrol_schedules.Update(formField);
                 await _tenantDBContext.SaveChangesAsync();
@@ -312,9 +315,11 @@ namespace PBTPro.Api.Controllers
                         join unit in _tenantDBContext.ref_units on user.unit_id equals unit.unit_id
                         join daerah in _dbContext.mst_districts on schedule.district_code equals daerah.district_code
                         join bandar in _dbContext.mst_towns on schedule.town_code equals bandar.town_code
+                        join type in _tenantDBContext.ref_patrol_types on schedule.type_id equals type.type_id
+
 
                         // Group by `schedule_id` to avoid duplicates
-                        group new { schedule, user, department, seksyen, unit, daerah, bandar } by schedule.schedule_id into grouped
+                        group new { schedule, user, department, seksyen, unit, daerah, bandar, type } by schedule.schedule_id into grouped
                         select new PatrolViewModel
                         {
                             scheduleId = grouped.First().schedule.schedule_id,
@@ -330,7 +335,8 @@ namespace PBTPro.Api.Controllers
                             TownCode = grouped.First().bandar.town_code,
                             TownName = grouped.First().bandar.town_name,
                             PatrolStatus = Convert.ToString(grouped.First().schedule.status_id),
-                            is_deleted = false,
+                            TypeName = grouped.First().type.type_name,
+                            TypeId = grouped.First().type.type_id,
                         }
 
                     ).ToList();
@@ -388,7 +394,7 @@ namespace PBTPro.Api.Controllers
                 int runUserID = await getDefRunUserId();
                 string runUser = await getDefRunUser();
 
-                var data = await _tenantDBContext.mst_patrol_schedules.Where(x => x.idno == username && x.created_at == DateTime.Today).Select(x => new
+                var data = await _tenantDBContext.mst_patrol_schedules.Where(x => x.idno == username && x.start_time.Date == DateTime.Today).Select(x => new
                 {
                     schedule_id = x.schedule_id,
                     idno = x.idno,
