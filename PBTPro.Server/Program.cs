@@ -122,6 +122,8 @@ builder.Services.AddTransient<PremisService>();
 builder.Services.AddTransient<DashboardService>();
 builder.Services.AddTransient<DocumentService>();
 builder.Services.AddTransient<RefPatrolTypeService>();
+builder.Services.AddTransient<NotaPemeriksaanService>();
+
 
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();

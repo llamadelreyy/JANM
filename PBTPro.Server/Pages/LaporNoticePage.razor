@@ -6,13 +6,7 @@
 @using PBTPro.DAL.Models;
 @inject NoticeService _NoticeService
 @inject NavigationManager NavigationManager
-
-<div class="d-lg-flex border-bottom mb-2">
-    <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons/information.png" />
-        <div class="textTitle">Pelaporan - Laporan Notis</div>
-    </div>
-</div>
+@inject PBTAuthPermissionService PermissionService
 
 <style>
     .dxbl-grid {
@@ -21,330 +15,352 @@
     }
 </style>
 
-<div class="item-container-x">
-    <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
-        <DxTab Text="Notis Lesen (8)"></DxTab>
-        <DxTab Text="Notis Pelbagai (5)"></DxTab>
-    </DxTabs>
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+        IsContentBlocked="true"
+        ApplyBackgroundShading="true"
+        IndicatorAreaVisible="false"
+        Text="Capaian Data...">
 
-    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+        <div class="d-lg-flex border-bottom mb-2">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="/images/icons-small/document-template.png" />
+                <div class="textTitle">Pelaporan - Laporan Notis</div>
+            </div>
+        </div>
 
-    <DxGrid @ref="Grid"
-            Data="NoticeData"
-            KeyFieldName="IdNotice"
-            ShowGroupPanel="true"
-            ShowFilterRow="false"
-            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-            EditorRenderMode="GridEditorRenderMode.Integrated"
-            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-            ShowSearchBox="true"
-            AllowSelectRowByClick="true"
-            @bind-SearchText="@GridSearchText"
-            PageSize="25"
-            @bind-PageIndex="@GridPageIndex"
-            PagerPosition="GridPagerPosition.Bottom"
-            PagerNavigationMode="PagerNavigationMode.InputBox"
-            EditModelSaving="Grid_EditModelSaving"
-            EditFormButtonsVisible="false"
-            PageSizeSelectorVisible="true"
-            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-            PageSizeSelectorAllRowsItemVisible="true"
-            PagerAutoHideNavButtons="false"
-            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-            CustomizeElement="Grid_CustomizeElement"
-            HighlightRowOnHover="true"
-            CssClass="mv-1000">
+        <div class="item-container-x">
+            <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+                <DxTab Text="Notis Lesen (8)"></DxTab>
+                <DxTab Text="Notis Pelbagai (5)"></DxTab>
+            </DxTabs>
 
-        <Columns>
-            <DxGridCommandColumn Width="120px">
-                <HeaderTemplate>
-                    <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                </HeaderTemplate>
-                <CellDisplayTemplate>
-                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                    <a @onclick="@(() => Delete((NoticeProp)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+            <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 
-                    <a @onclick="@(() => OnHistoryRow(context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);" title="Sejarah kompaun"><img src="images/icons-small/folder-search-result.png" /></a>
-                    <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan"><img src="images/icons-small/printer--pencil.png" /></a>
-                </CellDisplayTemplate>
-            </DxGridCommandColumn>
-            <DxGridDataColumn Caption="Bil." MinWidth="70" Width="7%" FieldName="Bil" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-            <DxGridDataColumn Caption="No Rujukan" MinWidth="130" Width="13%" FieldName="NoRujukan" />
-            <DxGridDataColumn Caption="Tarikh & Masa" MinWidth="120" Width="12%" FieldName="TarikhMasa" TextAlignment="GridTextAlignment.Center" />
+            <DxGrid @ref="Grid"
+                    Data="NoticeData"
+                    KeyFieldName="IdNotice"
+                    ShowGroupPanel="true"
+                    ShowFilterRow="false"
+                    CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                    EditorRenderMode="GridEditorRenderMode.Integrated"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    ShowSearchBox="true"
+                    AllowSelectRowByClick="true"
+                    @bind-SearchText="@GridSearchText"
+                    PageSize="25"
+                    @bind-PageIndex="@GridPageIndex"
+                    PagerPosition="GridPagerPosition.Bottom"
+                    PagerNavigationMode="PagerNavigationMode.InputBox"
+                    EditModelSaving="Grid_EditModelSaving"
+                    EditFormButtonsVisible="false"
+                    PageSizeSelectorVisible="true"
+                    PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PagerAutoHideNavButtons="false"
+                    ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                    CustomizeElement="Grid_CustomizeElement"
+                    HighlightRowOnHover="true"
+                    CssClass="mv-1000">
 
-            <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="NoLesen">
-                <CellDisplayTemplate>
-                    <div>
-                        @CombineText(((NoticeProp)context.DataItem).NoLesen, ((NoticeProp)context.DataItem).NamaPerniagaan)
-                    </div>
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-            @*       <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="200" Width="20%" FieldName="NamaPerniagaan" /> *@
-            <DxGridDataColumn Caption="Nama Pemilik" MinWidth="200" Width="20%" FieldName="NamaPemilik" />
-            <DxGridDataColumn Caption="Nama Pegawai" MinWidth="200" Width="20%" FieldName="NamaPegawaiPengeluar" />
-            <DxGridDataColumn Caption="Tarikh Tamat & Tempoh Notis" MinWidth="150" Width="15%" FieldName="TarikhTamatNotis" AllowGroup="false" TextAlignment="GridTextAlignment.Center" />
-            <DxGridDataColumn Caption="Status Notis" MinWidth="150" Width="15%" FieldName="StatusNotis" TextAlignment="GridTextAlignment.Center" >
-                <CellDisplayTemplate>
-                    <div>@GetStatusNoticeIconHtml(((NoticeProp)context.DataItem).StatusNotis)</div>
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-            <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="150" Width="15%" FieldName="NoDaftarSyarikat" />
+                    <Columns>
+                        <DxGridCommandColumn Width="120px">
+                            <HeaderTemplate>
+                                <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                            </HeaderTemplate>
+                            <CellDisplayTemplate>
+                                <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                                <a @onclick="@(() => Delete((NoticeProp)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
 
-            <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="250" Width="20%" FieldName="AlamatPerniagaan" />
-            <DxGridDataColumn Caption="Akta Kesalahan" MinWidth="250" Width="25%" FieldName="AktaKesalahan" />
-            <DxGridDataColumn Caption="Kod Kesalahan" MinWidth="250" Width="25%" FieldName="KodKesalahan" />
-            <DxGridDataColumn Caption="Arahan" MinWidth="180" Width="18%" FieldName="Arahan" />
+                                <a @onclick="@(() => OnHistoryRow(context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);" title="Sejarah kompaun"><img src="images/icons-small/folder-search-result.png" /></a>
+                                <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan"><img src="images/icons-small/printer--pencil.png" /></a>
+                            </CellDisplayTemplate>
+                        </DxGridCommandColumn>
+                        <DxGridDataColumn Caption="Bil." MinWidth="70" Width="7%" FieldName="Bil" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                        <DxGridDataColumn Caption="No Rujukan" MinWidth="130" Width="13%" FieldName="NoRujukan" />
+                        <DxGridDataColumn Caption="Tarikh & Masa" MinWidth="120" Width="12%" FieldName="TarikhMasa" TextAlignment="GridTextAlignment.Center" />
 
-            <DxGridDataColumn Caption="Lokasi Kesalahan" MinWidth="120" Width="12%" FieldName="LokasiKesalahan" />
-            <DxGridDataColumn Caption="Nama Saksi" MinWidth="200" Width="20%" FieldName="NamaSaksi" />
-            <DxGridDataColumn Caption="Cara Serahan" MinWidth="150" Width="15%" FieldName="CaraSerahan" />
-            <DxGridDataColumn Caption="Ulasan" MinWidth="200" Width="20%" FieldName="Ulasan" />
+                        <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="NoLesen">
+                            <CellDisplayTemplate>
+                                <div>
+                                    @CombineText(((NoticeProp)context.DataItem).NoLesen, ((NoticeProp)context.DataItem).NamaPerniagaan)
+                                </div>
+                            </CellDisplayTemplate>
+                        </DxGridDataColumn>
+                        @*       <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="200" Width="20%" FieldName="NamaPerniagaan" /> *@
+                        <DxGridDataColumn Caption="Nama Pemilik" MinWidth="200" Width="20%" FieldName="NamaPemilik" />
+                        <DxGridDataColumn Caption="Nama Pegawai" MinWidth="200" Width="20%" FieldName="NamaPegawaiPengeluar" />
+                        <DxGridDataColumn Caption="Tarikh Tamat & Tempoh Notis" MinWidth="150" Width="15%" FieldName="TarikhTamatNotis" AllowGroup="false" TextAlignment="GridTextAlignment.Center" />
+                        <DxGridDataColumn Caption="Status Notis" MinWidth="150" Width="15%" FieldName="StatusNotis" TextAlignment="GridTextAlignment.Center" >
+                            <CellDisplayTemplate>
+                                <div>@GetStatusNoticeIconHtml(((NoticeProp)context.DataItem).StatusNotis)</div>
+                            </CellDisplayTemplate>
+                        </DxGridDataColumn>
+                        <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="150" Width="15%" FieldName="NoDaftarSyarikat" />
 
-            @*Sampel sorting in different way - press shift & click on the field if no code  *@
-            <DxGridDataColumn FieldName="DateCreated"
-                              DisplayFormat="dd/MM/yyyy"
-                              Caption="Tarikh Data"
-                              MinWidth="120"
-                              Width="12%"
-                              TextAlignment="GridTextAlignment.Center"
-                              SortOrder="GridColumnSortOrder.Ascending"
-                              SortIndex="0" />
-        </Columns>
+                        <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="250" Width="20%" FieldName="AlamatPerniagaan" />
+                        <DxGridDataColumn Caption="Akta Kesalahan" MinWidth="250" Width="25%" FieldName="AktaKesalahan" />
+                        <DxGridDataColumn Caption="Kod Kesalahan" MinWidth="250" Width="25%" FieldName="KodKesalahan" />
+                        <DxGridDataColumn Caption="Arahan" MinWidth="180" Width="18%" FieldName="Arahan" />
 
-        <EditFormTemplate Context="EditFormContext">
-            @{
-                var dtData = (NoticeProp)EditFormContext.EditModel;
-            }
-            <DxFormLayout CssClass="w-100">
-                <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
-                    <table class="layout_edit">
-                        <tr>
-                            <td nowrap colspan="7">
-                                #@dtData.NoRujukan &nbsp; @GetStatusNoticeIconHtml(dtData.StatusNotis) <br />
-                                @dtData.TarikhMasa
-                            </td>
-                        </tr>
-                        <tr style="height:5px;"><td colspan="7"></td></tr>
-                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-                        <tr>
-                            <td nowrap>No Lesen</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%">
-                                <DxTextBox @bind-Text="@dtData.NoLesen"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="No Lesen..."
-                                           Maxlength="60"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:170px;" />
-                            </td>
-                            <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
-                            <td nowrap>No Daftar Syarikat</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%">
-                                <DxTextBox @bind-Text="@dtData.NoLesen"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="No Daftar Syarikat..."
-                                           Maxlength="60"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:170px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Nama Pemilik</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.NamaPemilik"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Nama Pemilik..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:370px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Nama Perniagaan</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="5">
-                                <DxTextBox @bind-Text="@dtData.NamaPerniagaan"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Nama Perniagaan..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" style="width:370px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap valign="top">Alamat Perniagaan</td>
-                            <td valign="top">&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxMemo @bind-Text="@dtData.AlamatPerniagaan"
-                                        CssClass="cw-480"
-                                        Rows="3" />
-                            </td>
-                        </tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-                        <tr>
-                            <td nowrap valign="top">Akta Kesalahan</td>
-                            <td valign="top">&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxMemo @bind-Text="@dtData.AktaKesalahan"
-                                        CssClass="cw-480"
-                                        Rows="3" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap valign="top">Kod Kesalahan</td>
-                            <td valign="top">&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxMemo @bind-Text="@dtData.KodKesalahan"
-                                        CssClass="cw-480"
-                                        Rows="3" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Arahan</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxTextBox @bind-Text="@dtData.Arahan"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Arahan..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Lokasi Kesalahan</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%">
-                                <DxTextBox @bind-Text="@dtData.LokasiKesalahan"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Nama Pegawai Pengeluar..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" />
-                            </td>
-                            <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
-                            <td nowrap>Nama Pegawai</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%">
-                                <DxTextBox @bind-Text="@dtData.NamaPegawaiPengeluar"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Nama Pegawai Pengeluar..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap>Nama Saksi</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%">
-                                <DxTextBox @bind-Text="@dtData.NamaSaksi"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Nama Saksi..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" />
-                            </td>
-                            <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
-                            <td nowrap>Cara Serahan</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%">
-                                <DxTextBox @bind-Text="@dtData.CaraSerahan"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Cara Searahan..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" />
-                            </td>
-                        </tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-                        <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-                        <tr>
-                            <td nowrap>Bukti</td>
-                            <td>&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="5">
-                                <img src="/images/Bukti/herbstore.jpg" style="width:20%;border:1px solid #000;"  />
-                                <img src="/images/Bukti/herbstore2.jpg" style="width:20%;border:1px solid #000;" />
-                            </td>
-                        </tr>
-                        <tr style="height:10px;"><td colspan="7"></td></tr>
-                        <tr>
-                            <td nowrap>Status Notis</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%">
-                                <DxTextBox @bind-Text="@dtData.StatusNotis"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="No Lesen..."
-                                           Maxlength="60"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" />
-                            </td>
-                            <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
-                            <td nowrap>Tarikh Tamat Notis</td>
-                            <td nowrap>&nbsp;&nbsp;</td>
-                            <td width="50%">
-                                <DxTextBox @bind-Text="@dtData.TarikhTamatNotis"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           NullText="Tarikh Tamat Notis..."
-                                           Maxlength="120"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-320" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td nowrap valign="top">Ulasan</td>
-                            <td valign="top">&nbsp;&nbsp;</td>
-                            <td width="50%" colspan="7">
-                                <DxMemo @bind-Text="@dtData.Ulasan"
-                                        CssClass="cw-480"
-                                        Rows="3" />
-                            </td>
-                        </tr>
-                    </table>
-                </DxFormLayoutItem>
-                <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-                <DxFormLayoutItem ColSpanMd="12">
-                    <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
-                    <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
-                </DxFormLayoutItem>
-            </DxFormLayout>
-        </EditFormTemplate>
-        <CustomValidators>
-            <MyCustomValidator DataItemValidating="ValidateGridData" />
-        </CustomValidators>
+                        <DxGridDataColumn Caption="Lokasi Kesalahan" MinWidth="120" Width="12%" FieldName="LokasiKesalahan" />
+                        <DxGridDataColumn Caption="Nama Saksi" MinWidth="200" Width="20%" FieldName="NamaSaksi" />
+                        <DxGridDataColumn Caption="Cara Serahan" MinWidth="150" Width="15%" FieldName="CaraSerahan" />
+                        <DxGridDataColumn Caption="Ulasan" MinWidth="200" Width="20%" FieldName="Ulasan" />
 
-        @*This is to count the summary*@
-        <TotalSummary>
-            <DxGridSummaryItem FooterColumnName="Bil"
-                               Name="Custom"
-                               SummaryType=GridSummaryItemType.Count />
-        </TotalSummary>
+                        @*Sampel sorting in different way - press shift & click on the field if no code  *@
+                        <DxGridDataColumn FieldName="DateCreated"
+                                          DisplayFormat="dd/MM/yyyy"
+                                          Caption="Tarikh Data"
+                                          MinWidth="120"
+                                          Width="12%"
+                                          TextAlignment="GridTextAlignment.Center"
+                                          SortOrder="GridColumnSortOrder.Ascending"
+                                          SortIndex="0" />
+                    </Columns>
 
-    </DxGrid>
+                    <EditFormTemplate Context="EditFormContext">
+                        @{
+                            var dtData = (NoticeProp)EditFormContext.EditModel;
+                        }
+                        <DxFormLayout CssClass="w-100">
+                            <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
+                                <table class="layout_edit">
+                                    <tr>
+                                        <td nowrap colspan="7">
+                                            #@dtData.NoRujukan &nbsp; @GetStatusNoticeIconHtml(dtData.StatusNotis) <br />
+                                            @dtData.TarikhMasa
+                                        </td>
+                                    </tr>
+                                    <tr style="height:5px;"><td colspan="7"></td></tr>
+                                    <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                                    <tr style="height:10px;"><td colspan="7"></td></tr>
+                                    <tr>
+                                        <td nowrap>No Lesen</td>
+                                        <td nowrap>&nbsp;&nbsp;</td>
+                                        <td width="50%">
+                                            <DxTextBox @bind-Text="@dtData.NoLesen"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="No Lesen..."
+                                                       Maxlength="60"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" style="width:170px;" />
+                                        </td>
+                                        <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                        <td nowrap>No Daftar Syarikat</td>
+                                        <td nowrap>&nbsp;&nbsp;</td>
+                                        <td width="50%">
+                                            <DxTextBox @bind-Text="@dtData.NoLesen"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="No Daftar Syarikat..."
+                                                       Maxlength="60"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" style="width:170px;" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>Nama Pemilik</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td width="50%" colspan="7">
+                                            <DxTextBox @bind-Text="@dtData.NamaPemilik"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="Nama Pemilik..."
+                                                       Maxlength="120"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" style="width:370px;" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>Nama Perniagaan</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td width="50%" colspan="5">
+                                            <DxTextBox @bind-Text="@dtData.NamaPerniagaan"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="Nama Perniagaan..."
+                                                       Maxlength="120"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" style="width:370px;" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td nowrap valign="top">Alamat Perniagaan</td>
+                                        <td valign="top">&nbsp;&nbsp;</td>
+                                        <td width="50%" colspan="7">
+                                            <DxMemo @bind-Text="@dtData.AlamatPerniagaan"
+                                                    CssClass="cw-480"
+                                                    Rows="3" />
+                                        </td>
+                                    </tr>
+                                    <tr style="height:10px;"><td colspan="7"></td></tr>
+                                    <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                                    <tr style="height:10px;"><td colspan="7"></td></tr>
+                                    <tr>
+                                        <td nowrap valign="top">Akta Kesalahan</td>
+                                        <td valign="top">&nbsp;&nbsp;</td>
+                                        <td width="50%" colspan="7">
+                                            <DxMemo @bind-Text="@dtData.AktaKesalahan"
+                                                    CssClass="cw-480"
+                                                    Rows="3" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td nowrap valign="top">Kod Kesalahan</td>
+                                        <td valign="top">&nbsp;&nbsp;</td>
+                                        <td width="50%" colspan="7">
+                                            <DxMemo @bind-Text="@dtData.KodKesalahan"
+                                                    CssClass="cw-480"
+                                                    Rows="3" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>Arahan</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td width="50%" colspan="7">
+                                            <DxTextBox @bind-Text="@dtData.Arahan"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="Arahan..."
+                                                       Maxlength="120"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>Lokasi Kesalahan</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td width="50%">
+                                            <DxTextBox @bind-Text="@dtData.LokasiKesalahan"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="Nama Pegawai Pengeluar..."
+                                                       Maxlength="120"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" />
+                                        </td>
+                                        <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                        <td nowrap>Nama Pegawai</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td width="50%">
+                                            <DxTextBox @bind-Text="@dtData.NamaPegawaiPengeluar"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="Nama Pegawai Pengeluar..."
+                                                       Maxlength="120"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>Nama Saksi</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td width="50%">
+                                            <DxTextBox @bind-Text="@dtData.NamaSaksi"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="Nama Saksi..."
+                                                       Maxlength="120"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" />
+                                        </td>
+                                        <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                        <td nowrap>Cara Serahan</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td width="50%">
+                                            <DxTextBox @bind-Text="@dtData.CaraSerahan"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="Cara Searahan..."
+                                                       Maxlength="120"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" />
+                                        </td>
+                                    </tr>
+                                    <tr style="height:10px;"><td colspan="7"></td></tr>
+                                    <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                                    <tr style="height:10px;"><td colspan="7"></td></tr>
+                                    <tr>
+                                        <td nowrap>Bukti</td>
+                                        <td>&nbsp;&nbsp;</td>
+                                        <td width="50%" colspan="5">
+                                            <img src="/images/Bukti/herbstore.jpg" style="width:20%;border:1px solid #000;"  />
+                                            <img src="/images/Bukti/herbstore2.jpg" style="width:20%;border:1px solid #000;" />
+                                        </td>
+                                    </tr>
+                                    <tr style="height:10px;"><td colspan="7"></td></tr>
+                                    <tr>
+                                        <td nowrap>Status Notis</td>
+                                        <td nowrap>&nbsp;&nbsp;</td>
+                                        <td width="50%">
+                                            <DxTextBox @bind-Text="@dtData.StatusNotis"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="No Lesen..."
+                                                       Maxlength="60"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" />
+                                        </td>
+                                        <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                        <td nowrap>Tarikh Tamat Notis</td>
+                                        <td nowrap>&nbsp;&nbsp;</td>
+                                        <td width="50%">
+                                            <DxTextBox @bind-Text="@dtData.TarikhTamatNotis"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       NullText="Tarikh Tamat Notis..."
+                                                       Maxlength="120"
+                                                       ShowValidationIcon="true"
+                                                       CssClass="cw-320" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td nowrap valign="top">Ulasan</td>
+                                        <td valign="top">&nbsp;&nbsp;</td>
+                                        <td width="50%" colspan="7">
+                                            <DxMemo @bind-Text="@dtData.Ulasan"
+                                                    CssClass="cw-480"
+                                                    Rows="3" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="12">
+                                <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                                <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                            </DxFormLayoutItem>
+                        </DxFormLayout>
+                    </EditFormTemplate>
+                    <CustomValidators>
+                        <MyCustomValidator DataItemValidating="ValidateGridData" />
+                    </CustomValidators>
 
-    <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
-    <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
-    <DxButton Text="Export XLS" Click="ExportXls_Click" />
-    <DxButton Text="Export CSV" Click="ExportCsv_Click" />
-    <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
-</div>
+                    @*This is to count the summary*@
+                    <TotalSummary>
+                        <DxGridSummaryItem FooterColumnName="Bil"
+                                           Name="Custom"
+                                           SummaryType=GridSummaryItemType.Count />
+                    </TotalSummary>
+
+                </DxGrid>
+
+                <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
+                <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
+                <DxButton Text="Export XLS" Click="ExportXls_Click" />
+                <DxButton Text="Export CSV" Click="ExportCsv_Click" />
+                <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+        </div>
+
+    </DxLoadingPanel>
+}
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
@@ -359,7 +375,7 @@
 </DxPopup>
 
 @code {
-
+    bool PanelVisible { get; set; }
     IEnumerable<NoticeProp> NoticeData;
 
     IGrid Grid { get; set; }
@@ -377,8 +393,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        PanelVisible = true;
         NoticeData = await _NoticeService.GetNoticeAsync();
         DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
