@@ -23,23 +23,6 @@ public partial class mst_taxholder
     /// </summary>
     public string? owner_icno { get; set; }
 
-    public string? ssm_no { get; set; }
-
-    /// <summary>
-    /// Name of the business owned by the tax holder.
-    /// </summary>
-    public string? business_name { get; set; }
-
-    /// <summary>
-    /// Address of the business.
-    /// </summary>
-    public string? business_addr { get; set; }
-
-    /// <summary>
-    /// Code representing the town where the business is located.
-    /// </summary>
-    public string? town_code { get; set; }
-
     /// <summary>
     /// Code representing the district where the business is located.
     /// </summary>
@@ -73,12 +56,7 @@ public partial class mst_taxholder
     /// <summary>
     /// representing the type of tax applicable to the holder.
     /// </summary>
-    public int? type_id { get; set; }
-
-    /// <summary>
-    /// representing the category of tax applicable to the holder.
-    /// </summary>
-    public int? cat_id { get; set; }
+    public int? license_id { get; set; }
 
     /// <summary>
     /// Identifier for parliamentary representation related to taxation.
@@ -120,5 +98,23 @@ public partial class mst_taxholder
     /// </summary>
     public bool? is_deleted { get; set; }
 
+    public int? town_id { get; set; }
+
+    public int? gid { get; set; }
+
+    public string? alamat { get; set; }
+
+    public virtual mst_dun? dun { get; set; }
+
+    public virtual mst_premi? gidNavigation { get; set; }
+
+    public virtual mst_licensee? license { get; set; }
+
     public virtual mst_owner? owner_icnoNavigation { get; set; }
+
+    public virtual mst_parliament? parliment { get; set; }
+
+    public virtual ref_tax_status? status { get; set; }
+
+    public virtual mst_zon? zon { get; set; }
 }

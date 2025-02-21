@@ -23,4 +23,6 @@ public partial class trn_premis_visit
     public DateTime? modified_at { get; set; }
 
     public bool? is_deleted { get; set; }
+
+    public virtual ICollection<trn_patrol_officer> trn_patrol_officers { get; set; } = new List<trn_patrol_officer>();
 }
