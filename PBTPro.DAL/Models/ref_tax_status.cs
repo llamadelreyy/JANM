@@ -42,4 +42,6 @@ public partial class ref_tax_status
     /// Timestamp when the record was last updated.
     /// </summary>
     public DateTime? modified_at { get; set; }
+
+    public virtual ICollection<mst_taxholder> mst_taxholders { get; set; } = new List<mst_taxholder>();
 }

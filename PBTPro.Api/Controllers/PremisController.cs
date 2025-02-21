@@ -348,7 +348,7 @@ namespace PBTPro.Api.Controllers
                 }
 
                 // For each mst_premis, get premis_view and add licenses
-                var resultData = new List<dynamic>();
+                var resultData = new List<premis_marker>();
                 var gids = mst_premisList.Select(p => p.gid).ToList();
 
                 // Fetch all premis_view data for the retrieved gids in one query
@@ -494,7 +494,7 @@ namespace PBTPro.Api.Controllers
                     // filter end here
 
                     // Build the result object for this premis (can uncommment the commented var if want to debug)
-                    resultData.Add(new
+                    resultData.Add(new premis_marker
                     {
                         gid = premis.gid,
                         lot = premis.lot,
