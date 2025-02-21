@@ -31,4 +31,8 @@ public partial class mst_premi
     public DateOnly? tempoh_sah_cukai { get; set; }
 
     public DateOnly? tempoh_sah_lesen { get; set; }
+
+    public virtual ICollection<mst_licensee> mst_licensees { get; set; } = new List<mst_licensee>();
+
+    public virtual ICollection<mst_taxholder> mst_taxholders { get; set; } = new List<mst_taxholder>();
 }

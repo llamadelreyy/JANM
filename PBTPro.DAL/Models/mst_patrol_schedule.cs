@@ -46,6 +46,12 @@ public partial class mst_patrol_schedule
 
     public bool? is_deleted { get; set; }
 
+    public string? district_code { get; set; }
+
+    public string? town_code { get; set; }
+
+    public int? user_id { get; set; }
+
     public virtual ref_departmentss? dept { get; set; }
 
     public virtual ref_patrol_status? status { get; set; }
@@ -53,10 +59,4 @@ public partial class mst_patrol_schedule
     public virtual ICollection<trn_patrol_officer> trn_patrol_officers { get; set; } = new List<trn_patrol_officer>();
 
     public virtual ref_patrol_type? type { get; set; }
-
-    public string? district_code { get; set; }
-
-    public string? town_code { get; set; }
-
-    public int? user_id { get; set; }
 }

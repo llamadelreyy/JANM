@@ -48,6 +48,8 @@ public partial class ref_license_type
     /// </summary>
     public bool? is_deleted { get; set; }
 
+    public virtual ICollection<mst_licensee> mst_licensees { get; set; } = new List<mst_licensee>();
+
     public virtual ICollection<ref_license_cat> ref_license_cats { get; set; } = new List<ref_license_cat>();
 
     public virtual ICollection<ref_license_op> ref_license_ops { get; set; } = new List<ref_license_op>();
