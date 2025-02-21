@@ -1,0 +1,110 @@
+﻿@page "/dokumen"
+@attribute [Authorize]
+
+@implements IDisposable
+
+@using System.Globalization
+@using Blazored.Toast.Services
+@using Newtonsoft.Json
+@using System.ComponentModel
+@using PBTPro.DAL.Models;
+@using PBTPro.DAL.Services
+@using PBTPro.Data
+@using PBTPro.DAL.Models.CommonServices
+
+@inject PBTAuthPermissionService PermissionService
+@inject DocumentService _DocumentService
+@inject IToastService toastService
+@inject PBTAuthStateProvider _PBTAuthStateProvider
+
+<style>
+    .dxbl-grid {
+        height: 98.5%;
+        max-height: 98.5%;
+    }
+</style>
+
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+    <div class="d-lg-flex border-bottom">
+        <div class="col-md-12 py-1 dx-helptitle pageTitle">
+            <img class="imgTitle" src="\images\icons-small\document-task.png" />
+            <div class="textTitle">Muat Turun Dokumen</div>
+        </div>
+    </div>
+    <div class="item-container-x mt-3">
+        <div class="cw-480">
+            @{             
+                foreach (var itm in dtCategory)
+                {
+                    <DxTreeView AllowSelectNodes="true"                                
+                                AnimationType="LayoutAnimationType.Slide">
+                        <Nodes>
+                            <DxTreeViewNode Text="@itm.doc_cat">
+                                <Nodes>
+                                    <DxTreeViewNode Text="@itm.filename" style="margin-left: 30px;">
+                                        <Template>
+                                            <div style="display: flex; align-items: center;" class="mb-2">
+                                              
+                                                <!-- Link -->
+                                                <span style="margin-left: 10px;">
+                                                    <!-- Image -->
+                                                    <img class="treeview-template-icon"
+                                                         src="images/icons-small/document-pdf.png"
+                                                         alt="Title" />
+                                                    <a href="@itm.pathurl"
+                                                       target="_blank"
+                                                       class="dxbl-treeview-item-text small">
+                                                        @itm.filename
+                                                    </a>
+                                                    <br/>
+                                                    <div class="small">@itm.description</div>
+                                                </span>
+                                                <br /><br />                                                                                                
+                                            </div>
+                                        </Template>
+                                    </DxTreeViewNode>
+                                </Nodes>
+                            </DxTreeViewNode>
+                        </Nodes>
+                    </DxTreeView>
+
+
+                }
+            }
+
+        </div>
+    </div>
+</DxLoadingPanel>
+@code {
+
+}
+
+
+@code {
+    DxTreeView treeView;
+    private List<ref_doc> dtCategory = new List<ref_doc>();
+    string SelectedGroup = "none";
+    bool PanelVisible { get; set; }
+
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    protected override async Task OnInitializedAsync()
+    {
+        dtCategory = await _DocumentService.ListAll();
+        DataLoadedTcs.TrySetResult(true);
+    }
+
+    void SelectionChanged(TreeViewNodeEventArgs e)
+    {
+        SelectedGroup = e.NodeInfo?.Text;
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+}
