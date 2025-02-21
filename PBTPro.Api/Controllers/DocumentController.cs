@@ -35,7 +35,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var data = await _tenantDBContext.ref_docs.Where(d=>d.is_deleted == false).AsNoTracking().ToListAsync();
+                var data = await _tenantDBContext.ref_docs.Where(d => d.is_deleted == false).AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -148,7 +148,7 @@ namespace PBTPro.Api.Controllers
 
                 _tenantDBContext.ref_docs.Remove(formField);
                 await _tenantDBContext.SaveChangesAsync();
-               
+
                 return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
             catch (Exception ex)
@@ -178,7 +178,5 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-
-        
     }
 }

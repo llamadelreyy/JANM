@@ -128,12 +128,29 @@ public partial class mst_licensee
     /// </summary>
     public bool? is_deleted { get; set; }
 
-    public virtual mst_owner? owner_icnoNavigation { get; set; }
-
-    public virtual ref_license_status? status { get; set; }
-    public int? town_id { get; set; }
-
     public int? gid { get; set; }
 
+    public int? town_id { get; set; }
+
     public string? ssm_no { get; set; }
+
+    public virtual ref_license_cat? cat { get; set; }
+
+    public virtual mst_dun? dun { get; set; }
+
+    public virtual mst_premi? gidNavigation { get; set; }
+
+    public virtual ICollection<mst_taxholder> mst_taxholders { get; set; } = new List<mst_taxholder>();
+
+    public virtual ref_license_op? ops { get; set; }
+
+    public virtual mst_owner? owner_icnoNavigation { get; set; }
+
+    public virtual mst_parliament? parl { get; set; }
+
+    public virtual ref_license_status? status { get; set; }
+
+    public virtual ref_license_type? type { get; set; }
+
+    public virtual mst_zon? zon { get; set; }
 }
