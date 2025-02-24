@@ -4,64 +4,59 @@ using System.Collections.Generic;
 namespace PBTPro.DAL.Models;
 
 /// <summary>
-/// Table to store information about notices issued, including details about the owner, business, and associated documentation.
+/// Table to store confiscation transactions, including details about the owner and items confiscated.
 /// </summary>
-public partial class trn_notice
+public partial class trn_cfsc
 {
     /// <summary>
-    /// Unique identifier for each notice.
+    /// Unique identifier for each confiscation transaction.
     /// </summary>
-    public int trn_notice_id { get; set; }
+    public int trn_cfsc_id { get; set; }
 
     /// <summary>
-    /// Identification number of the owner.
+    /// Identification number of the owner associated with the confiscated items.
     /// </summary>
     public string? owner_icno { get; set; }
 
     /// <summary>
-    /// Tax account number associated with the owner.
+    /// Tax account number associated with the business being inspected.
     /// </summary>
     public string? tax_accno { get; set; }
 
     /// <summary>
-    /// Reference number for the notice.
+    /// Reference number for tracking this specific confiscation.
     /// </summary>
-    public string? notice_ref_no { get; set; }
+    public string? cfsc_ref_no { get; set; }
 
     /// <summary>
-    /// Instructions regarding actions to be taken related to this notice.
+    /// Instructions regarding actions to be taken related to this confiscation.
     /// </summary>
     public string? instruction { get; set; }
 
     /// <summary>
-    /// Location where the offense occurred.
+    /// Location where any offenses occurred during the confiscation.
     /// </summary>
     public string? offs_location { get; set; }
 
     /// <summary>
-    /// Identifier for delivery method used for this notice.
+    /// Scenario that happened during confiscation (e.g., Pemilik Tidak Dijumpai, linked to a reference ref_cfsc_scenarios table.
     /// </summary>
-    public int? deliver_id { get; set; }
+    public int? scen_id { get; set; }
 
     /// <summary>
-    /// Longitude of the location where the notice was issued.
+    /// Longitude of the location where the confiscation occurred.
     /// </summary>
-    public decimal? notice_longitude { get; set; }
+    public decimal? cfsc_longitude { get; set; }
 
     /// <summary>
-    /// Latitude of the location where the notice was issued.
+    /// Latitude of the location where the confiscation occurred.
     /// </summary>
-    public decimal? notice_latitude { get; set; }
+    public decimal? cfsc_latitude { get; set; }
 
     /// <summary>
-    /// Status of the notice, linked to a reference status table.
+    /// Status of the confiscation transaction, linked to a reference status table.
     /// </summary>
     public int? trnstatus_id { get; set; }
-
-    /// <summary>
-    /// Duration PREMISE OWNER for how long this notice is valid or relevant.
-    /// </summary>
-    public int? duration_id { get; set; }
 
     /// <summary>
     /// ID of the user who created this record.
@@ -83,21 +78,28 @@ public partial class trn_notice
     /// </summary>
     public DateTime? modified_at { get; set; }
 
+    /// <summary>
+    /// Flag indicating whether this record is deleted (soft delete).
+    /// </summary>
     public bool? is_deleted { get; set; }
 
     public int? license_id { get; set; }
 
-    public int? schedule_id { get; set; }
+    public int? inv_id { get; set; }
 
-    public bool? is_tax { get; set; }
+    public int? inv_type_id { get; set; }
+
+    public string? offense_code { get; set; }
+
+    public string? uuk_code { get; set; }
 
     public string? act_code { get; set; }
 
     public string? section_code { get; set; }
 
-    public string? uuk_code { get; set; }
+    public int? schedule_id { get; set; }
 
-    public string? offense_code { get; set; }
+    public bool? is_tax { get; set; }
 
     public string? doc_name { get; set; }
 

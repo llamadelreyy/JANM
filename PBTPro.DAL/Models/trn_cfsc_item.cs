@@ -16,14 +16,9 @@ public partial class trn_cfsc_item
     public int? trn_cfsc_id { get; set; }
 
     /// <summary>
-    /// Name of the confiscated item.
-    /// </summary>
-    public string item_name { get; set; } = null!;
-
-    /// <summary>
     /// Type of the confiscated item (Mudah Disita or Tidak Mudah Disita).
     /// </summary>
-    public int? item_type { get; set; }
+    public int? inv_id { get; set; }
 
     /// <summary>
     /// ID of the user who created this record.
@@ -49,4 +44,8 @@ public partial class trn_cfsc_item
     /// Flag indicating whether this record is deleted (soft delete).
     /// </summary>
     public bool? is_deleted { get; set; }
+
+    public string? description { get; set; }
+
+    public int? cnt_item { get; set; }
 }

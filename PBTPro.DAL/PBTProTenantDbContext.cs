@@ -49,8 +49,6 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<ref_department> ref_departments { get; set; }
 
-    public virtual DbSet<ref_departmentss> ref_departmentsses { get; set; }
-
     public virtual DbSet<ref_division> ref_divisions { get; set; }
 
     public virtual DbSet<ref_divisionss> ref_divisionsses { get; set; }
@@ -69,6 +67,8 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<ref_notice_type> ref_notice_types { get; set; }
 
+    public virtual DbSet<ref_notice_duration> ref_notice_durations { get; set; }
+
     public virtual DbSet<ref_ntc_duration> ref_ntc_durations { get; set; }
 
     public virtual DbSet<ref_patrol_status> ref_patrol_statuses { get; set; }
@@ -85,17 +85,29 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<ref_unit> ref_units { get; set; }
 
-    public virtual DbSet<ref_unitss> ref_unitsses { get; set; }
+    public virtual DbSet<trn_cfsc> trn_cfscs { get; set; }
+
+    public virtual DbSet<trn_cfsc_img> trn_cfsc_imgs { get; set; }
 
     public virtual DbSet<trn_cfsc_item> trn_cfsc_items { get; set; }
+
+    public virtual DbSet<trn_cmpd> trn_cmpds { get; set; }
+
+    public virtual DbSet<trn_cmpd_img> trn_cmpd_imgs { get; set; }
 
     public virtual DbSet<trn_compound> trn_compounds { get; set; }
 
     public virtual DbSet<trn_confiscation> trn_confiscations { get; set; }
 
+    public virtual DbSet<trn_inspect> trn_inspects { get; set; }
+
+    public virtual DbSet<trn_inspect_img> trn_inspect_imgs { get; set; }
+
     public virtual DbSet<trn_inspection> trn_inspections { get; set; }
 
     public virtual DbSet<trn_notice> trn_notices { get; set; }
+
+    public virtual DbSet<trn_notice_img> trn_notice_imgs { get; set; }
 
     public virtual DbSet<trn_patrol_officer> trn_patrol_officers { get; set; }
 
@@ -864,37 +876,6 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
         });
 
-        modelBuilder.Entity<ref_departmentss>(entity =>
-        {
-            entity.HasKey(e => e.dept_id).HasName("ref_departmentss_pkey");
-
-            entity.ToTable("ref_departmentss", "tenant", tb => tb.HasComment("This table stores information about departments under PBT (e.g., Jabatan Pelesenan)."));
-
-            entity.HasIndex(e => e.dept_code, "ref_departmentss_dept_code_key").IsUnique();
-
-            entity.Property(e => e.dept_id).HasComment("Unique identifier for each department record (Primary Key).");
-            entity.Property(e => e.created_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was created.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.creator_id).HasComment("User who created the record.");
-            entity.Property(e => e.dept_code)
-                .HasMaxLength(10)
-                .HasComment("Code of the department (e.g., PL).");
-            entity.Property(e => e.dept_desc).HasComment("Description about the department (e.g., Roles, Job Description, etc.).");
-            entity.Property(e => e.dept_name)
-                .HasMaxLength(40)
-                .HasComment("Name of the department (e.g., Jabatan Pelesenan).");
-            entity.Property(e => e.is_deleted)
-                .HasDefaultValue(false)
-                .HasComment("Logical delete flag indicating if the record is active or deleted.");
-            entity.Property(e => e.modified_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was last updated.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
-        });
-
         modelBuilder.Entity<ref_division>(entity =>
         {
             entity.HasKey(e => e.div_id).HasName("ref_division_pkey");
@@ -927,47 +908,6 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
 
             entity.HasOne(d => d.dept).WithMany(p => p.ref_divisions)
-                .HasForeignKey(d => d.dept_id)
-                .HasConstraintName("fk_div_id_belongs_to_dept_id");
-        });
-
-        modelBuilder.Entity<ref_divisionss>(entity =>
-        {
-            entity.HasKey(e => e.div_id).HasName("ref_divisionss_pkey");
-
-            entity.ToTable("ref_divisionss", "tenant", tb => tb.HasComment("This table stores information about divisions under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
-
-            entity.HasIndex(e => new { e.div_code, e.dept_code }, "ref_divisionss_div_code_key").IsUnique();
-
-            entity.Property(e => e.div_id).HasComment("Unique identifier for each division record (Primary Key).");
-            entity.Property(e => e.created_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was created.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.creator_id)
-                .HasDefaultValue(0)
-                .HasComment("User who created the record.");
-            entity.Property(e => e.dept_code).HasMaxLength(100);
-            entity.Property(e => e.dept_name).HasMaxLength(40);
-            entity.Property(e => e.div_code)
-                .HasMaxLength(10)
-                .HasComment("Code of the division (e.g., PL-TR).");
-            entity.Property(e => e.div_desc).HasComment("Description about the division (e.g., Roles, Job Description, etc.).");
-            entity.Property(e => e.div_name)
-                .HasMaxLength(40)
-                .HasComment("Name of division (e.g., Bahagian TRED dan Perniagaan dan Industri).");
-            entity.Property(e => e.is_deleted)
-                .HasDefaultValue(false)
-                .HasComment("Logical delete flag indicating if the record is active or deleted.");
-            entity.Property(e => e.modified_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was last updated.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.modifier_id)
-                .HasDefaultValue(0)
-                .HasComment("User who last updated the record.");
-
-            entity.HasOne(d => d.dept).WithMany(p => p.ref_divisionsses)
                 .HasForeignKey(d => d.dept_id)
                 .HasConstraintName("fk_div_id_belongs_to_dept_id");
         });
@@ -1194,6 +1134,35 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.notice_type_name)
                 .HasMaxLength(40)
                 .HasComment("Name of the notice type (e.g., Notis Lesen).");
+        });
+
+        modelBuilder.Entity<ref_notice_duration>(entity =>
+        {
+            entity.HasKey(e => e.duration_id).HasName("ref_notice_durations_pkey");
+
+            entity.ToTable("ref_notice_durations", "tenant", tb => tb.HasComment("This table stores duration values for notices (e.g., Serta Merta, 3 hari, 5 hari)."));
+
+            entity.Property(e => e.duration_id).HasComment("Unique identifier for each notice duration record (Primary Key).");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("User who created the record.");
+            entity.Property(e => e.duration_value)
+                .HasMaxLength(20)
+                .HasComment("Value of the notice duration (e.g., Serta Merta, 3 hari, 5 hari).");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Logical delete flag indicating if the record is active or deleted.");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when the record was last updated.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("User who last updated the record.");
         });
 
         modelBuilder.Entity<ref_ntc_duration>(entity =>
@@ -1438,42 +1407,91 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasConstraintName("fk_unit_id_belongs_to_div_id");
         });
 
-        modelBuilder.Entity<ref_unitss>(entity =>
+        modelBuilder.Entity<trn_cfsc>(entity =>
         {
-            entity.HasKey(e => e.unit_id).HasName("ref_unitss_pkey");
+            entity.HasKey(e => e.trn_cfsc_id).HasName("trn_cfscs_pkey");
 
-            entity.ToTable("ref_unitss", "tenant", tb => tb.HasComment("This table stores information about unit under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
+            entity.ToTable("trn_cfscs", "tenant", tb => tb.HasComment("Table to store confiscation transactions, including details about the owner and items confiscated."));
 
-            entity.HasIndex(e => new { e.unit_code, e.div_code }, "unique_unit_code_div_code").IsUnique();
-
-            entity.Property(e => e.unit_id).HasComment("Unique identifier for each unit under division");
+            entity.Property(e => e.trn_cfsc_id).HasComment("Unique identifier for each confiscation transaction.");
+            entity.Property(e => e.act_code).HasColumnType("character varying");
+            entity.Property(e => e.cfsc_latitude)
+                .HasPrecision(9, 6)
+                .HasComment("Latitude of the location where the confiscation occurred.");
+            entity.Property(e => e.cfsc_longitude)
+                .HasPrecision(9, 6)
+                .HasComment("Longitude of the location where the confiscation occurred.");
+            entity.Property(e => e.cfsc_ref_no)
+                .HasMaxLength(50)
+                .HasComment("Reference number for tracking this specific confiscation.");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was created.")
+                .HasComment("Timestamp when this record was created.")
                 .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.creator_id).HasComment("User who created the record.");
-            entity.Property(e => e.dept_name).HasMaxLength(100);
-            entity.Property(e => e.div_code).HasMaxLength(10);
-            entity.Property(e => e.div_name).HasMaxLength(100);
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created this record.");
+            entity.Property(e => e.doc_name).HasColumnType("character varying");
+            entity.Property(e => e.doc_pathurl).HasColumnType("character varying");
+            entity.Property(e => e.instruction).HasComment("Instructions regarding actions to be taken related to this confiscation.");
             entity.Property(e => e.is_deleted)
                 .HasDefaultValue(false)
-                .HasComment("Logical delete flag indicating if the record is active or deleted.");
+                .HasComment("Flag indicating whether this record is deleted (soft delete).");
             entity.Property(e => e.modified_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was last updated.")
+                .HasComment("Timestamp when this record was last modified.")
                 .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
-            entity.Property(e => e.unit_code)
-                .HasMaxLength(10)
-                .HasComment("Code of the unit (e.g., PL-TR).");
-            entity.Property(e => e.unit_desc).HasComment("Description about the unit (e.g., Roles, Job Description, etc.).");
-            entity.Property(e => e.unit_name)
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified this record.");
+            entity.Property(e => e.offense_code).HasColumnType("character varying");
+            entity.Property(e => e.offs_location).HasComment("Location where any offenses occurred during the confiscation.");
+            entity.Property(e => e.owner_icno)
+                .HasMaxLength(30)
+                .HasComment("Identification number of the owner associated with the confiscated items.");
+            entity.Property(e => e.scen_id).HasComment("Scenario that happened during confiscation (e.g., Pemilik Tidak Dijumpai, linked to a reference ref_cfsc_scenarios table.");
+            entity.Property(e => e.section_code).HasColumnType("character varying");
+            entity.Property(e => e.tax_accno)
                 .HasMaxLength(40)
-                .HasComment("Name of unit (e.g., Unit Kaunter).");
+                .HasComment("Tax account number associated with the business being inspected.");
+            entity.Property(e => e.trnstatus_id)
+                .HasDefaultValue(1)
+                .HasComment("Status of the confiscation transaction, linked to a reference status table.");
+            entity.Property(e => e.uuk_code).HasColumnType("character varying");
+        });
 
-            entity.HasOne(d => d.div).WithMany(p => p.ref_unitsses)
-                .HasForeignKey(d => d.div_id)
-                .HasConstraintName("ref_unitss_id_belongs_to_ref_div_id");
+        modelBuilder.Entity<trn_cfsc_img>(entity =>
+        {
+            entity.HasKey(e => e.cfsc_img_id).HasName("trn_cfsc_imgs_pkey");
+
+            entity.ToTable("trn_cfsc_imgs", "tenant", tb => tb.HasComment("Stores images associated with confiscation records"));
+
+            entity.Property(e => e.cfsc_img_id).HasComment("Unique identifier for the confiscation image record");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created this record.");
+            entity.Property(e => e.desc).HasComment("Optional description of the image");
+            entity.Property(e => e.filename)
+                .HasMaxLength(255)
+                .HasComment("Original filename of the image");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether this record is deleted (soft delete).");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was last modified.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified this record.");
+            entity.Property(e => e.pathurl)
+                .HasMaxLength(255)
+                .HasComment("URL or file path where the image is stored");
+            entity.Property(e => e.trn_cfsc_id).HasComment("Foreign key to the trn_confiscation table");
         });
 
         modelBuilder.Entity<trn_cfsc_item>(entity =>
@@ -1490,13 +1508,11 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.creator_id)
                 .HasDefaultValue(0)
                 .HasComment("ID of the user who created this record.");
+            entity.Property(e => e.description).HasColumnType("character varying");
+            entity.Property(e => e.inv_id).HasComment("Type of the confiscated item (Mudah Disita or Tidak Mudah Disita).");
             entity.Property(e => e.is_deleted)
                 .HasDefaultValue(false)
                 .HasComment("Flag indicating whether this record is deleted (soft delete).");
-            entity.Property(e => e.item_name)
-                .HasMaxLength(100)
-                .HasComment("Name of the confiscated item.");
-            entity.Property(e => e.item_type).HasComment("Type of the confiscated item (Mudah Disita or Tidak Mudah Disita).");
             entity.Property(e => e.modified_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasComment("Timestamp when this record was last modified.")
@@ -1504,6 +1520,86 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.modifier_id)
                 .HasDefaultValue(0)
                 .HasComment("ID of the user who modified this record.");
+        });
+        
+        modelBuilder.Entity<trn_cmpd>(entity =>
+        {
+            entity.HasKey(e => e.trn_cmpd_id).HasName("trn_cmpds_pkey");
+
+            entity.ToTable("trn_cmpds", "tenant", tb => tb.HasComment("Table to store information about compounds issued, including details about the owner, business, and associated documentation."));
+
+            entity.Property(e => e.trn_cmpd_id).HasComment("Unique identifier for each compound record.");
+            entity.Property(e => e.act_code).HasColumnType("character varying");
+            entity.Property(e => e.amt_cmpd)
+                .HasPrecision(12, 2)
+                .HasComment("Amount associated with the compound, stored as a numeric value.");
+            entity.Property(e => e.cmpd_latitude)
+                .HasPrecision(9, 6)
+                .HasComment("Latitude of the location where the compound was issued.");
+            entity.Property(e => e.cmpd_longitude)
+                .HasPrecision(9, 6)
+                .HasComment("Longitude of the location where the compound was issued.");
+            entity.Property(e => e.cmpd_ref_no)
+                .HasMaxLength(50)
+                .HasComment("Reference number for the compound.");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created this record.");
+            entity.Property(e => e.deliver_id).HasComment("Identifier for delivery method used for this compound notice.");
+            entity.Property(e => e.doc_name).HasColumnType("character varying");
+            entity.Property(e => e.doc_pathurl).HasColumnType("character varying");
+            entity.Property(e => e.instruction).HasComment("Instructions regarding actions to be taken related to this compound.");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether this record is deleted (soft delete).");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was last modified.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified this record.");
+            entity.Property(e => e.offense_code).HasColumnType("character varying");
+            entity.Property(e => e.offs_location).HasComment("Location where the offense occurred.");
+            entity.Property(e => e.owner_icno)
+                .HasMaxLength(30)
+                .HasComment("Identification number of the owner.");
+            entity.Property(e => e.section_code).HasColumnType("character varying");
+            entity.Property(e => e.tax_accno).HasColumnType("character varying");
+            entity.Property(e => e.trnstatus_id)
+                .HasDefaultValue(4)
+                .HasComment("Status of the compound, linked to a reference status table.");
+            entity.Property(e => e.uuk_code).HasColumnType("character varying");
+        });
+
+        modelBuilder.Entity<trn_cmpd_img>(entity =>
+        {
+            entity.HasKey(e => e.cmpd_img_id).HasName("trn_cmpd_imgs_pkey");
+
+            entity.ToTable("trn_cmpd_imgs", "tenant", tb => tb.HasComment("Stores images associated with compound records"));
+
+            entity.Property(e => e.cmpd_img_id).HasComment("Unique identifier for the compound image record");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasDefaultValue(0);
+            entity.Property(e => e.desc).HasComment("Optional description of the image");
+            entity.Property(e => e.filename)
+                .HasMaxLength(255)
+                .HasComment("Original filename of the image");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasDefaultValue(0);
+            entity.Property(e => e.pathurl)
+                .HasMaxLength(255)
+                .HasComment("URL or file path where the image is stored");
+            entity.Property(e => e.trn_cmpd_id).HasComment("Foreign key to the trn_compounds table");
         });
 
         modelBuilder.Entity<trn_compound>(entity =>
@@ -1677,6 +1773,87 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasConstraintName("trn_confiscation_scen_id_fkey");
         });
 
+        modelBuilder.Entity<trn_inspect>(entity =>
+        {
+            entity.HasKey(e => e.trn_inspect_id).HasName("trn_inspects_pkey");
+
+            entity.ToTable("trn_inspects", "tenant", tb => tb.HasComment("Table to store inspection records, including details about the inspection type, owner information, and related documentation."));
+
+            entity.Property(e => e.trn_inspect_id).HasComment("Unique identifier for each inspection record.");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created this record.");
+            entity.Property(e => e.dept_id).HasComment("Identifier for the department responsible for conducting this inspection.");
+            entity.Property(e => e.doc_name).HasColumnType("character varying");
+            entity.Property(e => e.doc_pathurl).HasColumnType("character varying");
+            entity.Property(e => e.inspect_latitude)
+                .HasPrecision(9, 6)
+                .HasComment("Latitude of the location where the inspection occurred.");
+            entity.Property(e => e.inspect_longitude)
+                .HasPrecision(9, 6)
+                .HasComment("Longitude of the location where the inspection occurred.");
+            entity.Property(e => e.inspect_ref_no)
+                .HasMaxLength(50)
+                .HasComment("Reference number for tracking this specific inspection.");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether this record is deleted (soft delete).");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was last modified.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified this record.");
+            entity.Property(e => e.notes).HasComment("Additional notes or comments regarding the inspection.");
+            entity.Property(e => e.offs_location).HasComment("Location where any offenses occurred during the inspection.");
+            entity.Property(e => e.owner_icno)
+                .HasMaxLength(30)
+                .HasComment("Identification number of the owner associated with the inspection.");
+            entity.Property(e => e.tax_accno).HasColumnType("character varying");
+            entity.Property(e => e.trnstatus_id)
+                .HasDefaultValue(1)
+                .HasComment("Status of the inspection record, linked to a reference status table.");
+        });
+
+        modelBuilder.Entity<trn_inspect_img>(entity =>
+        {
+            entity.HasKey(e => e.inspect_img_id).HasName("trn_inspect_img_pkey");
+
+            entity.ToTable("trn_inspect_imgs", "tenant", tb => tb.HasComment("Stores images associated with inspection notes records"));
+
+            entity.Property(e => e.inspect_img_id).HasComment("Unique identifier for the compound image record");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created this record.");
+            entity.Property(e => e.desc).HasComment("Optional description of the image");
+            entity.Property(e => e.filename)
+                .HasMaxLength(255)
+                .HasComment("Original filename of the image");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether this record is deleted (soft delete).");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was last modified.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified this record.");
+            entity.Property(e => e.pathurl)
+                .HasMaxLength(255)
+                .HasComment("URL or file path where the image is stored");
+            entity.Property(e => e.trn_inspect_id).HasComment("Foreign key to the trn_compounds table");
+        });
+
         modelBuilder.Entity<trn_inspection>(entity =>
         {
             entity.HasKey(e => e.trn_inspect_id).HasName("trn_inspect_pkey");
@@ -1761,99 +1938,90 @@ public partial class PBTProTenantDbContext : DbContext
 
         modelBuilder.Entity<trn_notice>(entity =>
         {
-            entity.HasKey(e => e.trn_notice_id).HasName("trn_notice_pkey");
+            entity.HasKey(e => e.trn_notice_id).HasName("trn_notices_pkey");
 
             entity.ToTable("trn_notices", "tenant", tb => tb.HasComment("Table to store information about notices issued, including details about the owner, business, and associated documentation."));
 
-            entity.Property(e => e.trn_notice_id)
-                .HasDefaultValueSql("nextval('tenant.trn_notice_trn_notice_id_seq'::regclass)")
-                .HasComment("Unique identifier for each notice.");
-            entity.Property(e => e.act_type_id).HasComment("Identifier for the act related to the notice.");
-            entity.Property(e => e.business_addr)
-                .HasMaxLength(100)
-                .HasComment("Address of the business associated with the notice.");
-            entity.Property(e => e.business_name)
-                .HasMaxLength(40)
-                .HasComment("Name of the business associated with the notice.");
-            entity.Property(e => e.cat_code)
-                .HasMaxLength(100)
-                .HasComment("Code representing the category of notice.");
+            entity.Property(e => e.trn_notice_id).HasComment("Unique identifier for each notice.");
+            entity.Property(e => e.act_code).HasColumnType("character varying");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasComment("Timestamp when this record was created.")
                 .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.creator_id).HasComment("ID of the user who created this record.");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created this record.");
             entity.Property(e => e.deliver_id).HasComment("Identifier for delivery method used for this notice.");
+            entity.Property(e => e.doc_name).HasColumnType("character varying");
+            entity.Property(e => e.doc_pathurl).HasColumnType("character varying");
             entity.Property(e => e.duration_id)
                 .HasDefaultValue(1)
                 .HasComment("Duration PREMISE OWNER for how long this notice is valid or relevant.");
-            entity.Property(e => e.idno)
-                .HasMaxLength(50)
-                .HasComment("Identification number OFFICER related to this specific notice entry.");
             entity.Property(e => e.instruction).HasComment("Instructions regarding actions to be taken related to this notice.");
             entity.Property(e => e.is_deleted).HasDefaultValue(false);
-            entity.Property(e => e.license_accno)
-                .HasMaxLength(40)
-                .HasComment("License account number associated with the owner.");
             entity.Property(e => e.modified_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasComment("Timestamp when this record was last modified.")
                 .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.modifier_id).HasComment("ID of the user who last modified this record.");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified this record.");
+            entity.Property(e => e.notice_latitude)
+                .HasPrecision(9, 6)
+                .HasComment("Latitude of the location where the notice was issued.");
+            entity.Property(e => e.notice_longitude)
+                .HasPrecision(9, 6)
+                .HasComment("Longitude of the location where the notice was issued.");
             entity.Property(e => e.notice_ref_no)
                 .HasMaxLength(50)
                 .HasComment("Reference number for the notice.");
-            entity.Property(e => e.notice_type_id)
-                .HasDefaultValue(1)
-                .HasComment("Identifier for the type of notice issued.");
-            entity.Property(e => e.ntc_latitude)
-                .HasPrecision(9, 6)
-                .HasComment("Latitude of the location where the notice was issued.");
-            entity.Property(e => e.ntc_longitude)
-                .HasPrecision(9, 6)
-                .HasComment("Longitude of the location where the notice was issued.");
+            entity.Property(e => e.offense_code).HasColumnType("character varying");
             entity.Property(e => e.offs_location).HasComment("Location where the offense occurred.");
             entity.Property(e => e.owner_icno)
                 .HasMaxLength(30)
                 .HasComment("Identification number of the owner.");
-            entity.Property(e => e.owner_telno)
-                .HasMaxLength(15)
-                .HasComment("Telephone number of the owner.");
-            entity.Property(e => e.proof_img1)
-                .HasMaxLength(255)
-                .HasComment("Path to proof image 1 associated with this notice.");
-            entity.Property(e => e.proof_img2)
-                .HasMaxLength(255)
-                .HasComment("Path to proof image 2 associated with this notice.");
-            entity.Property(e => e.proof_img3)
-                .HasMaxLength(255)
-                .HasComment("Path to proof image 3 associated with this notice.");
-            entity.Property(e => e.proof_img4)
-                .HasMaxLength(255)
-                .HasComment("Path to proof image 4 associated with this notice.");
-            entity.Property(e => e.proof_img5)
-                .HasMaxLength(255)
-                .HasComment("Path to proof image 5 associated with this notice.");
-            entity.Property(e => e.section_act_id).HasComment("Identifier for the specific section of the act related to the notice.");
+            entity.Property(e => e.section_code).HasColumnType("character varying");
             entity.Property(e => e.tax_accno)
                 .HasMaxLength(40)
                 .HasComment("Tax account number associated with the owner.");
             entity.Property(e => e.trnstatus_id)
                 .HasDefaultValue(1)
                 .HasComment("Status of the notice, linked to a reference status table.");
-            entity.Property(e => e.type_code)
-                .HasMaxLength(100)
-                .HasComment("Code representing the type of notice.");
+            entity.Property(e => e.uuk_code).HasColumnType("character varying");
+        });
 
-            entity.HasOne(d => d.duration).WithMany(p => p.trn_notices)
-                .HasForeignKey(d => d.duration_id)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("trn_notice_notice_duration_id_fkey");
+        modelBuilder.Entity<trn_notice_img>(entity =>
+        {
+            entity.HasKey(e => e.notice_img_id).HasName("trn_notice_imgs_pkey");
 
-            entity.HasOne(d => d.notice_type).WithMany(p => p.trn_notices)
-                .HasForeignKey(d => d.notice_type_id)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("trn_notice_notice_type_id_fkey");
+            entity.ToTable("trn_notice_imgs", "tenant", tb => tb.HasComment("Stores images associated with notices records"));
+
+            entity.Property(e => e.notice_img_id).HasComment("Unique identifier for the compound image record");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was created.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who created this record.");
+            entity.Property(e => e.desc).HasComment("Optional description of the image");
+            entity.Property(e => e.filename)
+                .HasMaxLength(255)
+                .HasComment("Original filename of the image");
+            entity.Property(e => e.is_deleted)
+                .HasDefaultValue(false)
+                .HasComment("Flag indicating whether this record is deleted (soft delete).");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Timestamp when this record was last modified.")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id)
+                .HasDefaultValue(0)
+                .HasComment("ID of the user who last modified this record.");
+            entity.Property(e => e.pathurl)
+                .HasMaxLength(255)
+                .HasComment("URL or file path where the image is stored");
+            entity.Property(e => e.trn_notice_id).HasComment("Foreign key to the trn_notices table");
         });
 
         modelBuilder.Entity<trn_patrol_officer>(entity =>
