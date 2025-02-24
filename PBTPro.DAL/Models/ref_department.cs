@@ -57,10 +57,10 @@ public partial class ref_department
 
     public virtual ICollection<ref_unit> ref_units { get; set; } = new List<ref_unit>();
 
-    public virtual ICollection<mst_patrol_schedule> mst_patrol_schedules { get; set; } = new List<mst_patrol_schedule>();
+    //ublic virtual ICollection<mst_patrol_schedule> mst_patrol_schedules { get; set; } = new List<mst_patrol_schedule>();
 
     //public virtual ICollection<ref_divisionss> ref_divisionsses { get; set; } = new List<ref_divisionss>();
 
-    public virtual ICollection<trn_inspection> trn_inspections { get; set; } = new List<trn_inspection>();
+    //public virtual ICollection<trn_inspection> trn_inspections { get; set; } = new List<trn_inspection>();
 
 }
