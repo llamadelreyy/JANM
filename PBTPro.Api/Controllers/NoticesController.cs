@@ -44,7 +44,7 @@ namespace PBTPro.Api.Controllers
             _tenantDBContext = tntdbContext;
             _logger = logger;
         }
-
+        /*
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<trn_notice>>> ListAll()
@@ -291,6 +291,6 @@ namespace PBTPro.Api.Controllers
         {
             return (_dbContext.ref_genders?.Any(e => e.gen_id == id)).GetValueOrDefault();
         }
-
+        */
     }
 }

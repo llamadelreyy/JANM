@@ -62,9 +62,9 @@ namespace PBTPro.Api.Controllers
                     .Select(lesen => new
                     {
                         lesen.license_accno,
-                        NoticeCount = _tenantDBContext.trn_notices.Count(notis => notis.license_accno == lesen.license_accno),
-                        CompoundCount = _tenantDBContext.trn_compounds.Count(kompaun => kompaun.license_accno == lesen.license_accno),
-                        ConfiscationCount = _tenantDBContext.trn_confiscations.Count(sita => sita.license_accno == lesen.license_accno)
+                        NoticeCount = _tenantDBContext.trn_notices.Count(notis => notis.license_id == lesen.licensee_id),
+                        CompoundCount = _tenantDBContext.trn_cmpds.Count(kompaun => kompaun.license_id == lesen.licensee_id),
+                        ConfiscationCount = _tenantDBContext.trn_cfscs.Count(sita => sita.license_id == lesen.licensee_id)
                     })
                     .ToListAsync();
 
@@ -81,8 +81,8 @@ namespace PBTPro.Api.Controllers
                 //var totalHslLesenByr
                 //var totalHslLesenBlmByr
 
-                var totalKompaunDibyr = await _tenantDBContext.trn_compounds.Where(c => c.trnstatus_id == 5).SumAsync(c => c.amt_cmpd);
-                var totalKompaunBlmByr = await _tenantDBContext.trn_compounds.Where(xc => xc.trnstatus_id == 4).SumAsync(c => c.amt_cmpd);
+                var totalKompaunDibyr = await _tenantDBContext.trn_cmpds.Where(c => c.trnstatus_id == 5).SumAsync(c => c.amt_cmpd);
+                var totalKompaunBlmByr = await _tenantDBContext.trn_cmpds.Where(xc => xc.trnstatus_id == 4).SumAsync(c => c.amt_cmpd);
 
                 var result = new dashboard_view
                 {

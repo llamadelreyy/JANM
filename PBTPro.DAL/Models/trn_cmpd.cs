@@ -4,14 +4,14 @@ using System.Collections.Generic;
 namespace PBTPro.DAL.Models;
 
 /// <summary>
-/// Table to store information about notices issued, including details about the owner, business, and associated documentation.
+/// Table to store information about compounds issued, including details about the owner, business, and associated documentation.
 /// </summary>
-public partial class trn_notice
+public partial class trn_cmpd
 {
     /// <summary>
-    /// Unique identifier for each notice.
+    /// Unique identifier for each compound record.
     /// </summary>
-    public int trn_notice_id { get; set; }
+    public int trn_cmpd_id { get; set; }
 
     /// <summary>
     /// Identification number of the owner.
@@ -19,17 +19,12 @@ public partial class trn_notice
     public string? owner_icno { get; set; }
 
     /// <summary>
-    /// Tax account number associated with the owner.
+    /// Reference number for the compound.
     /// </summary>
-    public string? tax_accno { get; set; }
+    public string? cmpd_ref_no { get; set; }
 
     /// <summary>
-    /// Reference number for the notice.
-    /// </summary>
-    public string? notice_ref_no { get; set; }
-
-    /// <summary>
-    /// Instructions regarding actions to be taken related to this notice.
+    /// Instructions regarding actions to be taken related to this compound.
     /// </summary>
     public string? instruction { get; set; }
 
@@ -39,29 +34,29 @@ public partial class trn_notice
     public string? offs_location { get; set; }
 
     /// <summary>
-    /// Identifier for delivery method used for this notice.
+    /// Amount associated with the compound, stored as a numeric value.
+    /// </summary>
+    public decimal? amt_cmpd { get; set; }
+
+    /// <summary>
+    /// Identifier for delivery method used for this compound notice.
     /// </summary>
     public int? deliver_id { get; set; }
 
     /// <summary>
-    /// Longitude of the location where the notice was issued.
+    /// Longitude of the location where the compound was issued.
     /// </summary>
-    public decimal? notice_longitude { get; set; }
+    public decimal? cmpd_longitude { get; set; }
 
     /// <summary>
-    /// Latitude of the location where the notice was issued.
+    /// Latitude of the location where the compound was issued.
     /// </summary>
-    public decimal? notice_latitude { get; set; }
+    public decimal? cmpd_latitude { get; set; }
 
     /// <summary>
-    /// Status of the notice, linked to a reference status table.
+    /// Status of the compound, linked to a reference status table.
     /// </summary>
     public int? trnstatus_id { get; set; }
-
-    /// <summary>
-    /// Duration PREMISE OWNER for how long this notice is valid or relevant.
-    /// </summary>
-    public int? duration_id { get; set; }
 
     /// <summary>
     /// ID of the user who created this record.
@@ -83,21 +78,26 @@ public partial class trn_notice
     /// </summary>
     public DateTime? modified_at { get; set; }
 
+    /// <summary>
+    /// Flag indicating whether this record is deleted (soft delete).
+    /// </summary>
     public bool? is_deleted { get; set; }
 
     public int? license_id { get; set; }
 
-    public int? schedule_id { get; set; }
+    public string? offense_code { get; set; }
 
-    public bool? is_tax { get; set; }
+    public string? uuk_code { get; set; }
 
     public string? act_code { get; set; }
 
     public string? section_code { get; set; }
 
-    public string? uuk_code { get; set; }
+    public int? schedule_id { get; set; }
 
-    public string? offense_code { get; set; }
+    public string? tax_accno { get; set; }
+
+    public bool? is_tax { get; set; }
 
     public string? doc_name { get; set; }
 
