@@ -46,11 +46,11 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<trn_confiscation>>> ListAll()
+        public async Task<ActionResult<IEnumerable<trn_cfsc>>> ListAll()
         {
             try
             {
-                var data = await _tenantDBContext.trn_confiscations.AsNoTracking().ToListAsync();
+                var data = await _tenantDBContext.trn_cfscs.AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -66,7 +66,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfield = await _tenantDBContext.trn_confiscations.FirstOrDefaultAsync(x => x.trn_cfsc_id == Id);
+                var parFormfield = await _tenantDBContext.trn_cfscs.FirstOrDefaultAsync(x => x.trn_cfsc_id == Id);
 
                 if (parFormfield == null)
                 {
@@ -83,7 +83,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] trn_confiscation InputModel)
+        public async Task<IActionResult> Add([FromBody] trn_cfsc InputModel)
         {
             try
             {
@@ -93,10 +93,10 @@ namespace PBTPro.Api.Controllers
                 #region store data
                 trn_confiscation trn_confiscation = new trn_confiscation
                 {
-                    owner_name = InputModel.owner_name,
+                    //owner_name = InputModel.owner_name,
                     owner_icno = InputModel.owner_icno,
                     //owner_telno = InputModel.owner_telno,
-                    business_addr = InputModel.business_addr,
+                    //business_addr = InputModel.business_addr,
 
                     cfsc_ref_no = InputModel.cfsc_ref_no,
 
@@ -137,7 +137,7 @@ namespace PBTPro.Api.Controllers
 
         [AllowAnonymous]
         [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] trn_confiscation InputModel)
+        public async Task<IActionResult> Update(int Id, [FromBody] trn_cfsc InputModel)
         {
             try
             {
@@ -145,23 +145,23 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _tenantDBContext.trn_confiscations.FirstOrDefaultAsync(x => x.trn_cfsc_id == Id);
+                var formField = await _tenantDBContext.trn_cfscs.FirstOrDefaultAsync(x => x.trn_cfsc_id == Id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
 
-                if (string.IsNullOrWhiteSpace(InputModel.business_name))
-                {
-                    return Error("", SystemMesg(_feature, "BUSINESS_NAME", MessageTypeEnum.Error, string.Format("Ruangan nama perniagaan diperlukan")));
-                }
+                //if (string.IsNullOrWhiteSpace(InputModel.business_name))
+                //{
+                //    return Error("", SystemMesg(_feature, "BUSINESS_NAME", MessageTypeEnum.Error, string.Format("Ruangan nama perniagaan diperlukan")));
+                //}
 
                 #endregion
 
-                formField.owner_name = InputModel.owner_name;
+                //formField.owner_name = InputModel.owner_name;
                 formField.owner_icno = InputModel.owner_icno;
                 //formField.owner_telno = InputModel.owner_telno;
-                formField.business_addr = InputModel.business_addr;
+                //formField.business_addr = InputModel.business_addr;
 
                 formField.cfsc_ref_no = InputModel.cfsc_ref_no;
 
@@ -169,7 +169,7 @@ namespace PBTPro.Api.Controllers
                 formField.modifier_id = runUserID;
                 formField.modified_at = DateTime.Now;
 
-                _tenantDBContext.trn_confiscations.Update(formField);
+                _tenantDBContext.trn_cfscs.Update(formField);
                 await _tenantDBContext.SaveChangesAsync();
 
                 return Ok(formField, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
@@ -190,14 +190,14 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _tenantDBContext.trn_confiscations.FirstOrDefaultAsync(x => x.trn_cfsc_id == Id);
+                var formField = await _tenantDBContext.trn_cfscs.FirstOrDefaultAsync(x => x.trn_cfsc_id == Id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
 
-                _tenantDBContext.trn_confiscations.Remove(formField);
+                _tenantDBContext.trn_cfscs.Remove(formField);
                 await _tenantDBContext.SaveChangesAsync();
 
                 return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
@@ -217,17 +217,17 @@ namespace PBTPro.Api.Controllers
             {
                 var resultData = new List<dynamic>();
 
-                var totalCount = await _tenantDBContext.trn_confiscations
+                var totalCount = await _tenantDBContext.trn_cfscs
                     .Where(n => n.creator_id == UserId)
                     .CountAsync();
 
-                var confiscation_lists = await (from n in _tenantDBContext.trn_confiscations
+                var confiscation_lists = await (from n in _tenantDBContext.trn_cfscs
                                                 where n.creator_id == UserId
                                             select new
                                             {
                                                 n.cfsc_ref_no,
-                                                n.section_act_id,
-                                                n.act_type_id,
+                                                n.section_code,
+                                                n.act_code,
                                                 n.created_at,
                                                 n.modified_at,
                                             }).ToListAsync();
@@ -256,7 +256,7 @@ namespace PBTPro.Api.Controllers
         // can be deleted later.. this is created so that it can be called from other places..
         private bool UnitExists(int id)
         {
-            return (_dbContext.ref_genders?.Any(e => e.gen_id == id)).GetValueOrDefault();
+            return (_tenantDBContext.trn_cfscs?.Any(e => e.trn_cfsc_id == id)).GetValueOrDefault();
         }
 
     }

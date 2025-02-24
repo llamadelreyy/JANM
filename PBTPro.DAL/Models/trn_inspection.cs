@@ -128,7 +128,8 @@ public partial class trn_inspection
     /// </summary>
     public bool? is_deleted { get; set; }
 
-    public virtual ref_departmentss? dept { get; set; }
+    //public virtual ref_departmentss? dept { get; set; }
+    public virtual ref_department? dept { get; set; }
 
     public virtual ref_note_type? note_type { get; set; }
 }

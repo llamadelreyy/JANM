@@ -51,7 +51,7 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<ref_division> ref_divisions { get; set; }
 
-    public virtual DbSet<ref_divisionss> ref_divisionsses { get; set; }
+    //public virtual DbSet<ref_divisionss> ref_divisionsses { get; set; }
 
     public virtual DbSet<ref_doc> ref_docs { get; set; }
 
