@@ -527,9 +527,9 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.town_code).HasMaxLength(10);
 
-            entity.HasOne(d => d.dept).WithMany(p => p.mst_patrol_schedules)
-                .HasForeignKey(d => d.dept_id)
-                .HasConstraintName("dept_id_refers_to_dept_id");
+            //entity.HasOne(d => d.dept).WithMany(p => p.mst_patrol_schedules)
+            //    .HasForeignKey(d => d.dept_id)
+            //    .HasConstraintName("dept_id_refers_to_dept_id");
 
             entity.HasOne(d => d.status).WithMany(p => p.mst_patrol_schedules)
                 .HasForeignKey(d => d.status_id)
@@ -1925,10 +1925,10 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasDefaultValue(1)
                 .HasComment("Status of the inspection record, linked to a reference status table.");
 
-            entity.HasOne(d => d.dept).WithMany(p => p.trn_inspections)
-                .HasForeignKey(d => d.dept_id)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("trn_inspect_dept_id_fkey");
+            //entity.HasOne(d => d.dept).WithMany(p => p.trn_inspections)
+            //    .HasForeignKey(d => d.dept_id)
+            //    .OnDelete(DeleteBehavior.Restrict)
+            //    .HasConstraintName("trn_inspect_dept_id_fkey");
 
             entity.HasOne(d => d.note_type).WithMany(p => p.trn_inspections)
                 .HasForeignKey(d => d.note_type_id)
