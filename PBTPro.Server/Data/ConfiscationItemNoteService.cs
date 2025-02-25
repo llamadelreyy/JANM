@@ -48,7 +48,7 @@ namespace PBTPro.Data
         private readonly ILogger<RoleService> _logger;
         private readonly ApiConnector _apiConnector;
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
-        private string _baseReqURL = "/api/Roles";
+        private string _baseReqURL = "/api/ConfiscationScenarios";
         private string LoggerName = "";
         private int LoggerID = 0;
         private int RoleID = 0;
@@ -66,10 +66,10 @@ namespace PBTPro.Data
         }
 
         [HttpGet]
-        public async Task<List<ApplicationRole>> ListAll()
+        public async Task<List<ref_cfsc_scenario>> ListAll()
         {
-            var result = new List<ApplicationRole>();
-            string requestUrl = $"{_baseReqURL}/GetList";
+            var result = new List<ref_cfsc_scenario>();
+            string requestUrl = $"{_baseReqURL}/ListAll";
             var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
             try
@@ -79,7 +79,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<ApplicationRole>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_cfsc_scenario>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai peranan.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
@@ -91,18 +91,18 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<ApplicationRole>();
+                result = new List<ref_cfsc_scenario>();
             }
             return result;
         }
 
         [HttpGet]
-        public async Task<List<ApplicationRole>> Refresh()
+        public async Task<List<ref_cfsc_scenario>> Refresh()
         {
-            var result = new List<ApplicationRole>();
+            var result = new List<ref_cfsc_scenario>();
             try
             {
-                string requestUrl = $"{_baseReqURL}/GetList";
+                string requestUrl = $"{_baseReqURL}/ListAll";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -110,9 +110,9 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<ApplicationRole>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<ref_cfsc_scenario>>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai peranan.", LoggerID, LoggerName, GetType().Name, RoleID);
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai nota sitaan.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
                 else
                 {
@@ -123,13 +123,13 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<ApplicationRole>();
+                result = new List<ref_cfsc_scenario>();
             }
             return result;
         }
 
         [HttpPost]
-        public async Task<ReturnViewModel> Add(ApplicationRole inputModel)
+        public async Task<ReturnViewModel> Add(ref_cfsc_scenario inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -171,7 +171,7 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ReturnViewModel> Update(int id, ApplicationRole inputModel)
+        public async Task<ReturnViewModel> Update(int id, ref_cfsc_scenario inputModel)
         {
             var result = new ReturnViewModel();
             try
@@ -179,7 +179,7 @@ namespace PBTPro.Data
                 var reqData = JsonConvert.SerializeObject(inputModel);
                 var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
 
-                string requestUrl = $"{_baseReqURL}/Update/{inputModel.Id}";
+                string requestUrl = $"{_baseReqURL}/Update/{inputModel.scen_id}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
 
                 result = response;
@@ -213,9 +213,9 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<ApplicationRole> ViewDetail(int id)
+        public async Task<ref_cfsc_scenario> ViewDetail(int id)
         {
-            var result = new ApplicationRole();
+            var result = new ref_cfsc_scenario();
             try
             {
                 string requestquery = $"/{id}";
@@ -227,7 +227,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<ApplicationRole>(dataString);
+                        result = JsonConvert.DeserializeObject<ref_cfsc_scenario>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat terperinci.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
@@ -238,7 +238,7 @@ namespace PBTPro.Data
             }
             catch (Exception ex)
             {
-                result = new ApplicationRole();
+                result = new ref_cfsc_scenario();
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
             }
             return result;
