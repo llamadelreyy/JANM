@@ -12,7 +12,7 @@
 @using PBTPro.DAL.Models.CommonServices
 @using DevExpress.Blazor
 
-@inject RoleService _RoleService
+@inject ConfiscationItemTypeService _ConfiscationItemTypeService
 @inject NavigationManager NavigationManager
 @inject IToastNotificationService ToastService
 
@@ -40,7 +40,7 @@
 
         <DxGrid @ref="Grid"
                 Data="dataSource"
-                KeyFieldName="Id"
+                KeyFieldName="inv_id"
                 ShowGroupPanel="true"
                 ShowFilterRow="false"
                 TextWrapEnabled="true"
@@ -72,13 +72,17 @@
                     </HeaderTemplate>
                     <CellDisplayTemplate>
                         <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        <a @onclick="@(() => Delete((ApplicationRole)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                        <a @onclick="@(() => Delete((ref_cfsc_inventory)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
-                <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" FieldName="Name" />
-                <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="68%" FieldName="RoleDesc" TextAlignment="GridTextAlignment.Left" />
+                <DxGridDataColumn Caption="Barang" MinWidth="120" Width="20%" FieldName="inv_name" />
+                <DxGridDataColumn Caption="Jenis Sitaan" MinWidth="350" Width="68%" FieldName="item_type" TextAlignment="GridTextAlignment.Left" >
+                    <CellDisplayTemplate>
+                        <div>@GetStatusType(((ref_cfsc_inventory)context.DataItem).item_type)</div>
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
 
-                <DxGridDataColumn FieldName="CreatedAt"
+                <DxGridDataColumn FieldName="created_at"
                                   DisplayFormat="dd/MM/yyyy"
                                   Caption="Tarikh Data"
                                   MinWidth="100"
@@ -94,21 +98,23 @@
 
             <EditFormTemplate Context="EditFormContext">
                 @{
-                    var dtEdit = (ApplicationRole)EditFormContext.EditModel;
+                    var dtEdit = (ref_cfsc_inventory)EditFormContext.EditModel;
+                    // selectedTypeId = dtEdit.item_type;
                 }
                 <DxFormLayout CssClass="w-100">
                     <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
                         <table class="layout_edit">
                             <tr>
-                                <td nowrap>Peranan</td>
+                                <td nowrap>Nama Barang</td>
                                 <td nowrap>&nbsp;&nbsp;</td>
                                 <td width="50%">
-                                    <DxTextBox @bind-Text="@dtEdit.Name"
+                                    <DxTextBox @bind-Text="@dtEdit.inv_name"
                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                                BindValueMode="BindValueMode.OnInput"
-                                               NullText="Peranan ..."
+                                               NullText="Nama blaarang ..."
                                                Maxlength="30"
                                                ShowValidationIcon="true"
+                                               style="width:350px;"
                                                CssClass="cw-320" />
                                 </td>
                                 <td width="100px">&nbsp;</td>
@@ -117,16 +123,17 @@
                                 <td width="50%"></td>
                             </tr>
                             <tr>
-                                <td nowrap>Keterangan</td>
+                                <td nowrap>Jenis Sitaan</td>
                                 <td nowrap>&nbsp;&nbsp;</td>
                                 <td width="50%" colspan="6">
-                                    <DxTextBox @bind-Text="@dtEdit.RoleDesc"
-                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                               BindValueMode="BindValueMode.OnInput"
-                                               NullText="Keterangan peranan ..."
-                                               Maxlength="120"
-                                               ShowValidationIcon="true"
-                                               CssClass="cw-320" />
+                                    <DxComboBox Data="@CfscType"
+                                                ShowValidationIcon="true"
+                                                NullText="Pilih Jenis ..."
+                                                TextFieldName="Value"
+                                                ValueFieldName="Key"
+                                                @bind-Value="@dtEdit.item_type"
+                                                style="width:250px;">
+                                    </DxComboBox>
                                 </td>
                             </tr>
                         </table>
@@ -144,7 +151,7 @@
 
             @*This is to count the summary*@
             <TotalSummary>
-                <DxGridSummaryItem FooterColumnName="Name"
+                <DxGridSummaryItem FooterColumnName="inv_name"
                                    Name="Custom"
                                    SummaryType=GridSummaryItemType.Count />
             </TotalSummary>
@@ -168,7 +175,7 @@
 
 @code {
     bool PanelVisible { get; set; }
-    IEnumerable<ApplicationRole> dataSource;
+    IEnumerable<ref_cfsc_inventory> dataSource;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -176,14 +183,21 @@
 
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
-    ApplicationRole dtData { get; set; }
+    ref_cfsc_inventory dtData { get; set; }
+
+    // private int? selectedTypeId;
+    private List<KeyValuePair<int, string>> CfscType = new List<KeyValuePair<int, string>>
+    {
+        new KeyValuePair<int, string>(1, "Mudah Disita"),
+        new KeyValuePair<int, string>(2, "Tidak Mudah Disita")
+    };
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
         PanelVisible = true;
-        dataSource = await _RoleService.ListAll();
+        dataSource = await _ConfiscationItemTypeService.ListAll();
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
     }
@@ -199,39 +213,52 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (ApplicationRole)e.EditModel;
-        if (_data.Name == null || _data.Name.Trim() == "")
+        var _data = (ref_cfsc_inventory)e.EditModel;
+        if (_data.inv_name == null || _data.inv_name.Trim() == "")
         {
-            e.AddError(nameof(_data.Name), "Medan Peranan perlu diisi.");
+            e.AddError(nameof(_data.inv_name), "Medan Peranan perlu diisi.");
         }
 
 
         if (Grid.IsEditingNewRow())
         {
-            var _dtAdd = dataSource.Where(x => x.Name == _data.Name).FirstOrDefault();
+            var _dtAdd = dataSource.Where(x => x.inv_name == _data.inv_name).FirstOrDefault();
 
             if (_dtAdd != null)
-                e.AddError(nameof(_data.Name), "Nama peranan telah wujud.");
+                e.AddError(nameof(_data.inv_name), "Nama barang telah wujud.");
         }
         else
         {
-            var _dtEdit = dataSource.Where(x => x.Id != _data.Id && x.Name == _data.Name).FirstOrDefault();
+            var _dtEdit = dataSource.Where(x => x.inv_id != _data.inv_id && x.inv_name == _data.inv_name).FirstOrDefault();
 
             if (_dtEdit != null)
-                e.AddError(nameof(_data.Name), "Nama peranan telah wujud.");
+                e.AddError(nameof(_data.inv_name), "Nama barang telah wujud.");
         }
+
+        if ((_data.item_type == 0) || (_data.item_type == null))
+        {
+            e.AddError(nameof(_data.item_type), "Sila pilih jenis barangan sitaan.");
+        }
+    }
+
+    string GetStatusType(int? intType)
+    {
+        var status = CfscType.FirstOrDefault(x => x.Key == intType);
+        return status.Equals(default(KeyValuePair<int, string>)) ? "-" : status.Value;
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();
-        var editModel = e.EditModel as ApplicationRole;
+        var editModel = e.EditModel as ref_cfsc_inventory;
+        // editModel.item_type = selectedTypeId;
+
         try
         {
             if (e.IsNew)
-                response = await _RoleService.Add(editModel);
+                response = await _ConfiscationItemTypeService.Add(editModel);
             else
-                response = await _RoleService.Update(editModel.Id, editModel);
+                response = await _ConfiscationItemTypeService.Update(editModel.inv_id, editModel);
 
             if (response.ReturnCode == 200)
             {
@@ -253,7 +280,7 @@
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _RoleService.Refresh();
+        dataSource = await _ConfiscationItemTypeService.Refresh();
     }
 
     public void Dispose()
@@ -261,9 +288,9 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(ApplicationRole item)
+    async Task Delete(ref_cfsc_inventory item)
     {
-        strSelected = item.Name;
+        strSelected = item.inv_name;
         dtData = item;
         ConfirmationShown = true;
     }
@@ -273,7 +300,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _RoleService.Delete(dtData.Id);
+            response = await _ConfiscationItemTypeService.Delete(dtData.inv_id);
 
             if (response.ReturnCode == 200)
             {
