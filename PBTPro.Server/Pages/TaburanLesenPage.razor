@@ -145,48 +145,32 @@
             <th colspan="3">Legend</th>
         </tr>
         <tr>
-            @* <td>@GetIcon("Red")</td> *@
-            <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Red" /></svg>
-            </td>
-            <td>Bil. Lesen Tamat Tempoh</td>
-            <td class="text-right">520</td>
-        </tr>
-        <tr>
-            @* <td>@GetIcon("Red")</td> *@
             <td>
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Green" /></svg>
             </td>
             <td>Bil. Lesen Aktif</td>
-            <td class="text-right">15,352</td>
+                <td class="text-right">@mintAktif</td>
         </tr>
         <tr>
             <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Blue" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Red" /></svg>
             </td>
-            <td>Bil. Tidak Berlesen</td>
-            <td class="text-right">0</td>
-        </tr>
-        <tr>
-            <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Orange" /></svg>
-            </td>
-            <td>Bil. Lesen Batal</td>
-            <td class="text-right">0</td>
+            <td>Bil. Lesen Tamat Tempoh</td>
+                <td class="text-right">@mintTamatTempoh</td>
         </tr>
         <tr>
             <td>
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Yellow" /></svg>
             </td>
-            <td>Bil. Lesen Gantung</td>
-            <td class="text-right">0</td>
+                <td>Bil. Lesen Gantung</td>
+                <td class="text-right">@mintGantung</td>
         </tr>
         <tr>
             <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="#ccc" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Grey" /></svg>
             </td>
             <td>Bil. Lot Kosong</td>
-            <td class="text-right">0</td>
+            <td class="text-right">@mintLotKosong</td>
         </tr>
         <tr>
             <td class="noMarker" colspan="2">Bil. Notis</td>
