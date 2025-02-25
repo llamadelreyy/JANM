@@ -12,8 +12,9 @@
 @using PBTPro.DAL.Models.CommonServices
 @using DevExpress.Blazor
 
-@inject RoleService _RoleService
+@inject ConfiscationItemNoteService _ConfiscationItemNoteService
 @inject NavigationManager NavigationManager
+@inject PBTAuthPermissionService PermissionService
 @inject IToastNotificationService ToastService
 
 <style>
@@ -23,135 +24,152 @@
     }
 </style>
 
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+                    IsContentBlocked="true"
+                    ApplyBackgroundShading="true"
+                    IndicatorAreaVisible="false"
+                    Text="Capaian Data...">
 
-    <div class="d-lg-flex border-bottom">
-        <div class="col-md-12 py-1 dx-helptitle pageTitle">
-            <img class="imgTitle" src="\images\icons-small\receipt-text.png" />
-            <div class="textTitle">Nota Barang Sitaan</div>
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="\images\icons-small\receipt-text.png" />
+                <div class="textTitle">Nota Barang Sitaan</div>
+            </div>
         </div>
-    </div>
 
-    <div class="item-container-x">
+        <div class="item-container-x">
 
-        <DxGrid @ref="Grid"
-                Data="dataSource"
-                KeyFieldName="Id"
-                ShowGroupPanel="true"
-                ShowFilterRow="false"
-                TextWrapEnabled="true"
-                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-                EditorRenderMode="GridEditorRenderMode.Integrated"
-                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                ShowSearchBox="true"
-                AllowSelectRowByClick="true"
-                @bind-SearchText="@GridSearchText"
-                PageSize="25"
-                @bind-PageIndex="@GridPageIndex"
-                PagerPosition="GridPagerPosition.Bottom"
-                PagerNavigationMode="PagerNavigationMode.InputBox"
-                EditModelSaving="Grid_EditModelSaving"
-                EditFormButtonsVisible="false"
-                PageSizeSelectorVisible="true"
-                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-                PageSizeSelectorAllRowsItemVisible="true"
-                PagerAutoHideNavButtons="false"
-                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-                HighlightRowOnHover="true"
-                CssClass="mv-1000">
+            <DxGrid @ref="Grid"
+                    Data="dataSource"
+                    KeyFieldName="scen_id"
+                    ShowGroupPanel="true"
+                    ShowFilterRow="false"
+                    TextWrapEnabled="true"
+                    CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                    EditorRenderMode="GridEditorRenderMode.Integrated"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    ShowSearchBox="true"
+                    AllowSelectRowByClick="true"
+                    @bind-SearchText="@GridSearchText"
+                    PageSize="25"
+                    @bind-PageIndex="@GridPageIndex"
+                    PagerPosition="GridPagerPosition.Bottom"
+                    PagerNavigationMode="PagerNavigationMode.InputBox"
+                    EditModelSaving="Grid_EditModelSaving"
+                    EditFormButtonsVisible="false"
+                    PageSizeSelectorVisible="true"
+                    PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PagerAutoHideNavButtons="false"
+                    ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                    GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                    HighlightRowOnHover="true"
+                    CssClass="mv-1000">
 
-            <Columns>
-                <DxGridCommandColumn Width="55px">
-                    <HeaderTemplate>
-                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                    </HeaderTemplate>
-                    <CellDisplayTemplate>
-                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        <a @onclick="@(() => Delete((ApplicationRole)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                    </CellDisplayTemplate>
-                </DxGridCommandColumn>
-                <DxGridDataColumn Caption="Peranan" MinWidth="120" Width="20%" FieldName="Name" />
-                <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="68%" FieldName="RoleDesc" TextAlignment="GridTextAlignment.Left" />
+                <Columns>
+                    <DxGridCommandColumn Width="55px">
+                        <HeaderTemplate>
+                            @if (PermissionService.HasPermission("Add"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                            }
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            @if (PermissionService.HasPermission("Edit"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                            }
 
-                <DxGridDataColumn FieldName="CreatedAt"
-                                  DisplayFormat="dd/MM/yyyy"
-                                  Caption="Tarikh Data"
-                                  MinWidth="100"
-                                  Width="12%"
-                                  TextAlignment="GridTextAlignment.Center"
-                                  SortOrder="GridColumnSortOrder.Ascending"
-                                  SortIndex="0">
-                    <FilterMenuTemplate>
-                        <DateRange FilterContext="context" />
-                    </FilterMenuTemplate>
-                </DxGridDataColumn>
-            </Columns>
+                            @if (PermissionService.HasPermission("Delete"))
+                            {
+                                <a @onclick="@(() => Delete((ref_cfsc_scenario)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                            }
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn Caption="Nota" MinWidth="120" Width="40%" FieldName="scen_name" />
+                    <DxGridDataColumn Caption="Keterangan" MinWidth="250" Width="48%" FieldName="scen_desc" TextAlignment="GridTextAlignment.Left" />
 
-            <EditFormTemplate Context="EditFormContext">
-                @{
-                    var dtEdit = (ApplicationRole)EditFormContext.EditModel;
-                }
-                <DxFormLayout CssClass="w-100">
-                    <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
-                        <table class="layout_edit">
-                            <tr>
-                                <td nowrap>Peranan</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxTextBox @bind-Text="@dtEdit.Name"
-                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                               BindValueMode="BindValueMode.OnInput"
-                                               NullText="Peranan ..."
-                                               Maxlength="30"
-                                               ShowValidationIcon="true"
-                                               CssClass="cw-320" />
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Keterangan</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    <DxTextBox @bind-Text="@dtEdit.RoleDesc"
-                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                               BindValueMode="BindValueMode.OnInput"
-                                               NullText="Keterangan peranan ..."
-                                               Maxlength="120"
-                                               ShowValidationIcon="true"
-                                               CssClass="cw-320" />
-                                </td>
-                            </tr>
-                        </table>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="12">
-                        <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
-                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
-                    </DxFormLayoutItem>
-                </DxFormLayout>
-            </EditFormTemplate>
-            <CustomValidators>
-                <MyCustomValidator DataItemValidating="ValidateGridData" />
-            </CustomValidators>
+                    <DxGridDataColumn FieldName="created_at"
+                                      DisplayFormat="dd/MM/yyyy"
+                                      Caption="Tarikh Data"
+                                      MinWidth="100"
+                                      Width="12%"
+                                      TextAlignment="GridTextAlignment.Center"
+                                      SortOrder="GridColumnSortOrder.Ascending"
+                                      SortIndex="0">
+                        <FilterMenuTemplate>
+                            <DateRange FilterContext="context" />
+                        </FilterMenuTemplate>
+                    </DxGridDataColumn>
+                </Columns>
 
-            @*This is to count the summary*@
-            <TotalSummary>
-                <DxGridSummaryItem FooterColumnName="Name"
-                                   Name="Custom"
-                                   SummaryType=GridSummaryItemType.Count />
-            </TotalSummary>
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var dtEdit = (ref_cfsc_scenario)EditFormContext.EditModel;
+                    }
+                    <DxFormLayout CssClass="w-100">
+                        <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                            <table class="layout_edit">
+                                <tr>
+                                    <td nowrap>Nota</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@dtEdit.scen_name"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Peranan ..."
+                                                   Maxlength="30"
+                                                   ShowValidationIcon="true"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Keterangan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        <DxTextBox @bind-Text="@dtEdit.scen_desc"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Keterangan peranan ..."
+                                                   Maxlength="120"
+                                                   ShowValidationIcon="true"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                            <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditFormTemplate>
+                <CustomValidators>
+                    <MyCustomValidator DataItemValidating="ValidateGridData" />
+                </CustomValidators>
 
-        </DxGrid>
-    </div>
-</DxLoadingPanel>
+                @*This is to count the summary*@
+                <TotalSummary>
+                    <DxGridSummaryItem FooterColumnName="Name"
+                                       Name="Custom"
+                                       SummaryType=GridSummaryItemType.Count />
+                </TotalSummary>
+
+            </DxGrid>
+        </div>
+    </DxLoadingPanel>
+}
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
@@ -168,7 +186,7 @@
 
 @code {
     bool PanelVisible { get; set; }
-    IEnumerable<ApplicationRole> dataSource;
+    IEnumerable<ref_cfsc_scenario> dataSource;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -176,14 +194,14 @@
 
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; }
-    ApplicationRole dtData { get; set; }
+    ref_cfsc_scenario dtData { get; set; }
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
         PanelVisible = true;
-        dataSource = await _RoleService.ListAll();
+        dataSource = await _ConfiscationItemNoteService.ListAll();
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
     }
@@ -199,39 +217,39 @@
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (ApplicationRole)e.EditModel;
-        if (_data.Name == null || _data.Name.Trim() == "")
+        var _data = (ref_cfsc_scenario)e.EditModel;
+        if (_data.scen_name == null || _data.scen_name.Trim() == "")
         {
-            e.AddError(nameof(_data.Name), "Medan Peranan perlu diisi.");
+            e.AddError(nameof(_data.scen_name), "Medan nota perlu diisi.");
         }
 
 
         if (Grid.IsEditingNewRow())
         {
-            var _dtAdd = dataSource.Where(x => x.Name == _data.Name).FirstOrDefault();
+            var _dtAdd = dataSource.Where(x => x.scen_name == _data.scen_name).FirstOrDefault();
 
             if (_dtAdd != null)
-                e.AddError(nameof(_data.Name), "Nama peranan telah wujud.");
+                e.AddError(nameof(_data.scen_name), "Nama nota telah wujud.");
         }
         else
         {
-            var _dtEdit = dataSource.Where(x => x.Id != _data.Id && x.Name == _data.Name).FirstOrDefault();
+            var _dtEdit = dataSource.Where(x => x.scen_id != _data.scen_id && x.scen_name == _data.scen_name).FirstOrDefault();
 
             if (_dtEdit != null)
-                e.AddError(nameof(_data.Name), "Nama peranan telah wujud.");
+                e.AddError(nameof(_data.scen_name), "Nama nota telah wujud.");
         }
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();
-        var editModel = e.EditModel as ApplicationRole;
+        var editModel = e.EditModel as ref_cfsc_scenario;
         try
         {
             if (e.IsNew)
-                response = await _RoleService.Add(editModel);
+                response = await _ConfiscationItemNoteService.Add(editModel);
             else
-                response = await _RoleService.Update(editModel.Id, editModel);
+                response = await _ConfiscationItemNoteService.Update(editModel.scen_id, editModel);
 
             if (response.ReturnCode == 200)
             {
@@ -253,7 +271,7 @@
     async Task UpdateDataAsync()
     {
         //Refresh back the data source
-        dataSource = await _RoleService.Refresh();
+        dataSource = await _ConfiscationItemNoteService.Refresh();
     }
 
     public void Dispose()
@@ -261,9 +279,9 @@
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(ApplicationRole item)
+    async Task Delete(ref_cfsc_scenario item)
     {
-        strSelected = item.Name;
+        strSelected = item.scen_name;
         dtData = item;
         ConfirmationShown = true;
     }
@@ -273,7 +291,7 @@
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _RoleService.Delete(dtData.Id);
+            response = await _ConfiscationItemNoteService.Delete(dtData.scen_id);
 
             if (response.ReturnCode == 200)
             {

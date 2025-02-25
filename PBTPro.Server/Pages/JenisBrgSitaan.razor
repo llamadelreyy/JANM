@@ -14,6 +14,7 @@
 
 @inject ConfiscationItemTypeService _ConfiscationItemTypeService
 @inject NavigationManager NavigationManager
+@inject PBTAuthPermissionService PermissionService
 @inject IToastNotificationService ToastService
 
 <style>
@@ -23,142 +24,159 @@
     }
 </style>
 
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+                    IsContentBlocked="true"
+                    ApplyBackgroundShading="true"
+                    IndicatorAreaVisible="false"
+                    Text="Capaian Data...">
 
-    <div class="d-lg-flex border-bottom">
-        <div class="col-md-12 py-1 dx-helptitle pageTitle">
-            <img class="imgTitle" src="\images\icons-small\paper-bag-label.png" />
-            <div class="textTitle">Jenis Barang Sitaan</div>
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="\images\icons-small\paper-bag-label.png" />
+                <div class="textTitle">Jenis Barang Sitaan</div>
+            </div>
         </div>
-    </div>
 
-    <div class="item-container-x">
+        <div class="item-container-x">
 
-        <DxGrid @ref="Grid"
-                Data="dataSource"
-                KeyFieldName="inv_id"
-                ShowGroupPanel="true"
-                ShowFilterRow="false"
-                TextWrapEnabled="true"
-                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-                EditorRenderMode="GridEditorRenderMode.Integrated"
-                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                ShowSearchBox="true"
-                AllowSelectRowByClick="true"
-                @bind-SearchText="@GridSearchText"
-                PageSize="25"
-                @bind-PageIndex="@GridPageIndex"
-                PagerPosition="GridPagerPosition.Bottom"
-                PagerNavigationMode="PagerNavigationMode.InputBox"
-                EditModelSaving="Grid_EditModelSaving"
-                EditFormButtonsVisible="false"
-                PageSizeSelectorVisible="true"
-                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-                PageSizeSelectorAllRowsItemVisible="true"
-                PagerAutoHideNavButtons="false"
-                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-                HighlightRowOnHover="true"
-                CssClass="mv-1000">
+            <DxGrid @ref="Grid"
+                    Data="dataSource"
+                    KeyFieldName="inv_id"
+                    ShowGroupPanel="true"
+                    ShowFilterRow="false"
+                    TextWrapEnabled="true"
+                    CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                    EditorRenderMode="GridEditorRenderMode.Integrated"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    ShowSearchBox="true"
+                    AllowSelectRowByClick="true"
+                    @bind-SearchText="@GridSearchText"
+                    PageSize="25"
+                    @bind-PageIndex="@GridPageIndex"
+                    PagerPosition="GridPagerPosition.Bottom"
+                    PagerNavigationMode="PagerNavigationMode.InputBox"
+                    EditModelSaving="Grid_EditModelSaving"
+                    EditFormButtonsVisible="false"
+                    PageSizeSelectorVisible="true"
+                    PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PagerAutoHideNavButtons="false"
+                    ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                    GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                    HighlightRowOnHover="true"
+                    CssClass="mv-1000">
 
-            <Columns>
-                <DxGridCommandColumn Width="55px">
-                    <HeaderTemplate>
-                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
-                    </HeaderTemplate>
-                    <CellDisplayTemplate>
-                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        <a @onclick="@(() => Delete((ref_cfsc_inventory)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                    </CellDisplayTemplate>
-                </DxGridCommandColumn>
-                <DxGridDataColumn Caption="Barang" MinWidth="120" Width="20%" FieldName="inv_name" />
-                <DxGridDataColumn Caption="Jenis Sitaan" MinWidth="350" Width="68%" FieldName="item_type" TextAlignment="GridTextAlignment.Left" >
-                    <CellDisplayTemplate>
-                        <div>@GetStatusType(((ref_cfsc_inventory)context.DataItem).item_type)</div>
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
+                <Columns>
+                    <DxGridCommandColumn Width="55px">
+                        <HeaderTemplate>
+                            @if (PermissionService.HasPermission("Add"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                            }
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            @if (PermissionService.HasPermission("Edit"))
+                            {
+                                <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                            }
 
-                <DxGridDataColumn FieldName="created_at"
-                                  DisplayFormat="dd/MM/yyyy"
-                                  Caption="Tarikh Data"
-                                  MinWidth="100"
-                                  Width="12%"
-                                  TextAlignment="GridTextAlignment.Center"
-                                  SortOrder="GridColumnSortOrder.Ascending"
-                                  SortIndex="0">
-                    <FilterMenuTemplate>
-                        <DateRange FilterContext="context" />
-                    </FilterMenuTemplate>
-                </DxGridDataColumn>
-            </Columns>
+                            @if (PermissionService.HasPermission("Delete"))
+                            {
+                                <a @onclick="@(() => Delete((ref_cfsc_inventory)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                            }
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    <DxGridDataColumn Caption="Barang" MinWidth="120" Width="20%" FieldName="inv_name" />
+                    <DxGridDataColumn Caption="Jenis Sitaan" MinWidth="350" Width="68%" FieldName="item_type" TextAlignment="GridTextAlignment.Left" >
+                        <CellDisplayTemplate>
+                            <div>@GetStatusType(((ref_cfsc_inventory)context.DataItem).item_type)</div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
 
-            <EditFormTemplate Context="EditFormContext">
-                @{
-                    var dtEdit = (ref_cfsc_inventory)EditFormContext.EditModel;
-                    // selectedTypeId = dtEdit.item_type;
-                }
-                <DxFormLayout CssClass="w-100">
-                    <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
-                        <table class="layout_edit">
-                            <tr>
-                                <td nowrap>Nama Barang</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxTextBox @bind-Text="@dtEdit.inv_name"
-                                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                               BindValueMode="BindValueMode.OnInput"
-                                               NullText="Nama blaarang ..."
-                                               Maxlength="30"
-                                               ShowValidationIcon="true"
-                                               style="width:350px;"
-                                               CssClass="cw-320" />
-                                </td>
-                                <td width="100px">&nbsp;</td>
-                                <td nowrap></td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%"></td>
-                            </tr>
-                            <tr>
-                                <td nowrap>Jenis Sitaan</td>
-                                <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="6">
-                                    <DxComboBox Data="@CfscType"
-                                                ShowValidationIcon="true"
-                                                NullText="Pilih Jenis ..."
-                                                TextFieldName="Value"
-                                                ValueFieldName="Key"
-                                                @bind-Value="@dtEdit.item_type"
-                                                style="width:250px;">
-                                    </DxComboBox>
-                                </td>
-                            </tr>
-                        </table>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="12">
-                        <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
-                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
-                    </DxFormLayoutItem>
-                </DxFormLayout>
-            </EditFormTemplate>
-            <CustomValidators>
-                <MyCustomValidator DataItemValidating="ValidateGridData" />
-            </CustomValidators>
+                    <DxGridDataColumn FieldName="created_at"
+                                      DisplayFormat="dd/MM/yyyy"
+                                      Caption="Tarikh Data"
+                                      MinWidth="100"
+                                      Width="12%"
+                                      TextAlignment="GridTextAlignment.Center"
+                                      SortOrder="GridColumnSortOrder.Ascending"
+                                      SortIndex="0">
+                        <FilterMenuTemplate>
+                            <DateRange FilterContext="context" />
+                        </FilterMenuTemplate>
+                    </DxGridDataColumn>
+                </Columns>
 
-            @*This is to count the summary*@
-            <TotalSummary>
-                <DxGridSummaryItem FooterColumnName="inv_name"
-                                   Name="Custom"
-                                   SummaryType=GridSummaryItemType.Count />
-            </TotalSummary>
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var dtEdit = (ref_cfsc_inventory)EditFormContext.EditModel;
+                        // selectedTypeId = dtEdit.item_type;
+                    }
+                    <DxFormLayout CssClass="w-100">
+                        <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
+                            <table class="layout_edit">
+                                <tr>
+                                    <td nowrap>Nama Barang</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        <DxTextBox @bind-Text="@dtEdit.inv_name"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   NullText="Nama blaarang ..."
+                                                   Maxlength="30"
+                                                   ShowValidationIcon="true"
+                                                   style="width:350px;"
+                                                   CssClass="cw-320" />
+                                    </td>
+                                    <td width="100px">&nbsp;</td>
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%"></td>
+                                </tr>
+                                <tr>
+                                    <td nowrap>Jenis Sitaan</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="6">
+                                        <DxComboBox Data="@CfscType"
+                                                    ShowValidationIcon="true"
+                                                    NullText="Pilih Jenis ..."
+                                                    TextFieldName="Value"
+                                                    ValueFieldName="Key"
+                                                    @bind-Value="@dtEdit.item_type"
+                                                    style="width:250px;">
+                                        </DxComboBox>
+                                    </td>
+                                </tr>
+                            </table>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                            <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditFormTemplate>
+                <CustomValidators>
+                    <MyCustomValidator DataItemValidating="ValidateGridData" />
+                </CustomValidators>
 
-        </DxGrid>
-    </div>
-</DxLoadingPanel>
+                @*This is to count the summary*@
+                <TotalSummary>
+                    <DxGridSummaryItem FooterColumnName="inv_name"
+                                       Name="Custom"
+                                       SummaryType=GridSummaryItemType.Count />
+                </TotalSummary>
+
+            </DxGrid>
+        </div>
+    </DxLoadingPanel>
+}
 
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
@@ -216,7 +234,7 @@
         var _data = (ref_cfsc_inventory)e.EditModel;
         if (_data.inv_name == null || _data.inv_name.Trim() == "")
         {
-            e.AddError(nameof(_data.inv_name), "Medan Peranan perlu diisi.");
+            e.AddError(nameof(_data.inv_name), "Medan nama barang perlu diisi.");
         }
 
 
