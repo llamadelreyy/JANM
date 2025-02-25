@@ -123,6 +123,8 @@ builder.Services.AddTransient<DashboardService>();
 builder.Services.AddTransient<DocumentService>();
 builder.Services.AddTransient<RefPatrolTypeService>();
 builder.Services.AddTransient<NotaPemeriksaanService>();
+builder.Services.AddTransient<ConfiscationItemTypeService>();
+
 
 
 builder.Services.AddSingleton<FileUrlStorageService>();

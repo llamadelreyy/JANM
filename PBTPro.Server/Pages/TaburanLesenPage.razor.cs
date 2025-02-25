@@ -53,6 +53,12 @@ namespace PBTPro.Pages
         private string message;
         private ElementReference searchBox;
 
+        //Total count map based on boundries
+        private int mintAktif { get; set; } = 0;
+        private int mintTamatTempoh { get; set; } = 0;
+        private int mintGantung { get; set; } = 0;
+        private int mintLotKosong { get; set; } = 0;
+
         //Map
         private GoogleMap map1;
         private MapOptions _mapOptions;
@@ -221,8 +227,19 @@ namespace PBTPro.Pages
 
                 // Add listener for map api polygon data -- ismail
                 await ProcessMapAPIData();
-                await this.map1.InteropObject.AddListener("dragend", async () => await ProcessMapAPIData());
-                await this.map1.InteropObject.AddListener("zoom_changed", async () => await ProcessMapAPIData());
+                //await this.map1.InteropObject.AddListener("dragend", async () => await ProcessMapAPIData());
+                //await this.map1.InteropObject.AddListener("zoom_changed", async () => await ProcessMapAPIData());  
+
+                await this.map1.InteropObject.AddListener("dragend", async () =>
+                {
+                    await ProcessMapAPIData();
+                    StateHasChanged();
+                });
+                await this.map1.InteropObject.AddListener("zoom_changed", async () =>
+                {
+                    await ProcessMapAPIData();
+                    StateHasChanged();
+                });
 
                 PanelVisible = false;
             }
@@ -575,6 +592,7 @@ namespace PBTPro.Pages
                     await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
                     await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
                     _isProcessing = false;
+
                 }
 
                 if (_pendingTasks.Count > 0)
@@ -726,6 +744,8 @@ namespace PBTPro.Pages
 
                         var semaphore = new SemaphoreSlim(1000);
 
+                        
+                        //Count and mark the premise
                         foreach (var data in filteredDatas)
                         {
                             int dataId = data.gid.ToObject(typeof(int));
@@ -782,7 +802,7 @@ namespace PBTPro.Pages
                                             latLngs = multiPolygonCoords;
                                         }
 
-                                        await CreatePolygon(latLngs, data); 
+                                        await CreatePolygon(latLngs, data);
                                     }
 
                                     _processedPremisGids[dataId] = true;
@@ -798,6 +818,24 @@ namespace PBTPro.Pages
                             }));
 
                         }
+
+                        //Count display premis - AZMEE
+                        mintAktif = 0;
+                        mintTamatTempoh = 0;
+                        foreach (var data in dataList)
+                        {
+                            var geometry = data.geom;
+                            if (geometry.type == "Point")
+                            {
+                                //Count total visible point based on boundries
+                                mintAktif += 1;
+
+                                if (data.status_lesen == "Expired")
+                                    mintTamatTempoh += 1;
+                            }
+
+                        }
+
 
                         if (tasks.Count > 0)
                         {
@@ -845,6 +883,7 @@ namespace PBTPro.Pages
             });
 
             _clusteringMarkers.Add(marker);
+
 
             // Optionally, add a listener for the marker to show more information or interact with it
             await marker.AddListener<MouseEvent>("click", async (e) =>
