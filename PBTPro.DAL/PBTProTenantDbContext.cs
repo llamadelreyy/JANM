@@ -318,9 +318,9 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.license_accno)
                 .HasMaxLength(40)
                 .HasComment("Unique account number assigned to the license holder.");
-            entity.Property(e => e.license_duration)
-                .HasDefaultValueSql("'1 year'::interval")
-                .HasComment("Duration of the license validity in years or intervals.");
+            //entity.Property(e => e.license_duration)
+            //    .HasDefaultValueSql("'1 year'::interval")
+            //    .HasComment("Duration of the license validity in years or intervals.");
             entity.Property(e => e.modified_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasComment("Timestamp indicating when this record was last updated.")
