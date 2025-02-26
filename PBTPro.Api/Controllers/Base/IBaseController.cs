@@ -10,6 +10,7 @@ using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace PBTPro.Api.Controllers.Base
 {
@@ -20,11 +21,13 @@ namespace PBTPro.Api.Controllers.Base
         private readonly IServiceProvider? _serviceProvider;
         protected readonly string? _apiBaseUrl;
         protected PBTProTenantDbContext _tenantDBContext;
+        protected readonly int _tenantId;
 
         public IBaseController(PBTProDbContext dbContext)
         {
             _dbContext = dbContext;
             _tenantDBContext = null!;
+            _tenantId = 1;
         }
         // to use in child class just call SetTenantDbContext("tenant");
         protected void SetTenantDbContext(string tenantSchema)
@@ -412,6 +415,15 @@ namespace PBTPro.Api.Controllers.Base
         }
 
         #region file upload
+        protected async Task<bool> rmvExistFile(string FullPath)
+        {
+            if (System.IO.File.Exists(FullPath))
+            {
+                System.IO.File.Delete(FullPath);
+            }
+            return true;
+        }
+
         public static bool IsFileExtensionAllowed(IFormFile file, List<string> allowedExtensions)
         {
             var extension = Path.GetExtension(file.FileName).ToLower();
@@ -459,6 +471,37 @@ namespace PBTPro.Api.Controllers.Base
             else
             {
                 return $"{bytes} bytes";
+            }
+        }
+
+        public static string GetValidFilename(string input)
+        {
+            string result = input;
+
+            result = result.Replace('/', '_').Replace('\\', '_');
+            result = result.Replace('@', '_');
+            result = result.Replace(' ', '_');
+            result = Regex.Replace(result, @"[^a-zA-Z0-9_\-]", "");
+
+            return result;
+        }
+
+        public static byte[] GetPhysicalFileByte(string fullPath)
+        {
+            try
+            {
+                if (System.IO.File.Exists(fullPath))
+                {
+                    return System.IO.File.ReadAllBytes(fullPath);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
         }
         #endregion
