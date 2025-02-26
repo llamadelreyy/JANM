@@ -32,6 +32,13 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? postcode { get; set; }
     }
 
+    public class tenant_profile_pdf : tenant_profile_view
+    {
+        public string? tn_photo_filename { get; set; }
+        public byte[]? tn_photo_byte { get; set; }
+        public byte[]? tn_signature_byte { get; set; }
+    }
+
     public class update_tenant_profile_input_model
     {
         public int tenant_id { get; set; }
