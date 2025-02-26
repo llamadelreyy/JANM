@@ -68,7 +68,7 @@ else
                     TextWrapEnabled="true"
                     CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
                     EditorRenderMode="GridEditorRenderMode.Integrated"
-                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Never"
                     ShowSearchBox="true"
                     AllowSelectRowByClick="true"
                     @bind-SearchText="@GridSearchText"
@@ -113,14 +113,14 @@ else
                             }
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
-                    <DxGridDataColumn FieldName="filename" Caption="Preview Fail" Width="15%" TextAlignment="GridTextAlignment.Center">
+                    <DxGridDataColumn FieldName="filename" Caption="Fail" Width="3%" TextAlignment="GridTextAlignment.Center">
                         <CellDisplayTemplate>
                             <div>@DownloadIconHTML(((ref_doc)context.DataItem).filename, ((ref_doc)context.DataItem).pathurl)</div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
-                    <DxGridDataColumn FieldName="doc_cat" Caption="Kategori" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-                    <DxGridDataColumn FieldName="filename" Caption="Nama" Width="43%" TextAlignment="GridTextAlignment.Left" />
-                    <DxGridDataColumn FieldName="description" Caption="Penerangan" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                    <DxGridDataColumn FieldName="doc_cat" Caption="Kategori" Width="17%" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn FieldName="filename" Caption="Nama" Width="35%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                    <DxGridDataColumn FieldName="description" Caption="Penerangan" Width="35%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
                     <DxGridDataColumn FieldName=created_at
                                       DisplayFormat="dd/MM/yyyy"
                                       Caption="Tarikh Data"
