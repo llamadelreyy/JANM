@@ -76,7 +76,7 @@ public partial class mst_licensee
     /// <summary>
     /// Duration of the license validity in years or intervals.
     /// </summary>
-    public TimeSpan? license_duration { get; set; }
+    //public TimeSpan? license_duration { get; set; }
 
     /// <summary>
     /// Code representing the type of license issued.
