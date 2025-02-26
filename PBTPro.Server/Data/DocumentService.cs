@@ -243,6 +243,29 @@ namespace PBTPro.Data
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
             }
             return result;
-        }       
+        }
+
+        public async Task<ReturnViewModel> UpdateCount(int id, ref_doc inputModel)
+        {
+            var result = new ReturnViewModel();
+            try
+            {                
+                var reqData = JsonConvert.SerializeObject(inputModel);
+                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
+
+                string requestUrl = $"{_baseReqURL}/UpdateCount/{inputModel.doc_id}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
+
+                result = response;
+                await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data.", LoggerID, LoggerName, GetType().Name, RoleID);
+
+            }
+            catch (Exception ex)
+            {
+                result = new ReturnViewModel();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+            }
+            return result;
+        }
     }
 }

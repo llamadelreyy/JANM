@@ -929,6 +929,8 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.pathurl).HasColumnType("character varying");
+            entity.Property(e => e.title).HasColumnType("character varying");
+            entity.Property(e => e.cnt_download).HasComment("count download record.");
         });
 
         modelBuilder.Entity<ref_license_cat>(entity =>

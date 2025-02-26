@@ -37,58 +37,60 @@
     </div>
     <div class="item-container-x mt-3">
         <div class="cw-480">
-            @{             
-                foreach (var itm in dtCategory)
+            @{
+                var groupedItems = dtCategory.GroupBy(itm => itm.doc_cat);
+
+                foreach (var group in groupedItems)
                 {
-                    <DxTreeView AllowSelectNodes="true"                                
-                                AnimationType="LayoutAnimationType.Slide">
+                    <DxTreeView AllowSelectNodes="true" AnimationType="LayoutAnimationType.Slide">
                         <Nodes>
-                            <DxTreeViewNode Text="@itm.doc_cat">
+                            <DxTreeViewNode Text="@group.Key">
                                 <Nodes>
-                                    <DxTreeViewNode Text="@itm.filename" style="margin-left: 30px;">
-                                        <Template>
-                                            <div style="display: flex; align-items: center;" class="mb-2">
-                                              
-                                                <!-- Link -->
-                                                <span style="margin-left: 10px;">
-                                                    <!-- Image -->
-                                                    <img class="treeview-template-icon"
-                                                         src="images/icons-small/document-pdf.png"
-                                                         alt="Title" />
-                                                    <a href="@itm.pathurl"
-                                                       target="_blank"
-                                                       class="dxbl-treeview-item-text small">
-                                                        @itm.filename
-                                                    </a>
-                                                    <br/>
-                                                    <div class="small">@itm.description</div>
-                                                </span>
-                                                <br /><br />                                                                                                
-                                            </div>
-                                        </Template>
-                                    </DxTreeViewNode>
+                                    @foreach (var itm in group)
+                                    {
+                                        <DxTreeViewNode Text="@itm.title" style="margin-left: 30px;">
+                                            <Template>
+                                                <div style="display: flex; align-items: center;" class="mb-2">
+
+                                                    <!-- Link -->
+                                                    <span style="margin-left: 10px;">
+                                                        <!-- Image -->
+                                                        <img class="treeview-template-icon"
+                                                        src="images/icons-small/document-pdf.png"
+                                                        alt="Title" />
+                                                        <a href="@itm.pathurl"
+                                                        target="_blank"
+                                                        @onclick="() => OnDownloadClick(itm)"
+                                                        class="dxbl-treeview-item-text small">
+                                                            @itm.title
+                                                        </a>
+                                                        <div class="small" style="margin-left: 10px;">
+                                                            (Dimuat turun: @GetDownloadClickCount(itm) )
+                                                        </div>
+                                                        <div class="small" style="margin-left: 10px;">@itm.description</div>
+                                                    </span>
+                                                    <br /><br />
+                                                </div>
+                                            </Template>
+                                        </DxTreeViewNode>
+                                    }
                                 </Nodes>
                             </DxTreeViewNode>
                         </Nodes>
                     </DxTreeView>
-
-
                 }
             }
 
         </div>
     </div>
 </DxLoadingPanel>
-@code {
-
-}
-
 
 @code {
     DxTreeView treeView;
-    private List<ref_doc> dtCategory = new List<ref_doc>();
+    List<ref_doc> dtCategory = new List<ref_doc>();
     string SelectedGroup = "none";
     bool PanelVisible { get; set; }
+    private Dictionary<string, int> downloadClickCounts = new Dictionary<string, int>();
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -101,6 +103,26 @@
     void SelectionChanged(TreeViewNodeEventArgs e)
     {
         SelectedGroup = e.NodeInfo?.Text;
+    }
+
+    private async void OnDownloadClick(ref_doc inputmodel)
+    {
+        ReturnViewModel response = new ReturnViewModel();
+
+        int currentCount = await GetDownloadCountByPath(inputmodel.pathurl);
+        inputmodel.cnt_download = currentCount + 1;
+        response = await _DocumentService.UpdateCount(inputmodel.doc_id, inputmodel);
+    }
+
+    public async Task<int> GetDownloadCountByPath(string pathurl)
+    {
+        var document = dtCategory.FirstOrDefault(p => p.pathurl == pathurl);
+        return document?.cnt_download ?? 0;
+    }
+
+    private int GetDownloadClickCount(ref_doc inputmodel)
+    {
+        return inputmodel.cnt_download;
     }
 
     public void Dispose()
