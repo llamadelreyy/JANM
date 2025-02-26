@@ -182,7 +182,7 @@ else
                                             <DxTreeView Data="@_dtContent"
                                             @ref="@MyTreeView"
                                             CheckMode="TreeViewCheckMode.Recursive"
-                                            CheckAllVisible="true"
+                                            CheckAllVisible="false"
                                             CheckedChanged="CheckedChanged"
                                             AllowSelectNodes="true"
                                             CheckNodeByClick="true"
@@ -358,6 +358,7 @@ else
             boolEditMode = false;
             if (MyTreeView != null)
                 MyTreeView.ClearCheck();
+
 
             // if (intCurrentRoleId != args.DataItem.Id)
             // {   
@@ -849,8 +850,21 @@ else
             var item = (FileMenuObject)checkedMenus[i].DataItem;
 
             if ((item.ParentId != "0") && (int.Parse(item.MenuId) < 13))
-                strSelectedMenu = item.MenuId + "-" + item.ParentId + ";" + strSelectedMenu;
+            {
+                //This is to get the sub menu id and it id access - remove the parent and submenu in the string
+                bool blnExist = false;
+                foreach (var x in _dtMenu)
+                {
+                    if ((x.parent_id.ToString() == item.ParentId.ToString()) && (x.menu_id.ToString() == item.MenuId.ToString()))
+                    {
+                        blnExist = true;
+                        break;
+                    }
+                }
 
+                if (!blnExist)
+                    strSelectedMenu = item.MenuId + "-" + item.ParentId + ";" + strSelectedMenu;
+            }
         }
     }
 
@@ -900,7 +914,7 @@ else
         int _intID = 0;
 
         string strCurrentSortedMenu = SortSelectedMenu();
-
+        string strParentId = "0";
         string[] arrMenu = strCurrentSortedMenu.Split("#");
 
         foreach (var item in arrMenu)
@@ -913,29 +927,74 @@ else
                 if (arrChildMenu[0].Trim() == "")
                     intIndex = 1;
 
-                _intID += 1;
-                // Create the permission object
-                permission menu1 = new permission
+                //Need to find parent id for menu that has submenu
+                foreach (var x in _dtMenu)
                 {
-                    permission_id = 0, //_intID,
-                    role_id = intCurrentRoleId,
-                    menu_id = int.Parse(arrChildMenu[intIndex].Split('-')[intIndex]), // Set menu_id from x value of the first pair
-                    can_view = arrChildMenu.Any(item => item.StartsWith("1-")),
-                    can_add = arrChildMenu.Any(item => item.StartsWith("2-")),
-                    can_edit = arrChildMenu.Any(item => item.StartsWith("3-")),
-                    can_delete = arrChildMenu.Any(item => item.StartsWith("4-")),
-                    can_print = arrChildMenu.Any(item => item.StartsWith("5-")),
-                    can_upload = arrChildMenu.Any(item => item.StartsWith("6-")),
-                    can_download = arrChildMenu.Any(item => item.StartsWith("7-")),
-                    can_import_data = arrChildMenu.Any(item => item.StartsWith("8-")),
-                    can_export_data = arrChildMenu.Any(item => item.StartsWith("9-")),
-                    can_authorize = arrChildMenu.Any(item => item.StartsWith("10-")),
-                    can_approve_changes = arrChildMenu.Any(item => item.StartsWith("11-")),
-                    can_execute = arrChildMenu.Any(item => item.StartsWith("12-")),
-                    created_at = DateTime.Now
-                };
+                    if (x.menu_id == int.Parse(arrChildMenu[intIndex].Split('-')[intIndex]))
+                    {
+                        if (x.parent_id != 0)
+                        {
+                            //No duplicate parents id
+                            if (!strParentId.Split(';').Any(y => y == x.parent_id.ToString()))
+                            {
+                                strParentId = strParentId + ";" + x.parent_id.ToString();
 
-                MenuAccess.Add(menu1);
+                                permission menuParent = new permission
+                                {
+                                    permission_id = 0, //_intID,
+                                    role_id = intCurrentRoleId,
+                                    menu_id = x.parent_id, // Set menu_id from x value of the first pair
+                                    can_view = true,
+                                    can_add = false,
+                                    can_edit = false,
+                                    can_delete = false,
+                                    can_print = false,
+                                    can_upload = false,
+                                    can_download = false,
+                                    can_import_data = false,
+                                    can_export_data = false,
+                                    can_authorize = false,
+                                    can_approve_changes = false,
+                                    can_execute = false,
+                                    created_at = DateTime.Now
+                                };
+
+                                MenuAccess.Add(menuParent);
+
+                                //Exit the loop
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // //Chekc if menu id is a parent id
+                // if (!strParentId.Split(';').Any(y => y == int.Parse(arrChildMenu[intIndex].Split('-')[intIndex]).ToString()))
+                // {
+                    //_intID += 1;
+                    // Create the permission object
+                    permission menu1 = new permission
+                    {
+                        permission_id = 0, //_intID,
+                        role_id = intCurrentRoleId,
+                        menu_id = int.Parse(arrChildMenu[intIndex].Split('-')[intIndex]), // Set menu_id from x value of the first pair
+                        can_view = arrChildMenu.Any(item => item.StartsWith("1-")),
+                        can_add = arrChildMenu.Any(item => item.StartsWith("2-")),
+                        can_edit = arrChildMenu.Any(item => item.StartsWith("3-")),
+                        can_delete = arrChildMenu.Any(item => item.StartsWith("4-")),
+                        can_print = arrChildMenu.Any(item => item.StartsWith("5-")),
+                        can_upload = arrChildMenu.Any(item => item.StartsWith("6-")),
+                        can_download = arrChildMenu.Any(item => item.StartsWith("7-")),
+                        can_import_data = arrChildMenu.Any(item => item.StartsWith("8-")),
+                        can_export_data = arrChildMenu.Any(item => item.StartsWith("9-")),
+                        can_authorize = arrChildMenu.Any(item => item.StartsWith("10-")),
+                        can_approve_changes = arrChildMenu.Any(item => item.StartsWith("11-")),
+                        can_execute = arrChildMenu.Any(item => item.StartsWith("12-")),
+                        created_at = DateTime.Now
+                    };
+
+                    MenuAccess.Add(menu1);
+                // }
             }
         }
 
