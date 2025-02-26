@@ -11,6 +11,7 @@ using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Services;
 using PBTPro.DAL.Store;
 using Prometheus;
+using QuestPDF.Infrastructure;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;
@@ -18,6 +19,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+QuestPDF.Settings.License = LicenseType.Community;
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 IConfiguration configuration = builder.Configuration;
@@ -155,6 +157,9 @@ builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
 builder.Services.AddSingleton(emailConfig);
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+//Google Static Maps & Barcode generator
+builder.Services.AddScoped<IMapBarcodeService, MapBarcodeService>();
 
 //Hosted Background Services Manager for long run Process
 builder.Services.AddSingleton<PBTProBkgdSM>();
