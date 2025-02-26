@@ -57,6 +57,7 @@ namespace PBTPro.Api.Controllers
                 #region store data
                 ref_doc ref_doc = new ref_doc
                 {
+                    title = InputModel.title,
                     filename = InputModel.filename,
                     pathurl = InputModel.pathurl,
                     doc_cat = InputModel.doc_cat,
@@ -73,6 +74,7 @@ namespace PBTPro.Api.Controllers
 
                 var result = new
                 {
+                    title = InputModel.title,
                     filename = ref_doc.filename,
                     pathurl = ref_doc.pathurl,
                     doc_cat = ref_doc.doc_cat,
@@ -110,7 +112,7 @@ namespace PBTPro.Api.Controllers
                 }
 
                 #endregion
-
+                formField.title = InputModel.title;
                 formField.filename = InputModel.filename;
                 formField.pathurl = InputModel.pathurl;
                 formField.doc_cat = InputModel.doc_cat;
@@ -171,6 +173,40 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 return Ok(parFormfield, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> UpdateCount(int Id, [FromBody] ref_doc InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                var formField = await _tenantDBContext.ref_docs.FirstOrDefaultAsync(x => x.doc_id == InputModel.doc_id);
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }               
+
+                #endregion
+
+                formField.cnt_download = InputModel.cnt_download;                
+                formField.modifier_id = runUserID;
+                formField.modified_at = DateTime.Now;
+
+                _tenantDBContext.ref_docs.Update(formField);
+                await _tenantDBContext.SaveChangesAsync();
+
+                return Ok(formField, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
             catch (Exception ex)
             {

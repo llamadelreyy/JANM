@@ -2,8 +2,10 @@
 using Newtonsoft.Json;
 using PBTPro.Data;
 
-namespace PBTPro.Controllers {
-    public class ChunkMetadata {
+namespace PBTPro.Controllers
+{
+    public class ChunkMetadata
+    {
         public int Index { get; set; }
         public int TotalCount { get; set; }
         public int FileSize { get; set; }
@@ -13,7 +15,8 @@ namespace PBTPro.Controllers {
     }
 
     [Route("api/[controller]")]
-    public class UploadController : Controller {
+    public class UploadController : Controller
+    {
         private readonly IWebHostEnvironment _hostingEnvironment;
         FileUrlStorageService _fileUrlStorageService;
 
@@ -21,7 +24,8 @@ namespace PBTPro.Controllers {
         //const long MaxFileSize = 4_000_000;
         //readonly string[] documentExtensions = { ".PDF" };
 
-        public UploadController(IWebHostEnvironment hostingEnvironment, FileUrlStorageService fileUrlStorageService) {
+        public UploadController(IWebHostEnvironment hostingEnvironment, FileUrlStorageService fileUrlStorageService)
+        {
             _hostingEnvironment = hostingEnvironment;
             _fileUrlStorageService = fileUrlStorageService;
         }
@@ -29,12 +33,14 @@ namespace PBTPro.Controllers {
         [HttpPost]
         [Route("UploadFile")]
         [DisableRequestSizeLimit]
-        public ActionResult UploadFile(IFormFile ImageUpload, string chunkMetadata) {
+        public ActionResult UploadFile(IFormFile ImageUpload, string chunkMetadata)
+        {
             var tempPath = Path.Combine(_hostingEnvironment.WebRootPath, "images", "tempProfile");
             // Removes temporary files
             RemoveTempFilesAfterDelay(tempPath, new TimeSpan(0, 5, 0));
 
-            try {
+            try
+            {
                 //////if (!string.IsNullOrEmpty(chunkMetadata)) {
                 //////    var metaDataObject = JsonConvert.DeserializeObject<ChunkMetadata>(chunkMetadata);
                 //////    var tempFilePath = Path.Combine(tempPath, metaDataObject.FileGuid + ".tmp");
@@ -81,12 +87,14 @@ namespace PBTPro.Controllers {
                     }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return BadRequest();
             }
             return Ok();
         }
-        void RemoveTempFilesAfterDelay(string path, TimeSpan delay) {
+        void RemoveTempFilesAfterDelay(string path, TimeSpan delay)
+        {
             var dir = new DirectoryInfo(path);
             if (dir.Exists)
                 //////foreach (var file in dir.GetFiles("*.tmp").Where(f => f.LastWriteTimeUtc.Add(delay) < DateTime.UtcNow))
@@ -104,7 +112,8 @@ namespace PBTPro.Controllers {
         }
 
         [HttpPost]
-        public ActionResult ProcessUploadedFile(string tempFilePath, string fileName) {
+        public ActionResult ProcessUploadedFile(string tempFilePath, string fileName)
+        {
             var path = Path.Combine(_hostingEnvironment.WebRootPath, "images", "profile");
             var imagePath = Path.Combine(path, fileName);
             if (System.IO.File.Exists(imagePath))
@@ -114,8 +123,10 @@ namespace PBTPro.Controllers {
             return Ok();
         }
 
-        void AppendContentToFile(string path, IFormFile content) {
-            using (var stream = new FileStream(path, FileMode.Append, FileAccess.Write)) {
+        void AppendContentToFile(string path, IFormFile content)
+        {
+            using (var stream = new FileStream(path, FileMode.Append, FileAccess.Write))
+            {
                 content.CopyTo(stream);
             }
         }
@@ -129,7 +140,7 @@ namespace PBTPro.Controllers {
         {
             var tempPath = Path.Combine(_hostingEnvironment.WebRootPath, "document", "tempDocument");
             // Removes temporary files
-            RemoveTempFilesAfterDelay(tempPath, new TimeSpan(0, 5, 0));
+            //RemoveTempFilesAfterDelay(tempPath, new TimeSpan(0, 5, 0));
 
             try
             {
@@ -168,7 +179,7 @@ namespace PBTPro.Controllers {
             return Ok();
         }
 
-        
+
 
 
         #endregion

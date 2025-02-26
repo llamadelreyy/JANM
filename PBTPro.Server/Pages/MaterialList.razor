@@ -119,7 +119,7 @@ else
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
                     <DxGridDataColumn FieldName="doc_cat" Caption="Kategori" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-                    <DxGridDataColumn FieldName="filename" Caption="Nama" Width="43%" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn FieldName="title" Caption="Nama" Width="43%" TextAlignment="GridTextAlignment.Left" />
                     <DxGridDataColumn FieldName="description" Caption="Penerangan" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
                     <DxGridDataColumn FieldName=created_at
                                       DisplayFormat="dd/MM/yyyy"
@@ -153,17 +153,14 @@ else
                             </DxComboBox>
                         </DxFormLayoutItem>
 
-
                         <DxFormLayoutItem ColSpanMd="6">
-                            <div>Nama Fail</div>
-                            <DxTextBox @bind-Text="@dtData.filename"
-                                       @bind-Value="@strFilename"
-                                       NullText="Nama Fail ..."
+                            <div>Tajuk</div>
+                            <DxTextBox @bind-Text="@dtData.title"
+                                       NullText="Tajuk ..."
                                        BindValueMode="BindValueMode.OnInput"
-                                       CssClass="cw-480"
-                                       Enabled="false" />
+                                       CssClass="cw-480" />
 
-                        </DxFormLayoutItem>
+                        </DxFormLayoutItem>                        
 
                         <DxFormLayoutItem ColSpanMd="12">
                             <div>Penerangan</div>
@@ -199,6 +196,17 @@ else
                                     </DxUpload>
                                 </div>
                             </div>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="6"> </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="6">
+                            <div>Nama Fail</div>
+                            <DxTextBox @bind-Text="@dtData.filename"
+                                       @bind-Value="@strFilename"
+                                       NullText="Nama Fail ..."
+                                       BindValueMode="BindValueMode.OnInput"
+                                       CssClass="cw-480"
+                                       Enabled="false" />
+
                         </DxFormLayoutItem>
                         <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
                         <DxFormLayoutItem ColSpanMd="12">
@@ -307,6 +315,7 @@ else
             }
             else
             {
+                editModel.filename = refdoc.filename;
                 editModel.pathurl = refdoc.pathurl;
                 response = await _DocumentService.Update(editModel.doc_id, editModel);
             }
