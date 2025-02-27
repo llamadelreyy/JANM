@@ -505,5 +505,28 @@ namespace PBTPro.Api.Controllers.Base
             }
         }
         #endregion
+
+        #region Entitiy Utilities
+        public TDestination MapEntity<TDestination>(object source)
+        {
+            var sourceProperties = source.GetType().GetProperties();
+            var destinationProperties = typeof(TDestination).GetProperties();
+
+            var destination = Activator.CreateInstance<TDestination>();
+
+            foreach (var sourceProperty in sourceProperties)
+            {
+                var destinationProperty = destinationProperties
+                    .FirstOrDefault(dp => dp.Name == sourceProperty.Name && dp.PropertyType == sourceProperty.PropertyType);
+
+                if (destinationProperty != null && destinationProperty.CanWrite)
+                {
+                    destinationProperty.SetValue(destination, sourceProperty.GetValue(source));
+                }
+            }
+
+            return destination;
+        }
+        #endregion
     }
 }

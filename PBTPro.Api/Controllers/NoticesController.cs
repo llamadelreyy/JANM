@@ -61,13 +61,17 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfield = await _tenantDBContext.trn_notices.FirstOrDefaultAsync(x => x.trn_notice_id == Id);
+                var notice = await _tenantDBContext.trn_notices.FirstOrDefaultAsync(x => x.trn_notice_id == Id);
 
-                if (parFormfield == null)
+                if (notice == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-                return Ok(parFormfield, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+
+                var result = MapEntity<patrol_notice_view_model>(notice);
+                result.proofs = await _tenantDBContext.trn_notice_imgs.Where(x => x.trn_notice_id == notice.trn_notice_id).AsNoTracking().ToListAsync();
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -85,6 +89,11 @@ namespace PBTPro.Api.Controllers
                 var runUser = await getDefRunUser();
 
                 #region Validation
+                if (string.IsNullOrWhiteSpace(InputModel.notice_ref_no))
+                {
+                    return Error("", SystemMesg(_feature, "REFNO_ISREQUIRED", MessageTypeEnum.Error, string.Format("Ruangan No Notis diperlukan")));
+                }
+
                 if (InputModel.proofs != null && InputModel.proofs.Count > 0)
                 {
                     foreach (var ip in InputModel.proofs)
@@ -210,6 +219,11 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
+                if (string.IsNullOrWhiteSpace(InputModel.notice_ref_no))
+                {
+                    return Error("", SystemMesg(_feature, "REFNO_ISREQUIRED", MessageTypeEnum.Error, string.Format("Ruangan No Notis diperlukan")));
+                }
+
                 var notice = await _tenantDBContext.trn_notices.FirstOrDefaultAsync(x => x.trn_notice_id == Id);
                 if (notice == null)
                 {
@@ -373,10 +387,6 @@ namespace PBTPro.Api.Controllers
             {
                 var resultData = new List<dynamic>();
 
-                var totalCount = await _tenantDBContext.trn_notices
-                    .Where(n => n.creator_id == UserId)
-                    .CountAsync();
-
                 var notice_lists = await (from n in _tenantDBContext.trn_notices
                                                 where n.creator_id == UserId
                                                 select new
@@ -396,7 +406,7 @@ namespace PBTPro.Api.Controllers
 
                 resultData.Add(new
                 {
-                    total_records = totalCount,
+                    total_records = notice_lists.Count,
                     notice_lists,
                 });
 
@@ -415,10 +425,6 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var resultData = new List<dynamic>();
-
-                var totalCount = await _tenantDBContext.trn_notices
-                    .Where(n => n.schedule_id == ScheduleId)
-                    .CountAsync();
 
                 var notice_lists = await (from n in _tenantDBContext.trn_notices
                                           where n.schedule_id == ScheduleId
@@ -439,7 +445,7 @@ namespace PBTPro.Api.Controllers
 
                 resultData.Add(new
                 {
-                    total_records = totalCount,
+                    total_records = notice_lists.Count,
                     notice_lists,
                 });
 

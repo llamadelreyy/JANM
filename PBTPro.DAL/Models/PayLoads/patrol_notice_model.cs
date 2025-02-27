@@ -25,5 +25,8 @@ namespace PBTPro.DAL.Models.PayLoads
         public List<IFormFile>? proofs { get; set; }
     }
 
-
+    public class patrol_notice_view_model : trn_notice
+    {
+        public List<trn_notice_img>? proofs { get; set; }
+    }
 }
