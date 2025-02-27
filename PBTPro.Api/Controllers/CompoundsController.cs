@@ -10,12 +10,9 @@ Changes Logs:
 20/02/2025 - revamp table & logic
 */
 
-using DevExpress.XtraPrinting.Accessibility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using NetTopologySuite.Mathematics;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
@@ -25,9 +22,6 @@ using PBTPro.DAL.Models.PayLoads;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using SkiaSharp;
-using System;
-using System.Security.AccessControl;
 
 
 namespace PBTPro.Api.Controllers
@@ -212,7 +206,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] patrol_cmpd_input_model InputModel)
+        public async Task<IActionResult> Update(int Id, [FromForm] patrol_cmpd_input_model InputModel)
         {
             try
             {
@@ -252,6 +246,7 @@ namespace PBTPro.Api.Controllers
                 {
                     try
                     {
+                        #region Main Data
                         compound.owner_icno = InputModel.owner_icno;
                         compound.cmpd_ref_no = InputModel.cmpd_ref_no;
                         compound.instruction = InputModel.instruction;
@@ -273,6 +268,7 @@ namespace PBTPro.Api.Controllers
 
                         _tenantDBContext.trn_cmpds.Update(compound);
                         await _tenantDBContext.SaveChangesAsync();
+                        #endregion
 
                         #region Proof Image
                         var existingProofs = await _tenantDBContext.trn_cmpd_imgs.Where(x => x.trn_cmpd_id == compound.trn_cmpd_id).ToListAsync();
@@ -366,7 +362,7 @@ namespace PBTPro.Api.Controllers
                 _tenantDBContext.trn_cmpds.Remove(formField);
                 await _tenantDBContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang kompaun")));
             }
             catch (Exception ex)
             {
@@ -398,6 +394,48 @@ namespace PBTPro.Api.Controllers
                                            }).ToListAsync();
 
                 // Check if no record was found
+                if (compound_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = totalCount,
+                    compound_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{ScheduleId}")]
+        public async Task<IActionResult> GetCompoundListBySchedId(int ScheduleId)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+
+                var totalCount = await _tenantDBContext.trn_cmpds
+                    .Where(n => n.schedule_id == ScheduleId)
+                    .CountAsync();
+
+                var compound_lists = await (from n in _tenantDBContext.trn_cmpds
+                                            where n.schedule_id == ScheduleId
+                                            select new
+                                            {
+                                                n.cmpd_ref_no,
+                                                n.section_code,
+                                                n.act_code,
+                                                n.created_at,
+                                                n.modified_at,
+                                            }).ToListAsync();
+
                 if (compound_lists.Count == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
@@ -576,7 +614,7 @@ namespace PBTPro.Api.Controllers
                                 .FirstOrDefaultAsync();
 
 
-                var tiketASUO = await _dbContext.ref_law_offenses
+                var ticketASUO = await _dbContext.ref_law_offenses
                                 .Where(t => t.offense_code == record.offense_code)
                                 .GroupJoin(
                                     _dbContext.ref_law_acts,
@@ -655,7 +693,7 @@ namespace PBTPro.Api.Controllers
                                         columns.RelativeColumn();
                                     });
 
-                                    table.Cell().PaddingBottom(5).AlignLeft().Text($"MAKLUMAT PENERIMA").Bold();
+                                    table.Cell().PaddingBottom(5).PaddingLeft(2).AlignLeft().Text($"MAKLUMAT PENERIMA").Bold();
 
                                     table.Cell().PaddingBottom(5).Table(table => 
                                     {
@@ -665,30 +703,30 @@ namespace PBTPro.Api.Controllers
                                             columns.RelativeColumn();
                                         });
 
-                                        table.Cell().AlignLeft().Text("Nama Pemilik :");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Nama Pemilik :");
                                         table.Cell().AlignRight().Text($"{ticketDet.mst_owner.owner_name}");
 
                                         if (record.is_tax != true)
                                         {
-                                            table.Cell().AlignLeft().Text("Nama Syarikat :");
+                                            table.Cell().PaddingLeft(5).AlignLeft().Text("Nama Syarikat :");
                                             table.Cell().AlignRight().Text($"{ticketDet.mst_licensee.business_name}");
-                                            table.Cell().AlignLeft().Text("No. Syarikat :");
+                                            table.Cell().PaddingLeft(5).AlignLeft().Text("No. Syarikat :");
                                             table.Cell().AlignRight().Text($"{ticketDet.mst_licensee.ssm_no}");
-                                            table.Cell().AlignLeft().AlignMiddle().Text("Alamat :");
+                                            table.Cell().PaddingLeft(5).AlignLeft().AlignMiddle().Text("Alamat :");
                                             table.Cell().AlignRight().AlignMiddle().Text($"{ticketDet.mst_licensee.business_addr}");
                                         }
                                         else
                                         {
-                                            table.Cell().AlignLeft().Text("No K/P :");
+                                            table.Cell().PaddingLeft(5).AlignLeft().Text("No K/P :");
                                             table.Cell().AlignRight().Text($"{ticketDet.mst_owner.owner_icno}");
-                                            table.Cell().AlignLeft().Text("No Telefon :");
+                                            table.Cell().PaddingLeft(5).AlignLeft().Text("No Telefon :");
                                             table.Cell().AlignRight().Text($"{ticketDet.mst_owner.owner_telno}");
-                                            table.Cell().AlignLeft().AlignMiddle().Text("Alamat :");
+                                            table.Cell().PaddingLeft(5).AlignLeft().AlignMiddle().Text("Alamat :");
                                             table.Cell().AlignRight().AlignMiddle().Text($"{ticketDet.mst_taxtholder.alamat}");
                                         }
                                     });
 
-                                    table.Cell().PaddingBottom(5).AlignLeft().Text($"MAKLUMAT KESALAHAN").Bold();
+                                    table.Cell().PaddingBottom(5).PaddingLeft(2).AlignLeft().Text($"MAKLUMAT KESALAHAN").Bold();
                                     
                                     table.Cell().PaddingBottom(5).Table(table =>
                                     {
@@ -698,23 +736,23 @@ namespace PBTPro.Api.Controllers
                                             columns.RelativeColumn();
                                         });
 
-                                        string aktaKesalahan = tiketASUO.ref_law_uuk != null ? $"{tiketASUO.ref_law_uuk.uuk_code} {tiketASUO.ref_law_uuk.uuk_description}" : $"{tiketASUO.ref_law_act.act_code} {tiketASUO.ref_law_act.act_description}";
+                                        string aktaKesalahan = ticketASUO.ref_law_uuk != null ? $"{ticketASUO.ref_law_uuk.uuk_code} {ticketASUO.ref_law_uuk.uuk_description}" : $"{ticketASUO.ref_law_act.act_code} {ticketASUO.ref_law_act.act_description}";
 
-                                        string kodKesalaha = $"{tiketASUO.ref_law_section.section_code} {tiketASUO.ref_law_section.section_description}";
+                                        string kodKesalahan = $"{ticketASUO.ref_law_section.section_name} {ticketASUO.ref_law_offense.offense_name}";
 
-                                        table.Cell().AlignLeft().Text("No Kompaun :");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("No Kompaun :");
                                         table.Cell().AlignRight().Text($"{record.cmpd_ref_no}");
-                                        table.Cell().AlignLeft().Text("Tarikh & Masa :");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Tarikh & Masa :");
                                         table.Cell().AlignRight().Text($"{record.created_at?.ToString("dd/MM/yyyy hh:mm:ss tt")}");
-                                        table.Cell().AlignLeft().Text("Akta Kesalahan:");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Akta Kesalahan:");
                                         table.Cell().AlignRight().Text($"{aktaKesalahan}");
-                                        table.Cell().AlignLeft().Text("Kod Kesalahan :");
-                                        table.Cell().AlignRight().Text($"{kodKesalaha}");
-                                        table.Cell().AlignLeft().Text("Butir-Butir Kesalahan :");
-                                        table.Cell().AlignRight().Text($"{tiketASUO.ref_law_offense.offense_description}");
-                                        table.Cell().AlignLeft().Text("Cara Penyerahan :");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Kod Kesalahan :");
+                                        table.Cell().AlignRight().Text($"{kodKesalahan}");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Butir-Butir Kesalahan :");
+                                        table.Cell().AlignRight().Text($"{ticketASUO.ref_law_offense.offense_description}");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Cara Penyerahan :");
                                         table.Cell().AlignRight().Text($"{ticketDet.ref_deliver.deliver_name}");
-                                        table.Cell().AlignLeft().Text("Arahan :");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Arahan :");
                                         table.Cell().AlignRight().Text($"{record.instruction}");
                                     });
 
