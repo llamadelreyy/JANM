@@ -30,5 +30,8 @@ namespace PBTPro.DAL.Models.PayLoads
         public List<IFormFile>? proofs { get; set; }
     }
 
-
+    public class patrol_cmpd_view_model : trn_cmpd
+    {
+        public List<trn_cmpd_img>? proofs { get; set; }
+    }
 }

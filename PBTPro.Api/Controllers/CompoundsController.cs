@@ -65,13 +65,17 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfield = await _tenantDBContext.trn_cmpds.FirstOrDefaultAsync(x => x.trn_cmpd_id == Id);
+                var compound = await _tenantDBContext.trn_cmpds.FirstOrDefaultAsync(x => x.trn_cmpd_id == Id);
 
-                if (parFormfield == null)
+                if (compound == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
-                return Ok(parFormfield, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+
+                var result = MapEntity<patrol_cmpd_view_model>(compound);
+                result.proofs = await _tenantDBContext.trn_cmpd_imgs.Where(x => x.trn_cmpd_id == compound.trn_cmpd_id).AsNoTracking().ToListAsync();
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -89,6 +93,11 @@ namespace PBTPro.Api.Controllers
                 var runUser = await getDefRunUser();
 
                 #region Validation
+                if (string.IsNullOrWhiteSpace(InputModel.cmpd_ref_no))
+                {
+                    return Error("", SystemMesg(_feature, "REFNO_ISREQUIRED", MessageTypeEnum.Error, string.Format("Ruangan No Kompaun diperlukan")));
+                }
+
                 if (InputModel.proofs != null && InputModel.proofs.Count > 0)
                 {
                     foreach (var ip in InputModel.proofs)
@@ -214,6 +223,11 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
+                if (string.IsNullOrWhiteSpace(InputModel.cmpd_ref_no))
+                {
+                    return Error("", SystemMesg(_feature, "REFNO_ISREQUIRED", MessageTypeEnum.Error, string.Format("Ruangan No Kompaun diperlukan")));
+                }
+
                 var compound = await _tenantDBContext.trn_cmpds.FirstOrDefaultAsync(x => x.trn_cmpd_id == Id);
                 if (compound == null)
                 {
@@ -378,10 +392,6 @@ namespace PBTPro.Api.Controllers
             {
                 var resultData = new List<dynamic>();
 
-                var totalCount = await _tenantDBContext.trn_cmpds
-                    .Where(n => n.creator_id == UserId)
-                    .CountAsync();
-
                 var compound_lists = await (from n in _tenantDBContext.trn_cmpds
                                             where n.creator_id == UserId
                                           select new
@@ -401,7 +411,7 @@ namespace PBTPro.Api.Controllers
 
                 resultData.Add(new
                 {
-                    total_records = totalCount,
+                    total_records = compound_lists.Count,
                     compound_lists,
                 });
 
@@ -421,10 +431,6 @@ namespace PBTPro.Api.Controllers
             {
                 var resultData = new List<dynamic>();
 
-                var totalCount = await _tenantDBContext.trn_cmpds
-                    .Where(n => n.schedule_id == ScheduleId)
-                    .CountAsync();
-
                 var compound_lists = await (from n in _tenantDBContext.trn_cmpds
                                             where n.schedule_id == ScheduleId
                                             select new
@@ -443,7 +449,7 @@ namespace PBTPro.Api.Controllers
 
                 resultData.Add(new
                 {
-                    total_records = totalCount,
+                    total_records = compound_lists.Count,
                     compound_lists,
                 });
 
