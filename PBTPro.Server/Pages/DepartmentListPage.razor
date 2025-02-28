@@ -144,6 +144,7 @@ else
                                     <td width="50%" colspan="7">
                                         <DxMemo @bind-Text="@dtData.dept_desc"
                                                 CssClass="cw-480"
+                                                ShowValidationIcon="true"
                                                 Rows="3" />
                                     </td>
                                 </tr>
@@ -227,7 +228,6 @@ else
         var _data = (ref_department)e.EditModel;
 
 
-
         if (_data.dept_code == null || _data.dept_code.Trim() == "")
         {
             e.AddError(nameof(_data.dept_code), "Kod Jabatan tidak sah. Medan perlu diisi.");
@@ -238,10 +238,10 @@ else
             e.AddError(nameof(_data.dept_name), "Nama Jabatan tidak sah. Medan perlu diisi.");
         }
 
-        if (_data.dept_desc == null || _data.dept_desc == "")
-        {
-            e.AddError(nameof(_data.dept_desc), "Catatan Jabatan tidak sah. Medan perlu diisi.");
-        }
+        // if (_data.dept_desc == null || _data.dept_desc == "")
+        // {
+        //     e.AddError(nameof(_data.dept_desc), "Catatan Jabatan tidak sah. Medan perlu diisi.");
+        // }
     }
 
 
