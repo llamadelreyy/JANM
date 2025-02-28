@@ -64,7 +64,7 @@ else
         PagerPosition="GridPagerPosition.Bottom"
         PagerNavigationMode="PagerNavigationMode.InputBox"
         EditModelSaving="Grid_EditModelSaving"
-        EditFormButtonsVisible="true"
+        EditFormButtonsVisible="false"
         PageSizeSelectorVisible="true"
         PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
         PageSizeSelectorAllRowsItemVisible="true"
@@ -93,7 +93,7 @@ else
                         }
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
-                <DxGridDataColumn FieldName="field_name" Caption="Name" />
+                <DxGridDataColumn FieldName="field_name" Caption="Nama" />
                 <DxGridDataColumn FieldName="field_label" Caption="Label" />
                 <DxGridDataColumn FieldName="field_type" Caption="Jenis" />
                 <DxGridDataColumn FieldName="field_orders" Caption="Susunan" />
@@ -136,6 +136,12 @@ else
                     </DxFormLayoutItem>
                     <DxFormLayoutItem Caption="URL Sumber:" ColSpanMd="6">
                         <DxTextBox @bind-Text="@field.field_source_url" ShowValidationIcon="true" />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
+                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
                     </DxFormLayoutItem>
                 </DxFormLayout>
             </EditFormTemplate>

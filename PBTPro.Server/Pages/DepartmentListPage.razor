@@ -248,28 +248,23 @@ else
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();
-        bool blnSuccess = false;
         var editModel = e.EditModel as ref_department;
         try
         {
             if (e.IsNew)
-            {
                 response = await _department.Add(editModel);
-                blnSuccess = true;
-            }
             else
-            {
                 response = await _department.Update(editModel.dept_id, editModel);
-                blnSuccess = true;
-            }
-            if (blnSuccess)
+
+
+            if (response.ReturnCode == 200)
             {
                 await UpdateDataAsync();
-                //toastService.ShowInfo("Proses kemaskini selesai.");
+                HandleResponse("Proses kemaskini selesai.");
             }
             else
             {
-                //toastService.ShowError("Ralat telah berlaku! Sila hubungi pentadbir sistem.");
+                HandleResponse(response.ReturnMessage, "Error");
             }
         }
         catch (Exception ex)
