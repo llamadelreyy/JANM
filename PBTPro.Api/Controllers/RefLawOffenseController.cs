@@ -410,7 +410,7 @@ namespace PBTPro.Api.Controllers
                                     {
                                         isExists.act_code = record.act_code;
                                         isExists.section_code = record.section_code;
-                                        isExists.uuk_code = record.section_code;
+                                        isExists.uuk_code = record.uuk_code;
                                         isExists.offense_name = record.offense_name;
                                         isExists.offense_description = record.offense_description;
                                         isExists.offense_content = record.offense_content;
@@ -425,7 +425,7 @@ namespace PBTPro.Api.Controllers
                                             act_code = record.act_code,
                                             section_code = record.section_code,
                                             uuk_code = record.uuk_code,
-                                            offense_code = record.uuk_code,
+                                            offense_code = record.offense_code,
                                             offense_name = record.offense_name,
                                             offense_description = record.offense_description,
                                             offense_content = record.offense_content,
@@ -471,7 +471,7 @@ namespace PBTPro.Api.Controllers
                     });
                 }
 
-                return Ok("", SystemMesg(_feature, "IMPORT_QUEUE", MessageTypeEnum.Success, string.Format("Berjaya memuat naik fail, proces import rekot akan dilakukan dibelakang tabir")));
+                return Ok("", SystemMesg(_feature, "IMPORT_QUEUE", MessageTypeEnum.Success, string.Format("Berjaya memuat naik fail, proces import rekod akan dilakukan dibelakang tabir")));
             }
             catch (Exception ex)
             {

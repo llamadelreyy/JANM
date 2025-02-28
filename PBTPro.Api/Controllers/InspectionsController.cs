@@ -10,16 +10,13 @@ Changes Logs:
 27/02/2025 - revamp table & logic
 */
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
-using QuestPDF.Helpers;
 
 
 namespace PBTPro.Api.Controllers
