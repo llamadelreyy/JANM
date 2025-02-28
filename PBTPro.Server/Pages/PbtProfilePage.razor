@@ -43,9 +43,9 @@ else
                         <DxFormLayout>
                             <DxFormLayoutItem ColSpanMd="2">
                                 <div class="align-items-center align-content-center">
-                                    @if (imageDataUrl != null)
+                                    @if (imageDataUrl != null || imageDataUrlUploded != null)
                                     {
-                                        <img class="tenant-logo" src="@imageDataUrl" alt="Uploaded Image" />
+                                        <img class="tenant-logo" src="@(imageDataUrl != null ? imageDataUrl : imageDataUrlUploded)" alt="Uploaded Image" />
                                     }
                                     else
                                     {
@@ -196,10 +196,15 @@ else
     protected override async Task OnInitializedAsync()
     {
         PanelVisible = true;
-        pbtInfo = await _TenantService.GetProfile();
+        await populateProfileInfo();
         await initPopulateDropItem();
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
+    }
+
+    protected async Task populateProfileInfo()
+    {
+        pbtInfo = await _TenantService.GetProfile();
     }
 
     protected async Task initPopulateDropItem(){
@@ -299,6 +304,11 @@ else
 
             if (response.ReturnCode == 200)
             {
+                if (inputModel.tn_photo_file != null)
+                {
+                    imageDataUrlUploded = imageDataUrl;
+                    fileInputRef.RemoveAllFiles();
+                }
                 StateHasChanged();
                 HandleResponse(response.ReturnMessage);
             }
@@ -314,6 +324,7 @@ else
     }
 
     #region Files
+    private string imageDataUrlUploded;
     private string imageDataUrl;
     private PBTProDxUpload fileInputRef { get; set; }
     long MaxFileSize = 5 * 1024 * 1024;

@@ -84,7 +84,7 @@ else
             PagerNavigationMode="PagerNavigationMode.InputBox"
             EditModelSaving="Grid_EditModelSaving"
             EditFormTemplate="Form_AddEditTemplate"
-            EditFormButtonsVisible="true"
+            EditFormButtonsVisible="false"
             CustomizeEditModel="OnCustomizeEditModel"
             PageSizeSelectorVisible="true"
             PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
@@ -591,7 +591,37 @@ else
             })));
             itemBuilder.CloseComponent();
             #endregion
+            
+            #region action button
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 12);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                editor.OpenElement(1, "hr");
+                editor.AddAttribute(2, "style", "padding:0;margin:0;");
+                editor.CloseElement();
+            })));
+            itemBuilder.CloseComponent();
 
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 12);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxButton>(o++);
+                editor.AddAttribute(o++, "SubmitFormOnClick", true);
+                editor.AddAttribute(o++, "class", "btn-edit-grid");
+                editor.AddAttribute(o++, "Text", "Simpan");
+                editor.CloseComponent();
+
+                editor.OpenComponent<DxButton>(o++);
+                editor.AddAttribute(o++, "Click", EventCallback.Factory.Create<MouseEventArgs>(this, () => Grid.CancelEditAsync()));
+                editor.AddAttribute(o++, "class", "btn-edit-grid");
+                editor.AddAttribute(o++, "Text", "Batal");
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
         }));
         builder.CloseComponent();
     }
@@ -690,6 +720,37 @@ else
                 editor.AddAttribute(o++, "DataAsync", (Func<CancellationToken, Task<IEnumerable<ref_law_act>>>)GetActCodeOptionsAsync);
                 editor.AddAttribute(o++, "TextFieldName", "act_name");
                 editor.AddAttribute(o++, "ValueFieldName", "act_code");
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
+
+            #region action button
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 12);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                editor.OpenElement(1, "hr");
+                editor.AddAttribute(2, "style", "padding:0;margin:0;");
+                editor.CloseElement();
+            })));
+            itemBuilder.CloseComponent();
+
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 12);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxButton>(o++);
+                editor.AddAttribute(o++, "SubmitFormOnClick", true);
+                editor.AddAttribute(o++, "class", "btn-edit-grid");
+                editor.AddAttribute(o++, "Text", "Simpan");
+                editor.CloseComponent();
+
+                editor.OpenComponent<DxButton>(o++);
+                editor.AddAttribute(o++, "Click", EventCallback.Factory.Create<MouseEventArgs>(this, () => Grid.CancelEditAsync()));
+                editor.AddAttribute(o++, "class", "btn-edit-grid");
+                editor.AddAttribute(o++, "Text", "Batal");
                 editor.CloseComponent();
             })));
             itemBuilder.CloseComponent();
@@ -835,6 +896,36 @@ else
             itemBuilder.CloseComponent();
             #endregion
 
+            #region action button
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 12);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                editor.OpenElement(1, "hr");
+                editor.AddAttribute(2, "style", "padding:0;margin:0;");
+                editor.CloseElement();
+            })));
+            itemBuilder.CloseComponent();
+
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 12);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxButton>(o++);
+                editor.AddAttribute(o++, "SubmitFormOnClick", true);
+                editor.AddAttribute(o++, "class", "btn-edit-grid");
+                editor.AddAttribute(o++, "Text", "Simpan");
+                editor.CloseComponent();
+
+                editor.OpenComponent<DxButton>(o++);
+                editor.AddAttribute(o++, "Click", EventCallback.Factory.Create<MouseEventArgs>(this, () => Grid.CancelEditAsync()));
+                editor.AddAttribute(o++, "class", "btn-edit-grid");
+                editor.AddAttribute(o++, "Text", "Batal");
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
         }));
         builder.CloseComponent();
     }
@@ -1033,6 +1124,36 @@ else
             itemBuilder.CloseComponent();
             #endregion
 
+            #region action button
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 12);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                editor.OpenElement(1, "hr");
+                editor.AddAttribute(2, "style", "padding:0;margin:0;");
+                editor.CloseElement();
+            })));
+            itemBuilder.CloseComponent();
+
+            itemBuilder.OpenComponent<DxFormLayoutItem>(i++);
+            itemBuilder.AddAttribute(i++, "ColSpanMd", 12);
+            itemBuilder.AddAttribute(i++, "Template", (RenderFragment<Object>)((context) => ((editor) =>
+            {
+                int o = 0;
+                editor.OpenComponent<DxButton>(o++);
+                editor.AddAttribute(o++, "SubmitFormOnClick", true);
+                editor.AddAttribute(o++, "class", "btn-edit-grid");
+                editor.AddAttribute(o++, "Text", "Simpan");
+                editor.CloseComponent();
+
+                editor.OpenComponent<DxButton>(o++);
+                editor.AddAttribute(o++, "Click", EventCallback.Factory.Create<MouseEventArgs>(this, () => Grid.CancelEditAsync()));
+                editor.AddAttribute(o++, "class", "btn-edit-grid");
+                editor.AddAttribute(o++, "Text", "Batal");
+                editor.CloseComponent();
+            })));
+            itemBuilder.CloseComponent();
+            #endregion
         }));
         builder.CloseComponent();
     }
