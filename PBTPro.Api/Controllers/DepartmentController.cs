@@ -34,12 +34,13 @@ namespace PBTPro.Api.Controllers
         private readonly ILogger<DepartmentController> _logger;
         private readonly string _feature = "JABATAN";
 
-        public DepartmentController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<DepartmentController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
+        public DepartmentController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<DepartmentController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
             _configuration = configuration;
             _hubContext = hubContext;
             _logger = logger;
+            _tenantDBContext = tntdbContext;
         }
 
         #region ref_department
@@ -49,7 +50,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var data = await _dbContext.ref_departments.AsNoTracking().ToListAsync();
+                var data = await _tenantDBContext.ref_departments.AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -65,7 +66,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfield = await _dbContext.ref_departments.FirstOrDefaultAsync(x => x.dept_id == Id);
+                var parFormfield = await _tenantDBContext.ref_departments.FirstOrDefaultAsync(x => x.dept_id == Id);
 
                 if (parFormfield == null)
                 {
@@ -90,7 +91,7 @@ namespace PBTPro.Api.Controllers
                 var runUser = await getDefRunUser();
 
                 #region validation
-                var existingDepartment = await _dbContext.ref_departments
+                var existingDepartment = await _tenantDBContext.ref_departments
                    .FirstOrDefaultAsync(d => d.dept_code == InputModel.dept_code && d.is_deleted == false);
 
                 if (existingDepartment != null)
@@ -110,8 +111,8 @@ namespace PBTPro.Api.Controllers
                     created_at = DateTime.Now,
                 };
 
-                _dbContext.ref_departments.Add(ref_department);
-                await _dbContext.SaveChangesAsync();
+                _tenantDBContext.ref_departments.Add(ref_department);
+                await _tenantDBContext.SaveChangesAsync();
 
                 #endregion
 
@@ -142,7 +143,7 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.ref_departments.FirstOrDefaultAsync(x => x.dept_id == InputModel.dept_id);
+                var formField = await _tenantDBContext.ref_departments.FirstOrDefaultAsync(x => x.dept_id == InputModel.dept_id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
@@ -164,8 +165,8 @@ namespace PBTPro.Api.Controllers
                 formField.modifier_id = runUserID;
                 formField.modified_at = DateTime.Now;
 
-                _dbContext.ref_departments.Update(formField);
-                await _dbContext.SaveChangesAsync();
+                _tenantDBContext.ref_departments.Update(formField);
+                await _tenantDBContext.SaveChangesAsync();
 
                 return Ok(formField, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
@@ -185,15 +186,15 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.ref_departments.FirstOrDefaultAsync(x => x.dept_id == Id);
+                var formField = await _tenantDBContext.ref_departments.FirstOrDefaultAsync(x => x.dept_id == Id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
 
-                _dbContext.ref_departments.Remove(formField);
-                await _dbContext.SaveChangesAsync();
+                _tenantDBContext.ref_departments.Remove(formField);
+                await _tenantDBContext.SaveChangesAsync();
 
                 return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
@@ -206,7 +207,7 @@ namespace PBTPro.Api.Controllers
 
         private bool ref_department_exists(int id)
         {
-            return (_dbContext.ref_departments?.Any(e => e.dept_id == id)).GetValueOrDefault();
+            return (_tenantDBContext.ref_departments?.Any(e => e.dept_id == id)).GetValueOrDefault();
         }
         #endregion
     }

@@ -75,9 +75,9 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<permission> permissions { get; set; }
 
-    public virtual DbSet<ref_department> ref_departments { get; set; }
+    //public virtual DbSet<ref_department> ref_departments { get; set; }
 
-    public virtual DbSet<ref_division> ref_divisions { get; set; }
+    //public virtual DbSet<ref_division> ref_divisions { get; set; }
 
     public virtual DbSet<ref_law_act> ref_law_acts { get; set; }
 
@@ -87,7 +87,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<ref_law_uuk> ref_law_uuks { get; set; }
 
-    public virtual DbSet<ref_unit> ref_units { get; set; }
+    //public virtual DbSet<ref_unit> ref_units { get; set; }
 
     public virtual DbSet<ref_id_type> ref_id_types { get; set; }
 
@@ -954,74 +954,74 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.role_id).HasComment("Identifier for the role associated with the core.permission.");
         });
 
-        modelBuilder.Entity<ref_department>(entity =>
-        {
-            entity.HasKey(e => e.dept_id).HasName("ref_department_pkey");
+        //modelBuilder.Entity<ref_department>(entity =>
+        //{
+        //    entity.HasKey(e => e.dept_id).HasName("ref_department_pkey");
 
-            entity.ToTable("ref_department", "tenant", tb => tb.HasComment("This table stores information about departments under PBT (e.g., Jabatan Pelesenan)."));
+        //    entity.ToTable("ref_department", "tenant", tb => tb.HasComment("This table stores information about departments under PBT (e.g., Jabatan Pelesenan)."));
 
-            entity.HasIndex(e => e.dept_code, "ref_department_dept_code_key").IsUnique();
+        //    entity.HasIndex(e => e.dept_code, "ref_department_dept_code_key").IsUnique();
 
-            entity.Property(e => e.dept_id).HasComment("Unique identifier for each department record (Primary Key).");
-            entity.Property(e => e.created_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was created.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.creator_id).HasComment("User who created the record.");
-            entity.Property(e => e.dept_code)
-                .HasMaxLength(10)
-                .HasComment("Code of the department (e.g., PL).");
-            entity.Property(e => e.dept_desc).HasComment("Description about the department (e.g., Roles, Job Description, etc.).");
-            entity.Property(e => e.dept_name)
-                .HasMaxLength(40)
-                .HasComment("Name of the department (e.g., Jabatan Pelesenan).");
-            entity.Property(e => e.is_deleted)
-                .HasDefaultValue(false)
-                .HasComment("Logical delete flag indicating if the record is active or deleted.");
-            entity.Property(e => e.modified_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was last updated.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+        //    entity.Property(e => e.dept_id).HasComment("Unique identifier for each department record (Primary Key).");
+        //    entity.Property(e => e.created_at)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        //        .HasComment("Timestamp when the record was created.")
+        //        .HasColumnType("timestamp without time zone");
+        //    entity.Property(e => e.creator_id).HasComment("User who created the record.");
+        //    entity.Property(e => e.dept_code)
+        //        .HasMaxLength(10)
+        //        .HasComment("Code of the department (e.g., PL).");
+        //    entity.Property(e => e.dept_desc).HasComment("Description about the department (e.g., Roles, Job Description, etc.).");
+        //    entity.Property(e => e.dept_name)
+        //        .HasMaxLength(40)
+        //        .HasComment("Name of the department (e.g., Jabatan Pelesenan).");
+        //    entity.Property(e => e.is_deleted)
+        //        .HasDefaultValue(false)
+        //        .HasComment("Logical delete flag indicating if the record is active or deleted.");
+        //    entity.Property(e => e.modified_at)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        //        .HasComment("Timestamp when the record was last updated.")
+        //        .HasColumnType("timestamp without time zone");
+        //    entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
            
-        });
+        //});
 
-        modelBuilder.Entity<ref_division>(entity =>
-        {
-            entity.HasKey(e => e.div_id).HasName("ref_division_pkey");
+        //modelBuilder.Entity<ref_division>(entity =>
+        //{
+        //    entity.HasKey(e => e.div_id).HasName("ref_division_pkey");
 
-            entity.ToTable("ref_division", "tenant", tb => tb.HasComment("This table stores information about divisions under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
+        //    entity.ToTable("ref_division", "tenant", tb => tb.HasComment("This table stores information about divisions under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
 
-            entity.HasIndex(e => e.div_code, "ref_division_div_code_key").IsUnique();
+        //    entity.HasIndex(e => e.div_code, "ref_division_div_code_key").IsUnique();
 
-            entity.Property(e => e.div_id).HasComment("Unique identifier for each division record (Primary Key).");
-            entity.Property(e => e.created_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was created.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.creator_id).HasComment("User who created the record.");
-            entity.Property(e => e.div_code)
-                .HasMaxLength(10)
-                .HasComment("Code of the division (e.g., PL-TR).");
-            entity.Property(e => e.div_desc).HasComment("Description about the division (e.g., Roles, Job Description, etc.).");
-            entity.Property(e => e.div_name)
-                .HasMaxLength(40)
-                .HasComment("Name of division (e.g., Bahagian TRED dan Perniagaan dan Industri).");
-            entity.Property(e => e.is_deleted)
-                .HasDefaultValue(false)
-                .HasComment("Logical delete flag indicating if the record is active or deleted.");
-            entity.Property(e => e.modified_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was last updated.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
-            entity.Property(e => e.dept_name)
-                .HasMaxLength(100);
-            entity.Property(e => e.dept_id);
-            entity.HasOne(d => d.dept).WithMany(p => p.ref_divisions)
-                .HasForeignKey(d => d.dept_id)
-                .HasConstraintName("fk_div_id_belongs_to_dept_id");
-        });
+        //    entity.Property(e => e.div_id).HasComment("Unique identifier for each division record (Primary Key).");
+        //    entity.Property(e => e.created_at)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        //        .HasComment("Timestamp when the record was created.")
+        //        .HasColumnType("timestamp without time zone");
+        //    entity.Property(e => e.creator_id).HasComment("User who created the record.");
+        //    entity.Property(e => e.div_code)
+        //        .HasMaxLength(10)
+        //        .HasComment("Code of the division (e.g., PL-TR).");
+        //    entity.Property(e => e.div_desc).HasComment("Description about the division (e.g., Roles, Job Description, etc.).");
+        //    entity.Property(e => e.div_name)
+        //        .HasMaxLength(40)
+        //        .HasComment("Name of division (e.g., Bahagian TRED dan Perniagaan dan Industri).");
+        //    entity.Property(e => e.is_deleted)
+        //        .HasDefaultValue(false)
+        //        .HasComment("Logical delete flag indicating if the record is active or deleted.");
+        //    entity.Property(e => e.modified_at)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        //        .HasComment("Timestamp when the record was last updated.")
+        //        .HasColumnType("timestamp without time zone");
+        //    entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+        //    entity.Property(e => e.dept_name)
+        //        .HasMaxLength(100);
+        //    entity.Property(e => e.dept_id);
+        //    entity.HasOne(d => d.dept).WithMany(p => p.ref_divisions)
+        //        .HasForeignKey(d => d.dept_id)
+        //        .HasConstraintName("fk_div_id_belongs_to_dept_id");
+        //});
 
         modelBuilder.Entity<ref_law_act>(entity =>
         {
@@ -1097,47 +1097,47 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.uuk_name).HasMaxLength(40);
         });
 
-        modelBuilder.Entity<ref_unit>(entity =>
-        {
-            entity.HasKey(e => e.unit_id).HasName("ref_unit_pkey");
+        //modelBuilder.Entity<ref_unit>(entity =>
+        //{
+        //    entity.HasKey(e => e.unit_id).HasName("ref_unit_pkey");
 
-            entity.ToTable("ref_unit", "tenant", tb => tb.HasComment("This table stores information about unit under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
+        //    entity.ToTable("ref_unit", "tenant", tb => tb.HasComment("This table stores information about unit under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
 
-            entity.HasIndex(e => e.unit_code, "ref_unit_unit_code_key").IsUnique();
+        //    entity.HasIndex(e => e.unit_code, "ref_unit_unit_code_key").IsUnique();
 
-            entity.Property(e => e.unit_id).HasComment("Unique identifier for each unit under division");
-            entity.Property(e => e.created_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was created.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.creator_id).HasComment("User who created the record.");
-            entity.Property(e => e.is_deleted)
-                .HasDefaultValue(false)
-                .HasComment("Logical delete flag indicating if the record is active or deleted.");
-            entity.Property(e => e.modified_at)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasComment("Timestamp when the record was last updated.")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
-            entity.Property(e => e.unit_code)
-                .HasMaxLength(10)
-                .HasComment("Code of the unit (e.g., PL-TR).");
-            entity.Property(e => e.unit_desc).HasComment("Description about the unit (e.g., Roles, Job Description, etc.).");
-            entity.Property(e => e.unit_name)
-                .HasMaxLength(40)
-                .HasComment("Name of unit (e.g., Unit Kaunter).");
-            entity.Property(e => e.dept_name)
-                .HasMaxLength(100);
-            entity.Property(e => e.div_name)
-                .HasMaxLength(100);
-            entity.HasOne(d => d.dept).WithMany(p => p.ref_units)
-               .HasForeignKey(d => d.dept_id)
-               .HasConstraintName("fk_div_id_belongs_to_dept_id");
+        //    entity.Property(e => e.unit_id).HasComment("Unique identifier for each unit under division");
+        //    entity.Property(e => e.created_at)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        //        .HasComment("Timestamp when the record was created.")
+        //        .HasColumnType("timestamp without time zone");
+        //    entity.Property(e => e.creator_id).HasComment("User who created the record.");
+        //    entity.Property(e => e.is_deleted)
+        //        .HasDefaultValue(false)
+        //        .HasComment("Logical delete flag indicating if the record is active or deleted.");
+        //    entity.Property(e => e.modified_at)
+        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        //        .HasComment("Timestamp when the record was last updated.")
+        //        .HasColumnType("timestamp without time zone");
+        //    entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+        //    entity.Property(e => e.unit_code)
+        //        .HasMaxLength(10)
+        //        .HasComment("Code of the unit (e.g., PL-TR).");
+        //    entity.Property(e => e.unit_desc).HasComment("Description about the unit (e.g., Roles, Job Description, etc.).");
+        //    entity.Property(e => e.unit_name)
+        //        .HasMaxLength(40)
+        //        .HasComment("Name of unit (e.g., Unit Kaunter).");
+        //    entity.Property(e => e.dept_name)
+        //        .HasMaxLength(100);
+        //    entity.Property(e => e.div_name)
+        //        .HasMaxLength(100);
+        //    entity.HasOne(d => d.dept).WithMany(p => p.ref_units)
+        //       .HasForeignKey(d => d.dept_id)
+        //       .HasConstraintName("fk_div_id_belongs_to_dept_id");
 
-            entity.HasOne(d => d.div).WithMany(p => p.ref_units)
-                .HasForeignKey(d => d.div_id)
-                .HasConstraintName("fk_unit_id_belongs_to_div_id");
-        });
+        //    entity.HasOne(d => d.div).WithMany(p => p.ref_units)
+        //        .HasForeignKey(d => d.div_id)
+        //        .HasConstraintName("fk_unit_id_belongs_to_div_id");
+        //});
 
         modelBuilder.Entity<ref_id_type>(entity =>
         {

@@ -146,7 +146,7 @@ namespace PBTPro.Api.Controllers
                 }
 
                 var existingSchedules = await _tenantDBContext.mst_patrol_schedules
-                                .Where(s => s.idno == InputModel.ICNo)
+                                .Where(s => s.idno == InputModel.ICNo && s.is_deleted == false)
                                 .ToListAsync();
 
                 foreach (var schedule in existingSchedules)
@@ -169,8 +169,8 @@ namespace PBTPro.Api.Controllers
                 {
                     idno = InputModel.ICNo,
                     dept_id = InputModel.DeptId,
-                    start_time = InputModel.StartTime,
-                    end_time = InputModel.EndTime,
+                    start_time = (DateTime)InputModel.StartTime,
+                    end_time = (DateTime)InputModel.EndTime,
                     creator_id = runUserID,
                     created_at = InputModel.CreatedAt,
                     is_deleted = false,
@@ -179,8 +179,8 @@ namespace PBTPro.Api.Controllers
                     town_code = InputModel.TownCode,
                     status_id = Convert.ToInt32(InputModel.PatrolStatus),
                     user_id = runUserID,
-                    is_scheduled= true,
-                    type_id = InputModel.TypeId,                    
+                    is_scheduled = true,
+                    type_id = InputModel.TypeId,
                 };
 
                 _tenantDBContext.mst_patrol_schedules.Add(mst_Patrol);
@@ -230,24 +230,30 @@ namespace PBTPro.Api.Controllers
 
                 foreach (var schedule in existingSchedules)
                 {
-                    if (InputModel.StartTime >= schedule.start_time && InputModel.EndTime <= schedule.end_time)
+                    bool ischange = true;
+                    if (schedule.start_time == InputModel.StartTime && schedule.end_time == InputModel.EndTime)
                     {
-                        // The new schedule's time range is completely within the existing schedule's range
-                        return Error("", SystemMesg(_feature, "PATROL_TIME_WITHIN_EXISTING", MessageTypeEnum.Error, string.Format("Tarikh rondaan adalah dalam jadual yang sedia ada.")));
+                        ischange = false;
                     }
-
-                    if (InputModel.StartTime < schedule.end_time && InputModel.EndTime > schedule.start_time)
+                    if (ischange)
                     {
-                        // There's an overlap with an existing schedule
-                        return Error("", SystemMesg(_feature, "PATROL_OVERLAP_TIME", MessageTypeEnum.Error, string.Format("Tarikh rondaan bertindih dengan jadual lain.")));
+                        if (InputModel.StartTime >= schedule.start_time && InputModel.EndTime <= schedule.end_time)
+                        {
+                            return Error("", SystemMesg(_feature, "PATROL_TIME_WITHIN_EXISTING", MessageTypeEnum.Error, string.Format("Tarikh rondaan adalah dalam jadual yang sedia ada.")));
+                        }
+
+                        if (InputModel.StartTime < schedule.end_time && InputModel.EndTime > schedule.start_time)
+                        {
+                            return Error("", SystemMesg(_feature, "PATROL_OVERLAP_TIME", MessageTypeEnum.Error, string.Format("Tarikh rondaan bertindih dengan jadual lain.")));
+                        }
                     }
                 }
                 #endregion
 
                 formField.idno = InputModel.ICNo;
                 formField.dept_id = InputModel.DeptId;
-                formField.start_time = InputModel.StartTime;
-                formField.end_time = InputModel.EndTime;
+                formField.start_time = (DateTime)InputModel.StartTime;
+                formField.end_time = (DateTime)InputModel.EndTime;
                 formField.district_code = InputModel.DistrictCode;
                 formField.town_code = InputModel.TownCode;
                 formField.modifier_id = runUserID;
@@ -317,8 +323,6 @@ namespace PBTPro.Api.Controllers
                         join bandar in _dbContext.mst_towns on schedule.town_code equals bandar.town_code
                         join type in _tenantDBContext.ref_patrol_types on schedule.type_id equals type.type_id
 
-
-                        // Group by `schedule_id` to avoid duplicates
                         group new { schedule, user, department, seksyen, unit, daerah, bandar, type } by schedule.schedule_id into grouped
                         select new PatrolViewModel
                         {
@@ -376,7 +380,7 @@ namespace PBTPro.Api.Controllers
                 _tenantDBContext.mst_patrol_schedules.Update(formField);
                 await _tenantDBContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
             catch (Exception ex)
             {

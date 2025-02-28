@@ -16,8 +16,8 @@ namespace PBTPro.DAL.Models.CommonServices
         public string? DistrictName { get; set; }
         public string?  TownCode { get; set; }
         public string? TownName { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
         public DateTime CreatedAt { get; set; }
         public int DeptId { get; set; }
         public string? DeptName { get; set; }

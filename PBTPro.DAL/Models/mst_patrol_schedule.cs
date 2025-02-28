@@ -52,7 +52,6 @@ public partial class mst_patrol_schedule
 
     public int? user_id { get; set; }
 
-    //public virtual ref_departmentss? dept { get; set; }
     public virtual ref_department? dept { get; set; }
 
     public virtual ref_patrol_status? status { get; set; }

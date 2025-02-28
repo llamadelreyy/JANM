@@ -114,7 +114,7 @@ else
                             }
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
-                    <DxGridDataColumn Caption="Pegawai" MinWidth="100" Width="20%" FieldName="OfficerName" TextAlignment="GridTextAlignment.Left">
+                    <DxGridDataColumn Caption="Pegawai" MinWidth="100" Width="20%" FieldName="OfficerName" TextAlignment="GridTextAlignment.Left" GroupIndex="0">
                         <CellDisplayTemplate>
                             <div>
                                 @CombineTextPegawai(((PatrolViewModel)context.DataItem).OfficerName, ((PatrolViewModel)context.DataItem).DeptName, ((PatrolViewModel)context.DataItem).SectionName, ((PatrolViewModel)context.DataItem).UnitName)
@@ -142,7 +142,7 @@ else
                             </div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
-                    <DxGridDataColumn Caption="Jenis" MinWidth="100" Width="20%" FieldName="TypeName" TextAlignment="GridTextAlignment.Left"/>                       
+                    <DxGridDataColumn Caption="Jenis" MinWidth="100" Width="20%" FieldName="TypeName" TextAlignment="GridTextAlignment.Left" />
                     <DxGridDataColumn FieldName="PatrolStatus" Caption="Status" Width="12%" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
                         <CellDisplayTemplate>
                             <div>@GetStatusRondaanIconHtml(((PatrolViewModel)context.DataItem).PatrolStatus)</div>
@@ -268,9 +268,10 @@ else
                                     <td nowrap>Masa Mula Rondaan</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%">
-                                        <DxDateEdit @bind-Date="@dtEdit.StartTime"
-                                        NullValue="@DateTimeValue"
-                                        NullText="@DateTimeValue.ToString()"
+                                        <DxDateEdit @bind-Date="@dtEdit.StartTime"                                                  
+                                        NullText="Pilih tarikh dan masa..."
+                                        DisplayFormat="dd/MM/yyyy HH:mm:ss"
+                                        ShowValidationIcon="true"
                                         TimeSectionVisible="true"
                                         CssClass="cw-320" />
                                     </td>
@@ -283,9 +284,10 @@ else
                                     <td nowrap>Masa Tamat Rondaan</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%">
-                                        <DxDateEdit @bind-Date="@dtEdit.EndTime"
-                                        NullValue="@DateTimeValue"
-                                        NullText="@DateTimeValue.ToString()"
+                                        <DxDateEdit @bind-Date="@dtEdit.EndTime"                                                  
+                                        NullText="Pilih tarikh dan masa..."
+                                        DisplayFormat="dd/MM/yyyy HH:mm:ss"
+                                        ShowValidationIcon="true"
                                         TimeSectionVisible="true"
                                         CssClass="cw-320" />
                                     </td>
@@ -300,13 +302,13 @@ else
                                     <td nowrap>&nbsp;&nbsp;</td>
                                     <td width="50%">
                                         <DxComboBox Data="@dtPatrolType"
-                                                    NullText="Pilih Jenis Rondaan ..."
-                                                    ShowValidationIcon="true"
-                                                    FilteringMode="DataGridFilteringMode.Contains"
-                                                    @bind-Value="@dtEdit.TypeId"
-                                                    @bind-Text="@dtEdit.TypeName"
-                                                    TextFieldName="type_name"
-                                                    ValueFieldName="type_id" style="width:300px">
+                                        NullText="Pilih Jenis Rondaan ..."
+                                        ShowValidationIcon="true"
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        @bind-Value="@dtEdit.TypeId"
+                                        @bind-Text="@dtEdit.TypeName"
+                                        TextFieldName="type_name"
+                                        ValueFieldName="type_id" style="width:300px">
                                         </DxComboBox>
                                     </td>
                                     <td width="100px">&nbsp;</td>
@@ -324,6 +326,9 @@ else
                         </DxFormLayoutItem>
                     </DxFormLayout>
                 </EditFormTemplate>
+                <CustomValidators>
+                    <MyCustomValidator DataItemValidating="ValidateGridData" />
+                </CustomValidators>
             </DxGrid>
 
         </div>
@@ -440,6 +445,7 @@ else
     async Task UpdateDataAsync()
     {
         dataSchedule = await GetListDataAsync(tabType);
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
     #endregion
@@ -466,8 +472,6 @@ else
                 editModel.OfficerName = _itm.OfficerName;
                 editModel.PatrolStatus = "3";
 
-                editModel.DistrictName = _itm.DistrictName;
-
                 editModel.CreatedAt = DateTime.Now;
 
                 response = await _ScheduleService.Add(editModel);
@@ -486,15 +490,14 @@ else
                 editModel.OfficerName = _itm.OfficerName;
                 editModel.PatrolStatus = "3";
 
-                editModel.DistrictName = _itm.DistrictName;
-
                 response = await _ScheduleService.Update(editModel);
             }
 
             if (response.ReturnCode == 200)
             {
                 await UpdateDataAsync();
-                HandleResponse("Proses kemaskini selesai.");
+                StateHasChanged();
+                HandleResponse(response.ReturnMessage);
             }
             else
             {
@@ -524,9 +527,11 @@ else
             if (response.ReturnCode == 200)
             {
                 await UpdateDataAsync();
+
                 ConfirmationShown = false;
                 StateHasChanged();
                 HandleResponse(response.ReturnMessage);
+
             }
             else
             {
@@ -546,6 +551,30 @@ else
         ConfirmationShown = false;
     }
 
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        var _data = (PatrolViewModel)e.EditModel;
+
+        if (_data.TypeId == 0)
+        {
+            e.AddError(nameof(_data.TypeId), "Jenis Rondaan tidak sah. Medan perlu diisi.");
+        }
+
+        if (_data.DistrictCode == null || _data.DistrictCode == "")
+        {
+            e.AddError(nameof(_data.DistrictCode), "Daerah tidak sah. Medan perlu diisi.");
+        }
+        
+        if (_data.TownCode == null || _data.TownCode == "")
+        {
+            e.AddError(nameof(_data.TownCode), "Bandar tidak sah. Medan perlu diisi.");
+        }              
+       
+        if (_data.ICNo == null || _data.ICNo == "")
+        {
+            e.AddError(nameof(_data.ICNo), "Pegawai tidak sah. Medan perlu diisi.");
+        }
+    }
     #endregion
 
     #region MarkupString
@@ -597,7 +626,7 @@ else
         string html = string.Format("{0}, {1}", strbandar.ToUpper(), strdaerah.ToUpper());
         return new MarkupString(html);
     }
-    
+
     #endregion
 
     #region response
