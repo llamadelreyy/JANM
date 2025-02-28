@@ -52,7 +52,7 @@ else
             EditorRenderMode="GridEditorRenderMode.Integrated"
             FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Never"
             ShowSearchBox="true"
-            AllowSelectRowByClick="true"
+            AllowSelectRowByClick="false"
             @bind-SearchText="@GridSearchText"
             PageSize="50"
             @bind-PageIndex="@GridPageIndex"
@@ -66,7 +66,7 @@ else
             PagerAutoHideNavButtons="false"
             ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
             GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-            HighlightRowOnHover="true"
+            HighlightRowOnHover="false"
             CssClass="mv-1000">
 
                 <Columns>
