@@ -367,7 +367,7 @@ namespace PBTPro.Api.Controllers
                     });
                 }
 
-                return Ok("", SystemMesg(_feature, "IMPORT_QUEUE", MessageTypeEnum.Success, string.Format("Berjaya memuat naik fail, proces import rekot akan dilakukan dibelakang tabir")));
+                return Ok("", SystemMesg(_feature, "IMPORT_QUEUE", MessageTypeEnum.Success, string.Format("Berjaya memuat naik fail, proces import rekod akan dilakukan dibelakang tabir")));
             }
             catch (Exception ex)
             {
