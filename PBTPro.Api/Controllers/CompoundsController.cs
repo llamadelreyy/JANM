@@ -559,11 +559,11 @@ namespace PBTPro.Api.Controllers
                                     _tenantDBContext.ref_delivers,
                                     t => t.deliver_id,
                                     d => d.deliver_id,
-                                    (t, gd) => new { trn_cmpds = t, gd }
+                                    (t, gd) => new { trn_cmpd = t, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, rdel) => new { jd.trn_cmpds, ref_deliver = rdel, mst_licensee = (mst_licensee)null, mst_taxtholder = (mst_taxholder)null, mst_owner = (mst_owner)null }
+                                    (jd, rdel) => new { jd.trn_cmpd, ref_deliver = rdel, mst_licensee = (mst_licensee)null, mst_taxtholder = (mst_taxholder)null, mst_owner = (mst_owner)null }
                                 );
 
                 if(record.is_tax == true)
@@ -571,23 +571,23 @@ namespace PBTPro.Api.Controllers
                     initQuery = initQuery
                                 .GroupJoin(
                                     _tenantDBContext.mst_taxholders,
-                                    t => t.trn_cmpds.tax_accno,
+                                    t => t.trn_cmpd.tax_accno,
                                     d => d.tax_accno,
-                                    (t, gd) => new { t.trn_cmpds, t.ref_deliver, gd }
+                                    (t, gd) => new { t.trn_cmpd, t.ref_deliver, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, mth) => new { jd.trn_cmpds, jd.ref_deliver, mst_licensee = (mst_licensee)null, mst_taxtholder = mth }
+                                    (jd, mth) => new { jd.trn_cmpd, jd.ref_deliver, mst_licensee = (mst_licensee)null, mst_taxtholder = mth }
                                 )
                                 .GroupJoin(
                                     _tenantDBContext.mst_owners,
                                     t => t.mst_taxtholder.owner_icno,
                                     d => d.owner_icno,
-                                    (t, gd) => new { t.trn_cmpds, t.ref_deliver, t.mst_licensee, t.mst_taxtholder, gd }
+                                    (t, gd) => new { t.trn_cmpd, t.ref_deliver, t.mst_licensee, t.mst_taxtholder, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, mto) => new { jd.trn_cmpds, jd.ref_deliver, jd.mst_licensee, jd.mst_taxtholder, mst_owner = mto }
+                                    (jd, mto) => new { jd.trn_cmpd, jd.ref_deliver, jd.mst_licensee, jd.mst_taxtholder, mst_owner = mto }
                                 );
                 }
                 else
@@ -595,23 +595,23 @@ namespace PBTPro.Api.Controllers
                     initQuery = initQuery
                                 .GroupJoin(
                                     _tenantDBContext.mst_licensees,
-                                    t => t.trn_cmpds.license_id,
+                                    t => t.trn_cmpd.license_id,
                                     d => d.licensee_id,
-                                    (t, gd) => new { t.trn_cmpds, t.ref_deliver, gd }
+                                    (t, gd) => new { t.trn_cmpd, t.ref_deliver, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, mli) => new { jd.trn_cmpds, jd.ref_deliver, mst_licensee = mli, mst_taxtholder = (mst_taxholder)null }
+                                    (jd, mli) => new { jd.trn_cmpd, jd.ref_deliver, mst_licensee = mli, mst_taxtholder = (mst_taxholder)null }
                                 )
                                 .GroupJoin(
                                     _tenantDBContext.mst_owners,
                                     t => t.mst_licensee.owner_icno,
                                     d => d.owner_icno,
-                                    (t, gd) => new { t.trn_cmpds, t.ref_deliver, t.mst_licensee, t.mst_taxtholder, gd }
+                                    (t, gd) => new { t.trn_cmpd, t.ref_deliver, t.mst_licensee, t.mst_taxtholder, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, mto) => new { jd.trn_cmpds, jd.ref_deliver, jd.mst_licensee, jd.mst_taxtholder, mst_owner = mto }
+                                    (jd, mto) => new { jd.trn_cmpd, jd.ref_deliver, jd.mst_licensee, jd.mst_taxtholder, mst_owner = mto }
                                 );
                 }
 
