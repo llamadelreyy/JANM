@@ -144,7 +144,7 @@ namespace PBTPro.Data
                     {
                         result = JsonConvert.DeserializeObject<user_profile_view>(dataString);
                     }
-                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai soalan lazim.", 1, LoggerName, "");
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar profil pengguna.", 1, LoggerName, "");
                 }
                 else
                 {
