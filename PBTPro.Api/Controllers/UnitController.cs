@@ -36,12 +36,13 @@ namespace PBTPro.Api.Controllers
 
         private readonly string _feature = "UNIT";
 
-        public UnitController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<UnitController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
+        public UnitController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<UnitController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
             _configuration = configuration;
             _hubContext = hubContext;
             _logger = logger;
+            _tenantDBContext = tntdbContext;
         }
 
         [AllowAnonymous]
@@ -50,10 +51,10 @@ namespace PBTPro.Api.Controllers
         {            
             try
             {
-                var data = await (from unit in _dbContext.ref_units
-                                  join dept in _dbContext.ref_departments
+                var data = await (from unit in _tenantDBContext.ref_units
+                                  join dept in _tenantDBContext.ref_departments
                                   on unit.dept_id equals dept.dept_id
-                                  join div in _dbContext.ref_divisions
+                                  join div in _tenantDBContext.ref_divisions
                                   on unit.div_id equals div.div_id
                                   select new
                                   {
@@ -72,7 +73,7 @@ namespace PBTPro.Api.Controllers
 
                 if (data == null)
                 {
-                    var data1 = await _dbContext.ref_units.AsNoTracking().ToListAsync();
+                    var data1 = await _tenantDBContext.ref_units.AsNoTracking().ToListAsync();
                     return Ok(data1, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
                 }
 
@@ -91,7 +92,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var parFormfield = await _dbContext.ref_units.FirstOrDefaultAsync(x => x.unit_id == Id);
+                var parFormfield = await _tenantDBContext.ref_units.FirstOrDefaultAsync(x => x.unit_id == Id);
 
                 if (parFormfield == null)
                 {
@@ -116,7 +117,7 @@ namespace PBTPro.Api.Controllers
                 var runUser = await getDefRunUser();
 
                 #region validation
-                var existingUnit = await _dbContext.ref_units
+                var existingUnit = await _tenantDBContext.ref_units
                    .FirstOrDefaultAsync(d => d.unit_code == InputModel.unit_code && d.dept_name == InputModel.dept_name && d.div_name == InputModel.div_name && d.is_deleted == false);
 
                 if (existingUnit != null)
@@ -140,7 +141,7 @@ namespace PBTPro.Api.Controllers
                     created_at = DateTime.Now,
                 };
 
-                _dbContext.ref_units.Add(division_infos);
+                _tenantDBContext.ref_units.Add(division_infos);
                 await _dbContext.SaveChangesAsync();
 
                 #endregion
@@ -176,7 +177,7 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.ref_units.FirstOrDefaultAsync(x => x.unit_id == InputModel.unit_id);
+                var formField = await _tenantDBContext.ref_units.FirstOrDefaultAsync(x => x.unit_id == InputModel.unit_id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
@@ -205,8 +206,8 @@ namespace PBTPro.Api.Controllers
                 formField.modifier_id = runUserID;
                 formField.modified_at = DateTime.Now;
 
-                _dbContext.ref_units.Update(formField);
-                await _dbContext.SaveChangesAsync();
+                _tenantDBContext.ref_units.Update(formField);
+                await _tenantDBContext.SaveChangesAsync();
                 
                 return Ok(formField, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
             }
@@ -226,15 +227,15 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var formField = await _dbContext.ref_units.FirstOrDefaultAsync(x => x.unit_id == Id);
+                var formField = await _tenantDBContext.ref_units.FirstOrDefaultAsync(x => x.unit_id == Id);
                 if (formField == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
                 #endregion
 
-                _dbContext.ref_units.Remove(formField);
-                await _dbContext.SaveChangesAsync();
+                _tenantDBContext.ref_units.Remove(formField);
+                await _tenantDBContext.SaveChangesAsync();
 
                 return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
@@ -247,7 +248,7 @@ namespace PBTPro.Api.Controllers
 
         private bool UnitExists(int id)
         {
-            return (_dbContext.ref_units?.Any(e => e.unit_id == id)).GetValueOrDefault();
+            return (_tenantDBContext.ref_units?.Any(e => e.unit_id == id)).GetValueOrDefault();
         }        
 
     }

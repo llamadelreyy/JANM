@@ -50,7 +50,7 @@ namespace PBTPro.Api.Controllers
         private readonly IEmailSender _emailSender;
         private readonly IPasswordValidator<ApplicationUser> _passwordValidator;
 
-        public UserController(PBTProDbContext dbContext, ILogger<UserController> logger, UserManager<ApplicationUser> userManager, IOptions<IdentityOptions> identityOptions, IEmailSender emailSender, IPasswordValidator<ApplicationUser> passwordValidator) : base(dbContext)
+        public UserController(PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<UserController> logger, UserManager<ApplicationUser> userManager, IOptions<IdentityOptions> identityOptions, IEmailSender emailSender, IPasswordValidator<ApplicationUser> passwordValidator) : base(dbContext)
         {
             _logger = logger;
             _userManager = userManager;
@@ -58,6 +58,7 @@ namespace PBTPro.Api.Controllers
             _emailSender = emailSender;
             SetTenantDbContext("tenant");
             _passwordValidator = passwordValidator;
+            _tenantDBContext = tntdbContext;
         }
 
         [HttpGet]
@@ -82,9 +83,9 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var users = await _dbContext.Users.AsNoTracking().ToListAsync();
-                var dtDepartment = await _dbContext.ref_departments.AsNoTracking().ToListAsync();
-                var dtSection = await _dbContext.ref_divisions.AsNoTracking().ToListAsync();
-                var dtUnit = await _dbContext.ref_units.AsNoTracking().ToListAsync();
+                var dtDepartment = await _tenantDBContext.ref_departments.AsNoTracking().ToListAsync();
+                var dtSection = await _tenantDBContext.ref_divisions.AsNoTracking().ToListAsync();
+                var dtUnit = await _tenantDBContext.ref_units.AsNoTracking().ToListAsync();
                 List<RegisterModel> registerModels = new List<RegisterModel>();
 
                 if (users.Count() != 0)

@@ -206,7 +206,7 @@ namespace PBTPro.Api.Controllers
                 _dbContext.contact_us.Remove(formField);
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
             }
             catch (Exception ex)
             {

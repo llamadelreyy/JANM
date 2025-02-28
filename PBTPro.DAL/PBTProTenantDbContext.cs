@@ -527,9 +527,9 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.town_code).HasMaxLength(10);
 
-            //entity.HasOne(d => d.dept).WithMany(p => p.mst_patrol_schedules)
-            //    .HasForeignKey(d => d.dept_id)
-            //    .HasConstraintName("dept_id_refers_to_dept_id");
+            entity.HasOne(d => d.dept).WithMany(p => p.mst_patrol_schedules)
+                .HasForeignKey(d => d.dept_id)
+                .HasConstraintName("dept_id_refers_to_dept_id");
 
             entity.HasOne(d => d.status).WithMany(p => p.mst_patrol_schedules)
                 .HasForeignKey(d => d.status_id)
@@ -1400,9 +1400,9 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasMaxLength(40)
                 .HasComment("Name of unit (e.g., Unit Kaunter).");
 
-            entity.HasOne(d => d.dept).WithMany(p => p.ref_units)
-                .HasForeignKey(d => d.dept_id)
-                .HasConstraintName("fk_div_id_belongs_to_dept_id");
+            //entity.HasOne(d => d.dept).WithMany(p => p.ref_units)
+            //    .HasForeignKey(d => d.dept_id)
+            //    .HasConstraintName("fk_div_id_belongs_to_dept_id");
 
             entity.HasOne(d => d.div).WithMany(p => p.ref_units)
                 .HasForeignKey(d => d.div_id)
