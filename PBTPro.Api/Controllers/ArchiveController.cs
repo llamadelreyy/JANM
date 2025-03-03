@@ -79,53 +79,62 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var strMonth = DateTime.Now.AddMonths(-dtm);
+                var rangeStartDate = DateTime.Today.AddMonths(-dtm);
+                var rangeEndDate = DateTime.Today;
 
                 #region retrieve auditlog and copy to archive table
-                var dataFromTableA = _dbContext.auditlog_infos.AsNoTracking().ToList();
 
-                var dataForTableB = dataFromTableA.Where(x => x.created_at <= strMonth).Select(a => new auditlog_archive_info
-                {
-                    archive_id = a.log_id,
-                    role_id = a.role_id,
-                    archive_module_name = a.module_name,
-                    archive_desc = a.log_descr,
-                    creator_id = a.creator_id,
-                    created_at = a.created_at,
-                    archive_type = a.log_type,
-                    archive_username = a.username,
-                    archive_method = a.log_method,
-                    is_archived = true
-                })
-                .Where(x => !_dbContext.auditlog_archive_infos.Any(a => a.archive_id == x.archive_id))
-                .ToList();
+                var dataForTableB = await _dbContext.auditlog_infos
+                    .Where(x => x.created_at >= rangeStartDate && x.created_at <= rangeEndDate)
+                    .Where(x => !_dbContext.auditlog_archive_infos.Any(a => a.archive_id == x.log_id)) 
+                    .Select(a => new auditlog_archive_info
+                    {
+                        archive_id = a.log_id,
+                        role_id = a.role_id,
+                        archive_module_name = a.module_name,
+                        archive_desc = a.log_descr,
+                        creator_id = a.creator_id,
+                        created_at = a.created_at,
+                        archive_type = a.log_type,
+                        archive_username = a.username,
+                        archive_method = a.log_method,
+                        is_archived = true
+                    })
+                    .ToListAsync();
 
                 if (!dataForTableB.Any())
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Tiada rekod untuk diarkibkan dalam tempoh {0} bulan lepas.", dtm)));
                 }
+                await _dbContext.auditlog_archive_infos.AddRangeAsync(dataForTableB);
+                await _dbContext.SaveChangesAsync();
 
-                _dbContext.auditlog_archive_infos.AddRange(dataForTableB);
-                _dbContext.SaveChanges();
                 #endregion
 
                 #region record to delete from table audit log after archive
-                var recordsToDelete = _dbContext.auditlog_infos.Where(x => x.created_at <= strMonth).ToList();
+
+                var recordsToDelete = await _dbContext.auditlog_infos
+                                    .Where(x => x.created_at >= rangeStartDate && x.created_at <= rangeEndDate)
+                                    .ToListAsync();
 
                 _dbContext.auditlog_infos.RemoveRange(recordsToDelete);
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
+
                 #endregion
 
-                await Task.Delay(1000);
+                await Task.Delay(1000);  
 
                 #region display list archive log
-                var dataFromTableB_b = _dbContext.auditlog_infos.AsNoTracking().ToList();
+
+                var dataFromTableB_b = await _dbContext.auditlog_infos.AsNoTracking().ToListAsync();
 
                 if (dataFromTableB_b.Count == 0)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
+
                 return Ok(dataFromTableB_b, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+
                 #endregion
             }
             catch (Exception ex)
@@ -134,6 +143,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+      
         #endregion
 
     }
