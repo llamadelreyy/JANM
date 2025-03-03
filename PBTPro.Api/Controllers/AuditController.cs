@@ -49,55 +49,55 @@ namespace PBTPro.Api.Controllers
             }
         }       
 
-        [AllowAnonymous]
-        [HttpGet("{Id}")]
-        public async Task<ActionResult<auditlog_info>> ViewDetail(int Id)
-        {            
-            try
-            {
-                var parFormfield = await _dbContext.auditlog_infos.FirstOrDefaultAsync(x => x.log_id == Id);
+        //[AllowAnonymous]
+        //[HttpGet("{Id}")]
+        //public async Task<ActionResult<auditlog_info>> ViewDetail(int Id)
+        //{            
+        //    try
+        //    {
+        //        var parFormfield = await _dbContext.auditlog_infos.FirstOrDefaultAsync(x => x.log_id == Id);
 
-                if (parFormfield == null)
-                {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
-                return Ok(parFormfield, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
+        //        if (parFormfield == null)
+        //        {
+        //            return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+        //        }
+        //        return Ok(parFormfield, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+        //    }
+        //}
 
 
-        [AllowAnonymous]
-        [HttpDelete("{Id}")]
-        public async Task<IActionResult> Delete(int Id)
-        {
-            try
-            {
-                string runUser = await getDefRunUser();
+        //[AllowAnonymous]
+        //[HttpDelete("{Id}")]
+        //public async Task<IActionResult> Delete(int Id)
+        //{
+        //    try
+        //    {
+        //        string runUser = await getDefRunUser();
 
-                #region Validation
-                var formField = await _dbContext.auditlog_infos.FirstOrDefaultAsync(x => x.log_id == Id);
-                if (formField == null)
-                {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
-                #endregion
+        //        #region Validation
+        //        var formField = await _dbContext.auditlog_infos.FirstOrDefaultAsync(x => x.log_id == Id);
+        //        if (formField == null)
+        //        {
+        //            return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+        //        }
+        //        #endregion
 
-                _dbContext.auditlog_infos.Remove(formField);
-                await _dbContext.SaveChangesAsync();
+        //        _dbContext.auditlog_infos.Remove(formField);
+        //        await _dbContext.SaveChangesAsync();
 
-                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
+        //        return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+        //    }
+        //}
 
         [AllowAnonymous]
         [HttpPost]
@@ -148,31 +148,31 @@ namespace PBTPro.Api.Controllers
         }
         
         #region Archived auditlog
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<IActionResult> Archive()
-        {
-            try
-            {
-                using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
-                {
-                    using (NpgsqlCommand? myCmd = new NpgsqlCommand("SELECT audit.func_copy_archive_audit_logs()", myConn))
-                    {                       
-                        myConn.Open();
-                        myCmd.ExecuteNonQuery();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-            finally
-            {                
-            }
-            return Ok("", SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
-        }
+        //[AllowAnonymous]
+        //[HttpGet]
+        //public async Task<IActionResult> Archive()
+        //{
+        //    try
+        //    {
+        //        using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
+        //        {
+        //            using (NpgsqlCommand? myCmd = new NpgsqlCommand("SELECT audit.func_copy_archive_audit_logs()", myConn))
+        //            {                       
+        //                myConn.Open();
+        //                myCmd.ExecuteNonQuery();
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+        //    }
+        //    finally
+        //    {                
+        //    }
+        //    return Ok("", SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+        //}
         #endregion
 
         #region unused
