@@ -16,6 +16,7 @@
 @inject DocumentService _DocumentService
 @inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
+@inject NavigationManager NavigationManager
 
 <style>
     .dxbl-grid {
@@ -23,67 +24,82 @@
         max-height: 98.5%;
     }
 </style>
-
-<DxLoadingPanel @bind-Visible="PanelVisible"
-                IsContentBlocked="true"
-                ApplyBackgroundShading="true"
-                IndicatorAreaVisible="false"
-                Text="Capaian Data...">
-    <div class="d-lg-flex border-bottom">
-        <div class="col-md-12 py-1 dx-helptitle pageTitle">
-            <img class="imgTitle" src="\images\icons-small\document-task.png" />
-            <div class="textTitle">Muat Turun Dokumen</div>
+@if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{
+    <DxLoadingPanel @bind-Visible="PanelVisible"
+                    IsContentBlocked="true"
+                    ApplyBackgroundShading="true"
+                    IndicatorAreaVisible="false"
+                    Text="Capaian Data...">
+        <div class="d-lg-flex border-bottom">
+            <div class="col-md-12 py-1 dx-helptitle pageTitle">
+                <img class="imgTitle" src="\images\icons-small\document-task.png" />
+                <div class="textTitle">Muat Turun Dokumen</div>
+            </div>
         </div>
-    </div>
-    <div class="item-container-x mt-3">
-        <div class="cw-480">
-            @{
-                var groupedItems = dtCategory.GroupBy(itm => itm.doc_cat);
-
-                foreach (var group in groupedItems)
-                {
-                    <DxTreeView AllowSelectNodes="true" AnimationType="LayoutAnimationType.Slide">
-                        <Nodes>
-                            <DxTreeViewNode Text="@group.Key">
+        <div class="item-container-x mt-3">
+            <div class="cw-480">
+                @{
+                    var groupedItems = dtCategory.GroupBy(itm => itm.doc_cat);
+                    bool hasData = false;
+                    foreach (var group in groupedItems)
+                    {
+                        if (!group.Any())
+                        {
+                            hasData = true;
+                            <DxTreeView AllowSelectNodes="true" AnimationType="LayoutAnimationType.Slide">
                                 <Nodes>
-                                    @foreach (var itm in group)
-                                    {
-                                        <DxTreeViewNode Text="@itm.title" style="margin-left: 30px;">
-                                            <Template>
-                                                <div style="display: flex; align-items: center;" class="mb-2">
+                                    <DxTreeViewNode Text="@group.Key">
+                                        <Nodes>
+                                            @foreach (var itm in group)
+                                            {
+                                                <DxTreeViewNode Text="@itm.title" style="margin-left: 30px;">
+                                                    <Template>
+                                                        <div style="display: flex; align-items: center;" class="mb-2">
 
-                                                    <!-- Link -->
-                                                    <span style="margin-left: 10px;">
-                                                        <!-- Image -->
-                                                        <img class="treeview-template-icon"
-                                                        src="images/icons-small/document-pdf.png"
-                                                        alt="Title" />
-                                                        <a href="@itm.pathurl"
-                                                        target="_blank"
-                                                        @onclick="() => OnDownloadClick(itm)"
-                                                        class="dxbl-treeview-item-text small">
-                                                            @itm.title
-                                                        </a>
-                                                        <div class="small" style="margin-left: 10px;">
-                                                            (Dimuat turun: @GetDownloadClickCount(itm) )
+                                                            <!-- Link -->
+                                                            <span style="margin-left: 10px;">
+                                                                <!-- Image -->
+                                                                <img class="treeview-template-icon"
+                                                                     src="images/icons-small/document-pdf.png"
+                                                                     alt="Title" />
+                                                                <a href="@itm.pathurl"
+                                                                   target="_blank"
+                                                                   @onclick="() => OnDownloadClick(itm)"
+                                                                   class="dxbl-treeview-item-text small">
+                                                                    @itm.title
+                                                                </a>
+                                                                <div class="small" style="margin-left: 10px;">
+                                                                    (Dimuat turun: @GetDownloadClickCount(itm) )
+                                                                </div>
+                                                                <div class="small" style="margin-left: 10px;">@itm.description</div>
+                                                            </span>
+                                                            <br /><br />
                                                         </div>
-                                                        <div class="small" style="margin-left: 10px;">@itm.description</div>
-                                                    </span>
-                                                    <br /><br />
-                                                </div>
-                                            </Template>
-                                        </DxTreeViewNode>
-                                    }
+                                                    </Template>
+                                                </DxTreeViewNode>
+                                            }
+                                        </Nodes>
+                                    </DxTreeViewNode>
                                 </Nodes>
-                            </DxTreeViewNode>
-                        </Nodes>
-                    </DxTreeView>
+                            </DxTreeView>
+                        }
+                    }
+                    if (!hasData)
+                    {
+                        <div class="text-center">No data to display</div>
+                    }
                 }
-            }
 
+            </div>
         </div>
-    </div>
-</DxLoadingPanel>
+    </DxLoadingPanel>
+}
+
 
 @code {
     DxTreeView treeView;
