@@ -12,9 +12,9 @@ Changes Logs:
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using NetTopologySuite.Index.HPRtree;
+using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -88,6 +88,17 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                if (InputModel.items == null || InputModel.items.Count == 0)
+                {
+                    var Request = await HttpContext.Request.ReadFormAsync();
+                    if (Request["items"] != StringValues.Empty)
+                    {
+                        var rawItemReq = Request["items"].ToString();
+                        var fixedJson = "[" + rawItemReq + "]";
+                        InputModel.items = JsonConvert.DeserializeObject<List<patrol_cfsc_item_model>>(fixedJson);
+                    }
+                }
+
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
 
@@ -243,6 +254,17 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                if (InputModel.items == null || InputModel.items.Count == 0)
+                {
+                    var Request = await HttpContext.Request.ReadFormAsync();
+                    if (Request["items"] != StringValues.Empty)
+                    {
+                        var rawItemReq = Request["items"].ToString();
+                        var fixedJson = "[" + rawItemReq + "]";
+                        InputModel.items = JsonConvert.DeserializeObject<List<patrol_cfsc_item_model>>(fixedJson);
+                    }
+                }
+
                 int runUserID = await getDefRunUserId();
                 string runUser = await getDefRunUser();
 
@@ -613,6 +635,7 @@ namespace PBTPro.Api.Controllers
                 var Fullpath = Path.Combine(UploadPath, Filename);
                 string Pathurl = await getViewUrl(record);
                 #region Massage Data
+                #region Main Ticket Data
                 var initQuery = _tenantDBContext.trn_cfscs
                                 .Where(t => t.trn_cfsc_id == record.trn_cfsc_id)
                                 .GroupJoin(
@@ -689,7 +712,9 @@ namespace PBTPro.Api.Controllers
                                 .AsNoTracking()
                                 .FirstOrDefaultAsync();
 
+                #endregion
 
+                #region Akta/Seksyen/UUK/KEsalahan
                 var ticketASUO = await _dbContext.ref_law_offenses
                                 .Where(t => t.offense_code == record.offense_code)
                                 .GroupJoin(
@@ -725,6 +750,25 @@ namespace PBTPro.Api.Controllers
                                 .FirstOrDefaultAsync();
                 #endregion
 
+                #region Items
+                var joinItems = items
+                    .GroupJoin(
+                        _tenantDBContext.ref_cfsc_inventories,
+                        item => item.inv_id,
+                        inventory => inventory.inv_id,
+                        (item, inventory) => new
+                        {
+                            itemInfo = item,
+                            invInfo = inventory.DefaultIfEmpty().FirstOrDefault()
+                        }
+                    );
+
+                var btmmItems = joinItems.Where(x => x.invInfo.item_type == 1).ToList();
+                var bmmItems = joinItems.Where(x => x.invInfo.item_type == 2).ToList();
+
+                #endregion
+                #endregion
+
                 var document = Document.Create(container =>
                 {
                     container.Page(page =>
@@ -732,7 +776,7 @@ namespace PBTPro.Api.Controllers
                         //page.Size(PageSizes.A4);
                         page.ContinuousSize(PageSizes.C9.Width);
                         page.Margin(5);
-                        page.DefaultTextStyle(x => x.FontSize(3));
+                        page.DefaultTextStyle(x => x.FontSize(3).LineHeight(1.8f));
 
                         page.Content()
                             .Column(column =>
@@ -754,7 +798,8 @@ namespace PBTPro.Api.Controllers
                                     }
 
                                     table.Cell().AlignCenter().PaddingBottom(5).Text($"{tenantInfo.tn_name.ToUpper()}").FontSize(4);
-                                    table.Cell().AlignCenter().PaddingBottom(5).Text($"NOTIS PEMBERITAHUAN KESALAHAN").FontSize(4).Underline().Bold();
+                                    table.Cell().AlignCenter().Text($"NOTIS PEMBERITAHUAN KESALAHAN").FontSize(4).Underline().Bold();
+                                    table.Cell().AlignCenter().PaddingBottom(5).Text($"SERTA SITAAN").FontSize(4).Underline().Bold();
                                 });
 
                                 column.Item().Table(table =>
@@ -765,13 +810,9 @@ namespace PBTPro.Api.Controllers
                                     });
 
 
-                                    var message = "Dimaklumkan bahawa hasil pemeriksaan yang dijalankan mendapati tuan/puan telah melakukan kesalahan " +
-                                                  $"di bawah {ticketASUO.ref_law_uuk.uuk_name ?? ticketASUO.ref_law_act.act_name} iaitu {ticketASUO.ref_law_offense.offense_name} " +
-                                                  "yang dikeluarkan oleh Pihak Berkuasa Melesen di lokasi kejadian seperti alamat di atas.\r\n\r\n" +
-                                                  "Kegagalan tuan/puan mematuhi arahan di atas, boleh didenda sebanyak RM500.00 (Ringgit Malaysia Lima Ratus " +
-                                                  "sahaja) atau kali kemudiannya denda sebanyak RM1,000.00 (Ringgit Malaysia Seribu) atau pihak Majlis " +
-                                                  $"boleh memindah dan menahan halangan sehingga belanja dibayar kepada pihak Majlis di bawah {ticketASUO.ref_law_section.section_name} Akta yang sama.";
-
+                                    var message = "Jika tiada tuntutan dalam tempoh 1 bulan, barang-barang BTMM akan dilupuskan oleh pihak Majlis, "+
+                                                  "manakala bagi barang-barang BMM pula pihak Majlis akan melupuskan dalam tempoh masa yang munsabah sekiranya "+
+                                                  "tiada sebarang tuntutan dibuat.";
 
                                     table.Cell().PaddingBottom(5).Text(text => {
                                         text.Justify();
@@ -827,7 +868,7 @@ namespace PBTPro.Api.Controllers
 
                                         string kodKesalahan = $"{ticketASUO.ref_law_section.section_name} {ticketASUO.ref_law_offense.offense_name}";
 
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("No Kompaun :");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("No Sitaan :");
                                         table.Cell().AlignRight().Text($"{record.cfsc_ref_no}");
                                         table.Cell().PaddingLeft(5).AlignLeft().Text("Tarikh & Masa :");
                                         table.Cell().AlignRight().Text($"{record.created_at?.ToString("dd/MM/yyyy hh:mm:ss tt")}");
@@ -837,17 +878,52 @@ namespace PBTPro.Api.Controllers
                                         table.Cell().AlignRight().Text($"{kodKesalahan}");
                                         table.Cell().PaddingLeft(5).AlignLeft().Text("Butir-Butir Kesalahan :");
                                         table.Cell().AlignRight().Text($"{ticketASUO.ref_law_offense.offense_description}");
-                                        //table.Cell().PaddingLeft(5).AlignLeft().Text("Tempoh Notis :");
-                                        //table.Cell().AlignRight().Text($"{ticketDet.ref_notice_duration.duration_value}");
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Arahan :");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Nota :");
                                         table.Cell().AlignRight().Text($"{record.instruction}");
                                         table.Cell().PaddingLeft(5).AlignLeft().Text("Cara Penyerahan :");
-                                        //table.Cell().AlignRight().Text($"{ticketDet.ref_deliver.deliver_name}");
+                                        table.Cell().AlignRight().Text($"Serahan Tangan");
+
+
+                                        table.Cell().PaddingTop(5).AlignLeft().Text("Barang Tidak Mudah Musnah (BTMM)");
+                                        table.Cell().PaddingTop(5).AlignRight().Table(table =>
+                                        {
+                                            table.ColumnsDefinition(columns =>
+                                            {
+                                                columns.RelativeColumn();
+                                            });
+
+                                            if(btmmItems.Count > 0)
+                                            {
+                                                foreach(var item in btmmItems)
+                                                {
+                                                    table.Cell().AlignRight().Text($"{item.invInfo.inv_name} - {item.itemInfo.cnt_item}");
+                                                }
+                                            }
+                                        });
+
+                                        table.Cell().PaddingTop(5).AlignLeft().Text("Barang Mudah Musnah (BMM)");
+                                        table.Cell().PaddingTop(5).AlignRight().Table(table =>
+                                        {
+                                            table.ColumnsDefinition(columns =>
+                                            {
+                                                columns.RelativeColumn();
+                                            });
+
+                                            if (bmmItems.Count > 0)
+                                            {
+                                                foreach (var item in bmmItems)
+                                                {
+                                                    table.Cell().AlignRight().Text($"{item.invInfo.inv_name} - {item.itemInfo.cnt_item}");
+                                                }
+                                            }
+                                        });
+
+
+                                        table.Cell().PaddingTop(15).AlignCenter().Text("_________________________________");
+                                        table.Cell().PaddingTop(15).AlignCenter().Text("_________________________________");
+                                        table.Cell().AlignCenter().Text("(TANDATANGAN PEMILIK)");
+                                        table.Cell().AlignCenter().Text("(TANDATANGAN KETUA OPERASI)");
                                     });
-
-                                    table.Cell().PaddingTop(5).AlignLeft().Text("_________________________________");
-                                    table.Cell().AlignLeft().Text("(TANDATANGAN PENERIMA)");
-
                                 });
                             });
                     });
