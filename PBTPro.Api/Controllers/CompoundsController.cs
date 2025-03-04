@@ -665,7 +665,7 @@ namespace PBTPro.Api.Controllers
                         //page.Size(PageSizes.A4);
                         page.ContinuousSize(PageSizes.C9.Width);
                         page.Margin(5);
-                        page.DefaultTextStyle(x => x.FontSize(3));
+                        page.DefaultTextStyle(x => x.FontSize(3).LineHeight(1.8f));
 
                         page.Content()
                             .Column(column =>
