@@ -1425,7 +1425,7 @@ label {
 .password-container #dummybtn {
     position: absolute;
     right:10px;
-    left:225px;
+    /*left:225px;*/
     width:20px;
     top: 0px;
     bottom: 0;
