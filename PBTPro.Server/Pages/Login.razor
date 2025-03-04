@@ -42,10 +42,14 @@
 
         <div class="loginPBTPro mt-5" style="border:solid 1px #999;border-radius: 5px;box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);">
             <div class="text-center py-3">
+                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase">
+                    <b>Selamat Datang</b><br />
+                </p>
                 <img src="images/mdk.jpeg" class="loginImej" />
 
-                <p class="tm-8 mb-0 fw-normal fs-825">
-                    <b>Log Masuk.</b>
+                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase">
+                    <b>Majlis Bandaraya</b><br />
+                    <b>Diraja Klang</b>
                 </p>
             </div>
             <div class="card-body">
@@ -54,33 +58,33 @@
                     <DxFormLayout>
                         <DxFormLayoutItem ColSpanMd="12">
                             <DxTextBox @bind-Text="@LoginModel.Username"
-                                       NullText="Id Pengguna"
+                                       NullText="Masukkan ID pengguna anda"
                                        BindValueMode="BindValueMode.OnInput"
                                        ShowValidationIcon="true"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
                         </DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="12">
-                            <div class="password-container">
+                            <div class="password-container" style="width:100% !important">
                                 <DxTextBox @bind-Text="@LoginModel.Password"
-                                           NullText="Kata Laluan"
-                                       BindValueMode="BindValueMode.OnInput"
-                                       type="@inputType"
-                                       Password="@showPassword"
-                                       ShowValidationIcon="true"
-                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" style="width:250px;padding-right:25px;" />
+                                           NullText="Masukkan kata laluan anda"
+                                           BindValueMode="BindValueMode.OnInput"
+                                           type="@inputType"
+                                           Password="@showPassword"
+                                           ShowValidationIcon="true"
+                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" style="width:100%;padding-right:25px;" />
 
-
-                                <input id="dummyPwd" type="@inputType" style="visibility:@inputVisible" @oninput="BindValue" @bind="LoginModel.Password" placeholder="" />
-                                    <button id="dummybtn" @onclick="TogglePasswordVisibility">
-                                        <img src="@eyeIconClass" />
-                                    </button>
+                                <input id="dummyPwd" type="@inputType" style="visibility:@inputVisible; width:50%" @oninput="BindValue" @bind="LoginModel.Password" placeholder="" />
+                                <button id="dummybtn" @onclick="TogglePasswordVisibility">
+                                    <img src="@eyeIconClass" />
+                                </button>
                             </div>
 
-                        </DxFormLayoutItem>
+                        </DxFormLayoutItem>                       
+
 
                         <DxFormLayoutItem ColSpanMd="12">
-                            <DxButton CssClass="w-100 btn-edit-grid" Text="Log Masuk" 
+                            <DxButton CssClass="w-100 btn-edit-grid" Text="Log Masuk"
                                       RenderStyle="ButtonRenderStyle.Primary"
                                       Enabled="true"
                                       SubmitFormOnClick="true">
@@ -90,8 +94,8 @@
                 </EditForm>
             </div>
             <div class="text-center py-3" style="margin:0 0 30px 0;">
-                <p class="tm-8 mb-0 fw-normal fs-825">
-                    Lupa kata laluan. Sila tekan <a href="/forget_password">disini</a>.
+                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase">
+                    <a href="/forget_password" class="text-decoration-none text-black fw-bold">Lupa kata laluan ?</a>
                 </p>
             </div>
         </div>
@@ -110,6 +114,7 @@
     public string inputVisible = "hidden";
     public bool blnNotSubmit = false;
     private string inputType => showPassword ? "text" : "password";
+    string passwoxrd="";
     private string eyeIconClass => showPassword ? "images/icons-small/eye.png" : "images/icons-small/eye-close.png";
 
     private void BindValue()
@@ -125,10 +130,10 @@
         showPassword = !showPassword;
         inputVisible = showPassword ? "visible" : "hidden";
     }
-
+   
     string FormSubmitResult = "";
     public async Task HandleValidSubmit()
-    {    
+    {
         //TogglePasswordVisibility cause Handle submit to be trigger, this code is to prevent the submission process
         if (blnNotSubmit)
         {
@@ -155,7 +160,7 @@
 
         if (response.ReturnCode == 200)
         {
-            if(string.IsNullOrWhiteSpace(PBTAuthStateProvider.CurrentUser.DefaultPage))
+            if (string.IsNullOrWhiteSpace(PBTAuthStateProvider.CurrentUser.DefaultPage))
             {
                 if (PBTAuthStateProvider.CurrentUser.Roles.Contains("pengguna"))
                 {

@@ -142,7 +142,7 @@ namespace PBTPro.Api.Controllers
                 };
 
                 _tenantDBContext.ref_units.Add(division_infos);
-                await _dbContext.SaveChangesAsync();
+                await _tenantDBContext.SaveChangesAsync();
 
                 #endregion
 
