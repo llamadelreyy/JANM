@@ -14,9 +14,10 @@
 
 @inject PBTAuthPermissionService PermissionService
 @inject DocumentService _DocumentService
-@inject IToastService toastService
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastService
+@inject IWebHostEnvironment _env
 
 <style>
     .dxbl-grid {
@@ -31,10 +32,10 @@
 else
 {
     <DxLoadingPanel @bind-Visible="PanelVisible"
-                    IsContentBlocked="true"
-                    ApplyBackgroundShading="true"
-                    IndicatorAreaVisible="false"
-                    Text="Capaian Data...">
+    IsContentBlocked="true"
+    ApplyBackgroundShading="true"
+    IndicatorAreaVisible="false"
+    Text="Capaian Data...">
         <div class="d-lg-flex border-bottom">
             <div class="col-md-12 py-1 dx-helptitle pageTitle">
                 <img class="imgTitle" src="\images\icons-small\document-task.png" />
@@ -48,7 +49,7 @@ else
                     bool hasData = false;
                     foreach (var group in groupedItems)
                     {
-                        if (!group.Any())
+                        if (group.Count() != 0)
                         {
                             hasData = true;
                             <DxTreeView AllowSelectNodes="true" AnimationType="LayoutAnimationType.Slide">
@@ -65,12 +66,13 @@ else
                                                             <span style="margin-left: 10px;">
                                                                 <!-- Image -->
                                                                 <img class="treeview-template-icon"
-                                                                     src="images/icons-small/document-pdf.png"
-                                                                     alt="Title" />
+                                                                src="images/icons-small/document-pdf.png"
+                                                                alt="Title" />
                                                                 <a href="@itm.pathurl"
-                                                                   target="_blank"
-                                                                   @onclick="() => OnDownloadClick(itm)"
-                                                                   class="dxbl-treeview-item-text small">
+                                                                target="_blank"
+                                                                @onclick="() => OnDownloadClick(itm)"
+                                                                class="dxbl-treeview-item-text small"
+                                                                disabled="@(!FileExists)">                                                                    
                                                                     @itm.title
                                                                 </a>
                                                                 <div class="small" style="margin-left: 10px;">
@@ -107,7 +109,8 @@ else
     string SelectedGroup = "none";
     bool PanelVisible { get; set; }
     private Dictionary<string, int> downloadClickCounts = new Dictionary<string, int>();
-
+    private bool FileExists { get; set; } = false;
+    private string FileUrl { get; set; }
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
@@ -124,10 +127,20 @@ else
     private async void OnDownloadClick(ref_doc inputmodel)
     {
         ReturnViewModel response = new ReturnViewModel();
+        string webRootPath = _env.WebRootPath + inputmodel.pathurl;
 
-        int currentCount = await GetDownloadCountByPath(inputmodel.pathurl);
-        inputmodel.cnt_download = currentCount + 1;
-        response = await _DocumentService.UpdateCount(inputmodel.doc_id, inputmodel);
+        FileExists = System.IO.File.Exists(webRootPath);
+
+        if (FileExists)
+        {
+            int currentCount = await GetDownloadCountByPath(inputmodel.pathurl);
+            inputmodel.cnt_download = currentCount + 1;
+            response = await _DocumentService.UpdateCount(inputmodel.doc_id, inputmodel);
+        }
+        else
+        {
+            HandleResponse("Fail tidak dijumpai!", "Error");
+        }
     }
 
     public async Task<int> GetDownloadCountByPath(string pathurl)
@@ -144,5 +157,31 @@ else
     public void Dispose()
     {
         DataLoadedTcs.TrySetCanceled();
+    }
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
     }
 }
