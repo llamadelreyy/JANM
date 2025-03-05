@@ -611,7 +611,6 @@ namespace PBTPro.Api.Controllers
                                                p.schedule_id,
                                                p.status_id,
                                                pm.idno,
-
                                                p.start_time,
                                                pm.end_time,
                                                PatrolDuration = p.start_time != null && pm.end_time != null
@@ -619,9 +618,14 @@ namespace PBTPro.Api.Controllers
                                                 : (TimeSpan?)null
                                            }).FirstOrDefaultAsync();
 
+                if (patrol_member == null)
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_MEMBER_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Pegawai tidak dijumpai")));
+                }
+
                 var patrol_member_leader = await (from p in _tenantDBContext.mst_patrol_schedules
                                                   join pm in _tenantDBContext.trn_patrol_officers on p.schedule_id equals pm.schedule_id
-                                                  where patrol_member.schedule_id == p.schedule_id
+                                                  where p.schedule_id == patrol_member.schedule_id
                                                   orderby p.schedule_id descending
                                                   select new
                                                   {
@@ -636,7 +640,7 @@ namespace PBTPro.Api.Controllers
                 var resultData = new
                 {
                     patrol_id = patrol_member.schedule_id,
-                    patrol_leader = patrol_member_leader.idno,
+                    patrol_leader = patrol_member_leader?.idno, 
                     total_member = totalMembers,
                     patrol_status = patrol_member.status_id,
                     current_user = patrol_member.idno,
@@ -653,5 +657,6 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+
     }
 }

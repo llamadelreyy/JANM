@@ -280,10 +280,10 @@ else
         </BodyContentTemplate>
     </DxPopup>
 
-    <DxPopup @bind-Visible="@ConfirmationResetShown" HeaderText="Reset Password" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
+    <DxPopup @bind-Visible="@ConfirmationResetShown" HeaderText="Set Semula Kata Laluan" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
         <BodyContentTemplate>
-            <b>@strSelected</b> --> adalah rekod yang dipilih untuk tukar kata laluan.
-            <br />Anda pasti untuk tukar kata laluan untuk rekod ini?
+            <b>@strSelected</b> --> adalah rekod yang dipilih untuk set semula kata laluan.
+            <br />Anda pasti untuk set semula kata laluan untuk rekod ini?
             <br /><br />
             <div class="confirm-dialog-buttons">
                 <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesResetButtonClick" />
