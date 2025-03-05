@@ -445,7 +445,7 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_CURRENT_PASSWORD", MessageTypeEnum.Error, string.Format("Kata laluan semasa tidak sah")));
                 }
                 #endregion
-                            
+
                 var resultADD = await _userManager.ChangePasswordAsync(user, InputModel.current_password, InputModel.new_password);
                 if (resultADD != null && resultADD.Succeeded)
                 {
@@ -672,7 +672,7 @@ namespace PBTPro.Api.Controllers
                 var userExists = await _userManager.FindByNameAsync(model.Username.Trim(new char[] { (char)39 }).Replace(" ", ""));
                 if (userExists != null) return Error(userExists, "Nama pengguna telah digunakan.");
 
-                var IdExist = await _dbContext.Users.Where(x => x.IdNo == model.ICNo || x.Email == model.Email).Select(x => new { x.IdNo, x.Email }).AsNoTracking().FirstOrDefaultAsync();
+                var IdExist = await _dbContext.Users.Where(x => x.IdNo == model.ICNo || x.Email == model.Email || x.PhoneNumber == model.PhoneNo).Select(x => new { x.IdNo, x.Email, x.PhoneNumber }).AsNoTracking().FirstOrDefaultAsync();
                 if (IdExist != null)
                 {
                     if (IdExist.IdNo == model.ICNo)
@@ -684,6 +684,12 @@ namespace PBTPro.Api.Controllers
                     {
                         return Error("", "e-mel telah berdaftar dengan pengguna lain");
                     }
+
+                    if (IdExist.PhoneNumber == model.PhoneNo)
+                    {
+                        return Error("", "no telefon bimbit telah berdaftar dengan pengguna lain");
+                    }
+
                     if (IdExist.IdNo == model.Username)
                     {
                         return Error("", "Nama pengguna telah berdaftar");
@@ -764,6 +770,29 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
 
+                var IdExist = await _dbContext.Users.Where(x => x.Id != model.Id && (x.IdNo == model.ICNo || x.Email == model.Email || x.PhoneNumber == model.PhoneNo)).Select(x => new { x.IdNo, x.Email, x.PhoneNumber }).AsNoTracking().FirstOrDefaultAsync();
+                if (IdExist != null)
+                {
+                    if (IdExist.IdNo == model.ICNo)
+                    {
+                        return Error("", "Icno telah berdaftar dengan pengguna lain");
+                    }
+
+                    if (IdExist.Email == model.Email)
+                    {
+                        return Error("", "e-mel telah berdaftar dengan pengguna lain");
+                    }
+
+                    if (IdExist.PhoneNumber == model.PhoneNo)
+                    {
+                        return Error("", "no telefon bimbit telah berdaftar dengan pengguna lain");
+                    }
+
+                    if (IdExist.IdNo == model.Username)
+                    {
+                        return Error("", "Nama pengguna telah berdaftar");
+                    }
+                }
 
                 #endregion
                 users.full_name = model.FullName;
@@ -951,7 +980,7 @@ namespace PBTPro.Api.Controllers
                 else
                 {
                     return Error("", SystemMesg(_feature, "RESET_PASSWORD", MessageTypeEnum.Error, string.Format("Gagal tetap semula kata laluan")));
-                }               
+                }
             }
             catch (Exception ex)
             {
@@ -1082,7 +1111,7 @@ namespace PBTPro.Api.Controllers
         public static string GeneratePassword()
         {
             var random = new Random();
-            var length = 4; 
+            var length = 4;
 
             var lowerCaseChars = "abcdefghijklmnopqrstuvwxyz";
             var upperCaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
