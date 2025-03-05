@@ -667,7 +667,7 @@ namespace PBTPro.Api.Controllers
                         //page.Size(PageSizes.A4);
                         page.ContinuousSize(PageSizes.C9.Width);
                         page.Margin(5);
-                        page.DefaultTextStyle(x => x.FontSize(3));
+                        page.DefaultTextStyle(x => x.FontSize(3).LineHeight(1.8f));
 
                         page.Content()
                             .Column(column =>
@@ -762,7 +762,7 @@ namespace PBTPro.Api.Controllers
 
                                         string kodKesalahan = $"{ticketASUO.ref_law_section.section_name} {ticketASUO.ref_law_offense.offense_name}";
 
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("No Kompaun :");
+                                        table.Cell().PaddingLeft(5).AlignLeft().Text("No Rujukan Notis :");
                                         table.Cell().AlignRight().Text($"{record.notice_ref_no}");
                                         table.Cell().PaddingLeft(5).AlignLeft().Text("Tarikh & Masa :");
                                         table.Cell().AlignRight().Text($"{record.created_at?.ToString("dd/MM/yyyy hh:mm:ss tt")}");
