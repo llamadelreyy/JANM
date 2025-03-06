@@ -24,6 +24,7 @@ Changes Logs:
 @using PBTPro.DAL.Models.CommonServices
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components
+@using PBTPro.DAL.Models.PayLoads
 
 @inject ContactUsService _contactus
 @inject NavigationManager NavigationManager
@@ -31,6 +32,7 @@ Changes Logs:
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 @inject PBTAuthPermissionService PermissionService
+@inject UserService _UserService
 
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -151,12 +153,17 @@ else
                         !string.IsNullOrEmpty(dtData.contact_message);
 
     string FormValidationState = @"Sila tekan butang ""Simpan"" untuk sahkan data.";
+    user_profile_view userInfo = new user_profile_view();
 
     protected override async Task OnInitializedAsync()
     {
         dtData = new contact_us();
-    }
 
+    }
+    void GetLoginMember()
+    {
+        //userInfo = await _UserService.RetrievebyIc(dtData.);
+    }
     private void HandleValidSubmit()
     {
         if (!IsEmptyForm)
