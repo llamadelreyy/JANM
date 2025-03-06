@@ -388,7 +388,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         PanelVisible = true;
-        dataUser = await _UserService.ListAll();
+        dataUser = await _UserService.ListByRole();
         dtTown = await _TownService.ListAll();
         dtDistrict = await _DistrictService.ListAll();
         dataSchedule = await GetListDataAsync(tabType);

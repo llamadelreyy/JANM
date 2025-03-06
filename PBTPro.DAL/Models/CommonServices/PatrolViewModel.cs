@@ -25,10 +25,12 @@ namespace PBTPro.DAL.Models.CommonServices
         public string? SectionName { get; set; }
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
+        public int? PatrolId { get; set; }
         public string PatrolStatus { get; set; } = null!;
         public bool is_deleted { get; set; }
         public int TypeId { get; set; }
-        public string TypeName { get; set; }
-
+        public string? TypeName { get; set; }
+        public int? UserId { get; set; }
+        public bool isSchedule { get; set; }
     }
 }
