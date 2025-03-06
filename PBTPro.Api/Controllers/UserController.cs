@@ -33,8 +33,6 @@ using System.Reflection;
 using System.IO;
 using System.Text;
 using OneOf.Types;
-using NetTopologySuite.GeometriesGraph;
-using QuestPDF.Infrastructure;
 
 namespace PBTPro.Api.Controllers
 {
@@ -674,7 +672,7 @@ namespace PBTPro.Api.Controllers
                 var userExists = await _userManager.FindByNameAsync(model.Username.Trim(new char[] { (char)39 }).Replace(" ", ""));
                 if (userExists != null) return Error(userExists, "Nama pengguna telah digunakan.");
 
-                var IdExist = await _dbContext.Users.Where(x => x.IdNo == model.ICNo || x.Email == model.Email).Select(x => new { x.IdNo, x.Email }).AsNoTracking().FirstOrDefaultAsync();
+                var IdExist = await _dbContext.Users.Where(x => x.IdNo == model.ICNo || x.Email == model.Email || x.PhoneNumber == model.PhoneNo).Select(x => new { x.IdNo, x.Email, x.PhoneNumber }).AsNoTracking().FirstOrDefaultAsync();
                 if (IdExist != null)
                 {
                     if (IdExist.IdNo == model.ICNo)
@@ -686,6 +684,12 @@ namespace PBTPro.Api.Controllers
                     {
                         return Error("", "e-mel telah berdaftar dengan pengguna lain");
                     }
+
+                    if (IdExist.PhoneNumber == model.PhoneNo)
+                    {
+                        return Error("", "no telefon bimbit telah berdaftar dengan pengguna lain");
+                    }
+
                     if (IdExist.IdNo == model.Username)
                     {
                         return Error("", "Nama pengguna telah berdaftar");
@@ -766,6 +770,29 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
 
+                var IdExist = await _dbContext.Users.Where(x => x.Id != model.Id && (x.IdNo == model.ICNo || x.Email == model.Email || x.PhoneNumber == model.PhoneNo)).Select(x => new { x.IdNo, x.Email, x.PhoneNumber }).AsNoTracking().FirstOrDefaultAsync();
+                if (IdExist != null)
+                {
+                    if (IdExist.IdNo == model.ICNo)
+                    {
+                        return Error("", "Icno telah berdaftar dengan pengguna lain");
+                    }
+
+                    if (IdExist.Email == model.Email)
+                    {
+                        return Error("", "e-mel telah berdaftar dengan pengguna lain");
+                    }
+
+                    if (IdExist.PhoneNumber == model.PhoneNo)
+                    {
+                        return Error("", "no telefon bimbit telah berdaftar dengan pengguna lain");
+                    }
+
+                    if (IdExist.IdNo == model.Username)
+                    {
+                        return Error("", "Nama pengguna telah berdaftar");
+                    }
+                }
 
                 #endregion
                 users.full_name = model.FullName;
@@ -858,6 +885,7 @@ namespace PBTPro.Api.Controllers
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
+
                 return Ok(users, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -961,52 +989,6 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<IActionResult> GetListUserByRole()
-        {
-            try
-            {
-                var users = await _dbContext.Users.AsNoTracking().ToListAsync();
-                var dtDepartment = await _tenantDBContext.ref_departments.AsNoTracking().ToListAsync();
-                var dtSection = await _tenantDBContext.ref_divisions.AsNoTracking().ToListAsync();
-                var dtUnit = await _tenantDBContext.ref_units.AsNoTracking().ToListAsync();
-                var dtUserRole = await _dbContext.UserRoles.AsNoTracking().ToListAsync();
-                var dtRole = await _dbContext.Roles.AsNoTracking().ToListAsync();
-
-                var filteredRoles = dtRole.Where(role => role.Name.Contains("Anggota", StringComparison.Ordinal)).ToList();
-                List<ApplicationUser> filteredUserRoles = new List<ApplicationUser>();
-
-                if (users.Count() != 0)
-                {
-                    filteredUserRoles = (from _user in users
-                                         join _userrole in dtUserRole on _user.Id equals _userrole.UserId
-                                         join _role in filteredRoles on _userrole.RoleId equals _role.Id
-                                         where _user.IsDeleted == false
-                                         select new ApplicationUser
-                                         {
-                                             Id = _user.Id,
-                                             full_name = _user.full_name,
-                                             UserName = _user.UserName,
-                                             Email = _user.Email,
-                                             PhoneNumber = _user.PhoneNumber,
-                                             dept_id = _user.dept_id,
-                                             div_id = _user.div_id,
-                                             unit_id = _user.unit_id,
-                                             IdNo = _user.IdNo
-
-                                         }).ToList();
-
-                }               
-                return Ok(filteredUserRoles, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
         #region email template        
         private async Task<bool> SendEmailCreateUser(string recipient, string username, string fullname, string password)
         {
@@ -1092,6 +1074,7 @@ namespace PBTPro.Api.Controllers
                         }
                     }
                 }
+
                 if (!string.IsNullOrEmpty(result) && !Directory.Exists(result)) { Directory.CreateDirectory(result); }
             }
             return result;
