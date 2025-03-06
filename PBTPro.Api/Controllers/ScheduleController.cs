@@ -23,6 +23,7 @@ using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
+using System.Reactive.Concurrency;
 
 
 namespace PBTPro.Api.Controllers
@@ -153,13 +154,11 @@ namespace PBTPro.Api.Controllers
                 {
                     if (InputModel.StartTime >= schedule.start_time && InputModel.EndTime <= schedule.end_time)
                     {
-                        // The new schedule's time range is completely within the existing schedule's range
                         return Error("", SystemMesg(_feature, "PATROL_TIME_WITHIN_EXISTING", MessageTypeEnum.Error, string.Format("Tarikh rondaan adalah dalam jadual yang sedia ada.")));
                     }
 
                     if (InputModel.StartTime < schedule.end_time && InputModel.EndTime > schedule.start_time)
                     {
-                        // There's an overlap with an existing schedule
                         return Error("", SystemMesg(_feature, "PATROL_OVERLAP_TIME", MessageTypeEnum.Error, string.Format("Tarikh rondaan bertindih dengan jadual lain.")));
                     }
                 }
@@ -174,7 +173,6 @@ namespace PBTPro.Api.Controllers
                     creator_id = runUserID,
                     created_at = InputModel.CreatedAt,
                     is_deleted = false,
-                    //need to add new field in the tbl district and town
                     district_code = InputModel.DistrictCode,
                     town_code = InputModel.TownCode,
                     status_id = Convert.ToInt32(InputModel.PatrolStatus),
@@ -398,7 +396,7 @@ namespace PBTPro.Api.Controllers
                 int runUserID = await getDefRunUserId();
                 string runUser = await getDefRunUser();
 
-                var data = await _tenantDBContext.mst_patrol_schedules.Where(x => x.idno == username && x.start_time.Date == DateTime.Today).Select(x => new
+                var data = await _tenantDBContext.mst_patrol_schedules.Select(x => new
                 {
                     schedule_id = x.schedule_id,
                     idno = x.idno,
@@ -431,7 +429,30 @@ namespace PBTPro.Api.Controllers
                 })
                 .ToListAsync();
 
-                return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                var result = (
+                                from schedule in data
+                                join bandar in _dbContext.mst_towns on schedule.town_code equals bandar.town_code
+                                where schedule.idno == username && schedule.start_time.Date == DateTime.Today
+                                select new PatrolViewModel
+                                {
+                                    scheduleId = schedule.schedule_id,
+                                    ICNo = schedule.idno,
+                                    StartTime = schedule.start_time,
+                                    EndTime = schedule.end_time,
+                                    PatrolId = (int)schedule.status_id,
+                                    TownCode = bandar.town_code,
+                                    TownName = bandar.town_name,
+                                    TypeId = (int)schedule.type_id,
+                                    DeptId = (int)schedule.dept_id,
+                                    CreatedAt = schedule.created_at,
+                                    DistrictCode = schedule.district_code,                                    
+                                    UserId = (int)schedule.user_id,
+                                    is_deleted = schedule.is_deleted,
+                                    isSchedule = schedule.is_scheduled,
+                                }
+                            ).ToList();
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -439,6 +460,5 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-
     }
 }
