@@ -24,6 +24,7 @@ using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using System.Reactive.Concurrency;
+using System.Reflection;
 
 
 namespace PBTPro.Api.Controllers
@@ -393,46 +394,48 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                int runUserID = await getDefRunUserId();
-                string runUser = await getDefRunUser();
 
-                var data = await _tenantDBContext.mst_patrol_schedules.Select(x => new
-                {
-                    schedule_id = x.schedule_id,
-                    idno = x.idno,
-                    start_time = x.start_time,
-                    end_time = x.end_time,
-                    status_id = x.status_id,
-                    is_scheduled = x.is_scheduled,
-                    loc_name = x.loc_name,
-                    type_id = x.type_id,
-                    dept_id = x.dept_id,
-                    cnt_cmpd = x.cnt_cmpd,
-                    cnt_notice = x.cnt_notice,
-                    cnt_notes = x.cnt_notes,
-                    cnt_seizure = x.cnt_seizure,
-                    creator_id = runUserID,
-                    created_at = DateTime.Now,
-                    modifier_id = runUserID,
-                    modified_at = DateTime.Now,
-                    is_deleted = false,
-                    start_location = x.start_location != null
+                var data = await _tenantDBContext.mst_patrol_schedules
+                    .Where(cc => cc.idno == username && cc.created_at.Date == DateTime.Today && cc.is_deleted == false)
+                    .Select(x => new
+                    {
+                        schedule_id = x.schedule_id,
+                        idno = x.idno,
+                        start_time = x.start_time,
+                        end_time = x.end_time,
+                        status_id = x.status_id,
+                        is_scheduled = x.is_scheduled,
+                        loc_name = x.loc_name,
+                        type_id = x.type_id,
+                        dept_id = x.dept_id,
+                        cnt_cmpd = x.cnt_cmpd,
+                        cnt_notice = x.cnt_notice,
+                        cnt_notes = x.cnt_notes,
+                        cnt_seizure = x.cnt_seizure,
+                        creator_id = x.creator_id,
+                        created_at = x.created_at,
+                        modifier_id = x.modifier_id,
+                        modified_at = x.modified_at,
+                        is_deleted = x.is_deleted,
+                        start_location = x.start_location != null
                                     ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.start_location))
                                     : null,
 
-                    end_location = x.end_location != null
+                        end_location = x.end_location != null
                                         ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.end_location))
                                         : null,
-                    district_code = x.district_code,
-                    town_code = x.town_code,
-                    user_id = x.user_id,
-                })
+                        district_code = x.district_code,
+                        town_code = x.town_code,
+                        user_id = x.user_id,
+                    })
                 .ToListAsync();
+
 
                 var result = (
                                 from schedule in data
+                                join daerah in _dbContext.mst_districts on schedule.district_code equals daerah.district_code
                                 join bandar in _dbContext.mst_towns on schedule.town_code equals bandar.town_code
-                                where schedule.idno == username && schedule.start_time.Date == DateTime.Today
+                                where bandar.district_code == daerah.district_code
                                 select new PatrolViewModel
                                 {
                                     scheduleId = schedule.schedule_id,
@@ -440,17 +443,19 @@ namespace PBTPro.Api.Controllers
                                     StartTime = schedule.start_time,
                                     EndTime = schedule.end_time,
                                     PatrolId = (int)schedule.status_id,
-                                    TownCode = bandar.town_code,
+                                    TownCode = schedule.town_code,
                                     TownName = bandar.town_name,
                                     TypeId = (int)schedule.type_id,
                                     DeptId = (int)schedule.dept_id,
                                     CreatedAt = schedule.created_at,
-                                    DistrictCode = schedule.district_code,                                    
+                                    DistrictCode = schedule.district_code,
                                     UserId = (int)schedule.user_id,
-                                    is_deleted = schedule.is_deleted,
+                                    is_deleted = (bool)schedule.is_deleted,
                                     isSchedule = schedule.is_scheduled,
                                 }
                             ).ToList();
+
+               
 
                 return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
