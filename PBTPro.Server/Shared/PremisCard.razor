@@ -67,15 +67,109 @@
                     Nota Pemeriksaan
                     <span class="badge-button-green">0</span>
                 </button>
+                <button class="btn-panel" type="button">Maklumat Sitaan</button>
+            </div>
+        </div>
+    </div>
+</div>
+<hr>
+<div class="e-card">
+    <div class="e-main d-flex align-items-center">
+        <div class="e-info flex-grow-1 ms-3 py-3">
+            <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
+            <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
+            <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
+
+            <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
+            <div class="e-divider my-3"></div>
+            <div class="e-email">
+                <a class="receipt-panel">
+                    <img src="/images/icons/script-text.png" alt="" />
+                    Notis
+                    <span class="badge-button-green">0</span>
+                </a>
+                <a class="receipt-panel">
+                    <img src="/images/icons/script.png" alt="" />
+                    Notis Tamat Tempoh
+                    <span class="badge-button-green">0</span>
+                </a>
+
+                <a class="receipt-panel">
+                    <img src="/images/icons/receipt-text.png" alt="" />
+                    Kompaun
+                    <span class="badge-button-red">2</span>
+                </a>
+            </div>
+            <div class="e-divider my-3"></div>
+            <div class="e-email">
+
+                <button class="btn-panel" @onclick="@(() => ShowDetails("Maklumat Lesen", PremisInfo.NamaPerniagaan))" type="button">Maklumat Lesen</button>
+                <button class="btn-panel" @onclick="@(() => ShowDetails("Nota Pemeriksaan", PremisInfo.NoRujukan))">
+                    Nota Pemeriksaan
+                    <span class="badge-button-green">0</span>
+                </button>
+                <button class="btn-panel" type="button">Maklumat Sitaan</button>
             </div>
         </div>
     </div>
 </div>
 
+<DxPopup HeaderText="@HeaderText" @bind-Visible="@PopupVisible">
+    <Content>
+        <div class="e-info flex-grow-1 ms-3 py-3">
+            <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
+            <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
+            <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
+
+            <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
+            <div class="e-divider my-3"></div>
+            <div class="e-email">
+                <a class="receipt-panel">
+                    <img src="/images/icons/script-text.png" alt="" />
+                    Notis
+                    <span class="badge-button-green">0</span>
+                </a>
+                <a class="receipt-panel">
+                    <img src="/images/icons/script.png" alt="" />
+                    Notis Tamat Tempoh
+                    <span class="badge-button-green">0</span>
+                </a>
+
+                <a class="receipt-panel">
+                    <img src="/images/icons/receipt-text.png" alt="" />
+                    Kompaun
+                    <span class="badge-button-red">2</span>
+                </a>
+            </div>
+            <div class="e-divider my-3"></div>
+            <div class="e-email">
+
+                <button class="btn-panel" @onclick="@(() => ShowDetails("Maklumat Lesen", PremisInfo.NamaPerniagaan))" type="button">Maklumat Lesen</button>
+                <button class="btn-panel" @onclick="@(() => ShowDetails("Nota Pemeriksaan", PremisInfo.NoRujukan))">
+                    Nota Pemeriksaan
+                    <span class="badge-button-green">0</span>
+                </button>
+            </div>
+        </div>
+
+        @Details
+    </Content>
+</DxPopup>
+
 @code {
+    bool PopupVisible = false;
+    string Details;
+    string HeaderText;
+
     [Parameter] public NoticeProp PremisInfo { get; set; }
     [Parameter] public IEnumerable<KeyValuePair<string, object>> ImageAttributes { get; set; }
 
+    void ShowDetails(string headerdtl, string details)
+    {
+        PopupVisible = true;
+        Details = details;
+        HeaderText = headerdtl;
+    }
 
     public string GetPhotoUrl()
     {
