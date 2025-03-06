@@ -989,6 +989,52 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetListUserByRole()
+        {
+            try
+            {
+                var users = await _dbContext.Users.AsNoTracking().ToListAsync();
+                var dtDepartment = await _tenantDBContext.ref_departments.AsNoTracking().ToListAsync();
+                var dtSection = await _tenantDBContext.ref_divisions.AsNoTracking().ToListAsync();
+                var dtUnit = await _tenantDBContext.ref_units.AsNoTracking().ToListAsync();
+                var dtUserRole = await _dbContext.UserRoles.AsNoTracking().ToListAsync();
+                var dtRole = await _dbContext.Roles.AsNoTracking().ToListAsync();
+
+                var filteredRoles = dtRole.Where(role => role.Name.Contains("Anggota", StringComparison.Ordinal)).ToList();
+                List<ApplicationUser> filteredUserRoles = new List<ApplicationUser>();
+
+                if (users.Count() != 0)
+                {
+                    filteredUserRoles = (from _user in users
+                                         join _userrole in dtUserRole on _user.Id equals _userrole.UserId
+                                         join _role in filteredRoles on _userrole.RoleId equals _role.Id
+                                         where _user.IsDeleted == false
+                                         select new ApplicationUser
+                                         {
+                                             Id = _user.Id,
+                                             full_name = _user.full_name,
+                                             UserName = _user.UserName,
+                                             Email = _user.Email,
+                                             PhoneNumber = _user.PhoneNumber,
+                                             dept_id = _user.dept_id,
+                                             div_id = _user.div_id,
+                                             unit_id = _user.unit_id,
+                                             IdNo = _user.IdNo
+
+                                         }).ToList();
+
+                }
+                return Ok(filteredUserRoles, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
         #region email template        
         private async Task<bool> SendEmailCreateUser(string recipient, string username, string fullname, string password)
         {
