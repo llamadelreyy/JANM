@@ -167,6 +167,11 @@ namespace PBTPro.Api.Controllers
                         from lesen in data
                         join status in _tenantDBContext.ref_license_statuses on lesen.status_id equals status.status_id
                         join ops in _tenantDBContext.ref_license_ops on lesen.ops_id equals ops.ops_id
+                        join state in _dbContext.mst_states on lesen.state_code equals state.state_code
+                        join district in _dbContext.mst_districts on lesen.district_code equals district.district_code
+                        join town in _dbContext.mst_towns on lesen.town_code equals town.town_code
+                        where lesen.district_code == district.district_code && lesen.town_code == town.town_code
+
                         select new mst_licensee_view
                         {
                             lesen_id = lesen.licensee_id,
@@ -180,8 +185,11 @@ namespace PBTPro.Api.Controllers
                             status_lesen = status.status_name,
                             ops_id = ops.ops_id,
                             ops_name = ops.ops_name,
-                        }
-                        ).ToList();
+                            statename = state.state_name,
+                            districtname = district.district_name,
+                            townname = town.town_name,
+                        }).ToList();
+
                 return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
