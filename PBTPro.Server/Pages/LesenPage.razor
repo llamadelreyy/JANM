@@ -1,0 +1,485 @@
+﻿@page "/lesen"
+@attribute [Authorize]
+
+@implements IDisposable
+
+@using PBTPro
+@using PBTPro.DAL.Models.PayLoads
+@using PBTPro.Shared
+@using PBTPro.Data
+@using PBTPro.DAL
+@using PBTPro.DAL.Models
+@using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.CommonServices
+@using DevExpress.Blazor
+
+@inject LicenseService _LicenseService
+@inject NavigationManager NavigationManager
+@inject IToastNotificationService ToastService
+@inject PBTAuthPermissionService PermissionService
+
+<style>
+    .dxbl-grid {
+        height: 98.5%;
+        max-height: 98.5%;
+    }
+</style>
+@* @if (!PermissionService.HasPermission("View"))
+{
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{ *@
+<DxLoadingPanel @bind-Visible="PanelVisible"
+                IsContentBlocked="true"
+                ApplyBackgroundShading="true"
+                IndicatorAreaVisible="false"
+                Text="Capaian Data...">
+
+    <div class="d-lg-flex border-bottom">
+        <div class="col-md-12 py-1 dx-helptitle pageTitle">
+            <img class="imgTitle" src="\images\icons-small\toolbox.png" />
+            <div class="textTitle">Senarai Lesen</div>
+        </div>
+    </div>
+
+    <div class="item-container-x">
+        <DxGrid @ref="Grid"
+                Data="dataSource"
+                KeyFieldName="lesen_id"
+                ShowGroupPanel="true"
+                ShowFilterRow="false"
+                TextWrapEnabled="true"
+                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                EditorRenderMode="GridEditorRenderMode.Integrated"
+                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                ShowSearchBox="true"
+                AllowSelectRowByClick="true"
+                @bind-SearchText="@GridSearchText"
+                PageSize="25"
+                @bind-PageIndex="@GridPageIndex"
+                PagerPosition="GridPagerPosition.Bottom"
+                PagerNavigationMode="PagerNavigationMode.InputBox"
+                EditModelSaving="Grid_EditModelSaving"
+                EditFormButtonsVisible="false"
+                PageSizeSelectorVisible="true"
+                PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                PageSizeSelectorAllRowsItemVisible="true"
+                PagerAutoHideNavButtons="false"
+                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                HighlightRowOnHover="true"
+                CssClass="mv-1000">
+
+            <Columns>
+                <DxGridCommandColumn Width="55px">
+                    <HeaderTemplate>
+                        @if (PermissionService.HasPermission("Add"))
+                        {
+                            <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                        }
+                    </HeaderTemplate>
+                    <CellDisplayTemplate>
+                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        @if (PermissionService.HasPermission("Edit"))
+                        {
+                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        }
+                        @if (PermissionService.HasPermission("Delete"))
+                        {
+                            <a @onclick="@(() => Delete((mst_licensee_view)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                        }
+                    </CellDisplayTemplate>
+                </DxGridCommandColumn>
+                <DxGridDataColumn Caption="Nama Syarikat" MinWidth="120" Width="25%" FieldName="nama_perniagaan" GroupIndex="0" />
+                <DxGridDataColumn Caption="No Kad Pengenalan" MinWidth="120" Width="25%" FieldName="icno_pemilik" />
+                <DxGridDataColumn FieldName="tarikh_mula_isu"
+                                  DisplayFormat="dd/MM/yyyy"
+                                  Caption="Tarikh Mula Isu"
+                                  MinWidth="100"
+                                  Width="25%"
+                                  TextAlignment="GridTextAlignment.Center"
+                                  SortOrder="GridColumnSortOrder.Ascending"
+                                  SortIndex="0">
+                    <FilterMenuTemplate>
+                        <DateRange FilterContext="context" />
+                    </FilterMenuTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn FieldName="tarikh_tamat_isu"
+                                  DisplayFormat="dd/MM/yyyy"
+                                  Caption="Tarikh Tamat Isu"
+                                  MinWidth="100"
+                                  Width="25%"
+                                  TextAlignment="GridTextAlignment.Center"
+                                  SortOrder="GridColumnSortOrder.Ascending"
+                                  SortIndex="0">
+                    <FilterMenuTemplate>
+                        <DateRange FilterContext="context" />
+                    </FilterMenuTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="Status Lesen" MinWidth="120" Width="31%" FieldName="status_lesen" TextAlignment="GridTextAlignment.Center" AllowGroup="false">
+                    <CellDisplayTemplate>
+                        <div>@GetStatusLesenIconHtml(((mst_licensee_view)context.DataItem).status_lesen)</div>
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+
+            <EditFormTemplate Context="EditFormContext">
+                @{
+                    var dtData = (mst_licensee_view)EditFormContext.EditModel;
+                }
+                <DxFormLayout CssClass="w-100">
+                    <DxFormLayoutItem ColSpanMd="2">
+                        <div>No Kad Pengenalan</div>
+                        <DxTextBox @bind-Text="@dtData.icno_pemilik"
+                                   NullText="Nama Syarikat ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem><br/>
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Nama Syarikat</div>
+                        <DxTextBox @bind-Text="@dtData.nama_perniagaan"
+                                   NullText="Nama Syarikat ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>No Lesen</div>
+                        <DxTextBox @bind-Text="@dtData.lesen_acc_no"
+                                   NullText="Nama Syarikat ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <div>Alamat Syarikat</div>
+                        <DxMemo @bind-Text="@dtData.alamat_perniagaan"
+                                   NullText="Alamat Syarikat ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Negeri</div>
+                        <DxTextBox @bind-Text="@dtData.statename"
+                                   NullText="Negeri ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Daerah</div>
+                        <DxTextBox @bind-Text="@dtData.districtname"
+                                   NullText="Daerah ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Bandar</div>
+                        <DxTextBox @bind-Text="@dtData.townname"
+                                   NullText="Bandar ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+
+
+                    <DxFormLayoutItem ColSpanMd="3">
+                        @{
+                            string tarikh_daftar = dtData.tarikh_daftar.HasValue
+                            ? dtData.tarikh_daftar.Value.ToString("dd/MM/yyyy")
+                            : "-";
+                        }
+                        <div>Tarikh Daftar Syarikat</div>
+                        <DxTextBox @bind-Text="@tarikh_daftar"
+                                   NullText="Tarikh Daftar Syarikat ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="3">
+                        @{
+                            string tarikh_mula_isu = dtData.tarikh_mula_isu.HasValue
+                            ? dtData.tarikh_mula_isu.Value.ToString("dd/MM/yyyy")
+                            : "-";
+                        }
+                        <div>Tarikh Mula isu</div>
+                        <DxTextBox @bind-Text="@tarikh_mula_isu"
+                                   NullText="Nama Syarikat ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="3">
+                        @{
+                            string tarikh_tamat_isu = dtData.tarikh_tamat_isu.HasValue
+                            ? dtData.tarikh_tamat_isu.Value.ToString("dd/MM/yyyy")
+                            : "-";
+                        }
+                        <div>Tarikh Tamat Isu</div>
+                        <DxTextBox @bind-Text="@tarikh_tamat_isu"
+                                   NullText="Nama Syarikat ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="2">
+                        <div>Status Lesen</div>
+                        @if (dtData.status_lesen == "Tiada Data")
+                        {
+                            <span class='badge priority-warning py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                        }
+                        else if (dtData.status_lesen == "Aktif")
+                        {
+                            <span class='badge priority-info py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                        }
+                        else if (dtData.status_lesen == "Tamat Tempoh")
+                        {
+                            <span class='badge priority-danger py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                        }
+                        else if (dtData.status_lesen == "Gantung")
+                        {
+                            <span class='badge priority-warning py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                        }
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <div>Jenis Perniagaan</div>
+                        <DxMemo @bind-Text="@dtData.ops_name"
+                                   NullText="Jenis Perniagaan ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12">                        
+                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Tutup" />
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+            </EditFormTemplate>
+            <CustomValidators>
+                <MyCustomValidator DataItemValidating="ValidateGridData" />
+            </CustomValidators>
+
+            @*This is to count the summary*@
+            <TotalSummary>
+                <DxGridSummaryItem FooterColumnName="Name"
+                                   Name="Custom"
+                                   SummaryType=GridSummaryItemType.Count />
+            </TotalSummary>
+
+        </DxGrid>
+    </div>
+</DxLoadingPanel>
+
+<DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
+    <BodyContentTemplate>
+        <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
+        <br />Anda pasti untuk menghapuskan rekod ini?
+        <br /><br />
+        <div class="confirm-dialog-buttons">
+            <DxButton Text="Ya" RenderStyle="ButtonRenderStyle.Primary" class="confirmation-btn" Click="@OnYesButtonClick" />
+            <DxButton Text="Tidak" RenderStyle="ButtonRenderStyle.Secondary" class="confirmation-btn" Click="@OnNoButtonClick" />
+        </div>
+    </BodyContentTemplate>
+</DxPopup>
+@* } *@
+
+@code {
+    bool PanelVisible { get; set; }
+    IEnumerable<mst_licensee_view> dataSource;
+
+    IGrid Grid { get; set; }
+    int GridPageIndex { get; set; } = 0;
+    string GridSearchText = "";
+
+    bool ConfirmationShown { get; set; } = false;
+    string strSelected { get; set; }
+    mst_licensee_view dtData { get; set; }
+
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    protected override async Task OnInitializedAsync()
+    {
+        PanelVisible = true;
+        dataSource = await _LicenseService.ListAll();
+        DataLoadedTcs.TrySetResult(true);
+        PanelVisible = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task;
+            await Grid.CancelEditAsync();
+        }
+    }
+
+    void ValidateGridData(ValidationMessageStoreEventArgs e)
+    {
+        // var _data = (ApplicationRole)e.EditModel;
+        // if (_data.Name == null || _data.Name.Trim() == "")
+        // {
+        //     e.AddError(nameof(_data.Name), "Medan Peranan perlu diisi.");
+        // }
+
+
+        // if (Grid.IsEditingNewRow())
+        // {
+        //     var _dtAdd = dataSource.Where(x => x.Name == _data.Name).FirstOrDefault();
+
+        //     if (_dtAdd != null)
+        //         e.AddError(nameof(_data.Name), "Nama peranan telah wujud.");
+        // }
+        // else
+        // {
+        //     var _dtEdit = dataSource.Where(x => x.Id != _data.Id && x.Name == _data.Name).FirstOrDefault();
+
+        //     if (_dtEdit != null)
+        //         e.AddError(nameof(_data.Name), "Nama peranan telah wujud.");
+        // }
+    }
+
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        // ReturnViewModel response = new ReturnViewModel();
+        // var editModel = e.EditModel as ApplicationRole;
+        // try
+        // {
+        //     if (e.IsNew)
+        //         response = await _LicenseService.Add(editModel);
+        //     else
+        //         response = await _LicenseService.Update(editModel.Id, editModel);
+
+        //     if (response.ReturnCode == 200)
+        //     {
+        //         await UpdateDataAsync();
+        //         HandleResponse("Proses kemaskini selesai.");
+        //     }
+        //     else
+        //     {
+        //         HandleResponse(response.ReturnMessage, "Error");
+        //     }
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.Error.WriteLine($"An error occurred while saving the edit model: {ex.Message}");
+        // }
+
+    }
+
+    async Task UpdateDataAsync()
+    {
+        //dataSource = await _LicenseService.Refresh();
+    }
+
+    public void Dispose()
+    {
+        DataLoadedTcs.TrySetCanceled();
+    }
+
+    async Task Delete(mst_licensee_view item)
+    {
+        strSelected = item.nama_perniagaan;
+        dtData = item;
+        ConfirmationShown = true;
+    }
+
+    async void OnYesButtonClick()
+    {
+        // try
+        // {
+        //     ReturnViewModel response = new ReturnViewModel();
+        //     response = await _LicenseService.Delete(dtData.Id);
+
+        //     if (response.ReturnCode == 200)
+        //     {
+        //         await UpdateDataAsync();
+        //         ConfirmationShown = false;
+        //         StateHasChanged();
+        //         HandleResponse(response.ReturnMessage);
+        //     }
+        //     else
+        //     {
+        //         ConfirmationShown = false;
+        //         HandleResponse(response.ReturnMessage, "Error");
+        //     }
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.Error.WriteLine($"An error occurred while delete the edit model: {ex.Message}");
+        // }
+    }
+
+    void OnNoButtonClick()
+    {
+        ConfirmationShown = false;
+    }
+
+    void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+    {
+        if (e.Item.Name == "Custom")
+            e.DisplayText = string.Format("Bil. : {0}", e.Value);
+    }
+
+    private void HandleResponse(string message, string? status = "Success")
+    {
+        var RenderStyle = ToastRenderStyle.Success;
+
+        if (status == "Error")
+        {
+            RenderStyle = ToastRenderStyle.Danger;
+        }
+        else if (status == "Info")
+        {
+            RenderStyle = ToastRenderStyle.Info;
+        }
+        else if (status == "Warning")
+        {
+            RenderStyle = ToastRenderStyle.Warning;
+        }
+
+        ToastService.ShowToast(new ToastOptions()
+            {
+                ProviderName = "Overview",
+                ThemeMode = ToastThemeMode.Saturated,
+                RenderStyle = RenderStyle,
+                Title = message
+            });
+    }
+
+    public MarkupString GetStatusLesenIconHtml(string? status)
+    {
+        string priorytyClass = "";
+        string title = "";
+
+        if (status == "Aktif")
+        {
+            priorytyClass = "info";
+            title = " AKTIF ";
+        }
+        else if (status == "Tamat Tempoh")
+        {
+            priorytyClass = "danger";
+            title = " TAMAT TEMPOH ";
+        }
+        else if (status == "Gantung")
+        {
+            priorytyClass = "warning";
+            title = " GANTUNG ";
+        }
+        else if (status == "Tiada Data")
+        {
+            priorytyClass = "warning";
+            title = " TIADA DATA ";
+        }
+
+        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+        title);
+        return new MarkupString(html);
+    }
+}

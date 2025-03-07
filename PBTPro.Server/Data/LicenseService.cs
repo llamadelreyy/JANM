@@ -57,75 +57,10 @@ namespace PBTPro.Data
             LoggerID = _PBTAuthStateProvider.CurrentUser.Userid;
             RoleID = _PBTAuthStateProvider.CurrentUser.Roleid;
         }
-        public Task<List<license_view>> GetHistoryLicenseAsync(CancellationToken ct = default)
+
+        public async Task<List<mst_licensee_view>> ListAll()
         {
-            var result = _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya muat semula senarai sejarah lesen premis.", LoggerID, LoggerName, GetType().Name, RoleID);
-            return Task.FromResult(_license_view);
-        }
-
-        public async Task<List<license_view>> ListAll()
-        {
-            var result = new List<license_view>();
-            try
-            {
-                string requestUrl = $"{_baseReqURL}/ListAll";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl);
-
-                if (response.ReturnCode == 200)
-                {
-                    string? dataString = response?.Data?.ToString();
-                    if (!string.IsNullOrWhiteSpace(dataString))
-                    {
-                        result = JsonConvert.DeserializeObject<List<license_view>>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua sejarah lesen premis.", LoggerID, LoggerName, GetType().Name, RoleID);
-                    }
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
-                }
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<license_view>();
-            }
-            return result;
-        }
-
-        public async Task<List<license_view>> Refresh()
-        {
-            var result = new List<license_view>();
-            try
-            {
-                string requestUrl = $"{_baseReqURL}/ListAll";
-                var response = await _apiConnector.ProcessLocalApi(requestUrl);
-
-                if (response.ReturnCode == 200)
-                {
-                    string? dataString = response?.Data?.ToString();
-                    if (!string.IsNullOrWhiteSpace(dataString))
-                    {
-                        result = JsonConvert.DeserializeObject<List<license_view>>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua sejarah lesen premis.", LoggerID, LoggerName, GetType().Name, RoleID);
-                    }
-                }
-                else
-                {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
-                }
-            }
-            catch (Exception ex)
-            {
-                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<license_view>();
-            }
-            return result;
-        }
-
-        public async Task<List<premis_history_view>> GetList()
-        {
-            var result = new List<premis_history_view>();
+            var result = new List<mst_licensee_view>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/GetList";
@@ -136,19 +71,19 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<premis_history_view>>(dataString);
-                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semua sejarah lesen premis.", LoggerID, LoggerName, GetType().Name, RoleID);
+                        result = JsonConvert.DeserializeObject<List<mst_licensee_view>>(dataString);
+                        await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya papar senarai data.", LoggerID, LoggerName, GetType().Name, RoleID);
                     }
                 }
                 else
                 {
-                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod:" + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
                 }
             }
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<premis_history_view>();
+                result = new List<mst_licensee_view>();
             }
             return result;
         }
@@ -184,5 +119,7 @@ namespace PBTPro.Data
 
             return result;
         }
+
+
     }
 }

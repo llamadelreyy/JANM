@@ -47,255 +47,7 @@ namespace PBTPro.Api.Controllers
             _logger = logger;
             _tenantDBContext = tntdbContext;
         }
-
-        /// <summary>
-        /// 12/2/2025 087 - backend for crud lesen (author : farhana)
-        /// </summary>
-        /// <param name="Id"></param>
-        /// <returns></returns>
-        #region
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<mst_licensee>>> ListAll()
-        {
-            try
-            {
-                var data = await _tenantDBContext.mst_licensees.Where(e => e.is_deleted == false)
-                            .Select(e => new mst_licensee
-                            {
-                                licensee_id = e.licensee_id,
-                                license_accno = e.license_accno,
-                                owner_icno = e.owner_icno,
-                                type_id = e.type_id,
-                                business_name = e.business_name,
-                                business_addr = e.business_addr,
-                                town_code = e.town_code,
-                                district_code = e.district_code,
-                                state_code = e.state_code,
-                                reg_date = e.reg_date ?? DateTime.MinValue,
-                                start_date = e.start_date,
-                                end_date = e.end_date,
-                                status_id = e.status_id,
-                                // license_duration = Duration.FromSeconds(e.license_duration.TotalSeconds),
-                                cat_id = e.cat_id ?? 0, 
-                                ops_id = e.ops_id ?? 0,
-                                parl_id = e.parl_id ?? 0,
-                                dun_id = e.dun_id ?? 0,
-                                zon_id = e.zon_id ?? 0,
-                                created_at = e.created_at
-                            })
-                            .AsNoTracking()
-                            .ToListAsync();
-
-                var result = (
-                        from lesen in data
-                        join status in _tenantDBContext.ref_license_statuses on lesen.status_id equals status.status_id
-                        select new mst_licensee_view
-                        {
-                            lesen_id = lesen.licensee_id,
-                            lesen_acc_no = lesen.license_accno,
-                            icno_pemilik = lesen.owner_icno,
-                            nama_perniagaan = lesen.business_name,
-                            alamat_perniagaan = lesen.business_addr,
-                            tarikh_daftar = (DateTime)lesen.reg_date,
-                            tarikh_mula_isu = lesen.start_date,
-                            tarikh_tamat_isu = lesen.end_date,
-                            status_lesen = status.status_name,
-                        }
-                        ).ToList();
-
-                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<IActionResult> ViewDetail(int Id)
-        {
-            try
-            {
-                var parFormfield = await _tenantDBContext.mst_licensees.FirstOrDefaultAsync(x => x.licensee_id == Id);
-
-                if (parFormfield == null)
-                {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
-                return Ok(parFormfield, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        [AllowAnonymous]
-        [HttpPost]
-        public async Task<IActionResult> Add([FromBody] mst_licensee_view InputModel)
-        {
-            try
-            {
-                var runUserID = await getDefRunUserId();
-                var runUser = await getDefRunUser();
-
-                #region validation
-                
-                #endregion
-
-                #region store data
-                mst_licensee mst_licensee = new mst_licensee
-                {
-                    owner_icno = InputModel.icno_pemilik,
-                    license_accno = InputModel.lesen_acc_no,
-                    business_name = InputModel.nama_perniagaan,
-                    business_addr = InputModel.alamat_perniagaan,
-                    reg_date = InputModel.tarikh_daftar,
-                    start_date = InputModel.tarikh_mula_isu,
-                    end_date = InputModel.tarikh_tamat_isu,
-                    status_id = InputModel.status_id,
-                    type_id = InputModel.type_id,
-                    cat_id = InputModel.cat_id,
-                    parl_id = InputModel.parl_id,
-                    zon_id = InputModel.zon_id,
-                    dun_id = InputModel.dun_id,
-                    is_deleted = false,
-                    creator_id = runUserID,
-                    created_at = DateTime.Now,
-                };
-
-                _tenantDBContext.mst_licensees.Add(mst_licensee);
-                await _tenantDBContext.SaveChangesAsync();
-
-                #endregion
-
-                var result = new
-                {
-                    owner_icno = InputModel.icno_pemilik,
-                    license_accno = InputModel.lesen_acc_no,
-                    business_name = InputModel.nama_perniagaan,
-                    business_addr = InputModel.alamat_perniagaan,
-                    reg_date = InputModel.tarikh_daftar,
-                    start_date = InputModel.tarikh_mula_isu,
-                    end_date = InputModel.tarikh_tamat_isu,
-                    status_id = InputModel.status_id,
-                    type_id = InputModel.type_id,
-                    cat_id = InputModel.cat_id,
-                    parl_id = InputModel.parl_id,
-                    zon_id = InputModel.zon_id,
-                    dun_id = InputModel.dun_id,
-                    is_deleted = false,
-                    creator_id = runUserID,
-                    created_at = DateTime.Now,
-                };
-                return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta jadual rondaan")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        [AllowAnonymous]
-        [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, [FromBody] mst_licensee_view InputModel)
-        {
-            try
-            {
-                int runUserID = await getDefRunUserId();
-                string runUser = await getDefRunUser();
-
-                #region Validation
-                var formField = await _tenantDBContext.mst_licensees.FirstOrDefaultAsync(x => x.licensee_id == Id);
-                if (formField == null)
-                {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
-
-                if (string.IsNullOrWhiteSpace(InputModel.lesen_acc_no))
-                {
-                    return Error("", SystemMesg(_feature, "GENDER_NAME", MessageTypeEnum.Error, string.Format("Ruangan nama jantina diperlukan")));
-                }
-
-                #endregion
-
-                formField.owner_icno = InputModel.icno_pemilik;
-                formField.license_accno = InputModel.lesen_acc_no;
-                formField.business_name = InputModel.nama_perniagaan;
-                formField.business_addr = InputModel.alamat_perniagaan;
-                formField.reg_date = InputModel.tarikh_daftar;
-                formField.start_date = InputModel.tarikh_mula_isu;
-                formField.end_date = InputModel.tarikh_tamat_isu;
-                formField.status_id = InputModel.status_id;
-                formField.type_id = InputModel.type_id;
-                formField.cat_id = InputModel.cat_id;
-                formField.parl_id = InputModel.parl_id;
-                formField.zon_id = InputModel.zon_id;
-                formField.dun_id = InputModel.dun_id;
-                formField.modifier_id = runUserID;
-                formField.modified_at = DateTime.Now;
-
-                _tenantDBContext.mst_licensees.Update(formField);
-                await _tenantDBContext.SaveChangesAsync();
-
-                return Ok(formField, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-
-        [AllowAnonymous]
-        [HttpDelete("{Id}")]
-        public async Task<IActionResult> Delete(int Id)
-        {
-            try
-            {
-                int runUserID = await getDefRunUserId();
-                string runUser = await getDefRunUser();
-
-                #region Validation
-                var formField = await _tenantDBContext.mst_licensees.FirstOrDefaultAsync(x => x.licensee_id == Id);
-                if (formField == null)
-                {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
-                #endregion
-                try
-                {
-                    _tenantDBContext.mst_licensees.Remove(formField);
-                    await _tenantDBContext.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    formField.is_deleted = true;
-                    formField.modifier_id = runUserID;
-                    formField.modified_at = DateTime.Now;
-
-                    _tenantDBContext.mst_licensees.Update(formField);
-                    await _tenantDBContext.SaveChangesAsync();
-
-                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                }
-
-                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
-        #endregion        
-
+      
         [HttpGet]
         public async Task<IActionResult> GetListByTabType(string tabType)
         {
@@ -374,5 +126,79 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetList()
+        {
+            try
+            {
+                var data = await _tenantDBContext.mst_licensees.Where(e => e.is_deleted == false && e.created_at >= DateTime.Now.AddYears(-5))
+                     .Select(e => new mst_licensee
+                     {
+                         licensee_id = e.licensee_id,
+                         license_accno = e.license_accno,
+                         owner_icno = e.owner_icno,
+                         type_id = e.type_id,
+                         business_name = e.business_name,
+                         business_addr = e.business_addr,
+                         town_code = e.town_code,
+                         district_code = e.district_code,
+                         state_code = e.state_code,
+                         reg_date = e.reg_date ?? DateTime.MinValue,
+                         start_date = e.start_date,
+                         end_date = e.end_date,
+                         status_id = e.status_id,
+                         cat_id = e.cat_id ?? 0,
+                         ops_id = e.ops_id ?? 0,
+                         parl_id = e.parl_id ?? 0,
+                         dun_id = e.dun_id ?? 0,
+                         zon_id = e.zon_id ?? 0,
+                         created_at = e.created_at
+                     })
+                     .AsNoTracking()
+                     .ToListAsync();
+
+                if (data == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                var result = (
+                        from lesen in data
+                        join status in _tenantDBContext.ref_license_statuses on lesen.status_id equals status.status_id
+                        join ops in _tenantDBContext.ref_license_ops on lesen.ops_id equals ops.ops_id
+                        join state in _dbContext.mst_states on lesen.state_code equals state.state_code
+                        join district in _dbContext.mst_districts on lesen.district_code equals district.district_code
+                        join town in _dbContext.mst_towns on lesen.town_code equals town.town_code
+                        where lesen.district_code == district.district_code && lesen.town_code == town.town_code
+
+                        select new mst_licensee_view
+                        {
+                            lesen_id = lesen.licensee_id,
+                            lesen_acc_no = lesen.license_accno,
+                            icno_pemilik = lesen.owner_icno,
+                            nama_perniagaan = lesen.business_name,
+                            alamat_perniagaan = lesen.business_addr,
+                            tarikh_daftar = (DateTime)lesen.reg_date,
+                            tarikh_mula_isu = lesen.start_date,
+                            tarikh_tamat_isu = lesen.end_date,
+                            status_lesen = status.status_name,
+                            ops_id = ops.ops_id,
+                            ops_name = ops.ops_name,
+                            statename = state.state_name,
+                            districtname = district.district_name,
+                            townname = town.town_name,
+                        }).ToList();
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+
     }
 }

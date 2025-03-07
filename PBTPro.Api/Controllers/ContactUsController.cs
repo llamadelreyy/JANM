@@ -214,12 +214,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-
-        private bool ContactUsExists(int id)
-        {
-            return (_dbContext.contact_us?.Any(e => e.contact_id == id)).GetValueOrDefault();
-        }
-
+      
         private async Task<bool> SendEmailContactUs(string recipient, string username, string status, string response)
         {
             try
@@ -268,41 +263,8 @@ namespace PBTPro.Api.Controllers
                 _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return false;
             }
-        }
+        }        
 
-        //[AllowAnonymous]
-        //[HttpGet]
-        //public async Task<IActionResult> TotalCOntactus()
-        //{
-        //    try
-        //    {
-        //        using (NpgsqlConnection? myConn = new NpgsqlConnection(_dbConn))
-        //        {
-        //            using (NpgsqlCommand? myCmd = new NpgsqlCommand("SELECT core.func_totalcontactus()", myConn))
-        //            {
-        //                myConn.Open();
-
-        //                var total = myCmd.ExecuteScalar();
-
-        //                if (total == null)
-        //                {
-        //                    return Error("", SystemMesg("COMMON", "NO_DATA", MessageTypeEnum.Error, "No data found."));
-        //                }
-        //                int totalCount = Convert.ToInt32(total);
-
-        //                return Ok(new { totalCount = totalCount }, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, "Senarai rekod berjaya dijana"));
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-        //        return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-        //    }
-        //    finally
-        //    {
-        //    }
-        //}
         static string GenerateRandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
