@@ -24,6 +24,7 @@ Changes Logs:
 @using PBTPro.DAL.Models.CommonServices
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components
+@using PBTPro.DAL.Models.PayLoads
 
 @inject ContactUsService _contactus
 @inject NavigationManager NavigationManager
@@ -31,6 +32,9 @@ Changes Logs:
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 @inject PBTAuthPermissionService PermissionService
+@inject UserService _UserService
+@inject UserProfileService _UserProfileService
+
 
 <div class="d-lg-flex border-bottom mb-2">
     <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -53,11 +57,11 @@ else
                     <DxFormLayout>
                         <DxFormLayoutItem Caption="Nama:" ColSpanMd="12">
                             <DxTextBox @bind-Text="@dtData.contact_name"
-                                       BindValueMode="BindValueMode.OnInput"
-                                       ValidationEnabled="true"
-                                       ShowValidationIcon="true"
-                                       ShowValidationSuccessState="true"
-                                       CssClass="cw-480">
+                            BindValueMode="BindValueMode.OnInput"
+                            ValidationEnabled="true"
+                            ShowValidationIcon="true"
+                            ShowValidationSuccessState="true"
+                            CssClass="cw-480">
                             </DxTextBox>
                         </DxFormLayoutItem>
 
@@ -65,61 +69,61 @@ else
                         <DxFormLayoutItem Caption="Emel:" ColSpanMd="12">
 
                             <DxMaskedInput @bind-Value="@dtData.contact_email"
-                                           CssClass="cw-320"
-                                           NullText="@("_@_.__")"
-                                           Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"
-                                           Maxlength="60"
-                                           ShowValidationIcon="true"
-                                           MaskMode="MaskMode.RegEx">
+                            CssClass="cw-320"
+                            NullText="@("_@_.__")"
+                            Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"
+                            Maxlength="60"
+                            ShowValidationIcon="true"
+                            MaskMode="MaskMode.RegEx">
                                 <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
-                                                       Placeholder="Placeholder"
-                                                       PlaceholdersVisible="PlaceholderVisible" />
+                                Placeholder="Placeholder"
+                                PlaceholdersVisible="PlaceholderVisible" />
                             </DxMaskedInput>
                         </DxFormLayoutItem>
 
                         <DxFormLayoutItem Caption="No Telefon:" ColSpanMd="12">
                             <DxMaskedInput @bind-Value="@dtData.contact_telno"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           Maxlength="14"
-                                           ShowValidationIcon="true"
-                                           CssClass="cw-480" style="width:170px"
-                                           MaskMode=MaskMode.Text
-                                           Mask="99999999999999">
+                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                            BindValueMode="BindValueMode.OnInput"
+                            Maxlength="14"
+                            ShowValidationIcon="true"
+                            CssClass="cw-480" style="width:170px"
+                            MaskMode=MaskMode.Text
+                            Mask="99999999999999">
                                 <DxTextMaskProperties SaveLiteral=false></DxTextMaskProperties>
                             </DxMaskedInput>
                         </DxFormLayoutItem>
 
                         <DxFormLayoutItem Caption="Subjek:" BeginRow="true" CssClass="cw-480">
                             <DxComboBox Data="@JenisSubjek"
-                                        NullText="Pilih Subjek..."
-                                        @bind-Value="@dtData.contact_subject"
-                                        BindValueMode="BindValueMode.OnInput"
-                                        ValidationEnabled="true"
-                                        ShowValidationIcon="true"
-                                        ShowValidationSuccessState="true"
-                                        CssClass="cw-320" style="width:350px;/">
+                            NullText="Pilih Subjek..."
+                            @bind-Value="@dtData.contact_subject"
+                            BindValueMode="BindValueMode.OnInput"
+                            ValidationEnabled="true"
+                            ShowValidationIcon="true"
+                            ShowValidationSuccessState="true"
+                            CssClass="cw-320" style="width:350px;/">
 
                             </DxComboBox>
                         </DxFormLayoutItem>
                         <DxFormLayoutItem Caption="Catatan/Aduan:" BeginRow="true" ColSpanMd="12">
                             <DxMemo @bind-Text="@dtData.contact_message"
-                                    CssClass="cw-480"
-                                    Rows="3"
-                                    BindValueMode="BindValueMode.OnInput"
-                                    ValidationEnabled="true"
-                                    ShowValidationIcon="true"
-                                    ShowValidationSuccessState="true">
+                            CssClass="cw-480"
+                            Rows="3"
+                            BindValueMode="BindValueMode.OnInput"
+                            ValidationEnabled="true"
+                            ShowValidationIcon="true"
+                            ShowValidationSuccessState="true">
                             </DxMemo>
                         </DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
                         <DxFormLayoutItem ColSpanMd="12">
                             <DxButton CssClass="w-100 normal-btn" Text="Simpan"
-                                      RenderStyle="ButtonRenderStyle.Primary"
-                                      Enabled="true"
-                                      SubmitFormOnClick="true"
-                                      Click="OnYesButtonClick">
+                            RenderStyle="ButtonRenderStyle.Primary"
+                            Enabled="true"
+                            SubmitFormOnClick="true"
+                            Click="OnYesButtonClick">
                             </DxButton>
                         </DxFormLayoutItem>
                     </DxFormLayout>
@@ -151,12 +155,20 @@ else
                         !string.IsNullOrEmpty(dtData.contact_message);
 
     string FormValidationState = @"Sila tekan butang ""Simpan"" untuk sahkan data.";
+    user_profile_view userInfo = new user_profile_view();
 
     protected override async Task OnInitializedAsync()
     {
         dtData = new contact_us();
+        if (userInfo != null)
+        {
+            userInfo = await _UserProfileService.Retrieve();
+            dtData.contact_telno = userInfo.phone_number;
+            dtData.contact_email = userInfo.email;
+            dtData.contact_name = userInfo.full_name;
+        }
     }
-
+   
     private void HandleValidSubmit()
     {
         if (!IsEmptyForm)

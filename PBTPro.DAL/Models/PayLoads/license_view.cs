@@ -90,7 +90,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string icno_pemilik { get; set; }
         public string? nama_perniagaan { get; set; }
         public string alamat_perniagaan { get; set; }
-        public DateTime tarikh_daftar { get; set; }
+        public DateTime? tarikh_daftar { get; set; }
         public DateOnly? tarikh_mula_isu { get; set; }
         public DateOnly? tarikh_tamat_isu { get; set; }
         public DateOnly? tarikh_renewal { get; set; }
@@ -101,8 +101,12 @@ namespace PBTPro.DAL.Models.PayLoads
         public int type_id { get; set; }
         public int cat_id { get; set; }
         public int ops_id { get; set; }
+        public string ops_name { get; set; }
         public int parl_id { get; set; }
         public int dun_id { get; set; }
         public int zon_id { get; set; }
+        public string? statename { get; set; }
+        public string? districtname { get; set; }
+        public string? townname { get; set; }
     }
 }

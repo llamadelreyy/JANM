@@ -1374,7 +1374,7 @@ public partial class PBTProTenantDbContext : DbContext
 
             entity.ToTable("ref_unit", "tenant", tb => tb.HasComment("This table stores information about unit under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
 
-            entity.HasIndex(e => new { e.unit_code, e.dept_name }, "ref_unit_unit_code_key").IsUnique();
+            entity.HasIndex(e => new { e.unit_code, e.dept_name, e.div_name }, "ref_unit_unit_code_key").IsUnique();
 
             entity.Property(e => e.unit_id).HasComment("Unique identifier for each unit under division");
             entity.Property(e => e.created_at)

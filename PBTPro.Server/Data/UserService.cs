@@ -337,5 +337,36 @@ namespace PBTPro.Data
             }
             return result;
         }
+
+        [HttpGet]
+        public async Task<List<ApplicationUser>> ListByRole()
+        {
+            var result = new List<ApplicationUser>();
+            string requestUrl = $"{_baseReqURL}/GetListUserByRole";
+            var response = await _apiConnector.ProcessLocalApi(requestUrl);
+
+            try
+            {
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<ApplicationUser>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai pengguna.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+                result = new List<ApplicationUser>();
+            }
+            return result;
+        }
     }
 }
