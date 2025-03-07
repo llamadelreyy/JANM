@@ -40,14 +40,14 @@
     <div class="gridlayout-content gridlayout-item align-content-center" CssClass="w-100 ch-480">
         @*Content*@
 
-        <div class="loginPBTPro mt-5" style="border:solid 1px #999;border-radius: 5px;box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);">
-            <div class="text-center py-3">
-                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase">
+        <div class="loginPBTPro mt-3" style="border:solid 1px #999;border-radius: 5px;box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);">
+            <div class="text-center py-4">
+                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase" style="letter-spacing:0.09em;">
                     <b>Selamat Datang</b><br />
                 </p>
                 <img src="images/mdk.jpeg" class="loginImej" />
 
-                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase">
+                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase" style="letter-spacing:0.09em;">
                     <b>Majlis Bandaraya</b><br />
                     <b>Diraja Klang</b>
                 </p>
@@ -76,7 +76,7 @@
 
                                 <input id="dummyPwd" type="@inputType" style="visibility:@inputVisible; width:50%" @oninput="BindValue" @bind="LoginModel.Password" placeholder="" />
                                 <button id="dummybtn" @onclick="TogglePasswordVisibility">
-                                    <img src="@eyeIconClass" />
+                                    <i class="@eyeIconClass"></i>
                                 </button>
                             </div>
 
@@ -93,8 +93,8 @@
                     </DxFormLayout>
                 </EditForm>
             </div>
-            <div class="text-center py-3" style="margin:0 0 30px 0;">
-                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase">
+            <div class="text-center py-3">
+                <p class="tm-8 fw-normal fs-825 text-uppercase" style="letter-spacing:0.05em;font-size:0.85rem;">
                     <a href="/forget_password" class="text-decoration-none text-black fw-bold">Lupa kata laluan ?</a>
                 </p>
             </div>
@@ -115,7 +115,7 @@
     public bool blnNotSubmit = false;
     private string inputType => showPassword ? "text" : "password";
     string passwoxrd="";
-    private string eyeIconClass => showPassword ? "images/icons-small/eye.png" : "images/icons-small/eye-close.png";
+    private string eyeIconClass => showPassword ? "ri-eye-line" : "ri-eye-close-line";
 
     private void BindValue()
     {
