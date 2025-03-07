@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.GeometriesGraph;
+using Npgsql;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -127,7 +128,7 @@ namespace PBTPro.Api.Controllers
                 #endregion
 
                 #region store data
-                ref_unit division_infos = new ref_unit
+                ref_unit ref_unit = new ref_unit
                 {
                     unit_code = InputModel.unit_code,
                     unit_name = InputModel.unit_name,
@@ -141,24 +142,28 @@ namespace PBTPro.Api.Controllers
                     created_at = DateTime.Now,
                 };
 
-                _tenantDBContext.ref_units.Add(division_infos);
+                _tenantDBContext.ref_units.Add(ref_unit);
                 await _tenantDBContext.SaveChangesAsync();
 
                 #endregion
 
                 var result = new
                 {
-                    unit_code = division_infos.unit_code,
-                    unit_name = division_infos.unit_name,
-                    unit_desc = division_infos.unit_desc,
-                    dept_id = division_infos.dept_id,
-                    dept_name = division_infos.dept_name,
-                    div_id = division_infos.div_id,
-                    div_name = division_infos.div_name,
-                    is_deleted = division_infos.is_deleted,
-                    created_at = division_infos.created_at
+                    unit_code = ref_unit.unit_code,
+                    unit_name = ref_unit.unit_name,
+                    unit_desc = ref_unit.unit_desc,
+                    dept_id = ref_unit.dept_id,
+                    dept_name = ref_unit.dept_name,
+                    div_id = ref_unit.div_id,
+                    div_name = ref_unit.div_name,
+                    is_deleted = ref_unit.is_deleted,
+                    created_at = ref_unit.created_at
                 };
                 return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya tambah data.")));
+            }
+            catch (PostgresException ex) when (ex.SqlState == "23505") // 23505 is the unique violation error code
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Kod Seksyen sama dengan kod jabatan telah wujud.")));// BadRequest("The combination of div_code and dept_name already exists.");
             }
             catch (Exception ex)
             {

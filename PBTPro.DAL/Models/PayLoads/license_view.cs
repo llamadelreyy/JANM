@@ -105,5 +105,8 @@ namespace PBTPro.DAL.Models.PayLoads
         public int parl_id { get; set; }
         public int dun_id { get; set; }
         public int zon_id { get; set; }
+        public string? statename { get; set; }
+        public string? districtname { get; set; }
+        public string? townname { get; set; }
     }
 }

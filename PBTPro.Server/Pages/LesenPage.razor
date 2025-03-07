@@ -129,6 +129,14 @@ else
                     var dtData = (mst_licensee_view)EditFormContext.EditModel;
                 }
                 <DxFormLayout CssClass="w-100">
+                    <DxFormLayoutItem ColSpanMd="2">
+                        <div>No Kad Pengenalan</div>
+                        <DxTextBox @bind-Text="@dtData.icno_pemilik"
+                                   NullText="Nama Syarikat ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem><br/>
                     <DxFormLayoutItem ColSpanMd="4">
                         <div>Nama Syarikat</div>
                         <DxTextBox @bind-Text="@dtData.nama_perniagaan"
@@ -145,25 +153,7 @@ else
                                    CssClass="cw-480"
                                    Enabled="false" />
                     </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="4">
-                        <div>Status Lesen</div>
-                        @if (dtData.status_lesen == "Tiada Data")
-                        {
-                            <span class='badge priority-warning py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
-                        }
-                        else if (dtData.status_lesen == "Aktif")
-                        {
-                            <span class='badge priority-info py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
-                        }
-                        else if (dtData.status_lesen == "Tamat Tempoh")
-                        {
-                            <span class='badge priority-danger py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
-                        }
-                        else if (dtData.status_lesen == "Gantung")
-                        {
-                            <span class='badge priority-warning py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
-                        }
-                    </DxFormLayoutItem>
+                    
                     <DxFormLayoutItem ColSpanMd="12">
                         <div>Alamat Syarikat</div>
                         <DxMemo @bind-Text="@dtData.alamat_perniagaan"
@@ -172,7 +162,32 @@ else
                                    CssClass="cw-480"
                                    Enabled="false" />
                     </DxFormLayoutItem>
-                   
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Negeri</div>
+                        <DxTextBox @bind-Text="@dtData.statename"
+                                   NullText="Negeri ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Daerah</div>
+                        <DxTextBox @bind-Text="@dtData.districtname"
+                                   NullText="Daerah ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="4">
+                        <div>Bandar</div>
+                        <DxTextBox @bind-Text="@dtData.townname"
+                                   NullText="Bandar ..."
+                                   BindValueMode="BindValueMode.OnInput"
+                                   CssClass="cw-480"
+                                   Enabled="false" />
+                    </DxFormLayoutItem>
+
+
                     <DxFormLayoutItem ColSpanMd="3">
                         @{
                             string tarikh_daftar = dtData.tarikh_daftar.HasValue
@@ -212,6 +227,25 @@ else
                                    CssClass="cw-480"
                                    Enabled="false" />
                     </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="2">
+                        <div>Status Lesen</div>
+                        @if (dtData.status_lesen == "Tiada Data")
+                        {
+                            <span class='badge priority-warning py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                        }
+                        else if (dtData.status_lesen == "Aktif")
+                        {
+                            <span class='badge priority-info py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                        }
+                        else if (dtData.status_lesen == "Tamat Tempoh")
+                        {
+                            <span class='badge priority-danger py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                        }
+                        else if (dtData.status_lesen == "Gantung")
+                        {
+                            <span class='badge priority-warning py-1 px-2' title='@dtData.status_lesen.ToUpper()'>@dtData.status_lesen.ToUpper()</span>
+                        }
+                    </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="12">
                         <div>Jenis Perniagaan</div>
                         <DxMemo @bind-Text="@dtData.ops_name"
@@ -221,9 +255,8 @@ else
                                    Enabled="false" />
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="12">
-                        <DxButton SubmitFormOnClick="true" class="btn-edit-grid" Text="Simpan" />
-                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Batal" />
+                    <DxFormLayoutItem ColSpanMd="12">                        
+                        <DxButton Click="@(() => Grid.CancelEditAsync())" class="btn-edit-grid" Text="Tutup" />
                     </DxFormLayoutItem>
                 </DxFormLayout>
             </EditFormTemplate>
