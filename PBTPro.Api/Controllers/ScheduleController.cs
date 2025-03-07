@@ -100,8 +100,7 @@ namespace PBTPro.Api.Controllers
                         join daerah in _dbContext.mst_districts on schedule.district_code equals daerah.district_code
                         join bandar in _dbContext.mst_towns on schedule.town_code equals bandar.town_code
                         join type in _tenantDBContext.ref_patrol_types on schedule.type_id equals type.type_id
-
-                        // Group by `schedule_id` to avoid duplicates
+                        where bandar.district_code == daerah.district_code
                         group new { schedule, user, department, seksyen, unit, daerah, bandar, type } by schedule.schedule_id into grouped
                         select new PatrolViewModel
                         {
@@ -321,6 +320,7 @@ namespace PBTPro.Api.Controllers
                         join daerah in _dbContext.mst_districts on schedule.district_code equals daerah.district_code
                         join bandar in _dbContext.mst_towns on schedule.town_code equals bandar.town_code
                         join type in _tenantDBContext.ref_patrol_types on schedule.type_id equals type.type_id
+                        where bandar.district_code == daerah.district_code
 
                         group new { schedule, user, department, seksyen, unit, daerah, bandar, type } by schedule.schedule_id into grouped
                         select new PatrolViewModel
@@ -442,7 +442,7 @@ namespace PBTPro.Api.Controllers
                                     ICNo = schedule.idno,
                                     StartTime = schedule.start_time,
                                     EndTime = schedule.end_time,
-                                    PatrolId = (int)schedule.status_id,
+                                    StatusId = (int)schedule.status_id,
                                     TownCode = schedule.town_code,
                                     TownName = bandar.town_name,
                                     TypeId = (int)schedule.type_id,
