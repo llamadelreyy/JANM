@@ -47,7 +47,7 @@ namespace PBTPro.Api.Controllers
             _logger = logger;
             _tenantDBContext = tntdbContext;
         }
-      
+
         [HttpGet]
         public async Task<IActionResult> GetListByTabType(string tabType)
         {
@@ -169,9 +169,8 @@ namespace PBTPro.Api.Controllers
                         join ops in _tenantDBContext.ref_license_ops on lesen.ops_id equals ops.ops_id
                         join state in _dbContext.mst_states on lesen.state_code equals state.state_code
                         join district in _dbContext.mst_districts on lesen.district_code equals district.district_code
-                        join town in _dbContext.mst_towns on lesen.town_code equals town.town_code
-                        where lesen.district_code == district.district_code && lesen.town_code == town.town_code
-
+                        join town in _dbContext.mst_towns on new { lesen.town_code, lesen.district_code }
+                        equals new { town.town_code, town.district_code }
                         select new mst_licensee_view
                         {
                             lesen_id = lesen.licensee_id,
@@ -188,6 +187,7 @@ namespace PBTPro.Api.Controllers
                             statename = state.state_name,
                             districtname = district.district_name,
                             townname = town.town_name,
+
                         }).ToList();
 
                 return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
