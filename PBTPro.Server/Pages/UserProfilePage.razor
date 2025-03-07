@@ -41,130 +41,154 @@
                 <DataAnnotationsValidator />
                 <DxFormLayout>
                     <DxFormLayoutItem ColSpanMd="2">
-                        <div class="align-items-center align-content-center">
-                            @* <img class="profile-photo" src="images/profile/avatar-user-profile-icon.jpg" alt="" /> *@
-                            <img class="profile-photo" src="@userInfo.photo_path_url" alt="@userInfo.photo_filename" />
-                        </div>
+
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="10">
-                        <div class="upload-container">
-                            <div style="display: none">
-                                <span class="drop-file-label mb-1">Tekan butang Pilih untuk pilih fail imej</span>
-                            </div>
-                            <div class="bottom-upload">
-                                <DxUpload Name="ImageUpload"
-                                                MaxFileSize="4000000"
-                                                SelectButtonText="Pilih fail imej"
-                                                AllowMultiFileUpload="false"
-                                                FileUploaded="@((args) => OnFileUploaded(args, userInfo))"
-                                                ChunkSize="20000"
-                                                AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png" })"
-                                                UploadUrl="@GetUploadUrl("api/Upload/UploadFile/")"
-                                                ShowFileList="false">
-                                </DxUpload>
-                            </div>
-                        </div>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="4">
-                        <div>Jabatan</div>
-                        <DxTextBox @bind-Text="@userInfo.dept_name"
-                                   NullText="Jabatan pengguna ..."
-                                   BindValueMode="BindValueMode.OnInput"
-                                   CssClass="cw-480"
-                                   Enabled="false" />
-                    </DxFormLayoutItem>
 
-                    <DxFormLayoutItem ColSpanMd="4">
-                        <div>Seksyen</div>
-                        <DxTextBox @bind-Text="@userInfo.div_name"
-                                   NullText="Seksyen pengguna ..."
-                                   BindValueMode="BindValueMode.OnInput"
-                                   CssClass="cw-480"
-                                   Enabled="false" />
                     </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12">
+                            <table style="width:100%" class="dxbl-text-edit-input">
+                            <tr>
+                                <td width="30%" align="center">
+                                    <div class="align-items-center align-content-center">
+                                        @* <img class="profile-photo" src="images/profile/avatar-user-profile-icon.jpg" alt="" /> *@
+                                        <img class="profile-photo" src="@userInfo.photo_path_url" alt="@userInfo.photo_filename" />
+                                    </div>
+                                </td>
+                                <td width="70%" valign="top" rowspan="3">
+                                    <table width="100%">
+                                        <tr>
+                                            <td width="50%">
+                                                    <div>Jabatan</div>
+                                                    <DxTextBox @bind-Text="@userInfo.dept_name"
+                                                               NullText="Jabatan pengguna ..."
+                                                               BindValueMode="BindValueMode.OnInput"
+                                                               CssClass="cw-480"
+                                                               Enabled="false" />
 
-                    <DxFormLayoutItem ColSpanMd="4">
-                        <div>Unit</div>
-                        <DxTextBox @bind-Text="@userInfo.unit_name"
-                                   NullText="Unit pengguna ..."
-                                   BindValueMode="BindValueMode.OnInput"
-                                   CssClass="cw-480"
-                                   Enabled="false" />
-                    </DxFormLayoutItem>
+                                            </td>
+                                            <td nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                    <div>Seksyen</div>
+                                                    <DxTextBox @bind-Text="@userInfo.div_name"
+                                                               NullText="Seksyen pengguna ..."
+                                                               BindValueMode="BindValueMode.OnInput"
+                                                               CssClass="cw-480"
+                                                               Enabled="false" />
 
-                    <DxFormLayoutItem ColSpanMd="4">
-                        <div>No Kad Pengenalan</div>
-                        <DxTextBox @bind-Text="@userInfo.idno"
-                                   NullText="cth:750727085221 ..."
-                                   BindValueMode="BindValueMode.OnInput"
-                                   CssClass="cw-480"
-                                   Enabled="false" />
-                    </DxFormLayoutItem>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="50%">
+                                                    <div>Unit</div>
+                                                    <DxTextBox @bind-Text="@userInfo.unit_name"
+                                                               NullText="Unit pengguna ..."
+                                                               BindValueMode="BindValueMode.OnInput"
+                                                               CssClass="cw-480"
+                                                               Enabled="false" />
+                                            </td>
+                                            <td nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
+                                        <tr>
+                                            <td width="50%">
+                                                    <div>No Kad Pengenalan</div>
+                                                    <DxTextBox @bind-Text="@userInfo.idno"
+                                                               NullText="cth:750727085221 ..."
+                                                               BindValueMode="BindValueMode.OnInput"
+                                                               CssClass="cw-480"
+                                                               Enabled="false" />
+                                            </td>
+                                            <td nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                    <div>No Telefon</div>
+                                                    <DxMaskedInput @bind-Value="@userInfo.phone_number"
+                                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                                   BindValueMode="BindValueMode.OnInput"
+                                                                   Maxlength="14"
+                                                                   ShowValidationIcon="true"
+                                                                   CssClass="cw-480" style="width:170px"
+                                                                   MaskMode=MaskMode.Text
+                                                                   Mask="99999999999999">
+                                                        <DxTextMaskProperties SaveLiteral=false></DxTextMaskProperties>
+                                                    </DxMaskedInput>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="50%">
+                                                    <div>ID Pengguna</div>
+                                                    <DxTextBox NullText="ID Pengguna ..."
+                                                               @bind-Text="@userInfo.user_name"
+                                                               BindValueMode="BindValueMode.OnInput"
+                                                               CssClass="cw-480"
+                                                               Enabled="false" />
+                                            </td>
+                                            <td nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                            <td width="50%">
 
-                    <DxFormLayoutItem ColSpanMd="4">
-                        <div>No Telefon</div>
-                        <DxMaskedInput @bind-Value="@userInfo.phone_number"
-                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                       BindValueMode="BindValueMode.OnInput"
-                                       Maxlength="14"
-                                       ShowValidationIcon="true"
-                                       CssClass="cw-480" style="width:170px"
-                                       MaskMode=MaskMode.Text
-                                       Mask="99999999999999">
-                                <DxTextMaskProperties SaveLiteral=false></DxTextMaskProperties>
-                        </DxMaskedInput>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="4"></DxFormLayoutItem>
+                                                    <div>Peranan</div>
+                                                    <DxComboBox Data="@userInfo.user_roles"
+                                                                NullText="Pilih peranan ..."
+                                                                ShowValidationIcon="true"
+                                                                FilteringMode="DataGridFilteringMode.Contains"
+                                                                @bind-Value="@intCurrentRoleId"
+                                                                TextFieldName="Name"
+                                                                ValueFieldName="Id"
+                                                                CssClass="cw-480">
+                                                    </DxComboBox>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="50%">
+                                                    <div>Nama</div>
+                                                    <DxTextBox @bind-Text="@userInfo.full_name"
+                                                               NullText="Nama Pengguna ..."
+                                                               BindValueMode="BindValueMode.OnInput"
+                                                               ShowValidationIcon="true"
+                                                               CssClass="cw-480"
+                                                               Enabled="false" />
+                                            </td>
+                                                <td nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                    <div>Emel</div>
 
-                    <DxFormLayoutItem ColSpanMd="4">
-                        <div>ID Pengguna</div>
-                        <DxTextBox 
-                                   NullText="ID Pengguna ..."
-                                   @bind-Text="@userInfo.user_name"
-                                   BindValueMode="BindValueMode.OnInput"
-                                   CssClass="cw-480"
-                                   Enabled="false" />
-                    </DxFormLayoutItem>
-                    
-                    <DxFormLayoutItem ColSpanMd="4">
-                        <div>Peranan</div>
-                        <DxComboBox Data="@userInfo.user_roles"
-                                    NullText="Pilih peranan ..."
-                                    ShowValidationIcon="true"
-                                    FilteringMode="DataGridFilteringMode.Contains"
-                                    @bind-Value="@intCurrentRoleId"
-                                    TextFieldName="Name"
-                                    ValueFieldName="Id"
-                                    CssClass="cw-480">
-                            </DxComboBox>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="4"></DxFormLayoutItem>
-                   
+                                                    <DxMaskedInput @bind-Value="@userInfo.email"
+                                                                   CssClass="cw-320"
+                                                                   NullText="@("_@_.__")"
+                                                                   Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"
+                                                                   Maxlength="60"
+                                                                   ShowValidationIcon="true"
+                                                                   MaskMode="MaskMode.RegEx">
+                                                        <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
+                                                                               Placeholder="Placeholder"
+                                                                               PlaceholdersVisible="PlaceholderVisible" />
+                                                    </DxMaskedInput>
 
-                    <DxFormLayoutItem ColSpanMd="6">
-                        <div>Nama</div>
-                        <DxTextBox @bind-Text="@userInfo.full_name"
-                                   NullText="Nama Pengguna ..."
-                                   BindValueMode="BindValueMode.OnInput"
-                                   ShowValidationIcon="true"
-                                   CssClass="cw-480"
-                                   Enabled="false" />
-                    </DxFormLayoutItem>
-
-                    <DxFormLayoutItem ColSpanMd="6">
-                        <div>Emel</div>
-
-                        <DxMaskedInput @bind-Value="@userInfo.email"
-                                       CssClass="cw-320"
-                                       NullText="@("_@_.__")"
-                                       Mask="@(@"((\w|[.-])+@(\w|-)+\.(\w|-){2,4})?")"
-                                       Maxlength="60"
-                                       ShowValidationIcon="true"
-                                       MaskMode="MaskMode.RegEx">
-                            <DxRegExMaskProperties MaskAutoCompleteMode="@((MaskAutoCompleteMode)AutoCompleteMode)"
-                                                   Placeholder="Placeholder"
-                                                   PlaceholdersVisible="PlaceholderVisible" />
-                        </DxMaskedInput>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr height="10px"><td></td></tr>
+                            <tr>
+                                <td align="center">
+                                    <div class="upload-container">
+                                        <div class="bottom-upload">
+                                            <DxUpload Name="ImageUpload"
+                                                        MaxFileSize="4000000"
+                                                        SelectButtonText="Pilih fail imej"
+                                                        AllowMultiFileUpload="false"
+                                                        FileUploaded="@((args) => OnFileUploaded(args, userInfo))"
+                                                        ChunkSize="20000"
+                                                        AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png" })"
+                                                        UploadUrl="@GetUploadUrl("api/Upload/UploadFile/")"
+                                                        ShowFileList="false">
+                                            </DxUpload>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="12"><hr /></DxFormLayoutItem>
                     <DxFormLayoutItem ColSpanMd="12">

@@ -57,7 +57,7 @@ Changes Logs:
                     foreach (var group in groupedItems)
                     {
                         var combine = @group.Key + " (" + @group.Count() + ")";
-                        <DxFormLayoutTabPage Caption="@combine">
+                        <DxFormLayoutTabPage Caption="@combine" ColSpanMd="12" ColSpanLg="12">
                             <DxAccordion ExpandMode="ExpandMode"
                                 ExpandCollapseAction="ExpandCollapseAction"
                                 AnimationType="LayoutAnimationType.Slide" style="width:100%;">
@@ -65,7 +65,7 @@ Changes Logs:
                                     @foreach (var item in group)
                                     {
                                         <DxAccordionItem Text=@($"{item.faq_question}") Expanded="@(group.First() == item)">
-                                            <ContentTemplate>
+                                            <ContentTemplate> 
                                                 <div class="py-3 px-3" tabindex="0">
                                                     <FaqDetailPage FaqInfo="@item" />
                                                 </div>
