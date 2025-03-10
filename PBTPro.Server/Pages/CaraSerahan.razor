@@ -107,11 +107,11 @@ else
                     </DxGridDataColumn>
                 </Columns>
 
-                <EditFormTemplate Context="EditFormContext">
-                    @{
-                        var dtEdit = (ref_deliver)EditFormContext.EditModel;
-                    }
-                    <DxFormLayout CssClass="w-100">
+            <EditFormTemplate Context="EditFormContext">
+                @{
+                    var dtEdit = (ref_deliver)EditFormContext.EditModel;
+                }
+                    <DxFormLayout CssClass="w-100" style="padding:10px 20px;">
                     <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
                         <table class="layout_edit">
                             <tr>

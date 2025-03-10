@@ -1241,7 +1241,8 @@ label {
 .layout_edit td, .dxbl-fl-ctrl div {
     font-weight: bold;
     letter-spacing: 0.035rem;
-/*    font-size: 0.95rem !important;*/
+    padding: 1px 0px !important;
+    /*    font-size: 0.95rem !important;*/
 }
 
 .layout_edit .dxbl-text-edit, .dxbl-text-edit {
