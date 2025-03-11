@@ -10,9 +10,9 @@ public partial class mst_patrol_schedule
 
     public string? idno { get; set; }
 
-    public DateTime start_time { get; set; }
+    public DateTime? start_time { get; set; }
 
-    public DateTime end_time { get; set; }
+    public DateTime? end_time { get; set; }
 
     public int? status_id { get; set; }
 
