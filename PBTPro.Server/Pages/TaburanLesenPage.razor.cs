@@ -1,5 +1,4 @@
-﻿using DevExpress.XtraPrinting.Native;
-using GoogleMapsComponents;
+﻿using GoogleMapsComponents;
 using GoogleMapsComponents.Maps;
 using Microsoft.AspNetCore.Components;
 using GoogleMapsComponents.Maps.Coordinates;
@@ -11,16 +10,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GoogleMapsComponents.Maps.Places;
-using DevExpress.ClipboardSource.SpreadsheetML;
 using PBTPro.DAL.Models;
-using DevExpress.DashboardCommon;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PBTPro.Data;
 using System.Threading;
 using PBTPro.DAL.Models.PayLoads;
 using System.Collections.Concurrent;
-using DevExpress.DashboardExport.Map;
 using DevExpress.Blazor;
 
 
@@ -340,7 +336,6 @@ namespace PBTPro.Pages
 
         private async Task AddLegend()
         {
-            //////await map1.InteropObject.AddControl(_controlPosition, LegendReference);
             intLegend++;
 
             if (intLegend == 1)
@@ -350,8 +345,6 @@ namespace PBTPro.Pages
                 intLegend = 0;
                 await map1.InteropObject.RemoveControl(_controlPosition, LegendReference);
             }
-
-            //await OpenSideBar("Test");
         }
 
         private async Task OpenSideBar(string msg)
@@ -909,19 +902,9 @@ namespace PBTPro.Pages
 
             var polygon = await GoogleMapsComponents.Maps.Polygon.CreateAsync(this.map1.JsRuntime, polygonOptions);
             await polygon.SetMap(this.map1.InteropObject);
-            // incase need to popup
-            //await polygon.AddListener<MouseEvent>("click", async (e) =>
-            //{
-            //    await OpenSideBar(data.NoLesen);
-            //    StateHasChanged();
-            //});
+
         }
         #endregion
     }
 
-    //public class FilterData
-    //{
-
-
-    //}
 }

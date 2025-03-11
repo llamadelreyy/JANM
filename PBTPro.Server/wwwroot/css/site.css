@@ -53,6 +53,15 @@ Fonts
 }
 
 
+/* How to use icon remix --> <i class="ri-arrow-right-box-line"></i> */
+
+/*@font-face {
+    font-family: 'Remixicon';
+    font-style: normal;
+    font-weight: 400;
+    src: url("fonts/Remixicon/remixicon.eot");*/ /* For IE6-8 */
+    /*src: local('Remixicon'), url("fonts/Remixicon/remixicon.woff2") format('woff2'), url("fonts/Remixicon/remixicon.woff") format('woff'), url("fonts/Remixicon/remixicon.ttf") format('truetype');
+}*/
 
 @font-face {
     font-family: 'Material Icons';
@@ -83,6 +92,7 @@ Fonts
     /* Support for IE. */
     font-feature-settings: 'liga';
 }
+
 
 html, body {
     /*font-family: 'Roboto-Light','Roboto-Regular','Roboto-Thin','Roboto-Medium','Helvetica Neue', Helvetica, Arial, sans-serif;*/
@@ -154,8 +164,8 @@ section {
 
 .loginuser {
     /*    font-family: 'Roboto-Medium','Roboto-Regular';*/
-    font-size: 14px;
-    letter-spacing: 0.03em;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
     font-weight: bold;
     -webkit-transition: all 0.4s ease 0s;
     -o-transition: all 0.4s ease 0s;
@@ -164,7 +174,7 @@ section {
 
 
 .loginusername {
-    font-size: 14px;
+    font-size: 0.8rem;
     letter-spacing: 0.02em;
 }
 
@@ -607,7 +617,7 @@ i[class^="ri"] {
 }
 
 .btnReportRgt {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight:bold;
     color:#1060f1;
     float: right;
@@ -642,12 +652,19 @@ i[class^="ri"] {
 
 .dxbl-treeview-item-text {
     font-family: var(--bs-body-font-family), Roboto-Light;
-    letter-spacing: 0.03rem;
-    /*    font-size:1rem;*/
+    letter-spacing: 0.02rem;
+    font-size: 0.8rem;
 }
 
 img.dxbl-image {
     padding-right: 7px;
+}
+
+.dxbl-text-edit-input,
+.dxbl-text-edit,
+.dxbl-input-editor {
+    letter-spacing: 0.02rem;
+    font-size: 0.8rem;
 }
 
 .imgTitle {
@@ -674,25 +691,25 @@ img.dxbl-image {
 
 .dx-helptitle {
     /*    background-color:#48b;*/
-    --bs-bg-opacity: 1;
-    background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)); /*!important*/
+    --bs-bg-opacity: 100;
+    background: rgb(var(--bs-primary-rgb)); /*/rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)); /*!important*/
 }
 
 .priority-info {
-    font-size:1rem;
-    letter-spacing:0.03rem;
+    font-size:0.8rem;
+    letter-spacing:0.02rem;
     background-color: #89dd85;
 }
 
 .priority-warning {
-    font-size: 1rem;
-    letter-spacing: 0.03rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.02rem;
     background-color: #eb6d0e;
 }
 
 .priority-danger {
-    font-size: 1rem;
-    letter-spacing: 0.03rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.02rem;
     background-color: red;
 }
 
@@ -1036,12 +1053,14 @@ label {
 
 .e-cukai-title {
     padding: 10px 0px;
+    border-top: 1px solid #333;
+    background-color: var(--bs-light);
     border-bottom: 1.5px solid #ccc;
 }
 
 .e-lesen-title {
     margin-top:25px;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #333;
     padding: 10px 0px;
     border-bottom: 1.5px solid #ccc;
 }
@@ -1177,8 +1196,8 @@ label {
 .upload-container > div:first-child {
     display: flex;
     flex-direction: column;
-    align-items: start;
-    justify-content: start ;
+    align-items:center;
+    justify-content:center;
     width: 100%;
 }
 
@@ -1189,9 +1208,9 @@ label {
 }
 
     .bottom-upload .dxbl-btn-caption {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: bold;
-        letter-spacing: 0.08rem;
+        letter-spacing: 0.03rem;
         text-transform: uppercase;
     }
 
@@ -1212,18 +1231,31 @@ label {
     padding: 5px 0px !important;
 }
 
+.dxbl-grid-table td {
+    letter-spacing: 0.02rem;
+    font-size: 0.8rem !important;
+    line-height: 13px !important;
+    padding: 5px 3px !important;
+}
+
 .layout_edit td, .dxbl-fl-ctrl div {
     font-weight: bold;
     letter-spacing: 0.035rem;
-/*    font-size: 0.95rem !important;*/
+    padding: 1px 0px !important;
+    /*    font-size: 0.95rem !important;*/
 }
 
 .layout_edit .dxbl-text-edit, .dxbl-text-edit {
     border: 0.12rem solid #9d9c9c !important;
     border-radius: 3px !important;
     background-color: #fff;
-/*    font-size: 0.8rem !important;*/
-    font-weight: bold !important;
+    font-size: 0.8rem !important;
+    letter-spacing: 0.02rem !important;
+}
+
+.text-container, .dxbl-accordion-item-text {
+    font-size: 0.8rem !important;
+    letter-spacing: 0.02rem !important;
 }
 
 .btn-edit-grid {
@@ -1247,12 +1279,12 @@ label {
     font-weight: bold;
     letter-spacing: 0.05rem;
     text-transform: uppercase !important;
-    font-size: 0.9rem !important;
+    font-size: 0.75rem !important;
 }
 
 .dxbl-modal-body {
     letter-spacing: 0.02rem;
-    font-size: 1rem !important;
+    font-size: 0.8rem !important;
     padding:15px 15px !important;
 }
 
@@ -1288,7 +1320,7 @@ label {
     display: block;
     position: relative;
     padding-left: 30px;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     cursor: pointer;
     font-weight: normal;
     letter-spacing: 0.03rem !important;

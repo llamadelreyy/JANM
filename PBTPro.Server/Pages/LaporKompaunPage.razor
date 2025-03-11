@@ -117,7 +117,7 @@
             @{
                 var dtData = (LesenInfo)EditFormContext.EditModel;
             }
-            <DxFormLayout CssClass="w-100">
+            <DxFormLayout CssClass="w-100" style="padding:10px 20px;">
                 <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
                     <table class="layout_edit">
                         <tr>
@@ -356,9 +356,9 @@
     </DxGrid>
 
     <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
-    <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
-    <DxButton Text="Export XLS" Click="ExportXls_Click" />
-    <DxButton Text="Export CSV" Click="ExportCsv_Click" />
+    <DxButton Text="Export XLSX" class="btn-edit-grid" Click="ExportXlsx_Click" />
+    <DxButton Text="Export XLS" class="btn-edit-grid" Click="ExportXls_Click" />
+    <DxButton Text="Export CSV" class="btn-edit-grid" Click="ExportCsv_Click" />
     <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 
 </div>
