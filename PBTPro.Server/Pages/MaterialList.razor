@@ -118,9 +118,9 @@ else
                             <div>@DownloadIconHTML(((ref_doc)context.DataItem).filename, ((ref_doc)context.DataItem).pathurl)</div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
-                    <DxGridDataColumn FieldName="doc_cat" Caption="Kategori" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
-                    <DxGridDataColumn FieldName="filename" Caption="Nama" Width="43%" TextAlignment="GridTextAlignment.Left" />
-                    <DxGridDataColumn FieldName="description" Caption="Penerangan" Width="25%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                    <DxGridDataColumn FieldName="doc_cat" Caption="Kategori" Width="15%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
+                    <DxGridDataColumn FieldName="filename" Caption="Nama" Width="30%" TextAlignment="GridTextAlignment.Left" />
+                    <DxGridDataColumn FieldName="description" Caption="Penerangan" Width="42%" TextAlignment="GridTextAlignment.Left" AllowGroup="false" />
                     <DxGridDataColumn FieldName=created_at
                                       DisplayFormat="dd/MM/yyyy"
                                       Caption="Tarikh Data"
@@ -140,7 +140,7 @@ else
                             strFilename = dtData.filename;
                     }
 
-                    <DxFormLayout CssClass="w-100">
+                    <DxFormLayout CssClass="w-100" style="padding:10px 20px;">
 
                         <DxFormLayoutItem ColSpanMd="6">
                             <div>Kategori</div>
@@ -152,6 +152,7 @@ else
                                         CssClass="cw-480">
                             </DxComboBox>
                         </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="6"></DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="6">
                             <div>Tajuk</div>
@@ -160,7 +161,8 @@ else
                                        BindValueMode="BindValueMode.OnInput"
                                        CssClass="cw-480" />
 
-                        </DxFormLayoutItem>                        
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="6"></DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="12">
                             <div>Penerangan</div>

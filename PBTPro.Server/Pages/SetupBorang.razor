@@ -103,7 +103,7 @@ else
                     var field = (config_form_field_view)EditFormContext.EditModel;
                     var editContext = new EditContext(field);
                 }
-                <DxFormLayout EditContext="editContext" CssClass="w-100">
+                <DxFormLayout EditContext="editContext" CssClass="w-100" style="padding:10px 20px;">
                     <DxFormLayoutItem Caption="field_id" ColSpanMd="6" Visible="false">
                         <DxTextBox @bind-Value="@field.field_id" ReadOnly="true" />
                     </DxFormLayoutItem>

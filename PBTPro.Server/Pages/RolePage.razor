@@ -117,7 +117,7 @@ else
                     @{
                         var dtEdit = (ApplicationRole)EditFormContext.EditModel;
                     }
-                    <DxFormLayout CssClass="w-100">
+                    <DxFormLayout CssClass="w-100" style="padding:10px 20px;">
                         <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
                             <table class="layout_edit">
                                 <tr>
@@ -128,7 +128,8 @@ else
                                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                                    BindValueMode="BindValueMode.OnInput"
                                                    NullText="Peranan ..."
-                                                   Maxlength="30"
+                                                   Maxlength="60"
+                                                   style="width:280px;"
                                                    ShowValidationIcon="true"
                                                    CssClass="cw-320" />
                                     </td>
@@ -146,6 +147,7 @@ else
                                                    BindValueMode="BindValueMode.OnInput"
                                                    NullText="Keterangan peranan ..."
                                                    Maxlength="120"
+                                                   style="width:350px;"
                                                    ShowValidationIcon="true"
                                                    CssClass="cw-320" />
                                     </td>
