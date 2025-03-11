@@ -56,15 +56,18 @@
                 <EditForm Model="@LoginModel" OnValidSubmit="@HandleValidSubmit" Context="EditFormContext">
                     <DataAnnotationsValidator />
                     <DxFormLayout>
-                        <DxFormLayoutItem ColSpanMd="12">
+                        <DxFormLayoutItem ColSpanMd="1"></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="10">
                             <DxTextBox @bind-Text="@LoginModel.Username"
                                        NullText="Masukkan ID pengguna anda"
                                        BindValueMode="BindValueMode.OnInput"
                                        ShowValidationIcon="true"
                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
                         </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="1"></DxFormLayoutItem>
 
-                        <DxFormLayoutItem ColSpanMd="12">
+                        <DxFormLayoutItem ColSpanMd="1"></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="10">
                             <div class="password-container" style="width:100% !important">
                                 <DxTextBox @bind-Text="@LoginModel.Password"
                                            NullText="Masukkan kata laluan anda"
@@ -79,17 +82,18 @@
                                     <i class="@eyeIconClass"></i>
                                 </button>
                             </div>
+                        </DxFormLayoutItem>     
+                        <DxFormLayoutItem ColSpanMd="1"></DxFormLayoutItem>
 
-                        </DxFormLayoutItem>                       
-
-
-                        <DxFormLayoutItem ColSpanMd="12">
+                        <DxFormLayoutItem ColSpanMd="1"></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="10">
                             <DxButton CssClass="w-100 btn-edit-grid" Text="Log Masuk"
                                       RenderStyle="ButtonRenderStyle.Primary"
                                       Enabled="true"
                                       SubmitFormOnClick="true">
                             </DxButton>
                         </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="1"></DxFormLayoutItem>
                     </DxFormLayout>
                 </EditForm>
             </div>

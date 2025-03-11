@@ -39,7 +39,7 @@
     <div id="SearchPremisePanel">
         <header class="searchPremis">
             <h1>Carian Premis</h1>
-            <a style="text-underline-position:below; cursor:pointer" href="javascript:void(0)" class="closebtnpremis" @onclick="CloseFilter">&times;</a>
+            <a style="cursor:pointer" href="javascript:void(0)" class="closebtnpremis" @onclick="CloseFilter">&times;</a>
         </header>
         
 
@@ -109,14 +109,14 @@
                       ValueField="@((item)=>item.TypeId)"
                       SelectedValues="@SelectedIds" />
 
-        <tr class="titleTapis">
+@*         <tr class="titleTapis">
             <td colspan="3" class="headTapis">Nota Pemeriksaan</td>
         </tr>
 
         <CheckBoxList Data="@NotaList"
                       TextField="@((item)=>item.ColorDesc)"
                       ValueField="@((item)=>item.TypeId)"
-                      SelectedValues="@SelectedIds" />
+                      SelectedValues="@SelectedIds" /> *@
 
         <tr style="height:35px;">
             <td colspan="3">
@@ -149,7 +149,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Green" /></svg>
             </td>
             <td>Bil. Lesen Aktif</td>
-                <td class="text-right">@mintAktif</td>
+            <td class="text-right">@mintAktif</td>
         </tr>
         <tr>
             <td>
