@@ -41,7 +41,7 @@ namespace PBTPro.Data
         private int RoleID = 0;
 
 
-        private List<license_history> _licensehistory { get; set; }
+       // private List<license_history> _licensehistory { get; set; }
         private List<license_view> _license_view { get; set; }
 
         private List<premis_history_view> _premis_history_view { get; set; }

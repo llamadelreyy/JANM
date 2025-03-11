@@ -27,31 +27,10 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<app_system_param> app_system_params { get; set; }
 
-    public virtual DbSet<config_building> config_buildings { get; set; }
-
-    public virtual DbSet<config_department> config_departments { get; set; }
-
-    public virtual DbSet<config_pbt> config_pbts { get; set; }
-
-    public virtual DbSet<department_info> department_infos { get; set; }
-
+    
     public virtual DbSet<his_email_history> his_email_histories { get; set; }
 
-    public virtual DbSet<license_address_swap> license_address_swaps { get; set; }
-
-    public virtual DbSet<license_history> license_histories { get; set; }
-
-    public virtual DbSet<license_holder> license_holders { get; set; }
-
-    public virtual DbSet<license_information> license_informations { get; set; }
-
-    public virtual DbSet<license_location> license_locations { get; set; }
-
-    public virtual DbSet<license_medium> license_media { get; set; }
-
-    public virtual DbSet<license_tax> license_taxes { get; set; }
-
-    public virtual DbSet<license_transaction> license_transactions { get; set; }
+    
 
     public virtual DbSet<menu> menus { get; set; }
 
@@ -149,27 +128,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.role_id).HasDefaultValue(0);
             entity.Property(e => e.username).HasMaxLength(25);
         });
-
-
-        //modelBuilder.Entity<auditlog_info>(entity =>
-        //{
-        //    entity.HasKey(e => e.audit_id).HasName("auditlog_pkey");
-
-        //    entity.ToTable("auditlog_info", "audit");
-
-        //    entity.Property(e => e.audit_id).HasDefaultValueSql("nextval('audit.auditlog_audit_id_seq'::regclass)");
-        //    entity.Property(e => e.audit_isarchived).HasDefaultValue(false);
-        //    entity.Property(e => e.audit_method).HasMaxLength(255);
-        //    entity.Property(e => e.audit_module_name)
-        //        .HasMaxLength(255)
-        //        .HasDefaultValueSql("NULL::character varying");
-        //    entity.Property(e => e.audit_role_id).HasDefaultValue(0);
-        //    entity.Property(e => e.audit_username).HasMaxLength(25);
-        //    entity.Property(e => e.created_by).HasDefaultValue(0);
-        //    entity.Property(e => e.created_date)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasColumnType("timestamp without time zone");
-        //});
+     
 
         modelBuilder.Entity<app_email_tmpl>(entity =>
         {
@@ -330,76 +289,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("Value assigned to the configuration parameter");
         });
 
-        modelBuilder.Entity<config_building>(entity =>
-        {
-            entity.HasKey(e => e.building_id).HasName("config_building_pkey");
-
-            entity.ToTable("config_building", "config");
-
-            entity.Property(e => e.building_code).HasMaxLength(30);
-            entity.Property(e => e.building_name)
-                .HasMaxLength(250)
-                .IsFixedLength();
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-        });
-
-        modelBuilder.Entity<config_department>(entity =>
-        {
-            entity.HasKey(e => e.config_dept_id).HasName("config_department_pkey");
-
-            entity.ToTable("config_department", "config");
-
-            entity.Property(e => e.config_dept_email).HasMaxLength(150);
-            entity.Property(e => e.config_dept_head).HasMaxLength(300);
-            entity.Property(e => e.config_dept_name).HasMaxLength(250);
-            entity.Property(e => e.config_dept_notel).HasMaxLength(25);
-
-            entity.HasOne(d => d.config_dept_pbtNavigation).WithMany(p => p.config_departments)
-                .HasForeignKey(d => d.config_dept_pbt)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("pbt_code");
-        });
-
-        modelBuilder.Entity<config_pbt>(entity =>
-        {
-            entity.HasKey(e => e.pbt_id).HasName("config_pbt_pkey");
-
-            entity.ToTable("config_pbt", "config");
-
-            entity.Property(e => e.pbt_address1).HasMaxLength(150);
-            entity.Property(e => e.pbt_address2).HasMaxLength(150);
-            entity.Property(e => e.pbt_address3).HasMaxLength(150);
-            entity.Property(e => e.pbt_code).HasPrecision(5);
-            entity.Property(e => e.pbt_email).HasMaxLength(250);
-            entity.Property(e => e.pbt_name).HasMaxLength(500);
-            entity.Property(e => e.pbt_notel).HasMaxLength(25);
-            entity.Property(e => e.pbt_pcode).HasPrecision(5);
-            entity.Property(e => e.pbt_state).HasMaxLength(30);
-        });
-
-        modelBuilder.Entity<department_info>(entity =>
-        {
-            entity.HasKey(e => e.dept_id).HasName("department_info_pkey");
-
-            entity.ToTable("department_info", "department");
-
-            entity.Property(e => e.dept_id).HasDefaultValueSql("nextval('department.department_info_depart_id_seq'::regclass)");
-            entity.Property(e => e.created_by).HasDefaultValue(0);
-            entity.Property(e => e.created_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-            entity.Property(e => e.dept_code).HasMaxLength(50);
-            entity.Property(e => e.dept_name).HasMaxLength(100);
-            entity.Property(e => e.dept_description)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("NULL::character varying");
-            entity.Property(e => e.dept_status).HasMaxLength(30);
-            entity.Property(e => e.updated_by).HasDefaultValue(0);
-            entity.Property(e => e.updated_date)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone");
-        });
+        
 
         modelBuilder.Entity<his_email_history>(entity =>
         {
@@ -445,203 +335,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("ID of the user who last modified this record");
         });
 
-        modelBuilder.Entity<license_address_swap>(entity =>
-        {
-            entity.HasKey(e => e.swap_license_id).HasName("license_address_swap_pkey");
-
-            entity.ToTable("license_address_swap", "license", tb => tb.HasComment("TABLE BAGI MENYIMPAN ALAMAT LESEN SEDIA ADA DAN BARU"));
-
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.swap_current_addr1).HasMaxLength(100);
-            entity.Property(e => e.swap_current_addr2).HasMaxLength(150);
-            entity.Property(e => e.swap_current_addr3).HasMaxLength(150);
-            entity.Property(e => e.swap_current_area).HasMaxLength(50);
-            entity.Property(e => e.swap_current_pcode).HasPrecision(5);
-            entity.Property(e => e.swap_current_state).HasMaxLength(30);
-            entity.Property(e => e.swap_license_account).HasMaxLength(20);
-            entity.Property(e => e.swap_new_addr1).HasMaxLength(100);
-            entity.Property(e => e.swap_new_addr2).HasMaxLength(150);
-            entity.Property(e => e.swap_new_addr3).HasMaxLength(150);
-            entity.Property(e => e.swap_new_area).HasMaxLength(50);
-            entity.Property(e => e.swap_new_pcode).HasPrecision(5);
-            entity.Property(e => e.swap_new_state).HasMaxLength(30);
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-
-            entity.HasOne(d => d.swap_id_infoNavigation).WithMany(p => p.license_address_swaps)
-                .HasForeignKey(d => d.swap_id_info)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("swap_id_info");
-        });
-
-        modelBuilder.Entity<license_history>(entity =>
-        {
-            entity.HasKey(e => e.license_hist_id).HasName("license_history_pkey");
-
-            entity.ToTable("license_history", "license", tb => tb.HasComment("TABLE SEJARAH LESEN"));
-
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.license_hist_account).HasMaxLength(20);
-            entity.Property(e => e.license_hist_addr1).HasMaxLength(100);
-            entity.Property(e => e.license_hist_addr2).HasMaxLength(150);
-            entity.Property(e => e.license_hist_addr3).HasMaxLength(150);
-            entity.Property(e => e.license_hist_area).HasMaxLength(50);
-            entity.Property(e => e.license_hist_holder).HasMaxLength(20);
-            entity.Property(e => e.license_hist_pcode).HasPrecision(5);
-            entity.Property(e => e.license_hist_state).HasMaxLength(30);
-
-            entity.HasOne(d => d.hist_id_license).WithMany(p => p.license_history)
-               .HasForeignKey(d => d.hist_id_info)
-               .OnDelete(DeleteBehavior.Restrict)
-               .HasConstraintName("hist_id_info");
-        });
-
-        modelBuilder.Entity<license_holder>(entity =>
-        {
-            entity.HasKey(e => e.license_holder_id).HasName("license_holder_pkey");
-
-            entity.ToTable("license_holder", "license", tb => tb.HasComment("TABLE MAKLUMAT PELESEN"));
-
-            entity.Property(e => e.created_by).HasMaxLength(10);
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.license_holder_account).HasMaxLength(20);
-            entity.Property(e => e.license_holder_addr1).HasMaxLength(100);
-            entity.Property(e => e.license_holder_addr2).HasMaxLength(150);
-            entity.Property(e => e.license_holder_addr3).HasMaxLength(150);
-            entity.Property(e => e.license_holder_area).HasMaxLength(50);
-            entity.Property(e => e.license_holder_custid).HasMaxLength(50);
-            entity.Property(e => e.license_holder_email).HasMaxLength(100);
-            entity.Property(e => e.license_holder_name).HasMaxLength(250);
-            entity.Property(e => e.license_holder_pcode).HasPrecision(5);
-            entity.Property(e => e.license_holder_phone).HasPrecision(20);
-            entity.Property(e => e.license_holder_state)
-                .HasMaxLength(30)
-                .IsFixedLength();
-            entity.Property(e => e.updated_by).HasMaxLength(10);
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-
-            entity.HasOne(d => d.license_holder_infoNavigation).WithMany(p => p.license_holders)
-                .HasForeignKey(d => d.license_holder_info)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("license_holder_info");
-        });
-
-        modelBuilder.Entity<license_information>(entity =>
-        {
-            entity.HasKey(e => e.license_id).HasName("license_information_pkey");
-
-            entity.ToTable("license_information", "license", tb => tb.HasComment("TABLE BAGI MAKLUMAT LESEN"));
-
-            entity.HasIndex(e => e.license_id, "index_license_id")
-                .IsUnique()
-                .HasAnnotation("Npgsql:StorageParameter:deduplicate_items", "false");
-
-            entity.Property(e => e.created_by).HasMaxLength(10);
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.license_account_number).HasMaxLength(50);
-            entity.Property(e => e.license_amount).HasPrecision(15, 2);
-            entity.Property(e => e.license_amount_balance).HasPrecision(15, 2);
-            entity.Property(e => e.license_business_addr1).HasMaxLength(100);
-            entity.Property(e => e.license_business_addr2).HasMaxLength(150);
-            entity.Property(e => e.license_business_addr3).HasMaxLength(150);
-            entity.Property(e => e.license_business_area).HasMaxLength(50);
-            entity.Property(e => e.license_business_name).HasMaxLength(250);
-            entity.Property(e => e.license_business_pcode).HasPrecision(5);
-            entity.Property(e => e.license_business_state).HasMaxLength(30);
-            entity.Property(e => e.license_latitude).HasMaxLength(250);
-            entity.Property(e => e.license_longitud).HasMaxLength(250);
-            entity.Property(e => e.license_payment_status).HasMaxLength(30);
-            entity.Property(e => e.license_pbt_origin).HasPrecision(5);
-            entity.Property(e => e.license_period_status).HasMaxLength(30);
-            entity.Property(e => e.license_risk_status).HasMaxLength(30);
-            entity.Property(e => e.license_status).HasMaxLength(20);
-            entity.Property(e => e.license_type).HasMaxLength(50);
-            entity.Property(e => e.updated_by).HasMaxLength(10);
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-        });
-
-        modelBuilder.Entity<license_location>(entity =>
-        {
-            entity.HasKey(e => e.license_loc_id).HasName("license_location_pkey");
-
-            entity.ToTable("license_location", "license");
-
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.license_loc_latitude).HasMaxLength(100);
-            entity.Property(e => e.license_loc_longitude).HasMaxLength(100);
-            entity.Property(e => e.license_loc_no).HasMaxLength(30);
-            entity.Property(e => e.license_loc_pbt).HasPrecision(5);
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-
-            entity.HasOne(d => d.license_loc_infoNavigation).WithMany(p => p.license_locations)
-                .HasForeignKey(d => d.license_loc_info)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("license_loc_info");
-        });
-
-        modelBuilder.Entity<license_medium>(entity =>
-        {
-            entity.HasKey(e => e.media_id).HasName("license_media_pkey");
-
-            entity.ToTable("license_media", "license");
-
-            entity.Property(e => e.media_license_account).HasMaxLength(50);
-            entity.Property(e => e.media_url_link).HasMaxLength(500);
-
-            entity.HasOne(d => d.media_id_infoNavigation).WithMany(p => p.license_media)
-                .HasForeignKey(d => d.media_id_info)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("media_id_info");
-        });
-
-        modelBuilder.Entity<license_tax>(entity =>
-        {
-            entity.HasKey(e => e.tax_id).HasName("license_tax_pkey");
-
-            entity.ToTable("license_tax", "license", tb => tb.HasComment("TABLE MAKLUMAT CUKAI TAKSIRAN"));
-
-            entity.Property(e => e.created_by).HasMaxLength(10);
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.tax_license_account).HasMaxLength(20);
-            entity.Property(e => e.tax_main_account).HasMaxLength(20);
-            entity.Property(e => e.tax_property_address1).HasMaxLength(100);
-            entity.Property(e => e.tax_property_address2).HasMaxLength(250);
-            entity.Property(e => e.tax_property_amount).HasPrecision(15, 2);
-            entity.Property(e => e.tax_property_area).HasMaxLength(50);
-            entity.Property(e => e.tax_property_pcode).HasPrecision(5);
-            entity.Property(e => e.tax_property_state).HasMaxLength(50);
-            entity.Property(e => e.tax_property_status).HasMaxLength(1);
-            entity.Property(e => e.updated_by).HasMaxLength(10);
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-
-            entity.HasOne(d => d.tax_license_infoNavigation).WithMany(p => p.license_taxes)
-                .HasForeignKey(d => d.tax_license_info)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("tax_license_info");
-        });
-
-        modelBuilder.Entity<license_transaction>(entity =>
-        {
-            entity.HasKey(e => e.license_trans_id).HasName("license_transaction_pkey");
-
-            entity.ToTable("license_transaction", "license", tb => tb.HasComment("TABLE TRANSAKSI LESEN"));
-
-            entity.Property(e => e.created_by).HasMaxLength(10);
-            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.license_trans_account).HasMaxLength(20);
-            entity.Property(e => e.license_trans_amount).HasPrecision(15, 2);
-            entity.Property(e => e.license_trans_code).HasMaxLength(50);
-            entity.Property(e => e.license_trans_name).HasMaxLength(250);
-            entity.Property(e => e.license_trans_status).HasMaxLength(1);
-            entity.Property(e => e.updated_by).HasMaxLength(10);
-            entity.Property(e => e.updated_date).HasColumnType("timestamp without time zone");
-
-            entity.HasOne(d => d.license_trans_infoNavigation).WithMany(p => p.license_transactions)
-                .HasForeignKey(d => d.license_trans_info)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("license_trans_info");
-        });
-
+        
         modelBuilder.Entity<menu>(entity =>
         {
             entity.HasKey(e => e.menu_id).HasName("menus_pkey");
@@ -954,75 +648,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.role_id).HasComment("Identifier for the role associated with the core.permission.");
         });
 
-        //modelBuilder.Entity<ref_department>(entity =>
-        //{
-        //    entity.HasKey(e => e.dept_id).HasName("ref_department_pkey");
-
-        //    entity.ToTable("ref_department", "tenant", tb => tb.HasComment("This table stores information about departments under PBT (e.g., Jabatan Pelesenan)."));
-
-        //    entity.HasIndex(e => e.dept_code, "ref_department_dept_code_key").IsUnique();
-
-        //    entity.Property(e => e.dept_id).HasComment("Unique identifier for each department record (Primary Key).");
-        //    entity.Property(e => e.created_at)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasComment("Timestamp when the record was created.")
-        //        .HasColumnType("timestamp without time zone");
-        //    entity.Property(e => e.creator_id).HasComment("User who created the record.");
-        //    entity.Property(e => e.dept_code)
-        //        .HasMaxLength(10)
-        //        .HasComment("Code of the department (e.g., PL).");
-        //    entity.Property(e => e.dept_desc).HasComment("Description about the department (e.g., Roles, Job Description, etc.).");
-        //    entity.Property(e => e.dept_name)
-        //        .HasMaxLength(40)
-        //        .HasComment("Name of the department (e.g., Jabatan Pelesenan).");
-        //    entity.Property(e => e.is_deleted)
-        //        .HasDefaultValue(false)
-        //        .HasComment("Logical delete flag indicating if the record is active or deleted.");
-        //    entity.Property(e => e.modified_at)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasComment("Timestamp when the record was last updated.")
-        //        .HasColumnType("timestamp without time zone");
-        //    entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
-           
-        //});
-
-        //modelBuilder.Entity<ref_division>(entity =>
-        //{
-        //    entity.HasKey(e => e.div_id).HasName("ref_division_pkey");
-
-        //    entity.ToTable("ref_division", "tenant", tb => tb.HasComment("This table stores information about divisions under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
-
-        //    entity.HasIndex(e => e.div_code, "ref_division_div_code_key").IsUnique();
-
-        //    entity.Property(e => e.div_id).HasComment("Unique identifier for each division record (Primary Key).");
-        //    entity.Property(e => e.created_at)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasComment("Timestamp when the record was created.")
-        //        .HasColumnType("timestamp without time zone");
-        //    entity.Property(e => e.creator_id).HasComment("User who created the record.");
-        //    entity.Property(e => e.div_code)
-        //        .HasMaxLength(10)
-        //        .HasComment("Code of the division (e.g., PL-TR).");
-        //    entity.Property(e => e.div_desc).HasComment("Description about the division (e.g., Roles, Job Description, etc.).");
-        //    entity.Property(e => e.div_name)
-        //        .HasMaxLength(40)
-        //        .HasComment("Name of division (e.g., Bahagian TRED dan Perniagaan dan Industri).");
-        //    entity.Property(e => e.is_deleted)
-        //        .HasDefaultValue(false)
-        //        .HasComment("Logical delete flag indicating if the record is active or deleted.");
-        //    entity.Property(e => e.modified_at)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasComment("Timestamp when the record was last updated.")
-        //        .HasColumnType("timestamp without time zone");
-        //    entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
-        //    entity.Property(e => e.dept_name)
-        //        .HasMaxLength(100);
-        //    entity.Property(e => e.dept_id);
-        //    entity.HasOne(d => d.dept).WithMany(p => p.ref_divisions)
-        //        .HasForeignKey(d => d.dept_id)
-        //        .HasConstraintName("fk_div_id_belongs_to_dept_id");
-        //});
-
+        
         modelBuilder.Entity<ref_law_act>(entity =>
         {
             entity.HasKey(e => e.act_id).HasName("ref_law_acts_pkey");
@@ -1097,48 +723,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.uuk_name).HasMaxLength(40);
         });
 
-        //modelBuilder.Entity<ref_unit>(entity =>
-        //{
-        //    entity.HasKey(e => e.unit_id).HasName("ref_unit_pkey");
-
-        //    entity.ToTable("ref_unit", "tenant", tb => tb.HasComment("This table stores information about unit under departments in PBT (e.g., Bahagian TRED dan Perniagaan dan Industri)."));
-
-        //    entity.HasIndex(e => e.unit_code, "ref_unit_unit_code_key").IsUnique();
-
-        //    entity.Property(e => e.unit_id).HasComment("Unique identifier for each unit under division");
-        //    entity.Property(e => e.created_at)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasComment("Timestamp when the record was created.")
-        //        .HasColumnType("timestamp without time zone");
-        //    entity.Property(e => e.creator_id).HasComment("User who created the record.");
-        //    entity.Property(e => e.is_deleted)
-        //        .HasDefaultValue(false)
-        //        .HasComment("Logical delete flag indicating if the record is active or deleted.");
-        //    entity.Property(e => e.modified_at)
-        //        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        //        .HasComment("Timestamp when the record was last updated.")
-        //        .HasColumnType("timestamp without time zone");
-        //    entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
-        //    entity.Property(e => e.unit_code)
-        //        .HasMaxLength(10)
-        //        .HasComment("Code of the unit (e.g., PL-TR).");
-        //    entity.Property(e => e.unit_desc).HasComment("Description about the unit (e.g., Roles, Job Description, etc.).");
-        //    entity.Property(e => e.unit_name)
-        //        .HasMaxLength(40)
-        //        .HasComment("Name of unit (e.g., Unit Kaunter).");
-        //    entity.Property(e => e.dept_name)
-        //        .HasMaxLength(100);
-        //    entity.Property(e => e.div_name)
-        //        .HasMaxLength(100);
-        //    entity.HasOne(d => d.dept).WithMany(p => p.ref_units)
-        //       .HasForeignKey(d => d.dept_id)
-        //       .HasConstraintName("fk_div_id_belongs_to_dept_id");
-
-        //    entity.HasOne(d => d.div).WithMany(p => p.ref_units)
-        //        .HasForeignKey(d => d.div_id)
-        //        .HasConstraintName("fk_unit_id_belongs_to_div_id");
-        //});
-
+       
         modelBuilder.Entity<ref_id_type>(entity =>
         {
             entity.HasKey(e => e.id_type_id).HasName("ref_id_types_pkey");

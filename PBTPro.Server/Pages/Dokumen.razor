@@ -127,9 +127,12 @@ else
     private async void OnDownloadClick(ref_doc inputmodel)
     {
         ReturnViewModel response = new ReturnViewModel();
-        string webRootPath = _env.WebRootPath + inputmodel.pathurl;
+       // string webRootPath = _env.WebRootPath + inputmodel.pathurl;
 
-        FileExists = System.IO.File.Exists(webRootPath);
+        string fullPath = Path.Combine(_env.ContentRootPath, "wwwroot/dcoument/tempDocument/", inputmodel.filename);
+
+
+        FileExists = System.IO.File.Exists(fullPath);
 
         if (FileExists)
         {
