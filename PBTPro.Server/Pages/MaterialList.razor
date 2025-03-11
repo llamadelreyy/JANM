@@ -143,7 +143,7 @@ else
                     <DxFormLayout CssClass="w-100" style="padding:10px 20px;">
 
                         <DxFormLayoutItem ColSpanMd="6">
-                            <div>Kategori</div>
+                            <div class="text-container">Kategori</div>
                             <DxComboBox Data="@Category"
                                         ShowValidationIcon="true"
                                         NullText="Pilih Kategori..."
@@ -155,7 +155,7 @@ else
                         <DxFormLayoutItem ColSpanMd="6"></DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="6">
-                            <div>Tajuk</div>
+                            <div class="text-container">Tajuk</div>
                             <DxTextBox @bind-Text="@dtData.title"
                                        NullText="Tajuk ..."
                                        BindValueMode="BindValueMode.OnInput"
@@ -165,7 +165,7 @@ else
                         <DxFormLayoutItem ColSpanMd="6"></DxFormLayoutItem>
 
                         <DxFormLayoutItem ColSpanMd="12">
-                            <div>Penerangan</div>
+                            <div class="text-container">Penerangan</div>
                             <DxMemo @bind-Text="@dtData.description"
                                     CssClass="cw-480"
                                     Rows="3" />
@@ -201,7 +201,7 @@ else
                         </DxFormLayoutItem>
                         <DxFormLayoutItem ColSpanMd="6"> </DxFormLayoutItem>
                         <DxFormLayoutItem ColSpanMd="6">
-                            <div>Nama Fail</div>
+                            <div class="text-container">Nama Fail</div>
                             <DxTextBox @bind-Text="@dtData.filename"
                                        @bind-Value="@strFilename"
                                        NullText="Nama Fail ..."
