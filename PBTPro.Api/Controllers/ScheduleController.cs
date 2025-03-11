@@ -396,7 +396,7 @@ namespace PBTPro.Api.Controllers
             {
 
                 var data = await _tenantDBContext.mst_patrol_schedules
-                    .Where(cc => cc.idno == username && cc.start_time.Date == DateTime.Today && cc.is_deleted == false)
+                    .Where(cc => cc.idno == username && cc.start_time == DateTime.Today && cc.is_deleted == false)
                     .Select(x => new
                     {
                         schedule_id = x.schedule_id,

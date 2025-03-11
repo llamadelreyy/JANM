@@ -61,7 +61,7 @@ namespace PBTPro.Api.Controllers
                     schedule_id = x.schedule_id,
                     idno = x.idno,
                     start_time = x.start_time,
-                    end_time = x.end_time,
+                    end_time = (DateTime)x.end_time,
                     status_id = x.status_id,
                     is_scheduled = false,
                     loc_name = x.loc_name,
@@ -200,7 +200,7 @@ namespace PBTPro.Api.Controllers
                 }
 
                 var isActivePatrolling = await _tenantDBContext.trn_patrol_officers
-                                        .AnyAsync(x => x.idno == InputModel.username && x.end_time == null &&
+                                        .AnyAsync(x => x.idno == InputModel.username && (DateTime)x.end_time == null &&
                                            _tenantDBContext.mst_patrol_schedules.Any(y =>
                                                y.schedule_id == x.schedule_id &&
                                                y.status_id == 2
@@ -492,7 +492,7 @@ namespace PBTPro.Api.Controllers
                                         .AnyAsync(x => teamMembers.Contains(x.idno) && x.end_time == null &&
                                            _tenantDBContext.mst_patrol_schedules.Any(y =>
                                                y.schedule_id == x.schedule_id &&
-                                               y.status_id == 2//"RONDAAN"
+                                               y.status_id == 2 //"RONDAAN"
                                            )
                                         );
 
@@ -509,11 +509,12 @@ namespace PBTPro.Api.Controllers
                     SRID = 4326
                 };
 
-                patrol.status_id = 2;// "Rondaan";
+                patrol.status_id = 2; // "Rondaan";
                 patrol.start_time = DateTime.Now;
                 patrol.start_location = CurrentLocation;
                 patrol.modifier_id = runUserID;
                 patrol.modified_at = DateTime.Now;
+                patrol.idno = runUser;
 
                 if (isNew == true)
                 {
@@ -535,7 +536,7 @@ namespace PBTPro.Api.Controllers
                         schedule_id = patrol.schedule_id,
                         idno = member,
                         is_leader = isLeader,
-                        start_time = patrol.start_time,
+                        start_time = (DateTime)patrol.start_time,
                         creator_id = runUserID,
                         created_at = DateTime.Now
                     };
@@ -623,7 +624,7 @@ namespace PBTPro.Api.Controllers
                 List<trn_patrol_officer>? patrolDets = await _tenantDBContext.trn_patrol_officers.Where(x => x.schedule_id == InputModel.patrol_id).ToListAsync();
                 foreach (var patrolDet in patrolDets)
                 {
-                    patrolDet.end_time = patrol.end_time;
+                    patrolDet.end_time = (DateTime)patrol.end_time;
                     patrolDet.modifier_id = runUserID;
                     patrolDet.modified_at = DateTime.Now;
                     _tenantDBContext.trn_patrol_officers.Update(patrolDet);

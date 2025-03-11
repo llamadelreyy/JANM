@@ -11,9 +11,9 @@ public partial class trn_patrol_officer
 
     public int? schedule_id { get; set; }
 
-    public DateTime start_time { get; set; }
+    public DateTime? start_time { get; set; }
 
-    public DateTime end_time { get; set; }
+    public DateTime? end_time { get; set; }
 
     public int cnt_notice { get; set; }
 
