@@ -93,4 +93,10 @@ public partial class trn_inspect
     public string? doc_pathurl { get; set; }
 
     public int? user_id { get; set; }
+
+    public virtual ref_department? dept { get; set; }
+
+    public virtual ICollection<trn_inspect_img> trn_inspect_imgs { get; set; } = new List<trn_inspect_img>();
+
+    public virtual ref_trn_status? trnstatus { get; set; }
 }

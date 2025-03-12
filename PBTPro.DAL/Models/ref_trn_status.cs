@@ -42,4 +42,12 @@ public partial class ref_trn_status
     /// Flag indicating if the status record is active (False) or deleted (True).
     /// </summary>
     public bool? is_deleted { get; set; }
+
+    public virtual ICollection<trn_cfsc> trn_cfscs { get; set; } = new List<trn_cfsc>();
+
+    public virtual ICollection<trn_cmpd> trn_cmpds { get; set; } = new List<trn_cmpd>();
+
+    public virtual ICollection<trn_inspect> trn_inspects { get; set; } = new List<trn_inspect>();
+
+    public virtual ICollection<trn_notice> trn_notices { get; set; } = new List<trn_notice>();
 }

@@ -52,6 +52,4 @@ public partial class ref_cfsc_type
     /// Timestamp when this record was last modified.
     /// </summary>
     public DateTime? modified_at { get; set; }
-
-    public virtual ICollection<trn_confiscation> trn_confiscations { get; set; } = new List<trn_confiscation>();
 }

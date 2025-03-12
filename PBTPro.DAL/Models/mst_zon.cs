@@ -57,7 +57,5 @@ public partial class mst_zon
 
     public virtual ICollection<mst_ahlimajli> mst_ahlimajlis { get; set; } = new List<mst_ahlimajli>();
 
-    public virtual ICollection<mst_licensee> mst_licensees { get; set; } = new List<mst_licensee>();
-
     public virtual ICollection<mst_taxholder> mst_taxholders { get; set; } = new List<mst_taxholder>();
 }

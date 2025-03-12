@@ -42,4 +42,6 @@ public partial class ref_cfsc_invtype
     /// Flag indicating whether this record is deleted (soft delete).
     /// </summary>
     public bool? is_deleted { get; set; }
+
+    public virtual ICollection<trn_cfsc> trn_cfscs { get; set; } = new List<trn_cfsc>();
 }

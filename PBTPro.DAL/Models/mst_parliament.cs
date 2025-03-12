@@ -52,7 +52,5 @@ public partial class mst_parliament
 
     public virtual ICollection<mst_dun> mst_duns { get; set; } = new List<mst_dun>();
 
-    public virtual ICollection<mst_licensee> mst_licensees { get; set; } = new List<mst_licensee>();
-
     public virtual ICollection<mst_taxholder> mst_taxholders { get; set; } = new List<mst_taxholder>();
 }

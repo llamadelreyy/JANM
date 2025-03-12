@@ -104,4 +104,12 @@ public partial class trn_cmpd
     public string? doc_pathurl { get; set; }
 
     public int? user_id { get; set; }
+
+    public virtual ref_deliver? deliver { get; set; }
+
+    public virtual mst_patrol_schedule? schedule { get; set; }
+
+    public virtual ICollection<trn_cmpd_img> trn_cmpd_imgs { get; set; } = new List<trn_cmpd_img>();
+
+    public virtual ref_trn_status? trnstatus { get; set; }
 }

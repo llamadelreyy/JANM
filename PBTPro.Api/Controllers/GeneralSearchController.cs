@@ -48,121 +48,220 @@ namespace PBTPro.Api.Controllers
 
                 if (string.IsNullOrEmpty(type))
                 {
-                    initQuery = from mp in _tenantDBContext.mst_premis
-                            join ml in _tenantDBContext.mst_licensees on mp.lesen equals ml.license_accno into mlJoin
+                    initQuery = from mlpt in _tenantDBContext.mst_license_premis_taxes
+                            join ml in _tenantDBContext.mst_licensees on mlpt.license_accno equals ml.license_accno into mlJoin
                             from ml in mlJoin.DefaultIfEmpty()
-                            join mo in _tenantDBContext.mst_owners on ml.owner_icno equals mo.owner_icno into moJoin
-                            from mo in moJoin.DefaultIfEmpty()
-                            where EF.Functions.Like(mp.lesen.ToLower(), $"%{keyword.ToLower()}%")
-                            || EF.Functions.Like(mp.no_akaun.ToLower(), $"%{keyword.ToLower()}%")
+                            join mt in _tenantDBContext.mst_taxholders on mlpt.tax_accno equals mt.tax_accno into mtJoin
+                            from mt in mtJoin.DefaultIfEmpty()
+                            join mol in _tenantDBContext.mst_owner_licensees on ml.owner_icno equals mol.owner_icno into molJoin
+                            from mol in molJoin.DefaultIfEmpty()
+                            join mot in _tenantDBContext.mst_owner_premis on mt.owner_icno equals mot.owner_icno into motJoin
+                            from mot in motJoin.DefaultIfEmpty()
+                            where EF.Functions.Like(ml.license_accno.ToLower(), $"%{keyword.ToLower()}%")
+                            || EF.Functions.Like(mt.tax_accno.ToLower(), $"%{keyword.ToLower()}%")
+                            || EF.Functions.Like(ml.ssm_no.ToLower(), $"%{keyword.ToLower()}%")
                             || (ml != null && EF.Functions.Like(ml.business_name.ToLower(), $"%{keyword.ToLower()}%"))
                             || (ml != null && EF.Functions.Like(ml.business_addr.ToLower(), $"%{keyword.ToLower()}%"))
-                            || (mo != null && EF.Functions.Like(mo.owner_name.ToLower(), $"%{keyword.ToLower()}%"))
-                            || (mo != null && EF.Functions.Like(mo.owner_icno.ToLower(), $"%{keyword.ToLower()}%"))
+                            || (mol != null && EF.Functions.Like(mol.owner_name.ToLower(), $"%{keyword.ToLower()}%"))
+                            || (mol != null && EF.Functions.Like(mol.owner_icno.ToLower(), $"%{keyword.ToLower()}%"))
+                            || (mot != null && EF.Functions.Like(mot.owner_name.ToLower(), $"%{keyword.ToLower()}%"))
+                            || (mot != null && EF.Functions.Like(mot.owner_icno.ToLower(), $"%{keyword.ToLower()}%"))
                             select new
                             {
-                                mp.lesen,
-                                mp.no_akaun,
+                                ml.license_accno,
+                                ml.ssm_no,
+                                mt.tax_accno,
                                 ml.business_name,
                                 ml.business_addr,
-                                mo.owner_name,
-                                mo.owner_icno,
-                                lesenscore = EF.Functions.Like(mp.lesen.ToLower(), $"%{keyword.ToLower()}%") ? 1 : 0,
-                                noakauScore = EF.Functions.Like(mp.no_akaun.ToLower(), $"%{keyword.ToLower()}%") ? 1 : 0,
+                                license_owner_name = mol.owner_name,
+                                license_owner_icno = mol.owner_icno,
+                                premis_owner_name = mot.owner_name,
+                                premis_owner_icno = mot.owner_icno,
+                                licenseScore = EF.Functions.Like(ml.license_accno.ToLower(), $"%{keyword.ToLower()}%") ? 1 : 0,
+                                taxScore = EF.Functions.Like(mt.tax_accno.ToLower(), $"%{keyword.ToLower()}%") ? 1 : 0,
+                                ssmScore = EF.Functions.Like(ml.ssm_no.ToLower(), $"%{keyword.ToLower()}%") ? 1 : 0,
                                 businessNameScore = (ml != null && EF.Functions.Like(ml.business_name.ToLower(), $"%{keyword.ToLower()}%")) ? 1 : 0,
                                 businessAddrScore = (ml != null && EF.Functions.Like(ml.business_addr.ToLower(), $"%{keyword.ToLower()}%")) ? 1 : 0,
-                                ownerNameScore = (mo != null && EF.Functions.Like(mo.owner_name.ToLower(), $"%{keyword.ToLower()}%")) ? 1 : 0,
-                                ownerIcnoScore = (mo != null && EF.Functions.Like(mo.owner_icno.ToLower(), $"%{keyword.ToLower()}%")) ? 1 : 0
+                                licenseOwnerNameScore = (mol != null && EF.Functions.Like(mol.owner_name.ToLower(), $"%{keyword.ToLower()}%")) ? 1 : 0,
+                                licenseOwnerIcnoScore = (mol != null && EF.Functions.Like(mol.owner_icno.ToLower(), $"%{keyword.ToLower()}%")) ? 1 : 0,
+                                premisOwnerNameScore = (mol != null && EF.Functions.Like(mot.owner_name.ToLower(), $"%{keyword.ToLower()}%")) ? 1 : 0,
+                                PremisownerIcnoScore = (mol != null && EF.Functions.Like(mot.owner_icno.ToLower(), $"%{keyword.ToLower()}%")) ? 1 : 0
                             };
                 }
                 else
                 {
                     initQuery = type.ToUpper() switch
                     {
-                        "SSM" => from mp in _tenantDBContext.mst_premis
-                                 where EF.Functions.Like(mp.lesen.ToLower(), $"%{keyword.ToLower()}%")
-                                 select new
-                                 {
-                                     mp.lesen,
-                                     lesenscore = 1,
-                                     noakauScore = 0,
-                                     businessNameScore = 0,
-                                     businessAddrScore = 0,
-                                     ownerNameScore = 0,
-                                     ownerIcnoScore = 0
-                                 },
-                        "TAX" => from mp in _tenantDBContext.mst_premis
-                                 where EF.Functions.Like(mp.no_akaun.ToLower(), $"%{keyword.ToLower()}%")
-                                 select new
-                                 {
-                                     mp.no_akaun,
-                                     lesenscore = 0,
-                                     noakauScore = 1,
-                                     businessNameScore = 0,
-                                     businessAddrScore = 0,
-                                     ownerNameScore = 0,
-                                     ownerIcnoScore = 0
-                                 },
-                        "LICENSE" => from mp in _tenantDBContext.mst_premis
-                                     where EF.Functions.Like(mp.lesen.ToLower(), $"%{keyword.ToLower()}%")
-                                     select new
-                                     {
-                                         mp.lesen,
-                                         lesenscore = 1,
-                                         noakauScore = 0,
-                                         businessNameScore = 0,
-                                         businessAddrScore = 0,
-                                         ownerNameScore = 0,
-                                         ownerIcnoScore = 0
-                                     },
+                        "SSM" => from mp in _tenantDBContext.mst_licensees
+                                    where EF.Functions.Like(mp.ssm_no.ToLower(), $"%{keyword.ToLower()}%")
+                                    select new
+                                    {
+                                        mp.ssm_no,
+                                        licenseScore = 0,
+                                        taxScore = 0,
+                                        ssmScore = 1,
+                                        businessNameScore = 0,
+                                        businessAddrScore = 0,
+                                        licenseOwnerNameScore = 0,
+                                        licenseOwnerIcnoScore = 0,
+                                        premisOwnerNameScore = 0,
+                                        PremisownerIcnoScore = 0
+                                    },
+                        "TAX" => from mp in _tenantDBContext.mst_taxholders
+                                    where EF.Functions.Like(mp.tax_accno.ToLower(), $"%{keyword.ToLower()}%")
+                                    select new
+                                    {
+                                        mp.tax_accno,
+                                        licenseScore = 0,
+                                        taxScore = 1,
+                                        ssmScore = 0,
+                                        businessNameScore = 0,
+                                        businessAddrScore = 0,
+                                        licenseOwnerNameScore = 0,
+                                        licenseOwnerIcnoScore = 0,
+                                        premisOwnerNameScore = 0,
+                                        PremisownerIcnoScore = 0
+                                    },
+                        "LICENSE" => from mp in _tenantDBContext.mst_licensees
+                                        where EF.Functions.Like(mp.license_accno.ToLower(), $"%{keyword.ToLower()}%")
+                                        select new
+                                        {
+                                            mp.license_accno,
+                                            licenseScore = 1,
+                                            taxScore = 0,
+                                            ssmScore = 0,
+                                            businessNameScore = 0,
+                                            businessAddrScore = 0,
+                                            licenseOwnerNameScore = 0,
+                                            licenseOwnerIcnoScore = 0,
+                                            premisOwnerNameScore = 0,
+                                            PremisownerIcnoScore = 0
+                                        },
                         "COMPANY" => from ml in _tenantDBContext.mst_licensees
-                                     where EF.Functions.Like(ml.business_name.ToLower(), $"%{keyword.ToLower()}%")
-                                     select new
-                                     {
-                                         ml.business_name,
-                                         lesenscore = 0,
-                                         noakauScore = 0,
-                                         businessNameScore = 1,
-                                         businessAddrScore = 0,
-                                         ownerNameScore = 0,
-                                         ownerIcnoScore = 0
-                                     },
+                                        where EF.Functions.Like(ml.business_name.ToLower(), $"%{keyword.ToLower()}%")
+                                        select new
+                                        {
+                                            ml.business_name,
+                                            licenseScore = 0,
+                                            taxScore = 0,
+                                            ssmScore = 0,
+                                            businessNameScore = 1,
+                                            businessAddrScore = 0,
+                                            licenseOwnerNameScore = 0,
+                                            licenseOwnerIcnoScore = 0,
+                                            premisOwnerNameScore = 0,
+                                            PremisownerIcnoScore = 0
+                                        },
                         "ADDRESS" => from ml in _tenantDBContext.mst_licensees
-                                     where EF.Functions.Like(ml.business_addr.ToLower(), $"%{keyword.ToLower()}%")
-                                     select new
-                                     {
-                                         ml.business_addr,
-                                         lesenscore = 0,
-                                         noakauScore = 0,
-                                         businessNameScore = 0,
-                                         businessAddrScore = 1,
-                                         ownerNameScore = 0,
-                                         ownerIcnoScore = 0
-                                     },
-                        "NRIC" => from ml in _tenantDBContext.mst_licensees
-                                  where EF.Functions.Like(ml.owner_icno.ToLower(), $"%{keyword.ToLower()}%")
-                                  select new
-                                  {
-                                      ml.owner_icno,
-                                      lesenscore = 0,
-                                      noakauScore = 0,
-                                      businessNameScore = 0,
-                                      businessAddrScore = 0,
-                                      ownerNameScore = 0,
-                                      ownerIcnoScore = 1
-                                  },
-                        "OWNER" => from mo in _tenantDBContext.mst_owners
-                                   where EF.Functions.Like(mo.owner_name.ToLower(), $"%{keyword.ToLower()}%")
-                                   select new
-                                   {
-                                       mo.owner_name,
-                                       lesenscore = 0,
-                                       noakauScore = 0,
-                                       businessNameScore = 0,
-                                       businessAddrScore = 0,
-                                       ownerNameScore = 1,
-                                       ownerIcnoScore = 0,
-                                   },
+                                        where EF.Functions.Like(ml.business_addr.ToLower(), $"%{keyword.ToLower()}%")
+                                        select new
+                                        {
+                                            ml.business_addr,
+                                            licenseScore = 0,
+                                            taxScore = 0,
+                                            ssmScore = 0,
+                                            businessNameScore = 0,
+                                            businessAddrScore = 1,
+                                            licenseOwnerNameScore = 0,
+                                            licenseOwnerIcnoScore = 0,
+                                            premisOwnerNameScore = 0,
+                                            PremisownerIcnoScore = 0
+                                        },
+                        //"NRIC" => from ml in _tenantDBContext.mst_licensees
+                        //            where EF.Functions.Like(ml.owner_icno.ToLower(), $"%{keyword.ToLower()}%")
+                        //            select new
+                        //            {
+                        //                ml.owner_icno,
+                        //                licenseScore = 0,
+                        //                taxScore = 0,
+                        //                ssmScore = 0,
+                        //                businessNameScore = 0,
+                        //                businessAddrScore = 0,
+                        //                licenseOwnerNameScore = 0,
+                        //                licenseOwnerIcnoScore = 1,
+                        //                premisOwnerNameScore = 0,
+                        //                PremisownerIcnoScore = 0
+                        //            },
+                        "NRIC" => (from ml in _tenantDBContext.mst_licensees
+                                    where EF.Functions.Like(ml.owner_icno.ToLower(), $"%{keyword.ToLower()}%")
+                                    select new
+                                    {
+                                        license_owner_icno = ml.owner_icno,
+                                        premis_owner_icno = "",
+                                        licenseScore = 0,
+                                        taxScore = 0,
+                                        ssmScore = 0,
+                                        businessNameScore = 0,
+                                        businessAddrScore = 0,
+                                        licenseOwnerNameScore = 0,
+                                        licenseOwnerIcnoScore = 1,
+                                        premisOwnerNameScore = 0,
+                                        PremisownerIcnoScore = 0
+                                    })
+                                    .Union(
+                                        from mt in _tenantDBContext.mst_taxholders
+                                        where EF.Functions.Like(mt.owner_icno.ToLower(), $"%{keyword.ToLower()}%")
+                                        select new
+                                        {
+                                            license_owner_icno = "",
+                                            premis_owner_icno = mt.tax_accno,
+                                            licenseScore = 0,
+                                            taxScore = 0,
+                                            ssmScore = 0,
+                                            businessNameScore = 0,
+                                            businessAddrScore = 0,
+                                            licenseOwnerNameScore = 0,
+                                            licenseOwnerIcnoScore = 0,
+                                            premisOwnerNameScore = 0,
+                                            PremisownerIcnoScore = 1
+                                        }),
+                        //"OWNER" => from mo in _tenantDBContext.mst_owner_licensees
+                        //           where EF.Functions.Like(mo.owner_name.ToLower(), $"%{keyword.ToLower()}%")
+                        //           select new
+                        //           {
+                        //               mo.owner_name,
+                        //               licenseScore = 0,
+                        //               taxScore = 0,
+                        //               businessNameScore = 0,
+                        //               businessAddrScore = 0,
+                        //               licenseOwnerNameScore = 1,
+                        //               licenseOwnerIcnoScore = 0,
+                        //               premisOwnerNameScore = 0,
+                        //               PremisownerIcnoScore = 0
+                        //           },
+                        "OWNER" => (from mo in _tenantDBContext.mst_owner_licensees
+                                        where EF.Functions.Like(mo.owner_name.ToLower(), $"%{keyword.ToLower()}%")
+                                        select new
+                                        {
+                                            license_owner_name = mo.owner_name,
+                                            premis_owner_name = "",
+                                            licenseScore = 0,
+                                            taxScore = 0,
+                                            ssmScore = 0,
+                                            businessNameScore = 0,
+                                            businessAddrScore = 0,
+                                            licenseOwnerNameScore = 1,
+                                            licenseOwnerIcnoScore = 0,
+                                            premisOwnerNameScore = 0,
+                                            PremisownerIcnoScore = 0
+                                        })
+                                    .Union(
+                                        from mo in _tenantDBContext.mst_owner_premis
+                                        where EF.Functions.Like(mo.owner_name.ToLower(), $"%{keyword.ToLower()}%")
+                                        select new
+                                        {
+                                            license_owner_name = "",
+                                            premis_owner_name = mo.owner_name,
+                                            licenseScore = 0,
+                                            taxScore = 0,
+                                            ssmScore = 0,
+                                            businessNameScore = 0,
+                                            businessAddrScore = 0,
+                                            licenseOwnerNameScore = 0,
+                                            licenseOwnerIcnoScore = 0,
+                                            premisOwnerNameScore = 1,
+                                            PremisownerIcnoScore = 0
+                                        }),
                         _ => throw new ArgumentException("Invalid type selected")
                     };
                 }
@@ -196,22 +295,56 @@ namespace PBTPro.Api.Controllers
 
                 var results = await initQuery.ToListAsync();
 
+                //resultsWithHighestMatch = results.Select(result =>
+                //{
+                //    string highestMatch = result.licenseScore > result.taxScore && result.licenseScore > result.businessNameScore && result.licenseScore > result.businessAddrScore && result.licenseScore > result.ownerNameScore && result.licenseScore > result.ownerIcnoScore
+                //        ? result.lesen
+                //        : result.taxScore > result.businessNameScore && result.taxScore > result.businessAddrScore && result.taxScore > result.ownerNameScore && result.taxScore > result.ownerIcnoScore
+                //        ? result.no_akaun
+                //        : result.businessNameScore > result.businessAddrScore && result.businessNameScore > result.ownerNameScore && result.businessNameScore > result.ownerIcnoScore
+                //        ? result.business_name
+                //        : result.businessAddrScore > result.ownerNameScore && result.businessAddrScore > result.ownerIcnoScore
+                //        ? result.business_addr
+                //        : result.ownerNameScore > result.ownerIcnoScore
+                //        ? result.owner_name
+                //        : result.owner_icno;
+
+                //    return highestMatch;
+                //}).ToList();
+
                 resultsWithHighestMatch = results.Select(result =>
                 {
-                    string highestMatch = result.lesenscore > result.noakauScore && result.lesenscore > result.businessNameScore && result.lesenscore > result.businessAddrScore && result.lesenscore > result.ownerNameScore && result.lesenscore > result.ownerIcnoScore
-                        ? result.lesen
-                        : result.noakauScore > result.businessNameScore && result.noakauScore > result.businessAddrScore && result.noakauScore > result.ownerNameScore && result.noakauScore > result.ownerIcnoScore
-                        ? result.no_akaun
-                        : result.businessNameScore > result.businessAddrScore && result.businessNameScore > result.ownerNameScore && result.businessNameScore > result.ownerIcnoScore
-                        ? result.business_name
-                        : result.businessAddrScore > result.ownerNameScore && result.businessAddrScore > result.ownerIcnoScore
-                        ? result.business_addr
-                        : result.ownerNameScore > result.ownerIcnoScore
-                        ? result.owner_name
-                        : result.owner_icno;
+                    int highestMatchScore = new[]
+                    {
+                        result.taxScore,
+                        result.ssmScore,
+                        result.businessNameScore,
+                        result.businessAddrScore,
+                        result.licenseOwnerNameScore,
+                        result.licenseOwnerIcnoScore,
+                        result.premisOwnerNameScore,
+                        result.PremisownerIcnoScore
+                    }.Max();
 
-                    return highestMatch;
-                }).ToList();
+                    string highestMatch = highestMatchScore == result.taxScore ? result.tax_accno :
+                                            highestMatchScore == result.ssmScore ? result.ssm_no :
+                                            highestMatchScore == result.businessNameScore ? result.business_name :
+                                            highestMatchScore == result.businessAddrScore ? result.business_addr :
+                                            highestMatchScore == result.licenseOwnerNameScore ? result.license_owner_name :
+                                            highestMatchScore == result.licenseOwnerIcnoScore ? result.license_owner_icno :
+                                            highestMatchScore == result.premisOwnerNameScore ? result.premis_owner_name :
+                                            result.premis_owner_icno;
+
+                    return new
+                    {
+                        result,
+                        highestMatchScore,
+                        highestMatch
+                    };
+                })
+                .OrderByDescending(x => x.highestMatchScore) 
+                .Select(x => x.highestMatch) 
+                .ToList();
 
                 if (resultsWithHighestMatch.Count == 0)
                 {
@@ -234,42 +367,57 @@ namespace PBTPro.Api.Controllers
             try
             {
                 #region Building Query
-                var initQuery = from mp in _tenantDBContext.mst_premis
-                            join ml in _tenantDBContext.mst_licensees on mp.lesen equals ml.license_accno into mlJoin
-                            from ml in mlJoin.DefaultIfEmpty()
-                            join mo in _tenantDBContext.mst_owners on ml.owner_icno equals mo.owner_icno into moJoin
-                            from mo in moJoin.DefaultIfEmpty()
-                            join rls in _tenantDBContext.ref_license_statuses on ml.status_id equals rls.status_id into rslJoin
-                            from rls in rslJoin.DefaultIfEmpty()
-                            select new
-                            {
-                                mp.gid,
-                                mp.lesen,
-                                mp.no_akaun,
-                                mp.geom,
-                                ml.business_name,
-                                ml.business_addr,
-                                ml.status_id,
-                                mo.owner_name,
-                                mo.owner_icno,
-                                status_lesen = rls.status_name
-                            };
+                var initQuery = from mlpt in _tenantDBContext.mst_license_premis_taxes
+                                join mp in _tenantDBContext.mst_premis on mlpt.codeid_premis equals mp.codeid_premis into mpJoin
+                                from mp in mpJoin.DefaultIfEmpty()
+                                join ml in _tenantDBContext.mst_licensees on mlpt.license_accno equals ml.license_accno into mlJoin
+                                from ml in mlJoin.DefaultIfEmpty()
+                                join mt in _tenantDBContext.mst_taxholders on mlpt.tax_accno equals mt.tax_accno into mtJoin
+                                from mt in mtJoin.DefaultIfEmpty()
+                                join mol in _tenantDBContext.mst_owner_licensees on ml.owner_icno equals mol.owner_icno into molJoin
+                                from mol in molJoin.DefaultIfEmpty()
+                                join mot in _tenantDBContext.mst_owner_premis on mt.owner_icno equals mot.owner_icno into motJoin
+                                from mot in motJoin.DefaultIfEmpty()
+                                join rls in _tenantDBContext.ref_license_statuses on ml.status_id equals rls.status_id into rlsJoin
+                                from rls in rlsJoin.DefaultIfEmpty()
+                                join rts in _tenantDBContext.ref_tax_statuses on mt.status_id equals rts.status_id into rtsJoin
+                                from rts in rtsJoin.DefaultIfEmpty()
+                                select new
+                                {
+                                    mp.codeid_premis,
+                                    mp.geom,
+                                    mt.tax_accno,
+                                    ml.license_accno,
+                                    ml.ssm_no,
+                                    ml.business_name,
+                                    ml.business_addr,
+                                    ml.status_id,
+                                    license_owner_name = mol.owner_name,
+                                    license_owner_icno = mol.owner_icno,
+                                    premis_owner_name = mot.owner_name,
+                                    premis_owner_icno = mot.owner_icno,
+                                    license_status = rls.status_name,
+                                    tax_status = rts.status_name,
+                                };
 
                 initQuery = (type?.ToUpper() ?? string.Empty) switch
                 {
-                    "SSM" => initQuery.Where(x => EF.Functions.Like(x.lesen.ToLower(), $"%{keyword.ToLower()}%")),
-                    "TAX" => initQuery.Where(x => EF.Functions.Like(x.no_akaun.ToLower(), $"%{keyword.ToLower()}%")),
-                    "LICENSE" => initQuery.Where(x => EF.Functions.Like(x.lesen.ToLower(), $"%{keyword.ToLower()}%")),
+                    "SSM" => initQuery.Where(x => EF.Functions.Like(x.ssm_no.ToLower(), $"%{keyword.ToLower()}%")),
+                    "TAX" => initQuery.Where(x => EF.Functions.Like(x.tax_accno.ToLower(), $"%{keyword.ToLower()}%")),
+                    "LICENSE" => initQuery.Where(x => EF.Functions.Like(x.license_accno.ToLower(), $"%{keyword.ToLower()}%")),
                     "COMPANY" => initQuery.Where(x => EF.Functions.Like(x.business_name.ToLower(), $"%{keyword.ToLower()}%")),
                     "ADDRESS" => initQuery.Where(x => EF.Functions.Like(x.business_addr.ToLower(), $"%{keyword.ToLower()}%")),
-                    "NRIC" => initQuery.Where(x => EF.Functions.Like(x.owner_icno.ToLower(), $"%{keyword.ToLower()}%")),
-                    "OWNER" => initQuery.Where(x => EF.Functions.Like(x.owner_name.ToLower(), $"%{keyword.ToLower()}%")),
-                    _ => initQuery = initQuery.Where(x => EF.Functions.Like(x.lesen.ToLower(), $"%{keyword.ToLower()}%")
-                        || EF.Functions.Like(x.no_akaun.ToLower(), $"%{keyword.ToLower()}%")
+                    "NRIC" => initQuery.Where(x => EF.Functions.Like(x.license_owner_icno.ToLower(), $"%{keyword.ToLower()}%") || EF.Functions.Like(x.premis_owner_icno.ToLower(), $"%{keyword.ToLower()}%")),
+                    "OWNER" => initQuery.Where(x => EF.Functions.Like(x.license_owner_name.ToLower(), $"%{keyword.ToLower()}%") || EF.Functions.Like(x.premis_owner_name.ToLower(), $"%{keyword.ToLower()}%")),
+                    _ => initQuery = initQuery.Where(x => EF.Functions.Like(x.license_accno.ToLower(), $"%{keyword.ToLower()}%")
+                        || EF.Functions.Like(x.tax_accno.ToLower(), $"%{keyword.ToLower()}%")
+                        || EF.Functions.Like(x.ssm_no.ToLower(), $"%{keyword.ToLower()}%")
                         || (x.business_name != null && EF.Functions.Like(x.business_name.ToLower(), $"%{keyword.ToLower()}%"))
                         || (x.business_addr != null && EF.Functions.Like(x.business_addr.ToLower(), $"%{keyword.ToLower()}%"))
-                        || (x.owner_name != null && EF.Functions.Like(x.owner_name.ToLower(), $"%{keyword.ToLower()}%"))
-                        || (x.owner_icno != null && EF.Functions.Like(x.owner_icno.ToLower(), $"%{keyword.ToLower()}%"))
+                        || (x.license_owner_name != null && EF.Functions.Like(x.license_owner_name.ToLower(), $"%{keyword.ToLower()}%"))
+                        || (x.license_owner_icno != null && EF.Functions.Like(x.license_owner_icno.ToLower(), $"%{keyword.ToLower()}%"))
+                        || (x.premis_owner_name != null && EF.Functions.Like(x.premis_owner_name.ToLower(), $"%{keyword.ToLower()}%"))
+                        || (x.premis_owner_icno != null && EF.Functions.Like(x.premis_owner_icno.ToLower(), $"%{keyword.ToLower()}%"))
                     )
                 };
                 initQuery = initQuery.Distinct();
@@ -302,16 +450,19 @@ namespace PBTPro.Api.Controllers
                 var results = await initQuery
                     .Select(x => new
                     {
-                        x.gid,
-                        x.lesen,
-                        x.no_akaun,
+                        x.codeid_premis,
                         geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.geom)),
                         x.business_name,
                         x.business_addr,
                         x.status_id,
-                        x.owner_name,
-                        x.owner_icno,
-                        x.status_lesen
+                        x.license_accno,
+                        x.license_owner_name,
+                        x.license_owner_icno,
+                        x.license_status,
+                        x.tax_accno,
+                        x.premis_owner_name,
+                        x.premis_owner_icno,
+                        x.tax_status
                     })
                     .ToListAsync();
 
