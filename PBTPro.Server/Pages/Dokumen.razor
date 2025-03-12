@@ -1,5 +1,5 @@
 ﻿@page "/dokumen"
-@attribute [Authorize]
+@attribute [AllowAnonymous]
 
 @implements IDisposable
 
@@ -25,12 +25,12 @@
         max-height: 98.5%;
     }
 </style>
-@if (!PermissionService.HasPermission("View"))
+@* @if (!PermissionService.HasPermission("View"))
 {
     NavigationManager.NavigateTo("/no-permission");
 }
 else
-{
+{ *@
     <DxLoadingPanel @bind-Visible="PanelVisible"
     IsContentBlocked="true"
     ApplyBackgroundShading="true"
@@ -100,7 +100,7 @@ else
             </div>
         </div>
     </DxLoadingPanel>
-}
+// }
 
 
 @code {
@@ -129,21 +129,21 @@ else
         ReturnViewModel response = new ReturnViewModel();
        // string webRootPath = _env.WebRootPath + inputmodel.pathurl;
 
-        string fullPath = Path.Combine(_env.ContentRootPath, "wwwroot/dcoument/tempDocument/", inputmodel.filename);
+       // string fullPath = Path.Combine(_env.ContentRootPath, "wwwroot/dcoument/tempDocument/", inputmodel.filename);
 
 
-        FileExists = System.IO.File.Exists(fullPath);
+        // FileExists = System.IO.File.Exists(fullPath);
 
-        if (FileExists)
-        {
+        // if (FileExists)
+        // {
             int currentCount = await GetDownloadCountByPath(inputmodel.pathurl);
             inputmodel.cnt_download = currentCount + 1;
             response = await _DocumentService.UpdateCount(inputmodel.doc_id, inputmodel);
-        }
-        else
-        {
-            HandleResponse("Fail tidak dijumpai!", "Error");
-        }
+        // }
+        // else
+        // {
+        //     HandleResponse("Fail tidak dijumpai!", "Error");
+        // }
     }
 
     public async Task<int> GetDownloadCountByPath(string pathurl)
