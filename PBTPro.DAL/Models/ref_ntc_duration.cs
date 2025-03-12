@@ -42,6 +42,4 @@ public partial class ref_ntc_duration
     /// Timestamp when the record was last updated.
     /// </summary>
     public DateTime? modified_at { get; set; }
-
-    //public virtual ICollection<trn_notice> trn_notices { get; set; } = new List<trn_notice>();
 }

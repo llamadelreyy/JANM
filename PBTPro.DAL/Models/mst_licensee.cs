@@ -24,11 +24,6 @@ public partial class mst_licensee
     public string? owner_icno { get; set; }
 
     /// <summary>
-    /// Category code of the license (if applicable).
-    /// </summary>
-    public int? type_id { get; set; }
-
-    /// <summary>
     /// Name of the business operated by the license holder.
     /// </summary>
     public string? business_name { get; set; }
@@ -39,11 +34,6 @@ public partial class mst_licensee
     public string? business_addr { get; set; }
 
     /// <summary>
-    /// Code representing the town where the business is located.
-    /// </summary>
-    public string? town_code { get; set; }
-
-    /// <summary>
     /// Code representing the district where the business is located.
     /// </summary>
     public string? district_code { get; set; }
@@ -52,11 +42,6 @@ public partial class mst_licensee
     /// Code representing the state where the business is located.
     /// </summary>
     public string? state_code { get; set; }
-
-    /// <summary>
-    /// Date when the license was initially registered.
-    /// </summary>
-    public DateTime? reg_date { get; set; }
 
     /// <summary>
     /// Start date of the current licensing period.
@@ -76,7 +61,7 @@ public partial class mst_licensee
     /// <summary>
     /// Duration of the license validity in years or intervals.
     /// </summary>
-    //public TimeSpan? license_duration { get; set; }
+    public string? license_duration { get; set; }
 
     /// <summary>
     /// Code representing the type of license issued.
@@ -84,73 +69,53 @@ public partial class mst_licensee
     public int? cat_id { get; set; }
 
     /// <summary>
-    /// Code representing specific operations covered by this license.
-    /// </summary>
-    public int? ops_id { get; set; }
-
-    /// <summary>
-    /// Reference to parliament jurisdiction for this license.
-    /// </summary>
-    public int? parl_id { get; set; }
-
-    /// <summary>
-    /// Reference to DUN jurisdiction for this license.
-    /// </summary>
-    public int? dun_id { get; set; }
-
-    /// <summary>
-    /// Reference to zoning jurisdiction for this license.
-    /// </summary>
-    public int? zon_id { get; set; }
-
-    /// <summary>
-    /// User ID of the individual who created this record.
-    /// </summary>
-    public int? creator_id { get; set; }
-
-    /// <summary>
-    /// User ID of the individual who last updated this record.
-    /// </summary>
-    public int? modifier_id { get; set; }
-
-    /// <summary>
     /// Timestamp indicating when this record was created.
     /// </summary>
     public DateTime? created_at { get; set; }
 
-    /// <summary>
-    /// Timestamp indicating when this record was last updated.
-    /// </summary>
-    public DateTime? modified_at { get; set; }
-
-    /// <summary>
-    /// Flag indicating whether this record is marked as deleted (soft delete).
-    /// </summary>
-    public bool? is_deleted { get; set; }
-
-    public int? gid { get; set; }
-
     public int? town_id { get; set; }
+
+    public string? codeid_premis { get; set; }
 
     public string? ssm_no { get; set; }
 
+    public string? license_type { get; set; }
+
+    public double? total_amount { get; set; }
+
+    public string? doc_support { get; set; }
+
+    public int? total_signboard { get; set; }
+
+    public int? signboard_size { get; set; }
+
+    public string? g_activity_1 { get; set; }
+
+    public string? g_activity_2 { get; set; }
+
+    public string? g_activity_3 { get; set; }
+
+    public string? g_signbboard_1 { get; set; }
+
+    public string? g_signbboard_2 { get; set; }
+
+    public string? g_signbboard_3 { get; set; }
+
+    public string? lot { get; set; }
+
+    public int? mukim_id { get; set; }
+
+    public int? creator_id { get; set; }
+
+    public DateTime? modified_at { get; set; }
+
+    public int? modifier_id { get; set; }
+
+    public bool? is_deleted { get; set; }
+
     public virtual ref_license_cat? cat { get; set; }
 
-    public virtual mst_dun? dun { get; set; }
-
-    public virtual mst_premi? gidNavigation { get; set; }
-
-    public virtual ICollection<mst_taxholder> mst_taxholders { get; set; } = new List<mst_taxholder>();
-
-    public virtual ref_license_op? ops { get; set; }
-
-    public virtual mst_owner? owner_icnoNavigation { get; set; }
-
-    public virtual mst_parliament? parl { get; set; }
+    public virtual mst_premi? codeid_premisNavigation { get; set; }
 
     public virtual ref_license_status? status { get; set; }
-
-    public virtual ref_license_type? type { get; set; }
-
-    public virtual mst_zon? zon { get; set; }
 }

@@ -154,7 +154,7 @@ else
 
     private int GetDownloadClickCount(ref_doc inputmodel)
     {
-        return inputmodel.cnt_download;
+        return inputmodel.cnt_download ?? 0;
     }
 
     public void Dispose()

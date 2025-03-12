@@ -24,8 +24,8 @@ public partial class ref_doc
     public bool? is_deleted { get; set; }
 
     public string? description { get; set; }
-    
+
     public string? title { get; set; }
 
-    public int cnt_download { get; set; }
+    public int? cnt_download { get; set; }
 }

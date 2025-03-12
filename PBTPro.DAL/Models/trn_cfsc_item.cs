@@ -48,4 +48,8 @@ public partial class trn_cfsc_item
     public string? description { get; set; }
 
     public int? cnt_item { get; set; }
+
+    public virtual ref_cfsc_inventory? inv { get; set; }
+
+    public virtual trn_cfsc? trn_cfsc { get; set; }
 }

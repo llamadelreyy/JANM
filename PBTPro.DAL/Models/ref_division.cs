@@ -60,8 +60,4 @@ public partial class ref_division
     public virtual ref_department? dept { get; set; }
 
     public virtual ICollection<ref_unit> ref_units { get; set; } = new List<ref_unit>();
-
-    //public virtual ref_departmentss? dept { get; set; }
-
-    //public virtual ICollection<ref_unitss> ref_unitsses { get; set; } = new List<ref_unitss>();
 }
