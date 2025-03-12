@@ -1255,18 +1255,18 @@ label {
     letter-spacing: 0.02rem !important;
 }
 
-.text-container, .dxbl-accordion-item-text {
+.text-container, .dxbl-accordion-item-text, .dxbl-text {
     font-size: 0.85rem !important;
     letter-spacing: 0.02rem !important;
 }
 
-.btn-edit-grid {
+.dxbl-btn-caption, .btn-edit-grid {
     position: relative;
     font-size: 0.8rem !important;
     font-weight: bold;
-    letter-spacing: 0.15rem !important;
+    letter-spacing: 0.13rem !important;
     text-transform: uppercase;
-    padding: 5px 12px 5px 18px !important;
+    padding: 2px 8px 2px 10px !important;
     color: #fff;
     border-radius: 3px !important;
     cursor: pointer;
@@ -1308,7 +1308,7 @@ label {
     text-transform: uppercase;
     border-radius: 3px !important;
     cursor: pointer;
-    padding: 7px 0 !important;
+    padding: 5px 0 !important;
 }
 
 .multiselect {

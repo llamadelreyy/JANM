@@ -18,6 +18,7 @@ using System.Threading;
 using PBTPro.DAL.Models.PayLoads;
 using System.Collections.Concurrent;
 using DevExpress.Blazor;
+using DevExpress.Data.Storage;
 
 
 namespace PBTPro.Pages
@@ -40,6 +41,10 @@ namespace PBTPro.Pages
         //Lesen Information
         IEnumerable<NoticeProp> NoticeData;
         IEnumerable<(NoticeProp, int)> Items;
+
+        //Premis data
+        IEnumerable<premis_view> premisData;
+        IEnumerable<(premis_view, int)> premisItem;
         IGrid Grid { get; set; }
         TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -352,7 +357,12 @@ namespace PBTPro.Pages
             //Populate all the value from parameter. ex:LesenID
             // await JsRuntime.InvokeVoidAsync("alert", msg);
             _labelText = msg;
-            // await JsRuntime.InvokeVoidAsync("openRightBar");
+
+            if ((_labelText.Length > 0) && (int.TryParse(_labelText, out int intNum)))
+            {
+                premisData = await _PremisService.GetPremisInfo(intNum);
+            }
+
             IJSObjectReference serverSideScripts4 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
             await serverSideScripts4.InvokeVoidAsync("openRightBar");
         }
@@ -1006,7 +1016,7 @@ namespace PBTPro.Pages
                 Title = title,
                 // Content = index.ToString()
                 Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30"">
-                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot("Aktif") + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
+                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(data.marker_lesen_status) + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
             });
 
             _clusteringMarkers.Add(marker);
@@ -1015,7 +1025,10 @@ namespace PBTPro.Pages
             // Optionally, add a listener for the marker to show more information or interact with it
             await marker.AddListener<MouseEvent>("click", async (e) =>
             {
-                await OpenSideBar(title); // Replace with actual function to handle click
+                //////await OpenSideBar(title); // Replace with actual function to handle click
+                
+                //Passing the gId - to get the click premise info
+                await OpenSideBar(dataId.ToString()); // Replace with actual function to handle click
                 StateHasChanged();
             });
         }
