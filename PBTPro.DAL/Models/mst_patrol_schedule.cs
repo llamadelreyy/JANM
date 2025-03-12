@@ -56,6 +56,12 @@ public partial class mst_patrol_schedule
 
     public virtual ref_patrol_status? status { get; set; }
 
+    public virtual ICollection<trn_cfsc> trn_cfscs { get; set; } = new List<trn_cfsc>();
+
+    public virtual ICollection<trn_cmpd> trn_cmpds { get; set; } = new List<trn_cmpd>();
+
+    public virtual ICollection<trn_notice> trn_notices { get; set; } = new List<trn_notice>();
+
     public virtual ICollection<trn_patrol_officer> trn_patrol_officers { get; set; } = new List<trn_patrol_officer>();
 
     public virtual ref_patrol_type? type { get; set; }

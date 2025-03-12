@@ -585,14 +585,14 @@ namespace PBTPro.Api.Controllers
                                     (jd, mth) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, mst_licensee = (mst_licensee)null, mst_taxtholder = mth }
                                 )
                                 .GroupJoin(
-                                    _tenantDBContext.mst_owners,
+                                    _tenantDBContext.mst_owner_premis,
                                     t => t.mst_taxtholder.owner_icno,
                                     d => d.owner_icno,
                                     (t, gd) => new { t.trn_notice, t.ref_deliver, t.ref_notice_duration, t.mst_licensee, t.mst_taxtholder, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, mto) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, jd.mst_licensee, jd.mst_taxtholder, mst_owner = mto }
+                                    (jd, mto) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, jd.mst_licensee, jd.mst_taxtholder, mst_owner = (mst_owner)mto }
                                 );
                 }
                 else
@@ -609,14 +609,14 @@ namespace PBTPro.Api.Controllers
                                     (jd, mli) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, mst_licensee = mli, mst_taxtholder = (mst_taxholder)null }
                                 )
                                 .GroupJoin(
-                                    _tenantDBContext.mst_owners,
+                                    _tenantDBContext.mst_owner_licensees,
                                     t => t.mst_licensee.owner_icno,
                                     d => d.owner_icno,
                                     (t, gd) => new { t.trn_notice, t.ref_deliver, t.ref_notice_duration, t.mst_licensee, t.mst_taxtholder, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, mto) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, jd.mst_licensee, jd.mst_taxtholder, mst_owner = mto }
+                                    (jd, mto) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, jd.mst_licensee, jd.mst_taxtholder, mst_owner = (mst_owner)mto }
                                 );
                 }
 

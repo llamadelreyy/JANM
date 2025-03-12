@@ -554,11 +554,11 @@ namespace PBTPro.Api.Controllers
 
                                    select new premis_history_view
                                    {
-                                       gid = premis.gid,
-                                       no_lesen_premis = premis.lesen,
-                                       tempoh_sah_lesen = premis.tempoh_sah_lesen,
-                                       tempoh_sah_cukai = premis.tempoh_sah_cukai,
-                                       lot = premis.lot,
+                                       gid = premis.id,
+                                       //no_lesen_premis = premis.lesen,
+                                       //tempoh_sah_lesen = premis.tempoh_sah_lesen,
+                                       //tempoh_sah_cukai = premis.tempoh_sah_cukai,
+                                       //lot = premis.lot,
                                    };
                 return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }

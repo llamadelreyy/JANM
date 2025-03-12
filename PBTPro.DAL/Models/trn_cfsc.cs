@@ -106,4 +106,18 @@ public partial class trn_cfsc
     public string? doc_pathurl { get; set; }
 
     public int? user_id { get; set; }
+
+    public virtual ref_cfsc_inventory? inv { get; set; }
+
+    public virtual ref_cfsc_invtype? inv_type { get; set; }
+
+    public virtual ref_cfsc_scenario? scen { get; set; }
+
+    public virtual mst_patrol_schedule? schedule { get; set; }
+
+    public virtual ICollection<trn_cfsc_img> trn_cfsc_imgs { get; set; } = new List<trn_cfsc_img>();
+
+    public virtual ICollection<trn_cfsc_item> trn_cfsc_items { get; set; } = new List<trn_cfsc_item>();
+
+    public virtual ref_trn_status? trnstatus { get; set; }
 }

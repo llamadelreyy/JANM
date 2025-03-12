@@ -52,6 +52,4 @@ public partial class ref_note_type
     /// Timestamp when the record was last updated.
     /// </summary>
     public DateTime? modified_at { get; set; }
-
-    public virtual ICollection<trn_inspection> trn_inspections { get; set; } = new List<trn_inspection>();
 }
