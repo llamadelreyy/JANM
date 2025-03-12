@@ -8,6 +8,7 @@
 @using PBTPro.Data
 @inject NoticeService _NoticeService
 @inject ApiConnector _ApiConnector // 07/11/2024 - API Fetcher - ismail
+@inject PremisService _PremisService
 
 
 @* <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@AfterMapInit"></GoogleMap> *@
@@ -206,12 +207,23 @@
                 // // string colorLot = "";
                 if (_labelText != "")
                 {
-                    valueType = 1;
+                    valueType = 2;
                     // var dtPremis = NoticeData.Where(x => x.NoLesen == _labelText);
                     var dtPremis = NoticeData.Where(c => c.NoLesen == _labelText); //.FirstOrDefault()?.Type;
                     Items = dtPremis.Select((item, index) => (item, index));
                     // // colorLot = GetColorLot((int)valueType);
+
                 }
+
+                //Check if lot contain premis data
+                if (premisData != null)
+                {
+                    if (premisData.Count() > 0)
+                    {
+                        premisItem = premisData.Select((item, index) => (item, index));
+                    }
+                }
+
             }
 
             @if (valueType == 1)
