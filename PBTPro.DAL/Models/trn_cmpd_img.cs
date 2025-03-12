@@ -42,4 +42,6 @@ public partial class trn_cmpd_img
     public DateTime? modified_at { get; set; }
 
     public bool? is_deleted { get; set; }
+
+    public virtual trn_cmpd? trn_cmpd { get; set; }
 }

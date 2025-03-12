@@ -57,4 +57,6 @@ public partial class trn_cfsc_img
     /// Flag indicating whether this record is deleted (soft delete).
     /// </summary>
     public bool? is_deleted { get; set; }
+
+    public virtual trn_cfsc? trn_cfsc { get; set; }
 }

@@ -8,54 +8,20 @@ namespace PBTPro.DAL.Models;
 /// </summary>
 public partial class mst_owner
 {
-    /// <summary>
-    /// Unique identifier for each owner.
-    /// </summary>
     public int owner_id { get; set; }
 
-    /// <summary>
-    /// IC number (must be unique).
-    /// </summary>
-    public string owner_icno { get; set; } = null!;
+    public string? owner_icno { get; set; }
 
-    /// <summary>
-    /// Owner&apos;s name.
-    /// </summary>
     public string? owner_name { get; set; }
 
-    /// <summary>
-    /// Type of ID (No Kad Pengenalan/Pasport).
-    /// </summary>
-    public int? id_type_id { get; set; }
-
-    /// <summary>
-    /// Email address.
-    /// </summary>
     public string? owner_email { get; set; }
 
-    /// <summary>
-    /// Address of the owner.
-    /// </summary>
     public string? owner_addr { get; set; }
 
-    /// <summary>
-    /// Town where the owner resides.
-    /// </summary>
-    public string? town_code { get; set; }
-
-    /// <summary>
-    /// District where the owner resides.
-    /// </summary>
     public string? district_code { get; set; }
 
-    /// <summary>
-    /// State where the owner resides.
-    /// </summary>
     public string? state_code { get; set; }
 
-    /// <summary>
-    /// Phone number of the owner.
-    /// </summary>
     public string? owner_telno { get; set; }
 
     public int? creator_id { get; set; }
@@ -68,7 +34,47 @@ public partial class mst_owner
 
     public bool? is_deleted { get; set; }
 
-    public virtual ICollection<mst_licensee> mst_licensees { get; set; } = new List<mst_licensee>();
+    public int? town_id { get; set; }
 
-    public virtual ICollection<mst_taxholder> mst_taxholders { get; set; } = new List<mst_taxholder>();
+    public static explicit operator mst_owner(mst_owner_premi v)
+    {
+        return new mst_owner
+        {
+            owner_id = v.owner_id,
+            owner_icno = v.owner_icno,
+            owner_name = v.owner_name,
+            owner_email = v.owner_email,
+            owner_addr = v.owner_addr,
+            district_code = v.district_code,
+            state_code = v.state_code,
+            owner_telno = v.owner_telno,
+            creator_id = v.creator_id,
+            created_at = v.created_at,
+            modifier_id = v.modifier_id,
+            modified_at = v.modified_at,
+            is_deleted = v.is_deleted,
+            town_id = v.town_id
+        };
+    }
+
+    public static explicit operator mst_owner(mst_owner_licensee v)
+    {
+        return new mst_owner
+        {
+            owner_id = v.owner_id,
+            owner_icno = v.owner_icno,
+            owner_name = v.owner_name,
+            owner_email = v.owner_email,
+            owner_addr = v.owner_addr,
+            district_code = v.district_code,
+            state_code = v.state_code,
+            owner_telno = v.owner_telno,
+            creator_id = v.creator_id,
+            created_at = v.created_at,
+            modifier_id = v.modifier_id,
+            modified_at = v.modified_at,
+            is_deleted = v.is_deleted,
+            town_id = v.town_id
+        };
+    }
 }

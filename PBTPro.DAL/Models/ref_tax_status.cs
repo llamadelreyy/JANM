@@ -43,5 +43,7 @@ public partial class ref_tax_status
     /// </summary>
     public DateTime? modified_at { get; set; }
 
+    public virtual ICollection<mst_license_premis_tax> mst_license_premis_taxes { get; set; } = new List<mst_license_premis_tax>();
+
     public virtual ICollection<mst_taxholder> mst_taxholders { get; set; } = new List<mst_taxholder>();
 }

@@ -61,7 +61,7 @@ public partial class ref_unit
 
     public string? div_name { get; set; }
 
-   // public virtual ref_department? dept { get; set; }
+    public virtual ref_department? dept { get; set; }
 
     public virtual ref_division? div { get; set; }
 }
