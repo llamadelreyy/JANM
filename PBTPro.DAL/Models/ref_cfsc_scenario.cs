@@ -45,5 +45,5 @@ public partial class ref_cfsc_scenario
     /// </summary>
     public bool? is_deleted { get; set; }
 
-    public virtual ICollection<trn_confiscation> trn_confiscations { get; set; } = new List<trn_confiscation>();
+    public virtual ICollection<trn_cfsc> trn_cfscs { get; set; } = new List<trn_cfsc>();
 }

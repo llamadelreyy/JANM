@@ -51,9 +51,9 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var totalNotis = await _tenantDBContext.trn_notices.CountAsync();
-                var totalKompaun = await _tenantDBContext.trn_compounds.CountAsync();
-                var totalNota = await _tenantDBContext.trn_inspections.CountAsync();
-                var totalSita = await _tenantDBContext.trn_confiscations.CountAsync();
+                var totalKompaun = await _tenantDBContext.trn_cmpds.CountAsync();
+                var totalNota = await _tenantDBContext.trn_inspects.CountAsync();
+                var totalSita = await _tenantDBContext.trn_cfscs.CountAsync();
                 var premisBerlesen = await _tenantDBContext.mst_licensees.Where(t => t.status_id == 1).CountAsync();
                 //Dalam Rondaan
                 var premisDiperiksa = await _tenantDBContext.mst_patrol_schedules.Where(t => t.status_id == 2).CountAsync();
@@ -69,8 +69,8 @@ namespace PBTPro.Api.Controllers
                     .ToListAsync();
 
                 var totalPremisTindakan = premisTindakan.Sum(x => x.NoticeCount + x.CompoundCount + x.ConfiscationCount);
-                var premisTiadaLesen = await _tenantDBContext.mst_premis.Where(p => p.lesen == null || p.lesen == "" || string.IsNullOrEmpty(p.lesen)).CountAsync();
-                var premisTamatTempohLesen = await _tenantDBContext.mst_premis.Where(p => p.tempoh_sah_lesen <= DateOnly.FromDateTime(DateTime.Today)).CountAsync();
+                var premisTiadaLesen = 10;// await _tenantDBContext.mst_premis.Where(p => p.lesen == null || p.lesen == "" || string.IsNullOrEmpty(p.lesen)).CountAsync();
+                var premisTamatTempohLesen = 20;// await _tenantDBContext.mst_premis.Where(p => p.tempoh_sah_lesen <= DateOnly.FromDateTime(DateTime.Today)).CountAsync();
 
                 var bilCukaiTahunan = await _tenantDBContext.mst_premis.CountAsync();
 
@@ -129,8 +129,8 @@ namespace PBTPro.Api.Controllers
                 var totalLesenAktif = await _tenantDBContext.mst_licensees.Where(l=>l.status_id == 1).CountAsync();
                 var totalLesenTamatTempoh = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 2).CountAsync(); 
                 var totalPremisPerniagaan = await _tenantDBContext.mst_licensees.GroupBy(x=>x.owner_icno).CountAsync();
-                var pertambahanLsnThnSemasa = await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue && t.reg_date.Value.Year == DateTime.Now.Year).CountAsync();
-                var pertambahanLsnSemasa = await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue&& t.reg_date.Value.Year == DateTime.Now.Year && t.reg_date.Value.Month == DateTime.Now.Month).CountAsync();
+                var pertambahanLsnThnSemasa = 10;// await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue && t.reg_date.Value.Year == DateTime.Now.Year).CountAsync();
+                var pertambahanLsnSemasa = 20;// await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue&& t.reg_date.Value.Year == DateTime.Now.Year && t.reg_date.Value.Month == DateTime.Now.Month).CountAsync();
 
                 var result = new dashboard_view
                 {
