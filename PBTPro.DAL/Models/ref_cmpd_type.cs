@@ -52,6 +52,4 @@ public partial class ref_cmpd_type
     /// Timestamp when the record was last updated.
     /// </summary>
     public DateTime? modified_at { get; set; }
-
-    public virtual ICollection<trn_compound> trn_compounds { get; set; } = new List<trn_compound>();
 }

@@ -54,11 +54,6 @@ public partial class mst_taxholder
     public TimeSpan? tax_duration { get; set; }
 
     /// <summary>
-    /// representing the type of tax applicable to the holder.
-    /// </summary>
-    public int? license_id { get; set; }
-
-    /// <summary>
     /// Identifier for parliamentary representation related to taxation.
     /// </summary>
     public int? parliment_id { get; set; }
@@ -100,17 +95,11 @@ public partial class mst_taxholder
 
     public int? town_id { get; set; }
 
-    public int? gid { get; set; }
+    public string? codeid_premis { get; set; }
 
     public string? alamat { get; set; }
 
     public virtual mst_dun? dun { get; set; }
-
-    public virtual mst_premi? gidNavigation { get; set; }
-
-    public virtual mst_licensee? license { get; set; }
-
-    public virtual mst_owner? owner_icnoNavigation { get; set; }
 
     public virtual mst_parliament? parliment { get; set; }
 

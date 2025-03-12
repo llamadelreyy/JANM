@@ -104,4 +104,14 @@ public partial class trn_notice
     public string? doc_pathurl { get; set; }
 
     public int? user_id { get; set; }
+
+    public virtual ref_deliver? deliver { get; set; }
+
+    public virtual ref_notice_duration? duration { get; set; }
+
+    public virtual mst_patrol_schedule? schedule { get; set; }
+
+    public virtual ICollection<trn_notice_img> trn_notice_imgs { get; set; } = new List<trn_notice_img>();
+
+    public virtual ref_trn_status? trnstatus { get; set; }
 }
