@@ -13,6 +13,8 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.Api.Services;
 using PBTPro.DAL;
@@ -89,6 +91,17 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                if (InputModel.witnesses == null || InputModel.witnesses.Count == 0)
+                {
+                    var Request = await HttpContext.Request.ReadFormAsync();
+                    if (Request["witnesses"] != StringValues.Empty)
+                    {
+                        var rawItemReq = Request["witnesses"].ToString();
+                        var fixedJson = "[" + rawItemReq + "]";
+                        InputModel.witnesses = JsonConvert.DeserializeObject<List<patrol_cmpd_witness>>(fixedJson);
+                    }
+                }
+
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
 
@@ -243,6 +256,17 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                if (InputModel.witnesses == null || InputModel.witnesses.Count == 0)
+                {
+                    var Request = await HttpContext.Request.ReadFormAsync();
+                    if (Request["witnesses"] != StringValues.Empty)
+                    {
+                        var rawItemReq = Request["witnesses"].ToString();
+                        var fixedJson = "[" + rawItemReq + "]";
+                        InputModel.witnesses = JsonConvert.DeserializeObject<List<patrol_cmpd_witness>>(fixedJson);
+                    }
+                }
+
                 int runUserID = await getDefRunUserId();
                 string runUser = await getDefRunUser();
 
