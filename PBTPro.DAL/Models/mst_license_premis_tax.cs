@@ -29,7 +29,7 @@ public partial class mst_license_premis_tax
 
     public bool? is_deleted { get; set; }
 
-    public virtual mst_premi? codeid_premisNavigation { get; set; }
+    public virtual mst_premis? codeid_premisNavigation { get; set; }
 
     public virtual ref_license_status? status_lesen { get; set; }
 
