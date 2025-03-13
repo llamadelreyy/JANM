@@ -1037,6 +1037,9 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.status_id)
                 .HasDefaultValueSql("nextval('tenant.license_status_license_status_id_seq'::regclass)")
                 .HasComment("Unique identifier for each license status record (Primary Key).");
+            entity.Property(e => e.color)
+                .HasMaxLength(40)
+                .HasDefaultValueSql("'black'::character varying");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasComment("Timestamp when the record was created.")
@@ -1050,6 +1053,7 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasComment("Timestamp when the record was last updated.")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+            entity.Property(e => e.priority).HasDefaultValue(1);
             entity.Property(e => e.status_name)
                 .HasMaxLength(40)
                 .HasComment("Name of the license status (e.g., Aktif, Tidak Aktif, Batal).");
@@ -1314,6 +1318,9 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.status_id)
                 .HasDefaultValueSql("nextval('tenant.tax_status_tax_status_id_seq'::regclass)")
                 .HasComment("Unique identifier for each tax status record (Primary Key).");
+            entity.Property(e => e.color)
+                .HasMaxLength(40)
+                .HasDefaultValueSql("'black'::character varying");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasComment("Timestamp when the record was created.")
@@ -1327,6 +1334,7 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasComment("Timestamp when the record was last updated.")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+            entity.Property(e => e.priority).HasDefaultValue(1);
             entity.Property(e => e.status_name)
                 .HasMaxLength(100)
                 .HasComment("Name of the tax status (e.g., Cukai Dibayar, Cukai Tertunggak).");

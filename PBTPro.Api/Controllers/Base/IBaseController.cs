@@ -507,7 +507,7 @@ namespace PBTPro.Api.Controllers.Base
         #endregion
 
         #region Entitiy Utilities
-        public TDestination MapEntity<TDestination>(object source)
+        protected TDestination MapEntity<TDestination>(object source)
         {
             var sourceProperties = source.GetType().GetProperties();
             var destinationProperties = typeof(TDestination).GetProperties();
@@ -526,6 +526,15 @@ namespace PBTPro.Api.Controllers.Base
             }
 
             return destination;
+        }
+
+        protected static int GetNumericPart(string floorBuilding)
+        {
+            var numericPart = new string(floorBuilding
+                .Where(char.IsDigit)
+                .ToArray());
+
+            return string.IsNullOrEmpty(numericPart) ? 0 : int.Parse(numericPart);
         }
         #endregion
     }

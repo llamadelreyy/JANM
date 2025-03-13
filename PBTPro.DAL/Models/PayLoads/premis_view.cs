@@ -106,12 +106,12 @@ namespace PBTPro.DAL.Models.PayLoads
 
         #region PREMIS
         public string nama_pemilik { get; set; }
-        public string no_tel { get; set; }   
+        public string no_tel { get; set; }
         public string jenis_premis { get; set; }
         public string lot { get; set; }
         public string no_lesen_premis { get; set; }
         public DateOnly? tempoh_sah_lesen { get; set; }
-        public DateOnly? tempoh_sah_cukai { get; set; } 
+        public DateOnly? tempoh_sah_cukai { get; set; }
         public string status_cukai_premis { get; set; }
         #endregion
 
