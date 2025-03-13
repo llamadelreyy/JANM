@@ -88,6 +88,17 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                if (InputModel.witnesses == null || InputModel.witnesses.Count == 0)
+                {
+                    var Request = await HttpContext.Request.ReadFormAsync();
+                    if (Request["witnesses"] != StringValues.Empty)
+                    {
+                        var rawItemReq = Request["witnesses"].ToString();
+                        var fixedJson = "[" + rawItemReq + "]";
+                        InputModel.witnesses = JsonConvert.DeserializeObject<List<patrol_cfsc_witness>>(fixedJson);
+                    }
+                }
+
                 if (InputModel.items == null || InputModel.items.Count == 0)
                 {
                     var Request = await HttpContext.Request.ReadFormAsync();
@@ -278,6 +289,17 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                if (InputModel.witnesses == null || InputModel.witnesses.Count == 0)
+                {
+                    var Request = await HttpContext.Request.ReadFormAsync();
+                    if (Request["witnesses"] != StringValues.Empty)
+                    {
+                        var rawItemReq = Request["witnesses"].ToString();
+                        var fixedJson = "[" + rawItemReq + "]";
+                        InputModel.witnesses = JsonConvert.DeserializeObject<List<patrol_cfsc_witness>>(fixedJson);
+                    }
+                }
+
                 if (InputModel.items == null || InputModel.items.Count == 0)
                 {
                     var Request = await HttpContext.Request.ReadFormAsync();
