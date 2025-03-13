@@ -12,6 +12,8 @@ Changes Logs:
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
@@ -82,6 +84,17 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                if (InputModel.witnesses == null || InputModel.witnesses.Count == 0)
+                {
+                    var Request = await HttpContext.Request.ReadFormAsync();
+                    if (Request["witnesses"] != StringValues.Empty)
+                    {
+                        var rawItemReq = Request["witnesses"].ToString();
+                        var fixedJson = "[" + rawItemReq + "]";
+                        InputModel.witnesses = JsonConvert.DeserializeObject<List<patrol_inspect_witness>>(fixedJson);
+                    }
+                }
+
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
 
@@ -224,6 +237,17 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                if (InputModel.witnesses == null || InputModel.witnesses.Count == 0)
+                {
+                    var Request = await HttpContext.Request.ReadFormAsync();
+                    if (Request["witnesses"] != StringValues.Empty)
+                    {
+                        var rawItemReq = Request["witnesses"].ToString();
+                        var fixedJson = "[" + rawItemReq + "]";
+                        InputModel.witnesses = JsonConvert.DeserializeObject<List<patrol_inspect_witness>>(fixedJson);
+                    }
+                }
+
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
 
