@@ -33,7 +33,7 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<mst_patrol_schedule> mst_patrol_schedules { get; set; }
 
-    public virtual DbSet<mst_premi> mst_premis { get; set; }
+    public virtual DbSet<mst_premis> mst_premis { get; set; }
 
     public virtual DbSet<mst_taxholder> mst_taxholders { get; set; }
 
@@ -572,7 +572,7 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasConstraintName("type_id_refers_to_patrol_type_id");
         });
 
-        modelBuilder.Entity<mst_premi>(entity =>
+        modelBuilder.Entity<mst_premis>(entity =>
         {
             entity.HasKey(e => e.id).HasName("mst_premis_pkey");
 
