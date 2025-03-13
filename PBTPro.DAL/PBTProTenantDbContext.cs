@@ -109,6 +109,8 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<trn_premis_visit> trn_premis_visits { get; set; }
 
+    public virtual DbSet<trn_witness> trn_witnesses { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("postgis");
@@ -1916,6 +1918,18 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.is_deleted).HasDefaultValue(false);
             entity.Property(e => e.modified_at).HasColumnType("timestamp without time zone");
             entity.Property(e => e.status_visit).HasDefaultValue(false);
+        });
+
+        modelBuilder.Entity<trn_witness>(entity =>
+        {
+            entity.HasKey(e => e.witness_id).HasName("trn_witness_pkey");
+
+            entity.ToTable("trn_witness", "tenant");
+
+            entity.Property(e => e.created_at).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modified_at).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.name).HasColumnType("character varying");
+            entity.Property(e => e.trn_type).HasColumnType("character varying");
         });
         modelBuilder.HasSequence("mst_patrol_schedule_schedule_id_seq", "tenant");
         modelBuilder.HasSequence("mst_premis_id_seq", "tenant");

@@ -22,7 +22,14 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? uuk_code { get; set; }
         public string? offense_code { get; set; }
         public int? user_id { get; set; }
+        public List<patrol_notice_witness>? witnesses { get; set; }
         public List<IFormFile>? proofs { get; set; }
+    }
+
+    public class patrol_notice_witness
+    {
+        public int? user_id { get; set; }
+        public string? name { get; set; }
     }
 
     public class patrol_notice_view_model : trn_notice
