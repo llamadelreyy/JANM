@@ -27,10 +27,7 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<app_system_param> app_system_params { get; set; }
 
-    
     public virtual DbSet<his_email_history> his_email_histories { get; set; }
-
-    
 
     public virtual DbSet<menu> menus { get; set; }
 
@@ -39,8 +36,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
     public virtual DbSet<mst_district> mst_districts { get; set; }
 
     public virtual DbSet<mst_lot> mst_lots { get; set; }
-
-    public virtual DbSet<mst_premis> mst_premis { get; set; }
 
     public virtual DbSet<mst_state> mst_states { get; set; }
 
@@ -129,7 +124,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.username).HasMaxLength(25);
         });
      
-
         modelBuilder.Entity<app_email_tmpl>(entity =>
         {
             entity.HasKey(e => e.tmpl_id).HasName("app_email_tmpl_pkey");
@@ -289,8 +283,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("Value assigned to the configuration parameter");
         });
 
-        
-
         modelBuilder.Entity<his_email_history>(entity =>
         {
             entity.HasKey(e => e.hist_id).HasName("his_email_history_pkey");
@@ -335,7 +327,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasComment("ID of the user who last modified this record");
         });
 
-        
         modelBuilder.Entity<menu>(entity =>
         {
             entity.HasKey(e => e.menu_id).HasName("menus_pkey");
@@ -445,24 +436,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.seksyen).HasMaxLength(3);
             entity.Property(e => e.unit).HasMaxLength(1);
             entity.Property(e => e.upi).HasMaxLength(16);
-        });
-
-        modelBuilder.Entity<mst_premis>(entity =>
-        {
-            entity.HasKey(e => e.gid).HasName("mst_premis_pkey");
-
-            entity.HasIndex(e => e.geom, "mst_premis_geom_idx").HasMethod("gist");
-
-            entity.Property(e => e.daerah).HasMaxLength(2);
-            entity.Property(e => e.gambar1).HasMaxLength(10);
-            entity.Property(e => e.gambar2).HasMaxLength(10);
-            entity.Property(e => e.geom).HasColumnType("geometry(Point,4326)");
-            entity.Property(e => e.lesen).HasMaxLength(20);
-            entity.Property(e => e.lot).HasMaxLength(7);
-            entity.Property(e => e.mukim).HasMaxLength(2);
-            entity.Property(e => e.negeri).HasMaxLength(2);
-            entity.Property(e => e.no_akaun).HasMaxLength(20);
-            entity.Property(e => e.seksyen).HasMaxLength(3);
         });
 
         modelBuilder.Entity<mst_state>(entity =>
@@ -648,7 +621,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.role_id).HasComment("Identifier for the role associated with the core.permission.");
         });
 
-        
         modelBuilder.Entity<ref_law_act>(entity =>
         {
             entity.HasKey(e => e.act_id).HasName("ref_law_acts_pkey");
@@ -723,7 +695,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
             entity.Property(e => e.uuk_name).HasMaxLength(40);
         });
 
-       
         modelBuilder.Entity<ref_id_type>(entity =>
         {
             entity.HasKey(e => e.id_type_id).HasName("ref_id_types_pkey");

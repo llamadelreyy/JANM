@@ -115,7 +115,7 @@ public partial class mst_licensee
 
     public virtual ref_license_cat? cat { get; set; }
 
-    public virtual mst_premi? codeid_premisNavigation { get; set; }
+    public virtual mst_premis? codeid_premisNavigation { get; set; }
 
     public virtual ref_license_status? status { get; set; }
 }
