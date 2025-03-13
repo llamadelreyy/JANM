@@ -140,6 +140,8 @@ namespace PBTPro.Api.Controllers
                                     };
 
                 var mst_premis = await queryWithJoin
+                .OrderBy(x => x.licStatus.priority == x.taxStatus.priority ? x.licStatus.priority : Math.Min(x.licStatus.priority, x.taxStatus.priority))
+                .ThenBy(x => x.licStatus.priority == x.taxStatus.priority ? 0 : (x.licStatus.priority < x.taxStatus.priority ? 0 : 1))
                 .Select(x => new PremisMarkerViewModel
                 {
                     codeid_premis = x.Premis.codeid_premis,
@@ -218,16 +220,42 @@ namespace PBTPro.Api.Controllers
                                         licStatus = licStatus,
                                         taxStatus = taxStatus
                                     };
+                List<string> statusFilters = new List<string>();
+                if (!string.IsNullOrEmpty(filterType))
+                {
+                    statusFilters = filterType.Split(',')
+                                                .Select(f => f.Trim())
+                                                .ToList();
+
+                    if (statusFilters.Count > 0)
+                    {
+                        queryWithJoin = queryWithJoin
+                        .Where(x => statusFilters.Any(filter =>
+                            x.licStatus.status_name.ToLower().Contains(filter.ToLower()) ||
+                            x.taxStatus.status_name.ToLower().Contains(filter.ToLower())
+                        ));
+                    }
+                }
+                else
+                {
+                    queryWithJoin = queryWithJoin
+                    .OrderBy(x => x.licStatus.priority == x.taxStatus.priority ? x.licStatus.priority : Math.Min(x.licStatus.priority, x.taxStatus.priority))
+                    .ThenBy(x => x.licStatus.priority == x.taxStatus.priority ? 0 : (x.licStatus.priority < x.taxStatus.priority ? 0 : 1));
+                }
 
                 var mst_premisList = await queryWithJoin
-                .Select(x => new PremisMarkerViewModel
+                .Select(x => new
                 {
                     codeid_premis = x.Premis.codeid_premis,
                     geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.Premis.geom)),
                     license_status_id = x.jnLicTax.status_lesen_id,
                     license_status_view = x.licStatus.status_name,
+                    license_status_color = x.licStatus.color,
+                    license_status_priority = x.licStatus.priority,
                     tax_status_id = x.jnLicTax.status_tax_id,
-                    tax_status_view = x.taxStatus.status_name
+                    tax_status_view = x.taxStatus.status_name,
+                    tax_status_color = x.taxStatus.color,
+                    tax_status_priority = x.taxStatus.priority
                 })
                 .ToListAsync();
 
@@ -240,102 +268,20 @@ namespace PBTPro.Api.Controllers
                 var resultData = new List<premis_marker>();
                 foreach (var premis in mst_premisList.DistinctBy(premis => premis.codeid_premis).ToList())
                 {
-                    var correspondingPremisView = mst_premisList.Where(x=> x.codeid_premis == premis.codeid_premis).ToList();
-                    var statusLesens = new List<string> { premis.license_status_view };
+                    String marker_cukai_status = premis.tax_status_view;
+                    String marker_lesen_status = premis.license_status_view;
+                    String marker_color = premis.license_status_priority <= premis.tax_status_priority ? premis.license_status_color : premis.tax_status_color;
 
-                    if (correspondingPremisView.Count > 1)
+                    if (statusFilters.Count > 0)
                     {
-                        statusLesens.AddRange(correspondingPremisView.Select(l => l.license_status_view));
-                    }
-
-                    List<string> statusFilters;
-                    if (!string.IsNullOrEmpty(filterType))
-                    {
-                        statusFilters = filterType.Split(',')
-                                                  .Select(f => f.Trim())
-                                                  .ToList();
-                    }
-                    else
-                    {
-                        statusFilters = new List<string>();
-                    }
-
-                    bool containsSearchTerm = false;
-                    bool isAktif = false;
-                    bool isTamatTempoh = false;
-                    bool isGantung = false;
-                    bool isTiadaData = false;
-                    bool isDibayar = false;
-                    bool isTertunggak = false;
-
-                    if (statusFilters.Any())
-                    {
-                        containsSearchTerm = statusLesens.Any(sl => statusFilters.Any(sf => sl.Contains(sf, StringComparison.OrdinalIgnoreCase)));
-
-                        isAktif = statusFilters.Contains("Aktif", StringComparer.OrdinalIgnoreCase) &&
-                            statusLesens.Any(sl => sl.Equals("Aktif", StringComparison.OrdinalIgnoreCase));
-
-                        isTamatTempoh = statusFilters.Contains("Tamat Tempoh", StringComparer.OrdinalIgnoreCase) &&
-                            statusLesens.Any(sl => sl.Equals("Tamat Tempoh", StringComparison.OrdinalIgnoreCase));
-
-                        isGantung = statusFilters.Contains("Gantung", StringComparer.OrdinalIgnoreCase) &&
-                            statusLesens.Any(sl => sl.Equals("Gantung", StringComparison.OrdinalIgnoreCase));
-
-                        isTiadaData = statusFilters.Contains("Tiada Data", StringComparer.OrdinalIgnoreCase) &&
-                            statusLesens.Any(sl => sl.Equals("Tiada Data", StringComparison.OrdinalIgnoreCase));
-
-                        isDibayar = statusFilters.Contains("Dibayar", StringComparer.OrdinalIgnoreCase) &&
-                            premis.license_status_view.IndexOf("Dibayar", StringComparison.OrdinalIgnoreCase) >= 0;
-
-                        isTertunggak = statusFilters.Contains("Tertunggak", StringComparer.OrdinalIgnoreCase) &&
-                            premis.tax_status_view.IndexOf("Tertunggak", StringComparison.OrdinalIgnoreCase) >= 0;
-                    }
-
-                    String marker_cukai_status = "Default";
-                    String marker_lesen_status = "Default";
-                    String marker_color = "Black";
-
-                    if (isTertunggak)
-                    {
-                        marker_cukai_status = "Tertunggak";
-                    }
-                    else if (isDibayar)
-                    {
-                        marker_cukai_status = "Dibayar";
-                    }
-
-                    if (isTamatTempoh)
-                    {
-                        marker_lesen_status = "Tamat Tempoh";
-                    }
-                    else if (isGantung)
-                    {
-                        marker_lesen_status = "Gantung";
-                    }
-                    else if (isAktif)
-                    {
-                        marker_lesen_status = "Aktif";
-                    }
-                    else if (isTiadaData)
-                    {
-                        marker_lesen_status = "Tiada Data";
-                    }
-
-                    if (isTertunggak || isTamatTempoh)
-                    {
-                        marker_color = "Red";
-                    }
-                    else if (isDibayar || isAktif)
-                    {
-                        marker_color = "Green";
-                    }
-                    else if (isGantung)
-                    {
-                        marker_color = "Yellow";
-                    }
-                    else if (isTiadaData)
-                    {
-                        marker_color = "Grey";
+                        if (statusFilters.Any(filter => premis.tax_status_view.ToLower().Contains(filter.ToLower())))
+                        {
+                            marker_color = premis.tax_status_color;
+                        }
+                        if (statusFilters.Any(filter => premis.license_status_view.ToLower().Contains(filter.ToLower())))
+                        {
+                            marker_color = premis.license_status_color;
+                        }
                     }
 
                     resultData.Add(new premis_marker
@@ -366,7 +312,7 @@ namespace PBTPro.Api.Controllers
             try
             {
                 var premisInfo = await _tenantDBContext.mst_premis.Where(x => x.codeid_premis == codeid).AsNoTracking().FirstOrDefaultAsync();
-                if(premisInfo == null)
+                if (premisInfo == null)
                 {
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
@@ -402,13 +348,19 @@ namespace PBTPro.Api.Controllers
                                         taxStatus = taxStatus
                                     };
 
-                var rawJDs = await queryWithJoin.OrderBy(x=>x.jnLicTax.floor_building).ThenBy(x=>x.jnLicTax.license_premis_tax_id).AsNoTracking().ToListAsync();
+                var rawJDs = await queryWithJoin.AsNoTracking().ToListAsync();
 
                 premis_view result = new premis_view();
                 result = (premis_view)premisInfo;
                 result.premis_license_tax = new List<premis_license_tax_view>();
-                
-                foreach(var rawJD in rawJDs)
+
+                foreach (var rawJD in rawJDs
+                .OrderBy(x => string.IsNullOrEmpty(x.jnLicTax.floor_building) ? 1 : (char.IsLetter(x.jnLicTax.floor_building.Trim().FirstOrDefault()) ? 0 : 1))
+                .ThenBy(x => new string(x.jnLicTax.floor_building.TakeWhile(char.IsLetter).ToArray()))
+                .ThenBy(x => GetNumericPart(x.jnLicTax.floor_building))
+                //.OrderBy(x => x.jnLicTax.floor_building)
+                .ThenBy(x => x.jnLicTax.license_premis_tax_id)
+                )
                 {
                     var joinData = (premis_license_tax_view)rawJD.jnLicTax;
                     joinData.license = rawJD.license;
