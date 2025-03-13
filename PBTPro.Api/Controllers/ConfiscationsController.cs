@@ -162,6 +162,30 @@ namespace PBTPro.Api.Controllers
                         await _tenantDBContext.SaveChangesAsync();
                         #endregion
 
+                        #region Witness
+                        var witnesses = new List<trn_witness>();
+                        if (InputModel.witnesses != null && InputModel.witnesses.Count > 0)
+                        {
+                            foreach (var w in InputModel.witnesses)
+                            {
+                                var witness = new trn_witness();
+                                witness.trn_id = confiscation.trn_cfsc_id;
+                                witness.trn_type = "CONFISCATION";
+                                witness.name = w.name;
+                                witness.user_id = w.user_id;
+                                witness.is_deleted = false;
+                                witness.creator_id = runUserID;
+                                witness.created_at = DateTime.Now;
+                                witnesses.Add(witness);
+                            }
+
+                            if (witnesses.Count > 0)
+                            {
+                                _tenantDBContext.trn_witnesses.AddRange(witnesses);
+                            }
+                        }
+                        #endregion
+
                         #region Confiscated Item
                         var items = new List<trn_cfsc_item>();
                         int iin = 0;
@@ -329,6 +353,37 @@ namespace PBTPro.Api.Controllers
                         
                         _tenantDBContext.trn_cfscs.Update(confiscation);
                         await _tenantDBContext.SaveChangesAsync();
+                        #endregion
+
+                        #region Witness
+                        var existingWitness = await _tenantDBContext.trn_witnesses.Where(x => x.trn_type == "CONFISCATION" && x.trn_id == confiscation.trn_cfsc_id).ToListAsync();
+                        if (existingWitness != null)
+                        {
+                            _tenantDBContext.trn_witnesses.RemoveRange(existingWitness);
+                            await _tenantDBContext.SaveChangesAsync();
+                        }
+
+                        var witnesses = new List<trn_witness>();
+                        if (InputModel.witnesses != null && InputModel.witnesses.Count > 0)
+                        {
+                            foreach (var w in InputModel.witnesses)
+                            {
+                                var witness = new trn_witness();
+                                witness.trn_id = confiscation.trn_cfsc_id;
+                                witness.trn_type = "CONFISCATION";
+                                witness.name = w.name;
+                                witness.user_id = w.user_id;
+                                witness.is_deleted = false;
+                                witness.creator_id = runUserID;
+                                witness.created_at = DateTime.Now;
+                                witnesses.Add(witness);
+                            }
+
+                            if (witnesses.Count > 0)
+                            {
+                                _tenantDBContext.trn_witnesses.AddRange(witnesses);
+                            }
+                        }
                         #endregion
 
                         #region Confiscated Item
