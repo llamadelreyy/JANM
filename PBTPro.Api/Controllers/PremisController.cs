@@ -14,13 +14,11 @@ Changes Logs:
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
-using System;
 
 namespace PBTPro.Api.Controllers
 {
