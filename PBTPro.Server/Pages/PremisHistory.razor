@@ -376,7 +376,7 @@ else
 
         </div>
     </DxLoadingPanel>
-//}
+@* //} *@
 
 @code {
 
@@ -398,7 +398,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        dtSource = await GetListDataAsync(formType);
+        //dtSource = await GetListDataAsync(formType);
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
     }
@@ -428,24 +428,23 @@ else
                 formType = "Premis";
                 break;
         }
-
-        dtSource = await GetListDataAsync(formType);
+        //dtSource = await GetListDataAsync(formType);
         StateHasChanged();
     }
 
-    private async Task<IEnumerable<premis_history_view>> GetListDataAsync(string? formType = "Premis")
-    {
-        IEnumerable<premis_history_view> result;
-        if (formType == "Premis")
-        {
-            result = await _PremisService.ListByTabType(formType);
-        }
-        else
-        {
-            result = await _LicenseService.ListByTabType(formType);
-        }
-        return result;
-    }
+    // private async Task<IEnumerable<premis_history_view>> GetListDataAsync(string? formType = "Premis")
+    // {
+    //     // IEnumerable<premis_history_view> result;
+    //     // if (formType == "Premis")
+    //     // {
+    //     //     result = await _PremisService.ListByTabType(formType);
+    //     // }
+    //     // else
+    //     // {
+    //     //     result = await _LicenseService.ListByTabType(formType);
+    //     // }
+    //     // return result;
+    // }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {

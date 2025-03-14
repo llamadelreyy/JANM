@@ -378,9 +378,9 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<List<premis_history_view>> ListByTabType(string tabType)
+        public async Task<List<mst_licensee_view>> ListByTabType(string tabType)
         {
-            var result = new List<premis_history_view>();
+            var result = new List<mst_licensee_view>();
             try
             {
                 string requestquery = $"?tabType={tabType}";
@@ -392,7 +392,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<premis_history_view>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<mst_licensee_view>>(dataString);
                         await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai data mengikut jenis lesen / premis.", LoggerID, LoggerName, GetType().Name, RoleID);
                     }
                 }
@@ -404,7 +404,7 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<premis_history_view>();
+                result = new List<mst_licensee_view>();
             }
 
             return result;

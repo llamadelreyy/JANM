@@ -32,7 +32,7 @@ namespace PBTPro.Api.Controllers
 {
     [Route("api/[controller]/[Action]")]
     [ApiController]
-   
+
     public class LicenseController : IBaseController
     {
         protected readonly string? _dbConn;
@@ -127,79 +127,94 @@ namespace PBTPro.Api.Controllers
                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
            }
        }
+        */
 
-       [HttpGet]
-       public async Task<IActionResult> GetList()
-       {
-           try
-           {
-               var data = await _tenantDBContext.mst_licensees.Where(e => e.is_deleted == false && e.created_at >= DateTime.Now.AddYears(-5))
-                    .Select(e => new mst_licensee
-                    {
-                        licensee_id = e.licensee_id,
-                        license_accno = e.license_accno,
-                        owner_icno = e.owner_icno,
-                        type_id = e.type_id,
-                        business_name = e.business_name,
-                        business_addr = e.business_addr,
-                        town_code = e.town_code,
-                        district_code = e.district_code,
-                        state_code = e.state_code,
-                        reg_date = e.reg_date ?? DateTime.MinValue,
-                        start_date = e.start_date,
-                        end_date = e.end_date,
-                        status_id = e.status_id,
-                        cat_id = e.cat_id ?? 0,
-                        ops_id = e.ops_id ?? 0,
-                        parl_id = e.parl_id ?? 0,
-                        dun_id = e.dun_id ?? 0,
-                        zon_id = e.zon_id ?? 0,
-                        created_at = e.created_at
-                    })
-                    .AsNoTracking()
-                    .ToListAsync();
 
-               if (data == null)
-               {
-                   return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-               }
+        [HttpGet]
+        public async Task<IActionResult> GetList(string tabType)
+        {
+            try
+            {
+                var data = await _tenantDBContext.mst_licensees.Where(e => e.is_deleted == false && e.created_at >= DateTime.Now.AddYears(-5))
+                     .Select(e => new mst_licensee
+                     {
+                         licensee_id = e.licensee_id,
+                         license_accno = e.license_accno,
+                         owner_icno = e.owner_icno,
+                         business_name = e.business_name,
+                         business_addr = e.business_addr,
+                         district_code = e.district_code,
+                         state_code = e.state_code,
+                         start_date = e.start_date,
+                         end_date = e.end_date,
+                         status_id = e.status_id,
+                         cat_id = e.cat_id ?? 0,
+                         created_at = e.created_at,
+                         town_id = e.town_id,
+                         codeid_premis = e.codeid_premis,
+                         ssm_no = e.ssm_no,
+                         license_type = e.license_type,
+                         total_amount = e.total_amount,
+                         doc_support = e.doc_support,
+                         total_signboard = e.total_signboard,
+                         signboard_size = e.signboard_size,
+                         g_activity_1 = e.g_activity_1,
+                         g_activity_2 = e.g_activity_2,
+                         g_activity_3 =e.g_activity_3,
+                         lot = e.lot,
+                         mukim_id = e.mukim_id
+                     })
+                     .AsNoTracking()
+                     .ToListAsync();
 
-               var result = (
-                       from lesen in data
-                       join status in _tenantDBContext.ref_license_statuses on lesen.status_id equals status.status_id
-                       join ops in _tenantDBContext.ref_license_ops on lesen.ops_id equals ops.ops_id
-                       join state in _dbContext.mst_states on lesen.state_code equals state.state_code
-                       join district in _dbContext.mst_districts on lesen.district_code equals district.district_code
-                       join town in _dbContext.mst_towns on new { lesen.town_code, lesen.district_code }
-                       equals new { town.town_code, town.district_code }
-                       select new mst_licensee_view
-                       {
-                           lesen_id = lesen.licensee_id,
-                           lesen_acc_no = lesen.license_accno,
-                           icno_pemilik = lesen.owner_icno,
-                           nama_perniagaan = lesen.business_name,
-                           alamat_perniagaan = lesen.business_addr,
-                           tarikh_daftar = (DateTime)lesen.reg_date,
-                           tarikh_mula_isu = lesen.start_date,
-                           tarikh_tamat_isu = lesen.end_date,
-                           status_lesen = status.status_name,
-                           ops_id = ops.ops_id,
-                           ops_name = ops.ops_name,
-                           statename = state.state_name,
-                           districtname = district.district_name,
-                           townname = town.town_name,
+                if (data == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
 
-                       }).ToList();
+                var owner_lesen = await _tenantDBContext.mst_owner_licensees.Where(l=>l.is_deleted == false).AsNoTracking().ToListAsync();
 
-               return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
-           }
-           catch (Exception ex)
-           {
-               _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-               return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-           }
-       }
-       */
+                var result = (
+                        from lesen in data
+                        join ownerlesen in owner_lesen on lesen.owner_icno equals ownerlesen.owner_icno
+                        join status in _tenantDBContext.ref_license_statuses on lesen.status_id equals status.status_id
+                        join state in _dbContext.mst_states on lesen.state_code equals state.state_code
+                        join district in _dbContext.mst_districts on lesen.district_code equals district.district_code
+                        join town in _dbContext.mst_towns on lesen.town_id equals town.town_id //on new { lesen.town_id, lesen.district_code }
+                                                                                               //equals new { town.town_code, town.district_code }
+                        select new mst_licensee_view
+                        {
+                            nama_pemilik = ownerlesen.owner_name,
+                            emel_pemilik = ownerlesen.owner_email,
+                            notel_pemilk = ownerlesen.owner_telno,
+                            lesen_id = lesen.licensee_id,
+                            lesen_acc_no = lesen.license_accno,
+                            icno_pemilik = lesen.owner_icno,
+                            nama_perniagaan = lesen.business_name,
+                            alamat_perniagaan = lesen.business_addr,
+                            tarikh_mula_isu = lesen.start_date,
+                            tarikh_tamat_isu = lesen.end_date,
+                            status_lesen = status.status_name,
+                            statename = state.state_name,
+                            districtname = district.district_name,
+                            townname = town.town_name,
+                            ops_name = lesen.license_type,
+                            g_activity_1 = lesen.g_activity_1,
+                            g_activity_2 = lesen.g_activity_2,
+                            g_activity_3 = lesen.g_activity_3,
+
+
+                        }).ToList();
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
 
     }
 }

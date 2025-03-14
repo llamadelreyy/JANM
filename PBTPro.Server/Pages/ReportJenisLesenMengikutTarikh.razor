@@ -11,7 +11,8 @@
 
 @using PBTPro.DAL.Models.PayLoads
 @inject ReportService _ReportService
-
+@inject RefLicenseTypeService _TypeService
+@inject RefLicenseCatService _CategoryService
 <link rel="stylesheet" href="_content/DevExpress.Blazor.Reporting.Viewer/css/dx-blazor-reporting-components.bs5.css">
 
 <DxReportViewer @ref="reportViewer" Report="@Report">
@@ -25,6 +26,8 @@
     protected override async Task OnInitializedAsync()
     {
         List<report_view> dtLesen = await _ReportService.ReportLesen();
+        List<ref_license_type> dtJenisLesen = await _TypeService.ListAll();
+        List<ref_license_cat> dtKategoriLesen = await _CategoryService.ListAll();
 
         //Bind to the report
         Report = new Reports.JenisLesenMengikutTarikh();
@@ -71,9 +74,9 @@
         // Create a DynamicListLookUpSettings instance and
         // set up its properties.
         var lookupSettings2 = new DynamicListLookUpSettings();
-        lookupSettings2.DataSource = dtLesen;
-        lookupSettings2.ValueMember = "operasi_id";
-        lookupSettings2.DisplayMember = "operasi_lesen";
+        lookupSettings2.DataSource = dtJenisLesen;
+        lookupSettings2.ValueMember = "type_code";
+        lookupSettings2.DisplayMember = "type_name";
 
 
         // Assign data storage settings to the parameter's ValueSourceSettings property.
@@ -102,9 +105,9 @@
         // set up its properties.
         var lookup3 = new DynamicListLookUpSettings();
         //////lookupDUN.UseServerSideFiltering = false;
-        lookup3.DataSource = dtLesen;
-        lookup3.ValueMember = "kategori_id";
-        lookup3.DisplayMember = "kategori_lesen";
+        lookup3.DataSource = dtKategoriLesen;
+        lookup3.ValueMember = "cat_code";
+        lookup3.DisplayMember = "cat_name";
 
         // Assign data storage settings to the parameter's ValueSourceSettings property.
         param3.ValueSourceSettings = lookup3;

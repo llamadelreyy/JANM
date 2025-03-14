@@ -85,28 +85,25 @@ namespace PBTPro.DAL.Models.PayLoads
     }
     public class mst_licensee_view
     {
-        public int lesen_id { get; set; }
-        public string? lesen_acc_no { get; set; }
+        public string? nama_pemilik { get; set; }
+        public string? emel_pemilik { get; set; }
+        public string? notel_pemilk { get; set; }        
         public string icno_pemilik { get; set; }
         public string? nama_perniagaan { get; set; }
         public string alamat_perniagaan { get; set; }
-        public DateTime? tarikh_daftar { get; set; }
+        public int lesen_id { get; set; }
+        public string? lesen_acc_no { get; set; }
         public DateOnly? tarikh_mula_isu { get; set; }
         public DateOnly? tarikh_tamat_isu { get; set; }
         public DateOnly? tarikh_renewal { get; set; }
-        public string status_lesen { get; set; }
-        public string? status_regulatory { get; set; }
-        public string tempoh_lesen { get; set; }
-        public int status_id { get; set; }
-        public int type_id { get; set; }
-        public int cat_id { get; set; }
-        public int ops_id { get; set; }
-        public string ops_name { get; set; }
-        public int parl_id { get; set; }
-        public int dun_id { get; set; }
-        public int zon_id { get; set; }
+        public string ops_name { get; set; }       
         public string? statename { get; set; }
         public string? districtname { get; set; }
         public string? townname { get; set; }
+        public string? status_lesen { get; set; }
+        public string? dokumen_sokongan { get; set; }
+        public string? g_activity_1 { get; set; }
+        public string? g_activity_2 { get; set; }
+        public string? g_activity_3 { get; set; }
     }
 }
