@@ -30,8 +30,8 @@
 
 <style>
     .dxbl-grid {
-        height: 82.5vh;
-        max-height: 82.5vh;
+        height: 86vh;
+        max-height: 86vh;
     }
 </style>
 @if (!PermissionService.HasPermission("View"))
@@ -121,21 +121,21 @@ else
                             </div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
-                    <DxGridDataColumn Caption="Lokasi" MinWidth="100" Width="20%" FieldName="DistrictName" TextAlignment="GridTextAlignment.Left">
+                    <DxGridDataColumn Caption="Lokasi" MinWidth="300" Width="28%" FieldName="DistrictName" TextAlignment="GridTextAlignment.Left">
                         <CellDisplayTemplate>
                             <div>
                                 @CombineTextLokasi(((PatrolViewModel)context.DataItem).TownName, ((PatrolViewModel)context.DataItem).DistrictName)
                             </div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
-                    <DxGridDataColumn Caption="Rondaan Mula" MinWidth="200" Width="30%" FieldName="StartTime" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                    <DxGridDataColumn Caption="Rondaan Mula" MinWidth="200" Width="20%" FieldName="StartTime" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
                         <CellDisplayTemplate>
                             <div>
                                 @CombineTextStartPatrol(Convert.ToDateTime(((PatrolViewModel)context.DataItem).StartTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).StartTime))
                             </div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
-                    <DxGridDataColumn Caption="Rondaan Tamat" MinWidth="200" Width="30%" FieldName="EndTime" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
+                    <DxGridDataColumn Caption="Rondaan Tamat" MinWidth="200" Width="20%" FieldName="EndTime" TextAlignment="GridTextAlignment.Left" AllowGroup="false">
                         <CellDisplayTemplate>
                             <div>
                                 @CombineTextEndPatrol(Convert.ToDateTime(((PatrolViewModel)context.DataItem).EndTime), Convert.ToDateTime(((PatrolViewModel)context.DataItem).EndTime))
@@ -273,6 +273,7 @@ else
                                         DisplayFormat="dd/MM/yyyy HH:mm:ss"
                                         ShowValidationIcon="true"
                                         TimeSectionVisible="true"
+                                        Style="width: 300px;"
                                         CssClass="cw-320" />
                                     </td>
                                     <td width="100px">&nbsp;</td>
@@ -289,6 +290,7 @@ else
                                         DisplayFormat="dd/MM/yyyy HH:mm:ss"
                                         ShowValidationIcon="true"
                                         TimeSectionVisible="true"
+                                        Style="width: 300px;"
                                         CssClass="cw-320" />
                                     </td>
                                     <td width="100px">&nbsp;</td>

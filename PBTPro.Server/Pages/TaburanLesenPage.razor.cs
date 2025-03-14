@@ -18,6 +18,7 @@ using System.Threading;
 using PBTPro.DAL.Models.PayLoads;
 using System.Collections.Concurrent;
 using DevExpress.Blazor;
+using DevExpress.Data.Storage;
 
 
 namespace PBTPro.Pages
@@ -40,6 +41,10 @@ namespace PBTPro.Pages
         //Lesen Information
         IEnumerable<NoticeProp> NoticeData;
         IEnumerable<(NoticeProp, int)> Items;
+
+        //Premis data
+        IEnumerable<premis_view> premisData;
+        IEnumerable<(premis_view, int)> premisItem;
         IGrid Grid { get; set; }
         TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -352,7 +357,12 @@ namespace PBTPro.Pages
             //Populate all the value from parameter. ex:LesenID
             // await JsRuntime.InvokeVoidAsync("alert", msg);
             _labelText = msg;
-            // await JsRuntime.InvokeVoidAsync("openRightBar");
+
+            if ((_labelText.Length > 0) && (int.TryParse(_labelText, out int intNum)))
+            {
+                premisData = await _PremisService.GetPremisInfo(intNum);
+            }
+
             IJSObjectReference serverSideScripts4 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
             await serverSideScripts4.InvokeVoidAsync("openRightBar");
         }
@@ -717,7 +727,7 @@ namespace PBTPro.Pages
         {
             try
             {
-                string requestUrl = $"/api/Premis/GetListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
                 var response = await _ApiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -737,7 +747,7 @@ namespace PBTPro.Pages
 
                         var semaphore = new SemaphoreSlim(1000);
 
-                        
+
                         //Count and mark the premise
                         foreach (var data in filteredDatas)
                         {
@@ -847,6 +857,140 @@ namespace PBTPro.Pages
                 Console.WriteLine($"API request error: {ex.Message}");
             }
         }
+        //private async Task GeneratePremisData(double southLat, double westLng, double northLat, double eastLng)
+        //{
+        //    try
+        //    {
+        //        string requestUrl = $"/api/Premis/GetListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+        //        var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+        //        if (response.ReturnCode == 200)
+        //        {
+        //            string? dataString = response?.Data?.ToString();
+        //            if (!string.IsNullOrWhiteSpace(dataString))
+        //            {
+        //                var tasks = new List<Task>();
+        //                dynamic datas = JsonConvert.DeserializeObject(dataString);
+
+        //                List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+        //                var filteredDatas = dataList.Where(d =>
+        //                {
+        //                    int dataId = (int)d.gid;  // Convert gid to int (ensure it's valid)
+        //                    return !_processedPremisGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
+        //                }).ToList();
+
+        //                var semaphore = new SemaphoreSlim(1000);
+
+
+        //                //Count and mark the premise
+        //                foreach (var data in filteredDatas)
+        //                {
+        //                    int dataId = data.gid.ToObject(typeof(int));
+
+        //                    if (dataId == null)
+        //                    {
+        //                        continue;
+        //                    }
+
+        //                    //bool skipProcessing = false;
+
+        //                    if (_processedPremisGids.ContainsKey(dataId))
+        //                    {
+        //                        continue;
+        //                    }
+
+        //                    var geometry = data.geom;
+        //                    tasks.Add(Task.Run(async () =>
+        //                    {
+        //                        await semaphore.WaitAsync();
+        //                        try
+        //                        {
+        //                            if (_processedPremisGids.ContainsKey(dataId))
+        //                            {
+        //                                return; // Skip if already processed
+        //                            }
+
+        //                            if (geometry.type == "Point")
+        //                            {
+        //                                var coords = geometry.coordinates;
+        //                                double x = coords[1];
+        //                                double y = coords[0];
+        //                                var latLng = new LatLngLiteral(x, y);
+        //                                await CreateMarker(latLng, data); // Assuming CreateMarker is async
+        //                            }
+        //                            else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+        //                            {
+        //                                IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
+
+        //                                if (geometry.type == "Polygon")
+        //                                {
+        //                                    var polygonCoords = geometry.coordinates[0];
+        //                                    latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+        //                                }
+        //                                else if (geometry.type == "MultiPolygon")
+        //                                {
+        //                                    List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+        //                                    foreach (var polygon in geometry.coordinates)
+        //                                    {
+        //                                        multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+        //                                    }
+
+        //                                    latLngs = multiPolygonCoords;
+        //                                }
+
+        //                                await CreatePolygon(latLngs, data);
+        //                            }
+
+        //                            _processedPremisGids[dataId] = true;
+        //                        }
+        //                        catch (Exception geometryEx)
+        //                        {
+        //                            Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+        //                        }
+        //                        finally
+        //                        {
+        //                            semaphore.Release();
+        //                        }
+        //                    }));
+
+        //                }
+
+        //                //Count display premis - AZMEE
+        //                mintAktif = 0;
+        //                mintTamatTempoh = 0;
+        //                foreach (var data in dataList)
+        //                {
+        //                    var geometry = data.geom;
+        //                    if (geometry.type == "Point")
+        //                    {
+        //                        //Count total visible point based on boundries
+        //                        mintAktif += 1;
+
+        //                        if (data.status_lesen == "Expired")
+        //                            mintTamatTempoh += 1;
+        //                    }
+
+        //                }
+
+
+        //                if (tasks.Count > 0)
+        //                {
+        //                    await Task.WhenAll(tasks);
+
+        //                    _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+        //                    {
+        //                        ZoomOnClick = true,
+        //                    });
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"API request error: {ex.Message}");
+        //    }
+        //}
 
         public IEnumerable<LatLngLiteral> ConvertGeoJsonToLatLng(JArray geoJsonCoords)
         {
@@ -872,7 +1016,7 @@ namespace PBTPro.Pages
                 Title = title,
                 // Content = index.ToString()
                 Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30"">
-                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot("Aktif") + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
+                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(data.marker_lesen_status) + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
             });
 
             _clusteringMarkers.Add(marker);
@@ -881,7 +1025,10 @@ namespace PBTPro.Pages
             // Optionally, add a listener for the marker to show more information or interact with it
             await marker.AddListener<MouseEvent>("click", async (e) =>
             {
-                await OpenSideBar(title); // Replace with actual function to handle click
+                //////await OpenSideBar(title); // Replace with actual function to handle click
+                
+                //Passing the gId - to get the click premise info
+                await OpenSideBar(dataId.ToString()); // Replace with actual function to handle click
                 StateHasChanged();
             });
         }

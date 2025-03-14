@@ -42,12 +42,12 @@
 
         <div class="loginPBTPro mt-3" style="border:solid 1px #999;border-radius: 5px;box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);">
             <div class="text-center py-4">
-                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase" style="letter-spacing:0.09em;">
+                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase" style="font-family: 'Roboto-Light'; letter-spacing:0.09em;">
                     <b>Selamat Datang</b><br />
                 </p>
                 <img src="images/mdk.jpeg" class="loginImej" />
 
-                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase" style="letter-spacing:0.09em;">
+                <p class="tm-8 mb-0 fw-normal fs-825 text-uppercase" style="font-family: 'Roboto-Light'; letter-spacing:0.09em;">
                     <b>Majlis Bandaraya</b><br />
                     <b>Diraja Klang</b>
                 </p>
@@ -56,45 +56,57 @@
                 <EditForm Model="@LoginModel" OnValidSubmit="@HandleValidSubmit" Context="EditFormContext">
                     <DataAnnotationsValidator />
                     <DxFormLayout>
-                        <DxFormLayoutItem ColSpanMd="12">
-                            <DxTextBox @bind-Text="@LoginModel.Username"
-                                       NullText="Masukkan ID pengguna anda"
-                                       BindValueMode="BindValueMode.OnInput"
-                                       ShowValidationIcon="true"
-                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                        <DxFormLayoutItem ColSpanMd="1"></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="10">
+                            <table width="100%">
+                                <tr>
+                                    <td>
+                                        <DxTextBox @bind-Text="@LoginModel.Username"
+                                                   NullText="Masukkan ID pengguna anda"
+                                                   BindValueMode="BindValueMode.OnInput"
+                                                   ShowValidationIcon="true"
+                                                   style="height:35px;padding:5px 0;width:100%;"
+                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="password-container" style="width:100% !important">
+                                            <DxTextBox @bind-Text="@LoginModel.Password"
+                                                       NullText="Masukkan kata laluan anda"
+                                                       BindValueMode="BindValueMode.OnInput"
+                                                       type="@inputType"
+                                                       Password="@showPassword"
+                                                       ShowValidationIcon="true"
+                                                       ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" 
+                                                       style="height:35px;width:100%;padding-right:25px;" />
+
+                                            <input id="dummyPwd" type="@inputType" style="visibility:@inputVisible; width:50%" @oninput="BindValue" @bind="LoginModel.Password" placeholder="" />
+                                            <button id="dummybtn" @onclick="TogglePasswordVisibility">
+                                                <i class="@eyeIconClass"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
                         </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="1"></DxFormLayoutItem>
 
-                        <DxFormLayoutItem ColSpanMd="12">
-                            <div class="password-container" style="width:100% !important">
-                                <DxTextBox @bind-Text="@LoginModel.Password"
-                                           NullText="Masukkan kata laluan anda"
-                                           BindValueMode="BindValueMode.OnInput"
-                                           type="@inputType"
-                                           Password="@showPassword"
-                                           ShowValidationIcon="true"
-                                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" style="width:100%;padding-right:25px;" />
-
-                                <input id="dummyPwd" type="@inputType" style="visibility:@inputVisible; width:50%" @oninput="BindValue" @bind="LoginModel.Password" placeholder="" />
-                                <button id="dummybtn" @onclick="TogglePasswordVisibility">
-                                    <i class="@eyeIconClass"></i>
-                                </button>
-                            </div>
-
-                        </DxFormLayoutItem>                       
-
-
-                        <DxFormLayoutItem ColSpanMd="12">
+                        <DxFormLayoutItem ColSpanMd="1"></DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="10">
                             <DxButton CssClass="w-100 btn-edit-grid" Text="Log Masuk"
                                       RenderStyle="ButtonRenderStyle.Primary"
                                       Enabled="true"
                                       SubmitFormOnClick="true">
                             </DxButton>
                         </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="1"></DxFormLayoutItem>
                     </DxFormLayout>
                 </EditForm>
             </div>
             <div class="text-center py-3">
-                <p class="tm-8 fw-normal fs-825 text-uppercase" style="letter-spacing:0.05em;font-size:0.85rem;">
+                <p class="tm-8 fw-normal fs-825 text-uppercase" style="font-family: 'Roboto-Light';letter-spacing:0.05em;font-size:0.85rem;">
                     <a href="/forget_password" class="text-decoration-none text-black fw-bold">Lupa kata laluan ?</a>
                 </p>
             </div>

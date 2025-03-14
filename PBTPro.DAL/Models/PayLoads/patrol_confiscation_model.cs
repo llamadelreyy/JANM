@@ -23,8 +23,15 @@ namespace PBTPro.DAL.Models.PayLoads
         public int? schedule_id { get; set; }
         public bool? is_tax { get; set; }
         public int? user_id { get; set; }
+        public List<patrol_cfsc_witness>? witnesses { get; set; }
         public List<patrol_cfsc_item_model>? items { get; set; }
         public List<IFormFile>? proofs { get; set; }
+    }
+
+    public class patrol_cfsc_witness
+    {
+        public int? user_id { get; set; }
+        public string? name { get; set; }
     }
 
     public class patrol_cfsc_item_model

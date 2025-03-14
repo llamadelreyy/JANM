@@ -33,7 +33,7 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<mst_patrol_schedule> mst_patrol_schedules { get; set; }
 
-    public virtual DbSet<mst_premi> mst_premis { get; set; }
+    public virtual DbSet<mst_premis> mst_premis { get; set; }
 
     public virtual DbSet<mst_taxholder> mst_taxholders { get; set; }
 
@@ -108,6 +108,8 @@ public partial class PBTProTenantDbContext : DbContext
     public virtual DbSet<trn_patrol_officer> trn_patrol_officers { get; set; }
 
     public virtual DbSet<trn_premis_visit> trn_premis_visits { get; set; }
+
+    public virtual DbSet<trn_witness> trn_witnesses { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -570,7 +572,7 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasConstraintName("type_id_refers_to_patrol_type_id");
         });
 
-        modelBuilder.Entity<mst_premi>(entity =>
+        modelBuilder.Entity<mst_premis>(entity =>
         {
             entity.HasKey(e => e.id).HasName("mst_premis_pkey");
 
@@ -1035,6 +1037,9 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.status_id)
                 .HasDefaultValueSql("nextval('tenant.license_status_license_status_id_seq'::regclass)")
                 .HasComment("Unique identifier for each license status record (Primary Key).");
+            entity.Property(e => e.color)
+                .HasMaxLength(40)
+                .HasDefaultValueSql("'black'::character varying");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasComment("Timestamp when the record was created.")
@@ -1048,6 +1053,7 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasComment("Timestamp when the record was last updated.")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+            entity.Property(e => e.priority).HasDefaultValue(1);
             entity.Property(e => e.status_name)
                 .HasMaxLength(40)
                 .HasComment("Name of the license status (e.g., Aktif, Tidak Aktif, Batal).");
@@ -1312,6 +1318,9 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.status_id)
                 .HasDefaultValueSql("nextval('tenant.tax_status_tax_status_id_seq'::regclass)")
                 .HasComment("Unique identifier for each tax status record (Primary Key).");
+            entity.Property(e => e.color)
+                .HasMaxLength(40)
+                .HasDefaultValueSql("'black'::character varying");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasComment("Timestamp when the record was created.")
@@ -1325,6 +1334,7 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasComment("Timestamp when the record was last updated.")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.modifier_id).HasComment("User who last updated the record.");
+            entity.Property(e => e.priority).HasDefaultValue(1);
             entity.Property(e => e.status_name)
                 .HasMaxLength(100)
                 .HasComment("Name of the tax status (e.g., Cukai Dibayar, Cukai Tertunggak).");
@@ -1916,6 +1926,18 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.is_deleted).HasDefaultValue(false);
             entity.Property(e => e.modified_at).HasColumnType("timestamp without time zone");
             entity.Property(e => e.status_visit).HasDefaultValue(false);
+        });
+
+        modelBuilder.Entity<trn_witness>(entity =>
+        {
+            entity.HasKey(e => e.witness_id).HasName("trn_witness_pkey");
+
+            entity.ToTable("trn_witness", "tenant");
+
+            entity.Property(e => e.created_at).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modified_at).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.name).HasColumnType("character varying");
+            entity.Property(e => e.trn_type).HasColumnType("character varying");
         });
         modelBuilder.HasSequence("mst_patrol_schedule_schedule_id_seq", "tenant");
         modelBuilder.HasSequence("mst_premis_id_seq", "tenant");

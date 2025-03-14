@@ -236,7 +236,7 @@ namespace PBTPro.Api.Controllers
                     }
                     */
                     string? DefaultPage = string.Empty;
-                    var userRoles = await _dbContext.UserRoles.Where(x => x.UserId == user.Id).Join(
+                    var userRoles = await _dbContext.UserRoles.Where(x => x.UserId == user.Id && x.IsDeleted != true).Join(
                         _dbContext.Roles,
                         userRole => userRole.RoleId,
                         roles => roles.Id,
@@ -343,9 +343,11 @@ namespace PBTPro.Api.Controllers
                 }
                 else
                 {
-                    if (user.AccessFailedCount < 2)
+                    int maxAttemp = int.Parse(_configuration["Identity:Lockout:MaxFailedAccessAttempts"] ?? "5");
+
+                    if (user.AccessFailedCount < (maxAttemp - 1))
                     {
-                        var attempLeft = (3 - user.AccessFailedCount);
+                        var attempLeft = (maxAttemp - user.AccessFailedCount);
                         List<string> param = new List<string> { attempLeft.ToString() };
                         return Error("", SystemMesg(_feature, "INCORRECT_LOGIN", MessageTypeEnum.Error, string.Format("Kata laluan tidak sah. [0] cubaan tinggal."), param));
                     }
