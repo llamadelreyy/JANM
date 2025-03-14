@@ -817,21 +817,60 @@ img.dxbl-image {
 
 /* dashboard box */
 
-.dashboard-wrap {
-    padding: 45px 0 0 0;
+.circle {
+    display: inline-block;
+    width: 70px; /* Adjust size as needed */
+    height: 70px; /* Adjust size as needed */
+    /*background-color: transparent; #fff;*/ /* Orange background */
+    /*border-radius: 50%;*/ /* Makes it a circle */
+    /*border: 0.05rem solid #666;*/
+    background-color: transparent;
     display: flex;
     justify-content: center;
-    align-items: center; /* Centers vertically */
-    width:100%;
+    align-items: center;
+}
+
+.iconNotis {
+    width: 55px;  /*Adjust size as needed */
+    height: 55px;  /*Adjust size as needed */
+    fill: red;  /*Inherit color from parent */
+}
+
+.iconKompaun {
+    width: 55px; /*Adjust size as needed */
+    height: 55px; /*Adjust size as needed */
+    fill: #0489d4; /*Inherit color from parent */
+}
+
+.iconNota {
+    width: 55px; /*Adjust size as needed */
+    height: 55px; /*Adjust size as needed */
+    fill: #04a24b; /*Inherit color from parent */
+}
+
+.iconSita {
+    width: 55px; /*Adjust size as needed */
+    height: 55px; /*Adjust size as needed */
+    fill: #c37d04; /*Inherit color from parent */
+}
+
+.dashboard-wrap {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    align-items: center; /* Vertically align center */
+    justify-content: right; /* Horizontally align center if needed */
+    height: 100px; /* Set a height for vertical alignment */
 }
 
 .dashboard-center-text {
-    text-align: center;
+    text-align: right;
+    margin: 0; /* Remove default margins */
 }
 
 .dashboard-wrap p {
     white-space: pre-line;
-    line-height: 1rem;
+    line-height: 0.7rem;
     align-self: center;
 }
 
@@ -848,13 +887,13 @@ img.dxbl-image {
 
 .dashboard-box {
     padding-top: 15px;
-    padding-bottom: 15px;
+    padding-bottom: 5px;
     justify-items: center;
 }
 
 .dashboard-style {
     border: 0.05rem solid #666;
-    padding: 5px 5px;
+    padding: 1px 1px;
     border-radius: 2px;
     box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);
     width: 95%;
@@ -883,7 +922,7 @@ img.dxbl-image {
 
 .dashboard-style-big {
     border: 0.05rem solid #666;
-    padding: 5px 5px;
+    padding: 1px 1px;
     border-radius: 2px;
     box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.25);
     width: 97.8%;
@@ -917,7 +956,7 @@ img.dxbl-image {
 
     .totalinnumber {
         font-weight: bold;
-        font-size: 2.7rem;
+        font-size: 1.7rem;
         letter-spacing: 0.2rem;
         align-self: center;
         color:#fff;
@@ -931,6 +970,117 @@ img.dxbl-image {
         letter-spacing: 0.2rem;
         text-transform: uppercase;
         align-self: center;
+        line-height:0.9rem;
+    }
+
+.dashboard-wrap span.totalall {
+    font-weight: normal;
+    color: #fff;
+    font-size: 0.7rem;
+    letter-spacing: 0.05rem;
+    text-transform: uppercase;
+    align-self: center;
+}
+
+.table-container {
+    width: 100%; /* Full width of the container */
+    padding: 5px;
+    /*padding: 20px;
+  background-color: #f9f9f9;*/ /* Light gray background */
+    /*border: 1px solid #ddd;*/ /* Border for the container */
+}
+
+.table-title {
+    width: 100%; /* Full width */
+    background-color: #e0e7e3; /* Green background */
+    color: #000; /* White text */
+    font-size: 24px; /* Title font size */
+    font-weight: bold; /* Bold title */
+    margin: 0; /* No margin */
+    padding: 10px; /* Padding for the title */
+    text-align: center; /* Center align title */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    border-top-left-radius: 3px; /* Rounded corners */
+    border-top-right-radius: 3px; /* Rounded corners */
+    font-weight: bold; /* Bold headers */
+    font-size: 1.1rem;
+    letter-spacing: 0.08em; /* Spacing between letters */
+    text-transform: uppercase; /* Uppercase text for headers */
+}
+
+.table-border {
+    width: 100%; /* Full width of the container */
+    padding: 5px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    align-content:center;
+    justify-content:center;
+}
+
+.default-table {
+    width: 95%; /* Set table width to 90% */
+    margin: 0 auto 20px auto; /* Center align table */
+    border-collapse: collapse; /* Remove spacing between cells */
+    background-color: #fff; /* White background for the table */
+    border: 0px solid #ddd; /* Border around the table */
+    border-bottom-left-radius: 10px; /* Rounded corners */
+    border-bottom-right-radius: 10px;
+}
+
+    .default-table th, .default-table td {
+        border: 1px solid #ddd; /* Border for table cells */
+        border-top: 0px;
+        border-left: 0px;
+        border-right: 0px;
+        padding: 8px; /* Padding for table cells */
+        text-align: left; /* Align text to the left */
+        vertical-align: top; /* Align text to the top */
+        font-weight: bold; /* Bold headers */
+        font-size: 1.1rem;
+        letter-spacing: 0.08em; /* Spacing between letters */
+        text-transform: uppercase; /* Uppercase text for headers */
+    }
+
+    .default-table th {
+        border-bottom: 3px solid #ddd;
+        border-top: 0px;
+        border-left: 0px;
+        border-right: 0px;
+        background-color: #fff; /* Light gray background for headers */
+        font-weight: bold; /* Bold headers */
+        text-transform: uppercase; /* Uppercase text for headers */
+        letter-spacing: 0.08em; /* Spacing between letters */
+        font-size: 1.2rem;
+    }
+
+
+.panel-box-footer {
+    background-color: #f5f5f5; /* Light gray background */
+    padding: 5px 10px; /* Padding for the panel */
+    border-top: 1px solid #ddd; /* Border at the top */
+    /*border-radius: 0 0 3px 3px;*/ /* Rounded corners at the bottom */
+}
+
+    .panel-box-footer .pull-left {
+        float: left; /* Align text to the left */
+        font-size: 0.7rem; /* Font size */
+        letter-spacing: 0.05rem;
+        text-transform: uppercase;
+        font-weight: bold;
+        color: #337ab7; /* Text color */
+    }
+
+    .panel-box-footer .pull-right {
+        margin-top:-5px;
+        float: right; /* Align icon to the right */
+        font-size: 1rem; /* Font size */
+        color: #337ab7; /* Icon color */
+    }
+
+    .panel-box-footer .clearfix::after {
+        content: "";
+        display: table;
+        clear: both;
     }
 
 .chart-legend {
@@ -1350,6 +1500,12 @@ label {
     width: 23px;
     background-color: #eee;
     border:1px solid #666;
+}
+
+.checkName {
+    position: relative;
+    top: 5px;
+    left: 0px;
 }
 
 /* On mouse-over, add a grey background color */
