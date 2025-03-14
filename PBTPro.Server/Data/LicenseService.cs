@@ -40,12 +40,6 @@ namespace PBTPro.Data
         private int LoggerID = 0;
         private int RoleID = 0;
 
-
-       // private List<license_history> _licensehistory { get; set; }
-        private List<license_view> _license_view { get; set; }
-
-        private List<premis_history_view> _premis_history_view { get; set; }
-
         public LicenseService(IConfiguration configuration, ApiConnector apiConnector, PBTAuthStateProvider PBTAuthStateProvider)
         {
             _configuration = configuration;
@@ -88,13 +82,13 @@ namespace PBTPro.Data
             return result;
         }
 
-        public async Task<List<premis_history_view>> ListByTabType(string tabType)
+        public async Task<List<mst_licensee_view>> ListByTabType(string tabType)
         {
-            var result = new List<premis_history_view>();
+            var result = new List<mst_licensee_view>();
             try
             {
                 string requestquery = $"?tabType={tabType}";
-                string requestUrl = $"{_baseReqURL}/GetListByTabType{requestquery}";
+                string requestUrl = $"{_baseReqURL}/GetList{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -102,7 +96,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<premis_history_view>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<mst_licensee_view>>(dataString);
                         await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai data mengikut jenis lesen / premis.", LoggerID, LoggerName, GetType().Name, RoleID);
                     }
                 }
@@ -114,7 +108,7 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<premis_history_view>();
+                result = new List<mst_licensee_view>();
             }
 
             return result;

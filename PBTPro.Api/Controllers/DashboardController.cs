@@ -55,16 +55,14 @@ namespace PBTPro.Api.Controllers
                 var totalNota = await _tenantDBContext.trn_inspects.CountAsync();
                 var totalSita = await _tenantDBContext.trn_cfscs.CountAsync();
                 var premisBerlesen = await _tenantDBContext.mst_licensees.Where(t => t.status_id == 1).CountAsync();
-                //Dalam Rondaan
-                var premisDiperiksa = await _tenantDBContext.mst_patrol_schedules.Where(t => t.status_id == 2).CountAsync();
 
-                var premisTindakan = await _tenantDBContext.mst_licensees
+                var premisTindakan = await _tenantDBContext.mst_owner_premis
                     .Select(lesen => new
                     {
-                        lesen.license_accno,
-                        NoticeCount = _tenantDBContext.trn_notices.Count(notis => notis.license_id == lesen.licensee_id),
-                        CompoundCount = _tenantDBContext.trn_cmpds.Count(kompaun => kompaun.license_id == lesen.licensee_id),
-                        ConfiscationCount = _tenantDBContext.trn_cfscs.Count(sita => sita.license_id == lesen.licensee_id)
+                        lesen.owner_icno,
+                        NoticeCount = _tenantDBContext.trn_notices.Count(notis => notis.owner_icno == lesen.owner_icno),
+                        CompoundCount = _tenantDBContext.trn_cmpds.Count(kompaun => kompaun.owner_icno == lesen.owner_icno),
+                        ConfiscationCount = _tenantDBContext.trn_cfscs.Count(sita => sita.owner_icno == lesen.owner_icno)
                     })
                     .ToListAsync();
 
@@ -84,6 +82,23 @@ namespace PBTPro.Api.Controllers
                 var totalKompaunDibyr = await _tenantDBContext.trn_cmpds.Where(c => c.trnstatus_id == 5).SumAsync(c => c.amt_cmpd);
                 var totalKompaunBlmByr = await _tenantDBContext.trn_cmpds.Where(xc => xc.trnstatus_id == 4).SumAsync(c => c.amt_cmpd);
 
+                ///added by farhana 13/3/2025
+                var totalPremisDilawat = await _tenantDBContext.mst_patrol_schedules.Where(x => x.status_id == 1).CountAsync(); // Selesai                                                                                                                                
+                var premisDiperiksa = await _tenantDBContext.mst_patrol_schedules.Where(t => t.status_id == 2).CountAsync(); //Dalam Rondaan
+                var totalLokasiBaru = await _tenantDBContext.mst_patrol_schedules.Where(x => x.status_id == 3).CountAsync(); // Belum Meronda
+
+                var lesenTindakan = await _tenantDBContext.mst_owner_licensees
+                   .Select(lesen => new
+                   {
+                       lesen.owner_icno,
+                       NoticeCount = _tenantDBContext.trn_notices.Count(notis => notis.owner_icno == lesen.owner_icno),
+                       CompoundCount = _tenantDBContext.trn_cmpds.Count(kompaun => kompaun.owner_icno == lesen.owner_icno),
+                       ConfiscationCount = _tenantDBContext.trn_cfscs.Count(sita => sita.owner_icno == lesen.owner_icno)
+                   })
+                   .ToListAsync();
+
+                var totalLesenTindakan = lesenTindakan.Sum(x => x.NoticeCount + x.CompoundCount + x.ConfiscationCount);
+
                 var result = new dashboard_view
                 {
                     total_notis = totalNotis,
@@ -98,11 +113,15 @@ namespace PBTPro.Api.Controllers
                     total_cukai_tahunan = bilCukaiTahunan,
                     amaun_kutipan_cukai = 4569.93M,
                     cukai_taksiran_dibyr = 100230,
-                    cukai_taksiran_blm_dibyr= 10230,
+                    cukai_taksiran_blm_dibyr = 10230,
                     hsl_lesen_dibyr = 150230,
                     hsl_lesen_blm_dibyr = 15230,
                     kompaun_dibyr = totalKompaunDibyr,
                     kompaun_blm_dibyr = totalKompaunBlmByr,
+                    total_premis_dilawat = totalPremisDilawat,
+                    total_rondaan_dibuat = premisDiperiksa,
+                    total_lokasi_baru = totalLokasiBaru,
+                    lesen_dikenakan_tindakan = totalLesenTindakan,
                 };
 
                 if (result == null)
@@ -126,9 +145,9 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var totalLesenAktif = await _tenantDBContext.mst_licensees.Where(l=>l.status_id == 1).CountAsync();
-                var totalLesenTamatTempoh = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 2).CountAsync(); 
-                var totalPremisPerniagaan = await _tenantDBContext.mst_licensees.GroupBy(x=>x.owner_icno).CountAsync();
+                var totalLesenAktif = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 1).CountAsync();
+                var totalLesenTamatTempoh = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 2).CountAsync();
+                var totalPremisPerniagaan = await _tenantDBContext.mst_licensees.GroupBy(x => x.owner_icno).CountAsync();
                 var pertambahanLsnThnSemasa = 10;// await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue && t.reg_date.Value.Year == DateTime.Now.Year).CountAsync();
                 var pertambahanLsnSemasa = 20;// await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue&& t.reg_date.Value.Year == DateTime.Now.Year && t.reg_date.Value.Month == DateTime.Now.Month).CountAsync();
 
@@ -155,7 +174,509 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+        #endregion
 
+        #region Graph
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalNoticeGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+                var noticesByMonth = await _tenantDBContext.trn_notices
+                    .Where(l => l.created_at.HasValue && l.created_at.Value.Year == DateTime.Now.Year)  
+                    .GroupBy(l => l.created_at.Value.Month) 
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = noticesByMonth.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalCompoundGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+                var noticesByMonth = await _tenantDBContext.trn_cmpds
+                    .Where(l => l.created_at.HasValue && l.created_at.Value.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Value.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = noticesByMonth.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalInspectionGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+                var noticesByMonth = await _tenantDBContext.trn_inspects
+                    .Where(l => l.created_at.HasValue && l.created_at.Value.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Value.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = noticesByMonth.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalConfiscationGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+                var noticesByMonth = await _tenantDBContext.trn_cfscs
+                    .Where(l => l.created_at.HasValue && l.created_at.Value.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Value.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = noticesByMonth.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalPaidCompoundGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+                var noticesByMonth = await _tenantDBContext.trn_cmpds.Where(c => c.trnstatus_id == 5)
+                    .Where(l => l.created_at.HasValue && l.created_at.Value.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Value.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = noticesByMonth.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalNotPaidCompoundGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+                var noticesByMonth = await _tenantDBContext.trn_cmpds
+                    .Where(c => c.trnstatus_id == 4)
+                    .Where(l => l.created_at.HasValue && l.created_at.Value.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Value.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = noticesByMonth.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalVisitedGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+                var noticesByMonth = await _tenantDBContext.mst_patrol_schedules
+                    .Where(c => c.status_id == 1)
+                    .Where(l => l.created_at.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = noticesByMonth.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalOngoingPatrolGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+                var noticesByMonth = await _tenantDBContext.mst_patrol_schedules
+                    .Where(c => c.status_id == 2)
+                    .Where(l => l.created_at.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = noticesByMonth.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalNewPatrolGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+                var noticesByMonth = await _tenantDBContext.mst_patrol_schedules
+                    .Where(c => c.status_id == 3)
+                    .Where(l => l.created_at.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = noticesByMonth.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalPremisTakenActionGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+
+                var CountTakenAction = await _tenantDBContext.mst_owner_premis
+                    .Select(premis => new
+                    {
+                        premis.owner_icno,
+                        NoticeCount = _tenantDBContext.trn_notices.Count(notis => notis.owner_icno == premis.owner_icno),
+                        CompoundCount = _tenantDBContext.trn_cmpds.Count(kompaun => kompaun.owner_icno == premis.owner_icno),
+                        ConfiscationCount = _tenantDBContext.trn_cfscs.Count(sita => sita.owner_icno == premis.owner_icno),
+                        created_at = premis.created_at
+                    })
+                    .ToListAsync();
+
+                var PremisTakenAction = CountTakenAction
+                    .Where(l => l.created_at.HasValue && l.created_at.Value.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Value.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Sum(x => x.NoticeCount + x.CompoundCount + x.ConfiscationCount)
+                    })
+                    .ToList();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = PremisTakenAction.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<graph_report_view>> GetTotalLicenseTakenActionGraph()
+        {
+            try
+            {
+                var allMonths = Enumerable.Range(1, 12).ToList();
+
+                var CountTakenAction = await _tenantDBContext.mst_owner_licensees
+                    .Select(license => new
+                    {
+                        license.owner_icno,
+                        NoticeCount = _tenantDBContext.trn_notices.Count(notis => notis.owner_icno == license.owner_icno),
+                        CompoundCount = _tenantDBContext.trn_cmpds.Count(kompaun => kompaun.owner_icno == license.owner_icno),
+                        ConfiscationCount = _tenantDBContext.trn_cfscs.Count(sita => sita.owner_icno == license.owner_icno),
+                        created_at = license.created_at 
+                    })
+                    .ToListAsync();
+
+                var LicenseTakenAction = CountTakenAction
+                    .Where(l => l.created_at.HasValue && l.created_at.Value.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Value.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Sum(x => x.NoticeCount + x.CompoundCount + x.ConfiscationCount)
+                    })
+                    .ToList();
+
+                var result = allMonths.Select(month => new
+                {
+                    Month = month,
+                    Count = LicenseTakenAction.FirstOrDefault(n => n.Month == month)?.Count ?? 0
+                }).ToList();
+
+                var viewResult = new graph_report_view
+                {
+                    total = result.Select(r => r.Count).ToList(),
+                    month = result.Select(r => r.Month).ToList(),
+                };
+
+                if (result == null || result.Count == 0)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
         #endregion
 
 

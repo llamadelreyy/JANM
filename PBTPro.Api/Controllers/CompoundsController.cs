@@ -190,7 +190,7 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         #region PDF Ticket
-                        compound = await GeneratePdfTicket(compound,proofs);
+                        compound = await GeneratePdfTicket(compound, proofs);
                         _tenantDBContext.trn_cmpds.Update(compound);
                         await _tenantDBContext.SaveChangesAsync();
                         #endregion
@@ -286,7 +286,7 @@ namespace PBTPro.Api.Controllers
 
                         #region Proof Image
                         var existingProofs = await _tenantDBContext.trn_cmpd_imgs.Where(x => x.trn_cmpd_id == compound.trn_cmpd_id).ToListAsync();
-                        if(existingProofs != null)
+                        if (existingProofs != null)
                         {
                             var UploadPath = await getUploadPath(compound);
                             foreach (var existingProof in existingProofs)
@@ -394,14 +394,14 @@ namespace PBTPro.Api.Controllers
 
                 var compound_lists = await (from n in _tenantDBContext.trn_cmpds
                                             where n.creator_id == UserId
-                                          select new
-                                           {
-                                               n.cmpd_ref_no,
-                                               n.section_code,
-                                               n.act_code,
-                                               n.created_at,
-                                               n.modified_at,
-                                           }).ToListAsync();
+                                            select new
+                                            {
+                                                n.cmpd_ref_no,
+                                                n.section_code,
+                                                n.act_code,
+                                                n.created_at,
+                                                n.modified_at,
+                                            }).ToListAsync();
 
                 // Check if no record was found
                 if (compound_lists.Count == 0)
@@ -462,6 +462,50 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<trn_compound>>> ListsAll()
+        {
+            try
+            {
+                var data = await _tenantDBContext.trn_cmpds.AsNoTracking().ToListAsync();
+                var dataPegawai = await _tenantDBContext.mst_patrol_schedules.AsNoTracking().ToListAsync();
+
+                var result = (from cmpds in data
+                              join officer in dataPegawai on cmpds.schedule_id equals officer.schedule_id
+                              join status in _tenantDBContext.ref_trn_statuses on cmpds.trnstatus_id equals status.status_id
+                              join acts in _dbContext.ref_law_acts on cmpds.act_code equals acts.act_code
+                              join off in _dbContext.ref_law_offenses on cmpds.offense_code equals off.offense_code
+                              join sec in _dbContext.ref_law_sections on cmpds.section_code equals sec.section_code
+                              join del in _tenantDBContext.ref_delivers on cmpds.deliver_id equals del.deliver_id
+                              join uuk in _dbContext.ref_law_uuks on cmpds.uuk_code equals uuk.uuk_code
+                              join user in _dbContext.Users on officer.idno equals user.IdNo
+                              //join lic in _tenantDBContext.mst_owner_licensees on cmpds.owner_icno equals lic.owner_icno
+                              select new trn_compound_view
+                              {
+                                  id_kompaun = cmpds.trn_cmpd_id,
+                                  no_rujukan = cmpds.cmpd_ref_no,
+                                  amaun = (Double)cmpds.amt_cmpd,
+                                  status_bayaran = status.status_name,
+                                  akta_kesalahan = acts.act_name,
+                                  kod_kesalahan = off.offense_code,
+                                  kod_seksyen = sec.section_code,
+                                  kod_uuk = uuk.uuk_code,
+                                  arahan = cmpds.instruction,
+                                  lokasi_kesalahan = cmpds.offs_location,
+                                  cara_serahan = del.deliver_name,
+                                  TarikhData = cmpds.created_at,
+                                  nama_pegawai = user.full_name,
+                              }
+                             ).ToList();
+                return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
 
         #region Testing API
         // For Testing Purpose ONLY WIll be removed after finalization
@@ -511,7 +555,7 @@ namespace PBTPro.Api.Controllers
                     tn_photo_filename = x.tn_photo_filename
                 }).FirstOrDefaultAsync(x => x.tenant_id == _tenantId);
 
-                if(tenantInfo.tn_photo_filename != null)
+                if (tenantInfo.tn_photo_filename != null)
                 {
                     var baseImageViewURL = await getBaseViewUrl("images");
                     var UploadPath = await getBaseUploadPath("images");
@@ -541,7 +585,7 @@ namespace PBTPro.Api.Controllers
 
             return tenantInfo;
         }
-        
+
         private async Task<trn_cmpd> GeneratePdfTicket(trn_cmpd record, List<trn_cmpd_img>? proofs)
         {
             trn_cmpd result = record;
@@ -566,7 +610,7 @@ namespace PBTPro.Api.Controllers
                                     (jd, rdel) => new { jd.trn_cmpd, ref_deliver = rdel, mst_licensee = (mst_licensee)null, mst_taxtholder = (mst_taxholder)null, mst_owner = (mst_owner)null }
                                 );
 
-                if(record.is_tax == true)
+                if (record.is_tax == true)
                 {
                     initQuery = initQuery
                                 .GroupJoin(
@@ -678,7 +722,7 @@ namespace PBTPro.Api.Controllers
                                     });
 
                                     if (tenantInfo?.tn_photo_byte?.Length > 0)
-                                    { 
+                                    {
                                         table.Cell().AlignCenter().PaddingBottom(5).Height(30).Image(tenantInfo.tn_photo_byte).FitArea();
                                     }
                                     else
@@ -691,7 +735,7 @@ namespace PBTPro.Api.Controllers
                                     table.Cell().AlignCenter().PaddingBottom(5).Text($"TAWARAN KOMPAUN").FontSize(4).Underline().Bold();
 
                                 });
-                                
+
                                 column.Item().Table(table =>
                                 {
                                     table.ColumnsDefinition(columns =>
@@ -701,7 +745,7 @@ namespace PBTPro.Api.Controllers
 
                                     table.Cell().PaddingBottom(5).PaddingLeft(2).AlignLeft().Text($"MAKLUMAT PENERIMA").Bold();
 
-                                    table.Cell().PaddingBottom(5).Table(table => 
+                                    table.Cell().PaddingBottom(5).Table(table =>
                                     {
                                         table.ColumnsDefinition(columns =>
                                         {
@@ -733,7 +777,7 @@ namespace PBTPro.Api.Controllers
                                     });
 
                                     table.Cell().PaddingBottom(5).PaddingLeft(2).AlignLeft().Text($"MAKLUMAT KESALAHAN").Bold();
-                                    
+
                                     table.Cell().PaddingBottom(5).Table(table =>
                                     {
                                         table.ColumnsDefinition(columns =>
@@ -763,17 +807,18 @@ namespace PBTPro.Api.Controllers
                                     });
 
                                     string compoundAmt = "";
-                                    if(record.amt_cmpd.HasValue)
+                                    if (record.amt_cmpd.HasValue)
                                     {
                                         compoundAmt = string.Format("{0:C}", record.amt_cmpd);
                                     }
 
-                                    table.Cell().PaddingBottom(5).Text(text => {
+                                    table.Cell().PaddingBottom(5).Text(text =>
+                                    {
                                         text.Justify();
                                         text.Span($"Saya bersedia mengkompaun kesalahan ini dengan Kadar Kompaun {compoundAmt}. Tawaran ini berkuat kuasa dalam tempoh 14 hari dari tarikh notis ini. Kegagalan menjelaskan bayaran kompaun akan menyebabkab TINDAKAN MAHKAMAH akan diteruskan.");
                                     });
 
-                                    
+
                                     if (tenantInfo?.tn_signature_byte?.Length > 0)
                                     {
                                         table.Cell().AlignLeft().PaddingLeft(5).Height(20).Image(tenantInfo.tn_signature_byte).FitArea();
@@ -789,13 +834,13 @@ namespace PBTPro.Api.Controllers
                                     table.Cell().AlignLeft().Text("b.p DATUK BANDAR");
                                     table.Cell().PaddingBottom(5).AlignLeft().Text($"{tenantInfo.tn_name.ToUpper()}");
 
-                                    table.Cell().PaddingBottom(5).LineHorizontal(0.2f,Unit.Point);
+                                    table.Cell().PaddingBottom(5).LineHorizontal(0.2f, Unit.Point);
 
                                     table.Cell().PaddingBottom(5).AlignCenter().Text("UNTUK KEGUNAAN PEJABAT");
                                     table.Cell().PaddingBottom(5).AlignCenter().AlignMiddle().MaxWidth(100).MaxHeight(15).Image(barcodeImage);
                                     table.Cell().PaddingBottom(5).AlignCenter().Text($"NO. KOMPAUN: {record.cmpd_ref_no}");
 
-                                    table.Cell().PaddingBottom(5).Table(table => 
+                                    table.Cell().PaddingBottom(5).Table(table =>
                                     {
                                         table.ColumnsDefinition(columns =>
                                         {
@@ -803,8 +848,8 @@ namespace PBTPro.Api.Controllers
                                             columns.RelativeColumn();
                                         });
 
-                                        table.Cell().Border(0.2f).Column(column => 
-                                        { 
+                                        table.Cell().Border(0.2f).Column(column =>
+                                        {
                                             column.Item().AlignCenter().Text("UNTUK DIISI OLEH PEGAWAI");
                                             column.Item().AlignCenter().Text("MENGKOMPAUN");
                                             column.Item().PaddingLeft(1).PaddingRight(1).LineHorizontal(0.2f, Unit.Point);
@@ -815,7 +860,7 @@ namespace PBTPro.Api.Controllers
                                             column.Item().PaddingLeft(1).AlignLeft().Text("Tarikh:");
                                             column.Item().PaddingLeft(1).PaddingBottom(1).AlignLeft().Text("Masa:");
                                         });
-                                        
+
                                         table.Cell().Border(0.2f).Column(column =>
                                         {
                                             column.Item().AlignCenter().Text("UNTUK DIISI OLEH");
@@ -885,7 +930,8 @@ namespace PBTPro.Api.Controllers
                 result = await _dbContext.app_system_params.Where(x => x.param_group == "Tenant" && x.param_name == "BaseUploadPath").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
 
                 string? tenantId = _tenantId.ToString();
-                if (!string.IsNullOrWhiteSpace(tenantId)){
+                if (!string.IsNullOrWhiteSpace(tenantId))
+                {
                     result = Path.Combine(result, tenantId);
                 }
 
@@ -922,7 +968,8 @@ namespace PBTPro.Api.Controllers
                 result = await _dbContext.app_system_params.Where(x => x.param_group == "Tenant" && x.param_name == "ImageViewUrl").Select(x => x.param_value).AsNoTracking().FirstOrDefaultAsync();
 
                 string? tenantId = _tenantId.ToString();
-                if (!string.IsNullOrWhiteSpace(tenantId)){
+                if (!string.IsNullOrWhiteSpace(tenantId))
+                {
                     result = result + "/" + tenantId;
                 }
 
