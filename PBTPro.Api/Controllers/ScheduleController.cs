@@ -141,27 +141,29 @@ namespace PBTPro.Api.Controllers
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
 
-                if (InputModel.StartTime <= DateTime.Today || InputModel.EndTime <= DateTime.Today)
+                if (InputModel.StartTime.Value.Date < DateTime.Today)// || InputModel.EndTime <= DateTime.Today)
                 {
                     return Error("", SystemMesg(_feature, "PATROL_START_END_TIME", MessageTypeEnum.Error, string.Format("Tarikh hari sebelum tidak dibenarkan.")));
                 }
 
-                var existingSchedules = await _tenantDBContext.mst_patrol_schedules
-                                .Where(s => s.idno == InputModel.ICNo && s.is_deleted == false)
-                                .ToListAsync();
+                var data = await _tenantDBContext.mst_patrol_schedules
+                            .Where(s => s.is_deleted == false && s.idno == InputModel.ICNo && s.start_time == InputModel.StartTime)
+                            .ToListAsync();
 
-                foreach (var schedule in existingSchedules)
+                foreach (var member in data)
                 {
-                    if (InputModel.StartTime >= schedule.start_time && InputModel.EndTime <= schedule.end_time)
-                    {
-                        return Error("", SystemMesg(_feature, "PATROL_TIME_WITHIN_EXISTING", MessageTypeEnum.Error, string.Format("Tarikh rondaan adalah dalam jadual yang sedia ada.")));
-                    }
+                    var existingPatrol = await _tenantDBContext.mst_patrol_schedules
+                        .Where(x => x.start_time.HasValue &&
+                                    x.start_time.Value.Date == DateTime.Now.Date &&
+                                    x.idno == member.idno) 
+                        .FirstOrDefaultAsync();
 
-                    if (InputModel.StartTime < schedule.end_time && InputModel.EndTime > schedule.start_time)
+                    if (existingPatrol != null)
                     {
-                        return Error("", SystemMesg(_feature, "PATROL_OVERLAP_TIME", MessageTypeEnum.Error, string.Format("Tarikh rondaan bertindih dengan jadual lain.")));
+                        return Error("", SystemMesg(_feature, "PATROL_TIME_WITHIN_EXISTING", MessageTypeEnum.Error,
+                            string.Format("Tarikh rondaan pegawai {0} telah wujud dalam jadual pada hari ini.", member.idno)));
                     }
-                }
+                }            
 
                 #region store data
                 mst_patrol_schedule mst_Patrol = new mst_patrol_schedule
@@ -169,7 +171,7 @@ namespace PBTPro.Api.Controllers
                     idno = InputModel.ICNo,
                     dept_id = InputModel.DeptId,
                     start_time = (DateTime)InputModel.StartTime,
-                    end_time = (DateTime)InputModel.EndTime,
+                    //end_time = (DateTime)InputModel.EndTime,
                     creator_id = runUserID,
                     created_at = InputModel.CreatedAt,
                     is_deleted = false,
@@ -235,12 +237,12 @@ namespace PBTPro.Api.Controllers
                     }
                     if (ischange)
                     {
-                        if (InputModel.StartTime >= schedule.start_time && InputModel.EndTime <= schedule.end_time)
+                        if (InputModel.StartTime >= schedule.start_time )//&& InputModel.EndTime <= schedule.end_time)
                         {
-                            return Error("", SystemMesg(_feature, "PATROL_TIME_WITHIN_EXISTING", MessageTypeEnum.Error, string.Format("Tarikh rondaan adalah dalam jadual yang sedia ada.")));
+                            return Error("", SystemMesg(_feature, "PATROL_TIME_WITHIN_EXISTING", MessageTypeEnum.Error, string.Format("Tarikh rondaan pegawai telah wujud dalam jadual pada hari ini.")));
                         }
 
-                        if (InputModel.StartTime < schedule.end_time && InputModel.EndTime > schedule.start_time)
+                        if (InputModel.StartTime < schedule.end_time )//&& InputModel.EndTime > schedule.start_time)
                         {
                             return Error("", SystemMesg(_feature, "PATROL_OVERLAP_TIME", MessageTypeEnum.Error, string.Format("Tarikh rondaan bertindih dengan jadual lain.")));
                         }
@@ -251,7 +253,7 @@ namespace PBTPro.Api.Controllers
                 formField.idno = InputModel.ICNo;
                 formField.dept_id = InputModel.DeptId;
                 formField.start_time = (DateTime)InputModel.StartTime;
-                formField.end_time = (DateTime)InputModel.EndTime;
+                //formField.end_time = (DateTime)InputModel.EndTime;
                 formField.district_code = InputModel.DistrictCode;
                 formField.town_code = InputModel.TownCode;
                 formField.modifier_id = runUserID;
@@ -464,6 +466,6 @@ namespace PBTPro.Api.Controllers
                 _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
-        }
+        }     
     }
 }

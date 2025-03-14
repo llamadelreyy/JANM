@@ -549,8 +549,19 @@ namespace PBTPro.Api.Controllers
             {
                 var data = await _tenantDBContext.trn_cmpds.AsNoTracking().ToListAsync();
                 var dataPegawai = await _tenantDBContext.mst_patrol_schedules.AsNoTracking().ToListAsync();
+                var dataPemilikLesen = await _tenantDBContext.mst_owner_licensees.AsNoTracking().ToListAsync();
+                var dataMaklumatLesen = (from pemilik in dataPemilikLesen
+                                         join lesen in _tenantDBContext.mst_licensees
+                                         on pemilik.owner_icno equals lesen.owner_icno
+                                         select new { pemilik, lesen }).ToList();
+
+                var dataSaksi = await _tenantDBContext.trn_witnesses.AsNoTracking().ToListAsync();
+               
+                
 
                 var result = (from cmpds in data
+                              
+                              join owner in dataMaklumatLesen on cmpds.owner_icno equals owner.pemilik.owner_icno
                               join officer in dataPegawai on cmpds.schedule_id equals officer.schedule_id
                               join status in _tenantDBContext.ref_trn_statuses on cmpds.trnstatus_id equals status.status_id
                               join acts in _dbContext.ref_law_acts on cmpds.act_code equals acts.act_code
@@ -559,10 +570,14 @@ namespace PBTPro.Api.Controllers
                               join del in _tenantDBContext.ref_delivers on cmpds.deliver_id equals del.deliver_id
                               join uuk in _dbContext.ref_law_uuks on cmpds.uuk_code equals uuk.uuk_code
                               join user in _dbContext.Users on officer.idno equals user.IdNo
-                              //join lic in _tenantDBContext.mst_owner_licensees on cmpds.owner_icno equals lic.owner_icno
+
+
                               select new trn_compound_view
                               {
                                   id_kompaun = cmpds.trn_cmpd_id,
+                                  no_lesen = owner.lesen.license_accno,
+                                  nama_perniagaan = owner.lesen.business_name,
+                                  nama_pemilik = owner.pemilik.owner_name,
                                   no_rujukan = cmpds.cmpd_ref_no,
                                   amaun = (Double)cmpds.amt_cmpd,
                                   status_bayaran = status.status_name,
@@ -574,7 +589,9 @@ namespace PBTPro.Api.Controllers
                                   lokasi_kesalahan = cmpds.offs_location,
                                   cara_serahan = del.deliver_name,
                                   TarikhData = cmpds.created_at,
-                                  nama_pegawai = user.full_name,
+                                  //nama_pegawai = user.full_name,
+                                  
+                                  
                               }
                              ).ToList();
                 return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
