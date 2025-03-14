@@ -35,8 +35,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
 
     public virtual DbSet<mst_district> mst_districts { get; set; }
 
-    public virtual DbSet<mst_lot> mst_lots { get; set; }
-
     public virtual DbSet<mst_state> mst_states { get; set; }
 
     public virtual DbSet<mst_town> mst_towns { get; set; }
@@ -410,32 +408,6 @@ public partial class PBTProDbContext : IdentityDbContext<ApplicationUser, Applic
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.state_code).HasMaxLength(10);
-        });
-
-        modelBuilder.Entity<mst_lot>(entity =>
-        {
-            entity.HasKey(e => e.gid).HasName("mst_lot_pkey");
-
-            entity.ToTable("mst_lot");
-
-            entity.HasIndex(e => e.geom, "mst_lot_geom_idx").HasMethod("gist");
-
-            entity.Property(e => e.apdate).HasMaxLength(8);
-            entity.Property(e => e.cls).HasMaxLength(1);
-            entity.Property(e => e.daerah).HasMaxLength(2);
-            entity.Property(e => e.entrymode).HasMaxLength(1);
-            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,4326)");
-            entity.Property(e => e.guid).HasMaxLength(32);
-            entity.Property(e => e.landtitlec).HasMaxLength(2);
-            entity.Property(e => e.landusecod).HasMaxLength(2);
-            entity.Property(e => e.lot).HasMaxLength(7);
-            entity.Property(e => e.mukim).HasMaxLength(2);
-            entity.Property(e => e.negeri).HasMaxLength(2);
-            entity.Property(e => e.pa).HasMaxLength(15);
-            entity.Property(e => e.refplan).HasMaxLength(15);
-            entity.Property(e => e.seksyen).HasMaxLength(3);
-            entity.Property(e => e.unit).HasMaxLength(1);
-            entity.Property(e => e.upi).HasMaxLength(16);
         });
 
         modelBuilder.Entity<mst_state>(entity =>
