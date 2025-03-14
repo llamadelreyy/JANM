@@ -236,7 +236,7 @@ namespace PBTPro.Api.Controllers
                     }
                     */
                     string? DefaultPage = string.Empty;
-                    var userRoles = await _dbContext.UserRoles.Where(x => x.UserId == user.Id && x.IsDeleted != true).Join(
+                    var userRoles = await _dbContext.UserRoles.Where(x => x.UserId == user.Id && x.IsDeleted == false).Join(
                         _dbContext.Roles,
                         userRole => userRole.RoleId,
                         roles => roles.Id,
@@ -249,6 +249,10 @@ namespace PBTPro.Api.Controllers
                             DefaultPage = roles.DefaultPage
                         }
                     ).AsNoTracking().OrderBy(x => x.Name).ToListAsync();
+                    
+                    //create claim listing role id
+                    authClaims.Add(new Claim("RoleIds", string.Join(",", userRoles.Select(x => x.Id).ToList())));
+
                     //if (userRoles.Any(x => x.Name.ToUpper() == "ANGGOTA PENGUATKUASA")) { isMobileUser = true; }
                     if (userRoles.Any(x => x.IsMobileUser == true)) { isMobileUser = true; }
 
