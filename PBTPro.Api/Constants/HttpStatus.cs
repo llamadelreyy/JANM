@@ -7,6 +7,7 @@
         NotFound = 404,
         NoContent = 204,
         Error = 500,
-        BadRequest = 400
+        BadRequest = 400,
+        AuthenticationTimeout = 419
     }
 }

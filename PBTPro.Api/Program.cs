@@ -14,6 +14,7 @@ using Prometheus;
 using QuestPDF.Infrastructure;
 using Serilog;
 using Serilog.Events;
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -227,6 +228,29 @@ builder.Services.AddAuthentication(options =>
     };
     options.Events = new JwtBearerEvents
     {
+        OnTokenValidated = async context =>
+        {
+            var jwtService = context.HttpContext.RequestServices.GetRequiredService<JWTTokenService>();
+
+            var authorizationHeader = context.Request.Headers["Authorization"].ToString();
+            if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                var token = authorizationHeader.Substring("Bearer ".Length).Trim();
+
+                if (token != null)
+                {
+                    //var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                    var isValid = await jwtService.ValidateTokenAsync(token);
+
+                    if (!isValid)
+                    {
+                        context.Fail("Invalid token data.");
+                    }
+                }
+            }
+
+            await Task.CompletedTask;
+        },
         OnChallenge = context =>
         {
             if (context.Response.HasStarted)
@@ -234,26 +258,50 @@ builder.Services.AddAuthentication(options =>
                 return Task.CompletedTask; // Exit if the response has already started
             }
 
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
-
-            var response = new ReturnViewModel
+            if (context.Error.ToLower() == "invalid_token")
             {
-                DateTime = DateTime.Now,
-                ReturnCode = (int)HttpStatus.NoRequestAuthority,
-                Status = "Unauthorized",
-                Data = null,
-                ReturnMessage = "Anda tidak dibenarkan untuk melihat kandungan ini!",
-                ReturnParameter = null
-            };
+                context.Response.StatusCode = StatusCodes.Status419AuthenticationTimeout;
+                context.Response.ContentType = "application/json";
 
-            var result = JsonSerializer.Serialize(response);
-            return context.Response.WriteAsync(result).ContinueWith(t =>
+                var response = new ReturnViewModel
+                {
+                    DateTime = DateTime.Now,
+                    ReturnCode = (int)HttpStatus.AuthenticationTimeout,
+                    Status = "AuthenticationTimeout",
+                    Data = null,
+                    ReturnMessage = "Sesi log masuk anda telah ditolak, Sila log masuk semula untuk meneruskan tindakan.",
+                    ReturnParameter = null
+                };
+
+                var result = JsonSerializer.Serialize(response);
+                return context.Response.WriteAsync(result).ContinueWith(t =>
+                {
+                    // Mark the response as handled
+                    context.HandleResponse();
+                });
+            }
+            else
             {
-                // Mark the response as handled
-                context.HandleResponse();
-            });
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
 
+                var response = new ReturnViewModel
+                {
+                    DateTime = DateTime.Now,
+                    ReturnCode = (int)HttpStatus.NoRequestAuthority,
+                    Status = "Unauthorized",
+                    Data = null,
+                    ReturnMessage = "Anda tidak dibenarkan untuk melihat kandungan ini!",
+                    ReturnParameter = null
+                };
+
+                var result = JsonSerializer.Serialize(response);
+                return context.Response.WriteAsync(result).ContinueWith(t =>
+                {
+                    // Mark the response as handled
+                    context.HandleResponse();
+                });
+            }
         },
         OnMessageReceived = context =>
         {
