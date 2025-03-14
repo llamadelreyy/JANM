@@ -661,6 +661,7 @@ img.dxbl-image {
 }
 
 .dxbl-text-edit-input,
+.drop-file-label,
 .dxbl-text-edit,
 .dxbl-input-editor {
     letter-spacing: 0.02rem;
@@ -765,7 +766,7 @@ img.dxbl-image {
 .searchMap {
     height: 33px;
     width: 73%;
-    font-size: 1rem;
+    font-size: 0.8rem;
     border: 0px;
     padding: 0 15px 0 15px;
     outline: none;
@@ -789,10 +790,11 @@ img.dxbl-image {
     padding: 3px 5px 3px 5px;
 }
 
-#legend th {
-    padding: 10px 15px 10px 15px;
-    font-weight:bold;
-}
+    #legend th {
+        font-size: 0.9rem;
+        padding: 10px 15px 10px 15px;
+        /*font-weight:bold;*/
+    }
 
 #legend td.text-right {
     padding: 0 10px 0 20px;
@@ -804,9 +806,9 @@ img.dxbl-image {
     padding: 7px 0px 7px 13px;
 }
 
-#legend .tableMap tr {
-    border-bottom:1px solid #ccc;
-}
+    #legend .tableMap tr {
+        border-bottom: 1px solid #ccc;
+    }
 
 .row {
     margin-left:0;
@@ -1207,7 +1209,7 @@ label {
     width: 100%;
 }
 
-    .bottom-upload .dxbl-btn-caption {
+    .bottom-upload, .dxbl-btn-caption {
         font-size: 0.8rem;
         font-weight: bold;
         letter-spacing: 0.03rem;
@@ -1253,18 +1255,18 @@ label {
     letter-spacing: 0.02rem !important;
 }
 
-.text-container, .dxbl-accordion-item-text {
-    font-size: 0.8rem !important;
+.text-container, .dxbl-accordion-item-text, .dxbl-text {
+    font-size: 0.85rem !important;
     letter-spacing: 0.02rem !important;
 }
 
-.btn-edit-grid {
+.dxbl-btn-caption, .btn-edit-grid {
     position: relative;
     font-size: 0.8rem !important;
     font-weight: bold;
-    letter-spacing: 0.15rem !important;
+    letter-spacing: 0.13rem !important;
     text-transform: uppercase;
-    padding: 5px 12px 5px 18px !important;
+    padding: 2px 8px 2px 10px !important;
     color: #fff;
     border-radius: 3px !important;
     cursor: pointer;
@@ -1306,7 +1308,7 @@ label {
     text-transform: uppercase;
     border-radius: 3px !important;
     cursor: pointer;
-    padding: 7px 0 !important;
+    padding: 5px 0 !important;
 }
 
 .multiselect {
@@ -1387,8 +1389,8 @@ label {
 
 .loginPBTPro {
     margin: auto;
-    width: 40%;
-    padding: 0px 10px;
+    width: 30%;
+    padding: 0px 5px;
 }
 
 .treeview-icon {

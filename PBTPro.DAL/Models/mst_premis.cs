@@ -6,29 +6,29 @@ namespace PBTPro.DAL.Models;
 
 public partial class mst_premis
 {
-    public int gid { get; set; }
-
-    public string? no_akaun { get; set; }
-
-    public string? lesen { get; set; }
-
-    public string? gambar1 { get; set; }
-
-    public string? gambar2 { get; set; }
+    public int id { get; set; }
 
     public Point? geom { get; set; }
 
-    public string? negeri { get; set; }
+    public string? gkeseluruh { get; set; }
 
-    public string? daerah { get; set; }
+    public double? _latitude { get; set; }
 
-    public string? mukim { get; set; }
+    public double? _longitude { get; set; }
 
-    public string? seksyen { get; set; }
+    public string codeid_premis { get; set; } = null!;
 
-    public string? lot { get; set; }
+    public int? creator_id { get; set; }
 
-    public DateOnly? tempoh_sah_cukai { get; set; }
+    public int? modifier_id { get; set; }
 
-    public DateOnly? tempoh_sah_lesen { get; set; }
+    public DateTime? created_at { get; set; }
+
+    public DateTime? modified_at { get; set; }
+
+    public bool? is_deleted { get; set; }
+
+    public virtual ICollection<mst_license_premis_tax> mst_license_premis_taxes { get; set; } = new List<mst_license_premis_tax>();
+
+    public virtual ICollection<mst_licensee> mst_licensees { get; set; } = new List<mst_licensee>();
 }

@@ -43,6 +43,10 @@ public partial class ref_license_status
     /// </summary>
     public DateTime? modified_at { get; set; }
 
+    public int priority { get; set; }
+
+    public string color { get; set; } = null!;
+
     public virtual ICollection<mst_license_premis_tax> mst_license_premis_taxes { get; set; } = new List<mst_license_premis_tax>();
 
     public virtual ICollection<mst_licensee> mst_licensees { get; set; } = new List<mst_licensee>();

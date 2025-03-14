@@ -31,9 +31,10 @@ namespace PBTPro.Api.Controllers
         private readonly string _feature = "LOT";
         private readonly int _defCRS = 4326;
 
-        public LotController(PBTProDbContext dbContext, ILogger<LotController> logger) : base(dbContext)
+        public LotController(PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<LotController> logger) : base(dbContext)
         {
             _logger = logger;
+            _tenantDBContext = tntdbContext;
         }
 
         [HttpGet]
@@ -42,7 +43,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                IQueryable<mst_lot> initQuery = _dbContext.mst_lots.Where(x => PostGISFunctions.ST_IsValid(x.geom));
+                IQueryable<mst_lot> initQuery = _tenantDBContext.mst_lots.Where(x => PostGISFunctions.ST_IsValid(x.geom));
 
                 if (crs != null && crs == _defCRS)
                 {
@@ -65,7 +66,7 @@ namespace PBTPro.Api.Controllers
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
 
-                //mst_lots = await _dbContext.mst_lots.AsNoTracking().ToListAsync();
+                //mst_lots = await _tenantDBContext.mst_lots.AsNoTracking().ToListAsync();
                 return Ok(mst_lots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
             }
             catch (Exception ex)
@@ -81,7 +82,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                IQueryable<mst_lot> initQuery = _dbContext.mst_lots.Where(x => PostGISFunctions.ST_IsValid(x.geom));
+                IQueryable<mst_lot> initQuery = _tenantDBContext.mst_lots.Where(x => PostGISFunctions.ST_IsValid(x.geom));
 
 
                 if (crs == null || crs == _defCRS)
@@ -112,7 +113,7 @@ namespace PBTPro.Api.Controllers
                     return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
 
-                //mst_lots = await _dbContext.mst_lots.AsNoTracking().ToListAsync();
+                //mst_lots = await _tenantDBContext.mst_lots.AsNoTracking().ToListAsync();
                 return Ok(mst_lots, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
             }
             catch (Exception ex)
@@ -120,9 +121,6 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-
-
-
 
         #region private logic
         /*
