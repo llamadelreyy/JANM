@@ -176,7 +176,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-       
+
 
         [HttpPost]
         public async Task<IActionResult> AddMember([FromBody] PatrolInputMemberModel InputModel)
@@ -430,7 +430,7 @@ namespace PBTPro.Api.Controllers
                 var resultData = new
                 {
                     patrol_id = patrol_member.schedule_id,
-                    patrol_leader = patrol_member_leader?.idno, 
+                    patrol_leader = patrol_member_leader?.idno,
                     total_member = totalMembers,
                     patrol_status = patrol_member.status_id,
                     current_user = patrol_member.idno,
@@ -438,6 +438,8 @@ namespace PBTPro.Api.Controllers
                     member_end_dtm = patrol_member.end_time,
                     patrolDuration = patrol_member.PatrolDuration,
                 };
+
+
 
                 return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
@@ -454,6 +456,7 @@ namespace PBTPro.Api.Controllers
             try
             {
                 bool isNew = false;
+                bool isUpdate = false;
                 mst_patrol_schedule patrol = new mst_patrol_schedule();
                 var runUserID = await getDefRunUserId();
                 var runUser = await getDefRunUser();
@@ -469,6 +472,10 @@ namespace PBTPro.Api.Controllers
                     {
                         isNew = true;
                     }
+                    if (patrol.status_id == 3 && patrol.end_time == null)
+                    {
+                        isUpdate = true;
+                    }
                 }
                 else
                 {
@@ -476,24 +483,20 @@ namespace PBTPro.Api.Controllers
                     {
                         creator_id = runUserID,
                         created_at = DateTime.Now,
-                        status_id = 3,//"Belum Mula",
+                        status_id = 3, //"Belum Mula",
                         is_scheduled = false
                     };
 
                     isNew = true;
                 }
 
-                if (patrol.status_id!= 3)
+                if (patrol.status_id != 3)
                 {
                     return Error("", SystemMesg(_feature, "PATROL_ISNOT_NEW", MessageTypeEnum.Error, string.Format("rondaan sedang aktif dilaksanakan atau telah selesai")));
                 }
 
                 var isActivePatrolling = await _tenantDBContext.trn_patrol_officers
-                                        .AnyAsync(x => teamMembers.Contains(x.idno) && x.end_time == null &&
-                                           _tenantDBContext.mst_patrol_schedules.Any(y =>
-                                               y.schedule_id == x.schedule_id &&
-                                               y.status_id == 2 //"RONDAAN"
-                                           )
+                                        .AnyAsync(x => teamMembers.Contains(x.idno) && x.end_time == null && _tenantDBContext.mst_patrol_schedules.Any(y => y.schedule_id == x.schedule_id && y.status_id == 2 && isUpdate == false)//"RONDAAN"
                                         );
 
                 if (isActivePatrolling)
@@ -515,6 +518,16 @@ namespace PBTPro.Api.Controllers
                 patrol.modifier_id = runUserID;
                 patrol.modified_at = DateTime.Now;
                 patrol.idno = runUser;
+
+                // If it's an update, change the status and set start time
+                if (isUpdate)
+                {
+                    patrol.status_id = 2; // "Rondaan"
+                    patrol.start_time = DateTime.Now; // Set start time
+                    patrol.start_location = CurrentLocation; // Update location
+                    patrol.modifier_id = runUserID; // Set modifier
+                    patrol.modified_at = DateTime.Now; // Update modified timestamp
+                }
 
                 if (isNew == true)
                 {

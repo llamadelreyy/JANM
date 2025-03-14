@@ -104,10 +104,11 @@ else
                             @{
                                 @if (PermissionService.HasPermission("Edit") || PermissionService.HasPermission("Delete"))
                                 {
+                                    <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+
                                     var strStatus = ((PatrolViewModel)context.DataItem).PatrolStatus;
                                     if (strStatus == "3")
                                     {
-                                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
                                         <a @onclick="@(() => Delete((PatrolViewModel)context.DataItem))" style="text-decoration: none;padding:0px 0px 0px 2px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                                     }
                                 }
@@ -166,7 +167,7 @@ else
                     @{
                         var dtEdit = (PatrolViewModel)EditFormContext.EditModel;
                         // This is to check whether in add new @ edit mode
-                        //boolLockDropDown = Grid.IsEditingNewRow();
+                        //boolEnable = Grid.IsEditingNewRow();                      
                     }
                     <DxFormLayout CssClass="w-100" style="padding:10px 20px;">
                         <DxFormLayoutItem ColSpanMd="6" BeginRow="true">
@@ -263,17 +264,24 @@ else
                                         ValueFieldName="town_code" style="width:300px">
                                         </DxComboBox>
                                     </td>
-                                </tr>
+                                </tr>       
+                                @{                                   
+                                    var status = dataSchedule.Where(c => c.PatrolStatus == dtEdit.PatrolStatus).FirstOrDefault()?.PatrolStatus;
+                                    bool boolEnable = status != null && status == Convert.ToString(3);//"BELUM MERONDA";
+                                    
+                                    if (Grid.IsEditingNewRow())
+                                        boolEnable = true;
+                                }
                                 <tr>
-                                    <td nowrap>Masa Mula Rondaan</td>
+                                    <td nowrap>Tarikh Mula Rondaan</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%">
-                                        <DxDateEdit @bind-Date="@dtEdit.StartTime"                                                  
+                                        <DxDateEdit @bind-Date="@dtEdit.StartTime"
                                         NullText="Pilih tarikh dan masa..."
-                                        DisplayFormat="dd/MM/yyyy HH:mm:ss"
+                                        DisplayFormat="dd/MM/yyyy"
                                         ShowValidationIcon="true"
-                                        TimeSectionVisible="true"
-                                        Style="width: 300px;"
+                                        Style="width: 300px;" 
+                                        Enabled="@boolEnable"
                                         CssClass="cw-320" />
                                     </td>
                                     <td width="100px">&nbsp;</td>
@@ -281,24 +289,28 @@ else
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%"></td>
                                 </tr>
-                                <tr>
-                                    <td nowrap>Masa Tamat Rondaan</td>
-                                    <td>&nbsp;&nbsp;</td>
-                                    <td width="50%">
-                                        <DxDateEdit @bind-Date="@dtEdit.EndTime"                                                  
-                                        NullText="Pilih tarikh dan masa..."
-                                        DisplayFormat="dd/MM/yyyy HH:mm:ss"
-                                        ShowValidationIcon="true"
-                                        TimeSectionVisible="true"
-                                        Style="width: 300px;"
-                                        CssClass="cw-320" />
-                                    </td>
-                                    <td width="100px">&nbsp;</td>
-                                    <td nowrap></td>
-                                    <td>&nbsp;&nbsp;</td>
-                                    <td width="50%"></td>
-                                </tr>
-
+                                @{
+                                    if (dtEdit.scheduleId != 0 && dtEdit.EndTime != null)
+                                    {
+                                        <tr>
+                                            <td nowrap>Tarikh Tamat Rondaan</td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%">
+                                                <DxDateEdit @bind-Date="@dtEdit.EndTime"
+                                                NullText="Pilih tarikh dan masa..."
+                                                DisplayFormat="dd/MM/yyyy"
+                                                ShowValidationIcon="true"
+                                                Style="width: 300px;"
+                                                Enabled="false"
+                                                CssClass="cw-320" />
+                                            </td>
+                                            <td width="100px">&nbsp;</td>
+                                            <td nowrap></td>
+                                            <td>&nbsp;&nbsp;</td>
+                                            <td width="50%"></td>
+                                        </tr>
+                                    }
+                                }
                                 <tr>
                                     <td nowrap>Jenis Rondaan</td>
                                     <td nowrap>&nbsp;&nbsp;</td>
@@ -375,6 +387,7 @@ else
     bool ConfirmationShown { get; set; } = false;
     string strSelected { get; set; } = "";
     bool boolLockDropDown { get; set; } = false;
+    bool boolEnable { get; set; } = false;
 
     int belumMerondaCount = 0;
     int dalamRondaanCount = 0;
@@ -566,12 +579,12 @@ else
         {
             e.AddError(nameof(_data.DistrictCode), "Daerah tidak sah. Medan perlu diisi.");
         }
-        
+
         if (_data.TownCode == null || _data.TownCode == "")
         {
             e.AddError(nameof(_data.TownCode), "Bandar tidak sah. Medan perlu diisi.");
-        }              
-       
+        }
+
         if (_data.ICNo == null || _data.ICNo == "")
         {
             e.AddError(nameof(_data.ICNo), "Pegawai tidak sah. Medan perlu diisi.");
@@ -606,14 +619,33 @@ else
     }
 
     public MarkupString CombineTextStartPatrol(DateTime startDtm, DateTime startTm)
-    {
-        string html = string.Format("<b>TARIKH:</b> {0} <br/> <b>MASA:</b> {1}", startDtm.ToString("dd/MM/yyyy"), startTm.ToString("HH:mm tt"));
+    {       
+        string value = "";
+        if (startTm.ToString("HH:mm tt") == "00:00 PG")
+        { value = "-"; }
+        else
+            value = startTm.ToString("HH:mm tt");
+
+        string html = string.Format("<b>TARIKH:</b> {0} <br/> <b>MASA:</b> {1}", startDtm.ToString("dd/MM/yyyy"), value);
         return new MarkupString(html);
     }
 
     public MarkupString CombineTextEndPatrol(DateTime EndDtm, DateTime EndTm)
     {
-        string html = string.Format("<b>TARIKH:</b> {0} <br/> <b>MASA:</b> {1} ", EndDtm.ToString("dd/MM/yyyy"), EndTm.ToString("HH:mm tt"));
+        string valueDate = "";
+        if (EndDtm == null || EndDtm == DateTime.MinValue)
+        { valueDate = "-"; }
+        else
+            valueDate = EndDtm.ToString("dd/MM/yyyy");
+
+        string value = "";
+        if (EndTm.ToString("HH:mm tt") == "00:00 PG")
+        { value = "-"; }
+        else
+            value = EndTm.ToString("HH:mm tt");
+
+
+        string html = string.Format("<b>TARIKH:</b> {0} <br/> <b>MASA:</b> {1} ", valueDate, value);
         return new MarkupString(html);
     }
 
