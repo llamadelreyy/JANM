@@ -47,7 +47,7 @@ namespace PBTPro.Api.Controllers
             _hubContext = hubContext;
             _logger = logger;
         }
-
+        /*
         #region patrol_info
         [AllowAnonymous]
         [HttpGet]
@@ -833,6 +833,6 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
-
+        */
     }
 }
