@@ -19,6 +19,7 @@ using PBTPro.DAL.Models.PayLoads;
 using System.Collections.Concurrent;
 using DevExpress.Blazor;
 using DevExpress.Data.Storage;
+using DevExpress.ClipboardSource.SpreadsheetML;
 
 
 namespace PBTPro.Pages
@@ -32,7 +33,7 @@ namespace PBTPro.Pages
         public List<FilterData> ObjectList { get; set; }
         public string OutPutValue { get; set; }
 
-        public List<FilterData> NotaList { get; set; }
+        //////public List<FilterData> NotaList { get; set; }
         //=======================
 
         private string LesenID { get; set; } = string.Empty;
@@ -43,8 +44,9 @@ namespace PBTPro.Pages
         IEnumerable<(NoticeProp, int)> Items;
 
         //Premis data
-        IEnumerable<premis_view> premisData;
-        IEnumerable<(premis_view, int)> premisItem;
+        IEnumerable<dynamic> premisData;
+        IEnumerable<(dynamic, int)> premisItem;
+
         IGrid Grid { get; set; }
         TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -79,7 +81,7 @@ namespace PBTPro.Pages
         private DateTime _lastMoveTime;
         private readonly TimeSpan _throttleTime = TimeSpan.FromMilliseconds(300); 
         private ConcurrentDictionary<int, bool> _processedLotGids = new ConcurrentDictionary<int, bool>(); // Thread-safe GID tracking
-        private ConcurrentDictionary<int, bool> _processedPremisGids = new ConcurrentDictionary<int, bool>(); // Thread-safe GID tracking
+        private ConcurrentDictionary<string, bool> _processedPremisGids = new ConcurrentDictionary<string, bool>(); // Thread-safe GID tracking
         private readonly object _lockLot = new object(); 
         private bool _isProcessing = false;  // Flag to track if tasks are processing
         private Queue<Task> _pendingTasks = new Queue<Task>();
@@ -101,6 +103,7 @@ namespace PBTPro.Pages
             {
                 case "Aktif":
                     return "Green";
+                case "Tidak Berlesen":
                 case "Tamat Tempoh":
                     return "Red";
                 case "Gantung":
@@ -137,15 +140,15 @@ namespace PBTPro.Pages
             //Map
             _mapOptions = new MapOptions
             {
-                Zoom = 13,
+                Zoom = 15,
                 ZoomControlOptions = new ZoomControlOptions
                 {
                     Position = ControlPosition.RightBottom
                 },
                 Center = new LatLngLiteral
-                {
-                    Lat = 3.0501028427254098,
-                    Lng = 101.62482171721311
+                { 
+                    Lat = 2.9441900567880896,
+                    Lng = 101.37866540001413
                 },
                 IsFractionalZoomEnabled = false,
                 HeadingInteractionEnabled = false,
@@ -219,17 +222,24 @@ namespace PBTPro.Pages
 
                 _bounds = await LatLngBounds.CreateAsync(map1.JsRuntime);
 
-                //Get record
-                NoticeData = await _NoticeService.GetNoticeAsync();
+                ////////Get record
+                //////NoticeData = await _NoticeService.GetNoticeAsync();
                 //Items = NoticeData.Select((item, index) => (item, index));
-                DataLoadedTcs.TrySetResult(true);
-                //Start populate the map
-                await InvokeClustering(1);
+
+
+                //////DataLoadedTcs.TrySetResult(true);
+                //////Start populate the map
+                ////await InvokeClustering(1);
 
                 // Add listener for map api polygon data -- ismail
                 await ProcessMapAPIData();
-                //await this.map1.InteropObject.AddListener("dragend", async () => await ProcessMapAPIData());
-                //await this.map1.InteropObject.AddListener("zoom_changed", async () => await ProcessMapAPIData());  
+
+                //Get record
+                premisData = await _PremisService.GetList();
+                premisItem = premisData.Select((item, index) => (item, index));
+
+                DataLoadedTcs.TrySetResult(true);
+                await InvokeClustering(1);
 
                 await this.map1.InteropObject.AddListener("dragend", async () =>
                 {
@@ -262,9 +272,15 @@ namespace PBTPro.Pages
             });
 
 
-            foreach (var _notice in NoticeData)
+            foreach (var _premis in premisData)
             {
-                await _bounds.Extend(_notice.Position);
+                var geometry = _premis.geom;
+                if (geometry.type == "Point")
+                {
+                    var coords = geometry.coordinates;
+                    var latLng = new LatLngLiteral(coords[1], coords[0]);
+                    await _bounds.Extend(latLng);
+                }
             }
 
             var boundsLiteral = await _bounds.ToJson();
@@ -273,31 +289,35 @@ namespace PBTPro.Pages
 
         private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart)
         {
-            var result = new List<AdvancedMarkerElement>(NoticeData.Count());
+            var result = new List<AdvancedMarkerElement>(premisData.Count());
             bool blnValidFilter = true;
-            foreach (var _notice in NoticeData)
+            foreach (var _premis in premisData)
             {
                 blnValidFilter = true;
                 if (initStart != 1)
                 {
                     blnValidFilter = false;
-                    if (SelectedIds.Contains(_notice.Type.ToString()))
+                    if (SelectedIds.Contains(_premis.marker_lesen_status.ToString()))
                     {
                         blnValidFilter = true;
                     }
                 }
+
+                var geometry = _premis.geom;
+                var coords = geometry.coordinates;
+                var latLng = new LatLngLiteral(coords[1], coords[0]);
 
                 //Start filtering based on selected tapisan
                 if (blnValidFilter)
                 {
                     var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
                     {
-                        Position = _notice.Position,
+                        Position = latLng,
                         Map = map1.InteropObject,
-                        Title = _notice.NoLesen,
+                        Title = _premis.codeid_premis.Substring(3),
                         // Content = index.ToString()
                         Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30"">
-                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(_notice.Type) + "'/></svg><lable class='map-marker-label'>" + $"{_notice.NoLot}" + "</lable></div>",
+                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(_premis.marker_lesen_status) + "'/></svg><lable class='map-marker-label'>" + $"{_premis.codeid_premis.Substring(3)}" + "</lable></div>",
                     });
 
                     markers.Push(_marker);
@@ -307,7 +327,7 @@ namespace PBTPro.Pages
                         //string markerLabelText = await marker.GetLabelText();
                         //string _title = await _marker.GetTitle();
                         // _events.Add("click on " + _title);
-                        await OpenSideBar(_notice.NoLesen);
+                        await OpenSideBar(_premis.codeid_premis);
                         StateHasChanged();
                         ///await e.Stop();
                     });
@@ -318,9 +338,9 @@ namespace PBTPro.Pages
                 //Add all selected filter
                 if (initStart == 1) // first init
                 {
-                    if (!SelectedIds.Contains(_notice.Type.ToString()))
+                    if (!SelectedIds.Contains(_premis.marker_lesen_status.ToString()))
                     {
-                        SelectedIds.Add(_notice.Type.ToString());
+                        SelectedIds.Add(_premis.marker_lesen_status.ToString());
                     }
                 }
 
@@ -391,8 +411,8 @@ namespace PBTPro.Pages
         {
             await ClearClustering();
             //Populate back the filtering
-            if (SelectedIds != null)
-                await InvokeClustering(2);
+            //////if (SelectedIds != null)
+                //////await InvokeClustering(2);
 
             OutPutValue = string.Join(",", SelectedIds.ToArray());
             StateHasChanged();
@@ -408,7 +428,7 @@ namespace PBTPro.Pages
             };
             var vSubTwo = new FilterData()
             {
-                TypeId = "Tamat Tempoh",
+                TypeId = "Tidak Berlesen",
                 Description = "Lesen Tamat Tempoh",
                 Color = "Red"
             };
@@ -459,6 +479,7 @@ namespace PBTPro.Pages
             }
         }
 
+        //Search premise function, click from the grid
         protected async Task OnSelectedRow(object itemData)
         {
             //Remove the last marker ==========
@@ -593,7 +614,7 @@ namespace PBTPro.Pages
                 {
                     _isProcessing = true;
                     await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
-                    await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    //////await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
                     _isProcessing = false;
 
                 }
@@ -739,9 +760,13 @@ namespace PBTPro.Pages
                         dynamic datas = JsonConvert.DeserializeObject(dataString);
 
                         List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+
+
+
+
                         var filteredDatas = dataList.Where(d =>
                         {
-                            int dataId = (int)d.gid;  // Convert gid to int (ensure it's valid)
+                            string dataId = d.codeid_premis;  // Convert gid to int (ensure it's valid)
                             return !_processedPremisGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
                         }).ToList();
 
@@ -749,9 +774,9 @@ namespace PBTPro.Pages
 
 
                         //Count and mark the premise
-                        foreach (var data in filteredDatas)
+                        foreach (var data in dataList)
                         {
-                            int dataId = data.gid.ToObject(typeof(int));
+                            string dataId = data.codeid_premis.ToObject(typeof(string));
 
                             if (dataId == null)
                             {
@@ -1000,8 +1025,8 @@ namespace PBTPro.Pages
 
         private async Task CreateMarker(LatLngLiteral position, dynamic data)
         {
-            int dataId = data.gid.ToObject(typeof(int));
-            string title = data.lot;
+            string dataId = data.codeid_premis.ToObject(typeof(string));
+            string title = data.codeid_premis.Substring(3);
             //var marker = await Marker.CreateAsync(this.map1.JsRuntime, new MarkerOptions
             //{
             //    Position = position,
