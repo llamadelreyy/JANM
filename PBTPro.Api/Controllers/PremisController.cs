@@ -288,6 +288,7 @@ namespace PBTPro.Api.Controllers
                     resultData.Add(new premis_marker
                     {
                         codeid_premis = premis.codeid_premis,
+                        lot = premis.lot,
                         marker_cukai_status = marker_cukai_status,
                         marker_lesen_status = marker_lesen_status,
                         marker_color = marker_color,
