@@ -882,6 +882,7 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasMaxLength(10)
                 .HasComment("Code of the department (e.g., PL).");
             entity.Property(e => e.dept_desc).HasComment("Description about the department (e.g., Roles, Job Description, etc.).");
+            entity.Property(e => e.dept_email).HasMaxLength(100);
             entity.Property(e => e.dept_name)
                 .HasMaxLength(40)
                 .HasComment("Name of the department (e.g., Jabatan Pelesenan).");
