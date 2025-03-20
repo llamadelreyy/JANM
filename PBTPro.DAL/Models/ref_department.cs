@@ -53,6 +53,7 @@ public partial class ref_department
     /// </summary>
     public bool? is_deleted { get; set; }
 
+    public string? dept_email { get; set; }
     public virtual ICollection<mst_patrol_schedule> mst_patrol_schedules { get; set; } = new List<mst_patrol_schedule>();
 
     public virtual ICollection<ref_division> ref_divisions { get; set; } = new List<ref_division>();
