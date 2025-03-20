@@ -139,27 +139,27 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
                 }
 
-                var members = await _tenantDBContext.trn_patrol_officers.AsNoTracking().ToListAsync();
+                var members = await _tenantDBContext.trn_patrol_officers.Where(x => x.schedule_id == patrol.schedule_id).AsNoTracking().ToListAsync();
                 var jnMembers = (from pm in members
-                                       join u in _dbContext.Users on pm.idno equals u.IdNo
-                                       select new
-                                       {
-                                           pm.idno,
-                                           pm.schedule_id,
-                                           pm.officer_id,
-                                           pm.cnt_notice,
-                                           pm.cnt_cmpd,
-                                           pm.cnt_notes,
-                                           pm.cnt_seizure,
-                                           pm.creator_id,
-                                           pm.created_at,
-                                           pm.modifier_id,
-                                           pm.modified_at,
-                                           pm.start_time,
-                                           pm.end_time,
-                                           member_fullname = u.full_name,
-                                           pm.user_id
-                                       }).ToList();
+                                join u in _dbContext.Users on pm.idno equals u.IdNo
+                                select new
+                                {
+                                    pm.idno,
+                                    pm.schedule_id,
+                                    pm.officer_id,
+                                    pm.cnt_notice,
+                                    pm.cnt_cmpd,
+                                    pm.cnt_notes,
+                                    pm.cnt_seizure,
+                                    pm.creator_id,
+                                    pm.created_at,
+                                    pm.modifier_id,
+                                    pm.modified_at,
+                                    pm.start_time,
+                                    pm.end_time,
+                                    member_fullname = u.full_name,
+                                    pm.user_id
+                                }).ToList();
 
                 var result = new
                 {
@@ -316,8 +316,8 @@ namespace PBTPro.Api.Controllers
             {
                 var patrol_member = await (from p in _tenantDBContext.mst_patrol_schedules
                                            join pm in _tenantDBContext.trn_patrol_officers on p.schedule_id equals pm.schedule_id
-                                           where p.status_id == 3 && pm.idno == username
-                                           orderby p.schedule_id descending
+                                           where p.status_id == 1 && pm.idno == username
+                                           orderby pm.end_time descending
                                            select new
                                            {
                                                p.schedule_id,
@@ -633,10 +633,10 @@ namespace PBTPro.Api.Controllers
                 _tenantDBContext.mst_patrol_schedules.Update(patrol);
                 await _tenantDBContext.SaveChangesAsync();
 
-                List<trn_patrol_officer>? patrolDets = await _tenantDBContext.trn_patrol_officers.Where(x => x.schedule_id == InputModel.schedule_id).ToListAsync();
+                List<trn_patrol_officer>? patrolDets = await _tenantDBContext.trn_patrol_officers.Where(x => x.schedule_id == patrol.schedule_id && x.end_time == null).ToListAsync();
                 foreach (var patrolDet in patrolDets)
                 {
-                    patrolDet.end_time = (DateTime)patrol.end_time;
+                    patrolDet.end_time = patrol.end_time;
                     patrolDet.modifier_id = runUserID;
                     patrolDet.modified_at = DateTime.Now;
                     _tenantDBContext.trn_patrol_officers.Update(patrolDet);
