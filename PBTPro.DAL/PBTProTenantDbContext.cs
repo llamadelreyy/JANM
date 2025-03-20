@@ -587,6 +587,7 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.geom).HasColumnType("geometry(PointZ,4326)");
             entity.Property(e => e.gkeseluruh).HasMaxLength(200);
             entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.lot).HasColumnType("character varying");
             entity.Property(e => e.modified_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");

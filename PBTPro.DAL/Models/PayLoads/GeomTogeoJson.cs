@@ -19,6 +19,7 @@ namespace PBTPro.DAL.Models.PayLoads
     public class PremisMarkerViewModel
     {
         public string codeid_premis { get; set; }
+        public string lot { get; set; }
         public JsonDocument? geom { get; set; }
         public string? tax_status_view { get; set; }
         public int? tax_status_id { get; set; }
