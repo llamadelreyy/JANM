@@ -558,6 +558,7 @@ namespace PBTPro.Api.Controllers
                                                 n.act_code,
                                                 n.created_at,
                                                 n.modified_at,
+                                                n.trnstatus_id,
                                             }).ToListAsync();
 
                 // Check if no record was found
@@ -582,14 +583,14 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{ScheduleId}")]
-        public async Task<IActionResult> GetConfiscationListBySchedId(int UserId)
+        public async Task<IActionResult> GetConfiscationListBySchedId(int ScheduleId)
         {
             try
             {
                 var resultData = new List<dynamic>();
 
                 var confiscation_lists = await (from n in _tenantDBContext.trn_cfscs
-                                                where n.creator_id == UserId
+                                                where n.schedule_id == ScheduleId
                                                 select new
                                                 {
                                                     n.cfsc_ref_no,
@@ -597,6 +598,7 @@ namespace PBTPro.Api.Controllers
                                                     n.act_code,
                                                     n.created_at,
                                                     n.modified_at,
+                                                    n.trnstatus_id,
                                                 }).ToListAsync();
 
                 // Check if no record was found
@@ -620,6 +622,125 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [HttpGet("{TaxAccNo}")]
+        public async Task<IActionResult> GetConfiscationListByTaxAccNo(string TaxAccNo)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+
+                var confiscation_lists = await (from n in _tenantDBContext.trn_cfscs
+                                                where n.tax_accno == TaxAccNo
+                                                select new
+                                                {
+                                                    n.cfsc_ref_no,
+                                                    n.act_code,
+                                                    n.section_code,
+                                                    n.created_at,
+                                                    n.modified_at,
+                                                    n.trnstatus_id,
+                                                }).ToListAsync();
+
+                // Check if no record was found
+                if (confiscation_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = confiscation_lists.Count,
+                    confiscation_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseAccNo}")]
+        public async Task<IActionResult> GetConfiscationListByLicenseAccNo(string LicenseAccNo)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+                var licenseInfo = await _tenantDBContext.mst_licensees.AsNoTracking().FirstOrDefaultAsync(x => x.license_accno == LicenseAccNo);
+                var confiscation_lists = await (from n in _tenantDBContext.trn_cfscs
+                                                where n.license_id == licenseInfo.licensee_id
+                                                select new
+                                                {
+                                                    n.cfsc_ref_no,
+                                                    n.act_code,
+                                                    n.section_code,
+                                                    n.created_at,
+                                                    n.modified_at,
+                                                    n.trnstatus_id,
+                                                }).ToListAsync();
+
+                // Check if no record was found
+                if (confiscation_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = confiscation_lists.Count,
+                    confiscation_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseId}")]
+        public async Task<IActionResult> GetConfiscationListByLicenseId(int LicenseId)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+
+                var confiscation_lists = await (from n in _tenantDBContext.trn_cfscs
+                                                where n.license_id == LicenseId
+                                                select new
+                                                {
+                                                    n.cfsc_ref_no,
+                                                    n.section_code,
+                                                    n.act_code,
+                                                    n.created_at,
+                                                    n.modified_at,
+                                                    n.trnstatus_id,
+                                                }).ToListAsync();
+
+                // Check if no record was found
+                if (confiscation_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = confiscation_lists.Count,
+                    confiscation_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
 
         #region Testing API
         // For Testing Purpose ONLY WIll be removed after finalization
