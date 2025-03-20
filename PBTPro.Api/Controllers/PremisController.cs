@@ -74,6 +74,7 @@ namespace PBTPro.Api.Controllers
                 .Select(x => new PremisMarkerViewModel
                 {
                     codeid_premis = x.Premis.codeid_premis,
+                    lot = x.Premis.lot,
                     geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.Premis.geom)),
                     license_status_id = x.jnLicTax.status_lesen_id,
                     license_status_view = x.licStatus.status_name,
@@ -143,6 +144,7 @@ namespace PBTPro.Api.Controllers
                 .Select(x => new PremisMarkerViewModel
                 {
                     codeid_premis = x.Premis.codeid_premis,
+                    lot = x.Premis.lot,
                     geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.Premis.geom)),
                     license_status_id = x.jnLicTax.status_lesen_id,
                     license_status_view = x.licStatus.status_name,
@@ -245,6 +247,7 @@ namespace PBTPro.Api.Controllers
                 .Select(x => new
                 {
                     codeid_premis = x.Premis.codeid_premis,
+                    lot = x.Premis.lot,
                     geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.Premis.geom)),
                     license_status_id = x.jnLicTax.status_lesen_id,
                     license_status_view = x.licStatus.status_name,
