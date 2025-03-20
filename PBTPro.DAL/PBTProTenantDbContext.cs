@@ -629,9 +629,9 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.tax_accno)
                 .HasMaxLength(40)
                 .HasComment("Tax account number associated with the tax holder.");
-            entity.Property(e => e.tax_duration)
-                .HasDefaultValueSql("'1 year'::interval")
-                .HasComment("Duration of the tax obligation, defaulting to 1 year.");
+            //entity.Property(e => e.tax_duration)
+            //    .HasDefaultValueSql("'1 year'::interval")
+            //    .HasComment("Duration of the tax obligation, defaulting to 1 year.");
             entity.Property(e => e.tax_end_date).HasComment("Date when the tax obligation ends.");
             entity.Property(e => e.tax_start_date).HasComment("Date when the tax obligation starts.");
             entity.Property(e => e.zon_id).HasComment("Identifier for zoning related to taxation.");
