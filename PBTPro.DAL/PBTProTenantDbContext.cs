@@ -587,6 +587,7 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.geom).HasColumnType("geometry(PointZ,4326)");
             entity.Property(e => e.gkeseluruh).HasMaxLength(200);
             entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.lot).HasColumnType("character varying");
             entity.Property(e => e.modified_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
@@ -629,9 +630,9 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.tax_accno)
                 .HasMaxLength(40)
                 .HasComment("Tax account number associated with the tax holder.");
-            entity.Property(e => e.tax_duration)
-                .HasDefaultValueSql("'1 year'::interval")
-                .HasComment("Duration of the tax obligation, defaulting to 1 year.");
+            //entity.Property(e => e.tax_duration)
+            //    .HasDefaultValueSql("'1 year'::interval")
+            //    .HasComment("Duration of the tax obligation, defaulting to 1 year.");
             entity.Property(e => e.tax_end_date).HasComment("Date when the tax obligation ends.");
             entity.Property(e => e.tax_start_date).HasComment("Date when the tax obligation starts.");
             entity.Property(e => e.zon_id).HasComment("Identifier for zoning related to taxation.");
@@ -882,6 +883,7 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasMaxLength(10)
                 .HasComment("Code of the department (e.g., PL).");
             entity.Property(e => e.dept_desc).HasComment("Description about the department (e.g., Roles, Job Description, etc.).");
+            entity.Property(e => e.dept_email).HasMaxLength(100);
             entity.Property(e => e.dept_name)
                 .HasMaxLength(40)
                 .HasComment("Name of the department (e.g., Jabatan Pelesenan).");
