@@ -258,7 +258,7 @@ builder.Services.AddAuthentication(options =>
                 return Task.CompletedTask; // Exit if the response has already started
             }
 
-            if (context.Error.ToLower() == "invalid_token")
+            if (context?.Error?.ToLower() == "invalid_token")
             {
                 context.Response.StatusCode = StatusCodes.Status419AuthenticationTimeout;
                 context.Response.ContentType = "application/json";

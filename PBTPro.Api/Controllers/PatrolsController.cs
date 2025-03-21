@@ -61,7 +61,7 @@ namespace PBTPro.Api.Controllers
                     schedule_id = x.schedule_id,
                     idno = x.idno,
                     start_time = x.start_time,
-                    end_time = (DateTime)x.end_time,
+                    end_time = x.end_time,
                     status_id = x.status_id,
                     is_scheduled = false,
                     loc_name = x.loc_name,
@@ -139,34 +139,32 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
                 }
 
-                var members = await (from pm in _tenantDBContext.trn_patrol_officers
-                                     join u in _dbContext.Users on pm.idno equals u.UserName
-                                     where pm.schedule_id == patrol.schedule_id
-                                     select new
-                                     {
-                                         pm.idno,
-                                         pm.schedule_id,
-                                         pm.officer_id,
-                                         pm.cnt_notice,
-                                         pm.cnt_cmpd,
-                                         pm.cnt_notes,
-                                         pm.cnt_seizure,
-                                         pm.creator_id,
-                                         pm.created_at,
-                                         pm.modifier_id,
-                                         pm.modified_at,
-                                         pm.start_time,
-                                         pm.end_time,
-                                         member_fullname = u.UserName,
-                                         pm.user_id
-                                     })
-                                    .AsNoTracking()
-                                    .ToListAsync();
+                var members = await _tenantDBContext.trn_patrol_officers.Where(x => x.schedule_id == patrol.schedule_id).AsNoTracking().ToListAsync();
+                var jnMembers = (from pm in members
+                                join u in _dbContext.Users on pm.idno equals u.IdNo
+                                select new
+                                {
+                                    pm.idno,
+                                    pm.schedule_id,
+                                    pm.officer_id,
+                                    pm.cnt_notice,
+                                    pm.cnt_cmpd,
+                                    pm.cnt_notes,
+                                    pm.cnt_seizure,
+                                    pm.creator_id,
+                                    pm.created_at,
+                                    pm.modifier_id,
+                                    pm.modified_at,
+                                    pm.start_time,
+                                    pm.end_time,
+                                    member_fullname = u.full_name,
+                                    pm.user_id
+                                }).ToList();
 
                 var result = new
                 {
                     info = patrol,
-                    members = members
+                    members = jnMembers
                 };
 
                 return Ok(result, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
@@ -192,7 +190,7 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "MEMBER_ISNULL", MessageTypeEnum.Error, string.Format("pegawai tidah sah")));
                 }
 
-                var patrol = await _dbContext.patrol_infos.FirstOrDefaultAsync(x => x.patrol_id == InputModel.patrol_id && x.patrol_status.ToUpper() == "RONDAAN");
+                var patrol = await _tenantDBContext.mst_patrol_schedules.FirstOrDefaultAsync(x => x.schedule_id == InputModel.schedule_id && x.status_id == 2);
 
                 if (patrol == null)
                 {
@@ -200,7 +198,7 @@ namespace PBTPro.Api.Controllers
                 }
 
                 var isActivePatrolling = await _tenantDBContext.trn_patrol_officers
-                                        .AnyAsync(x => x.idno == InputModel.username && (DateTime)x.end_time == null &&
+                                        .AnyAsync(x => x.idno == InputModel.username && x.end_time == null &&
                                            _tenantDBContext.mst_patrol_schedules.Any(y =>
                                                y.schedule_id == x.schedule_id &&
                                                y.status_id == 2
@@ -215,7 +213,7 @@ namespace PBTPro.Api.Controllers
 
                 trn_patrol_officer patrolDet = new trn_patrol_officer
                 {
-                    schedule_id = patrol.patrol_id,
+                    schedule_id = patrol.schedule_id,
                     idno = InputModel.username,
                     is_leader = false,
                     start_time = DateTime.Now,
@@ -232,7 +230,7 @@ namespace PBTPro.Api.Controllers
                     var data = new
                     {
                         Action = "STRPATROL",
-                        PatrolId = patrol.patrol_id,
+                        ScheduleId = patrol.schedule_id,
                         Isleader = false
                     };
                     await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", "web-api", data);
@@ -241,7 +239,7 @@ namespace PBTPro.Api.Controllers
                 var result = new
                 {
                     Action = "ADDMEMBER",
-                    PatrolId = patrol.patrol_id,
+                    ScheduleId = patrol.schedule_id,
                     Isleader = true
                 };
                 return Ok(result, SystemMesg(_feature, "PATROL_ADD_MEMBER", MessageTypeEnum.Success, string.Format("Berjaya menambah pegawai")));
@@ -261,14 +259,14 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var patrol = await _tenantDBContext.mst_patrol_schedules.FirstOrDefaultAsync(x => x.schedule_id == InputModel.patrol_id && x.status_id == 2);
+                var patrol = await _tenantDBContext.mst_patrol_schedules.FirstOrDefaultAsync(x => x.schedule_id == InputModel.schedule_id && x.status_id == 2);
 
                 if (patrol == null)
                 {
                     return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
                 }
 
-                trn_patrol_officer patrolDet = await _tenantDBContext.trn_patrol_officers.FirstOrDefaultAsync(x => x.schedule_id == InputModel.patrol_id && x.idno == InputModel.username && x.end_time == null);
+                trn_patrol_officer patrolDet = await _tenantDBContext.trn_patrol_officers.FirstOrDefaultAsync(x => x.schedule_id == InputModel.schedule_id && x.idno == InputModel.username && x.end_time == null);
 
                 if (patrolDet == null)
                 {
@@ -290,7 +288,7 @@ namespace PBTPro.Api.Controllers
                     var data = new
                     {
                         Action = "STPPATROL",
-                        PatrolId = patrol.schedule_id,
+                        SchedulerId = patrol.schedule_id,
                         Isleader = false
                     };
                     await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveMessage", "web-api", data);
@@ -299,7 +297,7 @@ namespace PBTPro.Api.Controllers
                 var result = new
                 {
                     Action = "REMMEMBER",
-                    PatrolId = patrol.schedule_id,
+                    SchedulerId = patrol.schedule_id,
                     Isleader = true
                 };
                 return Ok(result, SystemMesg(_feature, "PATROL_REM_MEMBER", MessageTypeEnum.Success, string.Format("Berjaya membuang pegawai")));
@@ -318,10 +316,11 @@ namespace PBTPro.Api.Controllers
             {
                 var patrol_member = await (from p in _tenantDBContext.mst_patrol_schedules
                                            join pm in _tenantDBContext.trn_patrol_officers on p.schedule_id equals pm.schedule_id
-                                           where p.status_id == 3 && pm.idno == username
-                                           orderby p.schedule_id descending
+                                           where p.status_id == 1 && pm.idno == username
+                                           orderby pm.end_time descending
                                            select new
                                            {
+                                               p.schedule_id,
                                                p.start_time,
                                                pm.end_time,
                                                PatrolDuration = p.start_time != null && pm.end_time != null
@@ -347,14 +346,14 @@ namespace PBTPro.Api.Controllers
                 int runUserID = await getDefRunUserId();
                 string runUser = await getDefRunUser();
 
-                var patrol = await _tenantDBContext.mst_patrol_schedules.Where(x => x.start_time == DateTime.Today && x.creator_id == runUserID).Select(x => new
+                var patrol = await _tenantDBContext.mst_patrol_schedules.Where(x => x.start_time == DateTime.Today && (x.creator_id == runUserID || x.idno == runUser)).Select(x => new
                 {
                     schedule_id = x.schedule_id,
                     idno = x.idno,
                     start_time = x.start_time,
                     end_time = x.end_time,
                     status_id = x.status_id,
-                    is_scheduled = false,
+                    is_scheduled = x.is_scheduled,
                     loc_name = x.loc_name,
                     type_id = x.type_id,
                     dept_id = x.dept_id,
@@ -366,7 +365,7 @@ namespace PBTPro.Api.Controllers
                     created_at = x.created_at,
                     modifier_id = x.modifier_id,
                     modified_at = x.modified_at,
-                    is_deleted = false,
+                    is_deleted = x.is_deleted,
                     start_location = x.start_location != null
                                     ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.start_location))
                                     : null,
@@ -465,9 +464,9 @@ namespace PBTPro.Api.Controllers
                 teamMembers.AddRange(InputModel.usernames.Where(username => !string.IsNullOrWhiteSpace(username) && username != runUser));
 
                 #region Validation
-                if (InputModel.patrol_id.HasValue)
+                if (InputModel.schedule_id.HasValue)
                 {
-                    patrol = await _tenantDBContext.mst_patrol_schedules.Where(x => x.schedule_id == InputModel.patrol_id).FirstOrDefaultAsync();
+                    patrol = await _tenantDBContext.mst_patrol_schedules.Where(x => x.schedule_id == InputModel.schedule_id).FirstOrDefaultAsync();
                     if (patrol == null)
                     {
                         isNew = true;
@@ -611,7 +610,7 @@ namespace PBTPro.Api.Controllers
                 string runUser = await getDefRunUser();
 
                 #region Validation
-                var patrol = await _tenantDBContext.mst_patrol_schedules.FirstOrDefaultAsync(x => x.schedule_id == InputModel.patrol_id && x.status_id == 2);//"RONDAAN");
+                var patrol = await _tenantDBContext.mst_patrol_schedules.FirstOrDefaultAsync(x => x.schedule_id == InputModel.schedule_id && x.status_id == 2);//"RONDAAN");
 
                 if (patrol == null)
                 {
@@ -634,10 +633,10 @@ namespace PBTPro.Api.Controllers
                 _tenantDBContext.mst_patrol_schedules.Update(patrol);
                 await _tenantDBContext.SaveChangesAsync();
 
-                List<trn_patrol_officer>? patrolDets = await _tenantDBContext.trn_patrol_officers.Where(x => x.schedule_id == InputModel.patrol_id).ToListAsync();
+                List<trn_patrol_officer>? patrolDets = await _tenantDBContext.trn_patrol_officers.Where(x => x.schedule_id == patrol.schedule_id && x.end_time == null).ToListAsync();
                 foreach (var patrolDet in patrolDets)
                 {
-                    patrolDet.end_time = (DateTime)patrol.end_time;
+                    patrolDet.end_time = patrol.end_time;
                     patrolDet.modifier_id = runUserID;
                     patrolDet.modified_at = DateTime.Now;
                     _tenantDBContext.trn_patrol_officers.Update(patrolDet);
