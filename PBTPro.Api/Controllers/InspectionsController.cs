@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using PBTPro.Api.Controllers.Base;
+using PBTPro.Api.Services;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
@@ -29,16 +30,18 @@ namespace PBTPro.Api.Controllers
     public class InspectionsController : IBaseController
     {
         private readonly IConfiguration _configuration;
+        private readonly IEmailSender _emailSender;
         private readonly string _feature = "INSPECTIONS"; // follow module name (will be used in logging result to user)
         private readonly ILogger<InspectionsController> _logger;
         private readonly long _maxImageFileSize = 5 * 1024 * 1024;
         private readonly List<string> _imageFileExt = new List<string> { ".jpg", ".jpeg", ".png" };
 
-        public InspectionsController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<InspectionsController> logger, PBTProTenantDbContext tntdbContext) : base(dbContext)
+        public InspectionsController(IConfiguration configuration, PBTProDbContext dbContext, ILogger<InspectionsController> logger, PBTProTenantDbContext tntdbContext, IEmailSender emailSender) : base(dbContext)
         {
             _configuration = configuration;
             _tenantDBContext = tntdbContext;
             _logger = logger;
+            _emailSender = emailSender;
         }
 
         [HttpGet]
@@ -128,10 +131,11 @@ namespace PBTPro.Api.Controllers
                 #region Start Transaction
                 using (var transaction = await _tenantDBContext.Database.BeginTransactionAsync())
                 {
+                    trn_inspect inspect;
                     try
                     {
                         #region Main Data
-                        trn_inspect inspect = new trn_inspect
+                        inspect = new trn_inspect
                         {
                             owner_icno = InputModel.owner_icno,
                             inspect_ref_no = InputModel.inspect_ref_no,
@@ -145,6 +149,7 @@ namespace PBTPro.Api.Controllers
                             tax_accno = InputModel.tax_accno,
                             is_tax = InputModel.is_tax,
                             user_id = InputModel.user_id,
+                            dept_id = InputModel.dept_id,
                             is_deleted = false,
                             creator_id = runUserID,
                             created_at = DateTime.Now,
@@ -215,7 +220,6 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(inspect, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta nota pemeriksaan")));
                     }
                     catch (Exception ex)
                     {
@@ -223,6 +227,16 @@ namespace PBTPro.Api.Controllers
                         _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                         return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
                     }
+
+                    if(InputModel.dept_id.HasValue && InputModel.dept_id > 0)
+                    {
+                        var deptInfo = await _tenantDBContext.ref_departments.AsNoTracking().FirstOrDefaultAsync(x=>x.dept_id == InputModel.dept_id);
+                        if(deptInfo != null && !string.IsNullOrWhiteSpace(deptInfo?.dept_email))
+                        {
+                            await SendInspectionFollowUpNotice(deptInfo.dept_email, deptInfo.dept_name, inspect);
+                        }
+                    }
+                    return Ok(inspect, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta nota pemeriksaan")));
                 }
                 #endregion
             }
@@ -450,6 +464,7 @@ namespace PBTPro.Api.Controllers
                                               n.inspect_ref_no,
                                               n.created_at,
                                               n.modified_at,
+                                              n.trnstatus_id,
                                           }).ToListAsync();
 
                 // Check if no record was found
@@ -487,6 +502,7 @@ namespace PBTPro.Api.Controllers
                                                   n.inspect_ref_no,
                                                   n.created_at,
                                                   n.modified_at,
+                                                  n.trnstatus_id,
                                               }).ToListAsync();
 
                 // Check if no record was found
@@ -510,6 +526,148 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [HttpGet("{TaxAccNo}")]
+        public async Task<IActionResult> GetInspectionListByTaxAccNo(string TaxAccNo)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+
+                var inspection_lists = await (from n in _tenantDBContext.trn_inspects
+                                              where n.tax_accno == TaxAccNo
+                                              select new
+                                              {
+                                                  n.inspect_ref_no,
+                                                  n.created_at,
+                                                  n.modified_at,
+                                                  n.trnstatus_id,
+                                              }).ToListAsync();
+
+                // Check if no record was found
+                if (inspection_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = inspection_lists.Count,
+                    inspection_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseAccNo}")]
+        public async Task<IActionResult> GetInspectionListByLicenseAccNo(string LicenseAccNo)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+                var licenseInfo = await _tenantDBContext.mst_licensees.AsNoTracking().FirstOrDefaultAsync(x => x.license_accno == LicenseAccNo);
+                var inspection_lists = await (from n in _tenantDBContext.trn_inspects
+                                              where n.license_id == licenseInfo.licensee_id
+                                              select new
+                                              {
+                                                  n.inspect_ref_no,
+                                                  n.created_at,
+                                                  n.modified_at,
+                                                  n.trnstatus_id,
+                                              }).ToListAsync();
+
+                // Check if no record was found
+                if (inspection_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = inspection_lists.Count,
+                    inspection_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseId}")]
+        public async Task<IActionResult> GetInspectionListByLicenseId(int LicenseId)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+
+                var inspection_lists = await (from n in _tenantDBContext.trn_inspects
+                                              where n.schedule_id == LicenseId
+                                              select new
+                                              {
+                                                  n.inspect_ref_no,
+                                                  n.created_at,
+                                                  n.modified_at,
+                                                  n.trnstatus_id,
+                                              }).ToListAsync();
+
+                // Check if no record was found
+                if (inspection_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = inspection_lists.Count,
+                    inspection_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        #region Testing API
+        // For Testing Purpose ONLY WIll be removed after finalization
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> SentFollowUpNotice(int InspectionId)
+        {
+            try
+            {
+                var runUserID = await getDefRunUserId();
+                var runUser = await getDefRunUser();
+
+                var inspect = await _tenantDBContext.trn_inspects.AsNoTracking().FirstOrDefaultAsync(x => x.trn_inspect_id == InspectionId);
+
+                var deptInfo = await _tenantDBContext.ref_departments.AsNoTracking().FirstOrDefaultAsync(x => x.dept_id == inspect.dept_id);
+                if (deptInfo != null && !string.IsNullOrWhiteSpace(deptInfo?.dept_email))
+                {
+                    await SendInspectionFollowUpNotice(deptInfo.dept_email, deptInfo.dept_name, inspect);
+                }
+
+                return Ok(inspect, SystemMesg(_feature, "TEST_NOTICE", MessageTypeEnum.Success, string.Format("Berjaya menghantar notis")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        #endregion
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<trn_inspect_view>>> ListReport()
@@ -790,6 +948,86 @@ namespace PBTPro.Api.Controllers
                 }
             }
             return result;
+        }
+
+
+        private async Task<bool> SendInspectionFollowUpNotice(string recipient, string dept_name, trn_inspect inspectInfo)
+        {
+            try
+            {
+                //Default Email Template
+                EmailContent defaultContent = new EmailContent
+                {
+                    subject = "Permohonan Pemeriksaan Premis",
+                    body = "Salam Sejahtera,<br/><br/>" +
+                    "Saya berharap ini mendapati tuan / puan dalam keadaan sihat dan ceria.Saya,"+
+                    "[0],"+
+                    "anggota penguatkuasaan dari [1]," +
+                    "ingin memohon bantuan pihak tuan / puan untuk melakukan pemeriksaan ke atas premis berikut:<br/><br/>" +
+                    "Nama Premis: [2]<br/><br/>" +
+                    "Alamat Premis: [3]<br/><br/>" +
+                    "Tujuan Pemeriksaan: [4]<br/><br/>" +
+                    "Saya telah melampirkan dokumen sokongan yang diperlukan untuk rujukan pihak tuan / puan.Saya "+
+                    "berharap pihak tuan / puan dapat mempertimbangkan permohonan ini dan menjadualkan pemeriksaan "+
+                    "secepat mungkin.<br/><br/>" +
+                    "Terima kasih atas perhatian dan kerjasama tuan / puan.Saya boleh dihubungi melalui [5] atau [6] "+
+                    "jika terdapat sebarang pertanyaan.<br/><br/>" +
+                    "Sekian, terima kasih.<br/><br/>" +
+                    "[0]<br/>" +
+                    "Anggota Penguatkuasaan<br/>" +
+                    "[1]",
+                };
+
+                var reporterInfo = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == inspectInfo.creator_id);
+                var reporterUnit = await _tenantDBContext.ref_units.AsNoTracking().FirstOrDefaultAsync(x => x.unit_id == reporterInfo.unit_id);
+                var premisInfo = new { name = "", address = "" };
+
+                if (inspectInfo.license_id.HasValue && inspectInfo.license_id.Value > 0)
+                {
+                    var licenseInfo = await _tenantDBContext.mst_licensees.AsNoTracking().FirstOrDefaultAsync(x => x.licensee_id == inspectInfo.license_id);
+                    if (licenseInfo != null)
+                    {
+                        premisInfo = new
+                        {
+                            name = licenseInfo.business_name,
+                            address = licenseInfo.business_addr
+                        };
+                    }
+                } else if (!inspectInfo.license_id.HasValue && !string.IsNullOrWhiteSpace(inspectInfo.tax_accno))
+                {
+                    var taxInfo = await _tenantDBContext.mst_taxholders.AsNoTracking().FirstOrDefaultAsync(x => x.tax_accno == inspectInfo.tax_accno);
+                    if (taxInfo != null)
+                    {
+                        premisInfo = new
+                        {
+                            name = "",
+                            address = taxInfo.alamat
+                        };
+                    }
+                }
+
+                string[] param = {
+                    reporterInfo?.full_name ?? "",//namaPegawai, 
+                    reporterUnit?.unit_name ?? "",//Nama Unit Penguatkuasaan, 
+                    premisInfo?.name ?? "",//Nama Premis,
+                    premisInfo?.address ?? "",//Alamat Premis,
+                    inspectInfo?.notes ?? "",//Tujuan Pemeriksaan, 
+                    reporterInfo?.PhoneNumber ?? "",//Nombor Telefon, 
+                    reporterInfo?.Email ?? ""//Alamat Email 
+                };
+
+                var emailHelper = new EmailHelper(_dbContext, _emailSender);
+                EmailContent emailContent = await emailHelper.getEmailContent("PATROL_INSPECT_FOLLOWUP_NOTICE", param, defaultContent);
+
+                var emailRs = await emailHelper.QueueEmail(emailContent.subject, emailContent.body, recipient);
+                var sentRs = await emailHelper.ForceProcessQueue(emailRs);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return false;
+            }
         }
         #endregion
     }

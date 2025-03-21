@@ -58,14 +58,14 @@ namespace PBTPro.Data
             RoleID = _PBTAuthStateProvider.CurrentUser.Roleid;
         }
 
-        public async Task<List<mst_premis>> GetList(int? crs = null)
+        public async Task<List<dynamic>> GetList(int? crs = null)
         {
-            var result = new List<mst_premis>();
+            var result = new List<dynamic>();
             try
             {
                 string requestquery = "";
                 if (crs != null)
-                    requestquery = $"/{crs}";
+                    requestquery = $"?crs={crs}";
 
                 string requestUrl = $"{_baseReqURL}/GetList{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
@@ -75,7 +75,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<mst_premis>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<dynamic>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar senarai data premis.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
@@ -87,15 +87,15 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<mst_premis>();
+                result = new List<dynamic>();
             }
             return result;
         }
 
 
-        public async Task<List<mst_premis>> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, string? filterType, int? crs = null)
+        public async Task<List<PremisMarkerViewModel>> GetListByBound(double minLng, double minLat, double maxLng, double maxLat, string? filterType, int? crs = null)
         {
-            var result = new List<mst_premis>();
+            var result = new List<PremisMarkerViewModel>();
 
             try
             {
@@ -103,14 +103,14 @@ namespace PBTPro.Data
                 if (filterType != null)
                 {
                     if (filterType.Trim() != "")
-                        requestquery = $"/{filterType}";
+                        requestquery = $"&filterType={filterType}";
                 }
 
                 if (crs != null)
-                    requestquery = $"{requestquery}/{crs}";
+                    requestquery = $"{requestquery}&crs={crs}";
 
 
-                string requestUrl = $"{_baseReqURL}/GetListByBound/{minLng}/{minLat}/{maxLng}/{maxLat}{requestquery}";
+                string requestUrl = $"{_baseReqURL}/GetListByBound?minLng={minLng}&minLat={minLat}&maxLng={maxLng}&maxLat={maxLat}{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -118,7 +118,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<mst_premis>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<PremisMarkerViewModel>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat premis mengikut sempadan.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
@@ -130,18 +130,18 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<mst_premis>();
+                result = new List<PremisMarkerViewModel>();
             }
             return result;
         }
 
 
-        public async Task<List<premis_view>> GetPremisInfo(int gid)
+        public async Task<premis_view> GetPremisInfo(string codeid)
         {
-            var result = new List<premis_view>();
+            var result = new premis_view();
             try
             {
-                string requestUrl = $"{_baseReqURL}/GetPremisInfo/{gid}";
+                string requestUrl = $"{_baseReqURL}/GetPremisInfo?codeid={codeid}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -149,7 +149,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<premis_view>>(dataString);
+                        result = JsonConvert.DeserializeObject<premis_view>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat premis.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
@@ -161,20 +161,20 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<premis_view>();
+                result = new premis_view();
             }
             return result;
         }
 
 
-        public async Task<List<mst_premis>> GetHistoryList(int? crs = null)
+        public async Task<List<PremisMarkerViewModel>> GetHistoryList(int? crs = null)
         {
-            var result = new List<mst_premis>();
+            var result = new List<PremisMarkerViewModel>();
             try
             {
                 string requestquery = "";
                 if (crs != null)
-                    requestquery = $"/{crs}";
+                    requestquery = $"?crs={crs}";
 
                 string requestUrl = $"{_baseReqURL}/GetHistoryList{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
@@ -184,7 +184,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<mst_premis>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<PremisMarkerViewModel>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai premis.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
@@ -196,15 +196,15 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<mst_premis>();
+                result = new List<PremisMarkerViewModel>();
             }
             return result;
         }
 
 
-        public async Task<List<mst_premis>> GetFilteredListByBound(double minLng, double minLat, double maxLng, double maxLat, string? filterType, int? crs = null)
+        public async Task<List<PremisMarkerViewModel>> GetFilteredListByBound(double minLng, double minLat, double maxLng, double maxLat, string? filterType, int? crs = null)
         {
-            var result = new List<mst_premis>();
+            var result = new List<PremisMarkerViewModel>();
 
             try
             {
@@ -212,14 +212,14 @@ namespace PBTPro.Data
                 if (filterType != null)
                 {
                     if (filterType.Trim() != "")
-                        requestquery = $"/{filterType}";
+                        requestquery = $"&filterType={filterType}";
                 }
 
                 if (crs != null)
-                    requestquery = $"{requestquery}/{crs}";
+                    requestquery = $"{requestquery}?crs={crs}";
 
 
-                string requestUrl = $"{_baseReqURL}/GetFilteredListByBound/{minLng}/{minLat}/{maxLng}/{maxLat}{requestquery}";
+                string requestUrl = $"{_baseReqURL}/GetFilteredListByBound?minLng={minLng}&minLat={minLat}&maxLng={maxLng}&maxLat={maxLat}{requestquery}";
                 var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -227,7 +227,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<mst_premis>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<PremisMarkerViewModel>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar maklumat premis mengikut sempadan.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
@@ -239,16 +239,16 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<mst_premis>();
+                result = new List<PremisMarkerViewModel>();
             }
             return result;
         }
 
 
         [HttpGet]
-        public async Task<List<mst_premis>> Refresh()
+        public async Task<List<PremisMarkerViewModel>> Refresh()
         {
-            var result = new List<mst_premis>();
+            var result = new List<PremisMarkerViewModel>();
             try
             {
                 string requestUrl = $"{_baseReqURL}/GetHistoryList";
@@ -259,7 +259,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<mst_premis>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<PremisMarkerViewModel>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai premis.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
@@ -272,7 +272,7 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<mst_premis>();
+                result = new List<PremisMarkerViewModel>();
             }
             return result;
         }

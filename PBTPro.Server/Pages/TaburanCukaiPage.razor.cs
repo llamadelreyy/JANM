@@ -365,26 +365,26 @@ namespace PBTPro.Pages
 
             var vSubOne = new FilterData()
             {
-                TypeId = "Aktif",
-                Description = "Lesen Aktif",
+                TypeId = 1,
+                Description = "Aktif",
                 Color = "Green"
             };
             var vSubTwo = new FilterData()
             {
-                TypeId = "Tamat Tempoh",
-                Description = "Lesen Tamat Tempoh",
+                TypeId = 4,
+                Description = "Tidak Berlesen",
                 Color = "Red"
             };
             var vSubThree = new FilterData()
             {
-                TypeId = "Gantung",
+                TypeId = 2,
                 Description = "Lesen Gantung",
                 Color = "Yellow"
             };
             var vSubFour = new FilterData()
             {
-                TypeId = "Tiada Data",
-                Description = "Lesen Tiada Data",
+                TypeId = 3,
+                Description = "Tiada Data",
                 Color = "Grey"
             };
 

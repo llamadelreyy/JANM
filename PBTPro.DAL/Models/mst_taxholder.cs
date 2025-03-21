@@ -51,7 +51,7 @@ public partial class mst_taxholder
     /// <summary>
     /// Duration of the tax obligation, defaulting to 1 year.
     /// </summary>
-    public TimeSpan? tax_duration { get; set; }
+    //public TimeSpan? tax_duration { get; set; }
 
     /// <summary>
     /// Identifier for parliamentary representation related to taxation.

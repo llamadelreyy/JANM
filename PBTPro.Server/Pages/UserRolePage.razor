@@ -169,7 +169,7 @@ else
 
                                                         <div>
                                                             <label class="multiselect-container" for="@item.Id">
-                                                                @item.Name (@item.RoleDesc)
+                                                                <span class="checkName">@item.Name (@item.RoleDesc)</span>
                                                                 <input type="checkbox" class="check_role" id="@item.Id" checked="@(blnSelected ? true : false)" @onchange="@((e) => CheckboxChanged(e, item.Id))" name="Roles" />
                                                                 <span class="checkmark"></span>
                                                             </label>
@@ -278,6 +278,14 @@ else
 
         if (x != null)
         {
+            //Need to clear the old data first 
+            //Mark that role is selected
+            foreach (var _role in dataRole)
+            {
+                _role.role_select = false;
+            }
+
+
             List<ApplicationRole> arrItem = new List<ApplicationRole>();
             ApplicationRole _item;
 

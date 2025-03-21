@@ -131,9 +131,39 @@ namespace PBTPro.DAL.Models.PayLoads
     public class premis_marker
     {
         public string? codeid_premis { get; set; }
+        public string? lot { get; set; }
         public string marker_cukai_status { get; set; }
         public string marker_lesen_status { get; set; }
         public string marker_color { get; set; }
         public JsonDocument? geom { get; set; }
+    }
+
+    public class premis_search_license_view
+    {
+        public int gid { get; set; }
+        public string no_ic_pemilik { get; set; }
+        public string no_ic_lesen { get; set; }
+        public string nama_perniagaan { get; set; }
+        public string alamat_premis { get; set; }
+        public string alamat_perniagaan { get; set; }
+        public List<string>? gambar_premis { get; set; }
+        public string aras { get; set; }
+        public string no_lesen { get; set; }
+        public string status_lesen { get; set; }
+        public double? _latitude { get; set; }
+        public double? _longitude { get; set; }
+        public string nama_pemilik { get; set; }
+        public string nama_pemegang_lesen { get; set; }
+        public string email_pemilik { get; set; }
+        public string no_tel_pemilik { get; set; }
+        public string email_perniagaan { get; set; }
+        public string no_tel_perniagaan { get; set; }
+        public string jenis_premis { get; set; }
+        public string lot { get; set; }
+        public DateOnly? tempoh_sah_lesen { get; set; }
+        public DateOnly? tempoh_sah_cukai { get; set; }
+        public string status_cukai { get; set; }
+        public string no_acc_lesen { get; set; }
+        public DateTime? tarikh_daftar { get; set; }
     }
 }

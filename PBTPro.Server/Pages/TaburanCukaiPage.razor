@@ -167,7 +167,7 @@
 
                         @foreach (var (premis, i) in Items)
                         {
-                            <DxAccordionItem Expanded=@(i == 0)>
+@*                             <DxAccordionItem Expanded=@(i == 0)>
                                 <HeaderTextTemplate>
                                     <div>
                                         <div class="text-center flex-grow-1 dxbl-accordion-item-text">
@@ -182,7 +182,7 @@
                                 <ContentTemplate>
                                     <PremisCard PremisInfo="@premis" />
                                 </ContentTemplate>
-                            </DxAccordionItem>
+                            </DxAccordionItem> *@
                         }
 
                         @*                         <DxAccordionItem>

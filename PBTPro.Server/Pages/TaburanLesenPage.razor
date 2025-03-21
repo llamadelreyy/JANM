@@ -6,20 +6,11 @@
 @using GoogleMapsComponents.Maps
 @using PBTPro.DAL.Services
 @using PBTPro.Data
+@using PBTPro.DAL.Models.PayLoads
+
 @inject NoticeService _NoticeService
 @inject ApiConnector _ApiConnector // 07/11/2024 - API Fetcher - ismail
 @inject PremisService _PremisService
-
-
-@* <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@AfterMapInit"></GoogleMap> *@
-<div class="topMapControl">
-    <button id="buttonTapis" @onclick="@(() => OpenFilter(0))" class="buttonControlMap">Tapisan</button>
-    <button id="buttonSearch" @onclick="@(() => OpenFilter(1))" class="buttonControlMap">Carian Premis</button>
-    <button @onclick="AddLegend" class="buttonControlMap">Legend</button>
-    <input type="text" @ref="this.searchBox" id="searchBox" class="searchMap" placeholder="Masukkan nama tempat untuk dicari..." />
-    @* <button @onclick="Search" class="buttonControlMap">Cari Tempat</button> *@
-
-</div>
 
 <style>
     .dxbl-grid {
@@ -27,6 +18,16 @@
         max-height: 88vh;
     }
 </style>
+
+
+@* <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@AfterMapInit"></GoogleMap> *@
+<div class="topMapControl">
+    <button id="buttonTapis" @onclick="@(() => OpenFilter(0))" class="buttonControlMap" disabled="@(PanelVisible ? true : null)">Tapisan</button>
+    <button id="buttonSearch" @onclick="@(() => OpenFilter(1))" class="buttonControlMap" disabled="@(PanelVisible ? true : null)">Carian Premis</button>
+    <button @onclick="AddLegend" class="buttonControlMap">Legend</button>
+    <input type="text" @ref="this.searchBox" id="searchBox" class="searchMap" placeholder="Masukkan nama tempat untuk dicari..." disabled="@(PanelVisible ? true : null)" />
+    @* <button @onclick="Search" class="buttonControlMap">Cari Tempat</button> *@
+</div>
 
 <DxLoadingPanel @bind-Visible="PanelVisible"
                 IsContentBlocked="true"
@@ -156,7 +157,7 @@
             <td>
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Red" /></svg>
             </td>
-            <td>Bil. Lesen Tamat Tempoh</td>
+                <td>Bil. Tidak Berlesen</td>
                 <td class="text-right">@mintTamatTempoh</td>
         </tr>
         <tr>
@@ -170,24 +171,24 @@
             <td>
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Grey" /></svg>
             </td>
-            <td>Bil. Lot Kosong</td>
-            <td class="text-right">@mintLotKosong</td>
+            <td>Bil. Tiada Data</td>
+                <td class="text-right">@mintTiadaData</td>
         </tr>
         <tr>
             <td class="noMarker" colspan="2">Bil. Notis</td>
-            <td class="text-right">1,432</td>
+            <td class="text-right">0</td>
         </tr>
         <tr>
             <td colspan="2" class="noMarker">Jumlah Notis</td>
-            <td class="text-right">RM 21,432</td>
+            <td class="text-right">RM 0.00</td>
         </tr>
         <tr>
             <td colspan="2" class="noMarker">Bil. Kompaun</td>
-            <td class="text-right">1,432</td>
+            <td class="text-right">0</td>
         </tr>
         <tr>
             <td colspan="2" class="noMarker">Jumlah Kompaun (RM)</td>
-            <td class="text-right">RM 21,432</td>
+            <td class="text-right">RM 0.00</td>
         </tr>
     </table>
 </div>
@@ -196,163 +197,176 @@
 <div id="panel-right" class="cd-panel cd-panel--from-right js-cd-panel-main">
     <header class="cd-panel__header">
         <h1>Paparan Maklumat Premis</h1>
-        <a style="text-underline-position:below; cursor:pointer" onclick=@(() => OpenSideBar(_labelText)) class="cd-panel__close js-cd-close">Close</a>
+        <a style="text-underline-position:below; cursor:pointer" onclick=@(() => OpenSideBar("")) class="cd-panel__close js-cd-close">Close</a>
     </header>
 
     <div class="cd-panel__container">
         <div class="cd-panel__content">
-            @* <p>_labelText = @_labelText</p> *@
             @{
-                int? valueType = 0;
-                // // string colorLot = "";
-                if (_labelText != "")
-                {
-                    valueType = 2;
-                    // var dtPremis = NoticeData.Where(x => x.NoLesen == _labelText);
-                    var dtPremis = NoticeData.Where(c => c.NoLesen == _labelText); //.FirstOrDefault()?.Type;
-                    Items = dtPremis.Select((item, index) => (item, index));
-                    // // colorLot = GetColorLot((int)valueType);
-
-                }
-
-                //Check if lot contain premis data
-                if (premisData != null)
-                {
-                    if (premisData.Count() > 0)
+                    int? valueType = 0;
+                    int i = 0;
+                    double dblLat = 0;
+                    double dblLng = 0;
+                    int tax_status_id = 0;
+                    string strImagePremis = "";
+                    // // string colorLot = "";
+                    if (_labelText != "")
                     {
-                        premisItem = premisData.Select((item, index) => (item, index));
-                    }
+
+                    // // Check if _latitude has a value
+                    // if (premisInfo._latitude.HasValue)
+                    // {
+
+                    // }         
+
+                    // //Clear back the selection
+                    // _labelText = "";
+
+                    //Need to pass parameter to the card
+                    var result = premisData.FirstOrDefault(p => p.codeid_premis == _labelText);
+                    var coords = result.geom.coordinates;
+                    dblLat = coords[1];
+                    dblLng = coords[0];
+                    tax_status_id = result.tax_status_id;
+                    strImagePremis = result.gkeseluruh;
+                    valueType = 1; //HARDCODE for now
                 }
 
-            }
+                if (valueType == 1)
+                {
+                    //ContentTemplate Context dont give name that has this "-"". ex:Level1-Lot1
+                    <DxAccordion ShowFilterPanel="true"
+                                 ExpandMode=AccordionExpandMode.MultipleOrNone
+                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
+                                 AnimationType="LayoutAnimationType.Slide">
+                        <Items>
 
-            @if (valueType == 1)
-            {
-                //ContentTemplate Context dont give name that has this "-"". ex:Level1-Lot1
-                <DxAccordion ShowFilterPanel="true"
-                             ExpandMode=AccordionExpandMode.MultipleOrNone
-                             ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                             RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
-                             AnimationType="LayoutAnimationType.Slide">
-                    <Items>
 
-                        @foreach (var (premis, i) in Items)
-                        {
-                            <DxAccordionItem Expanded=@(i == 0)>
-                                <HeaderTextTemplate>
-                                    <div>
-                                        <div class="text-center flex-grow-1 dxbl-accordion-item-text">
-                                            @($"{premis.NamaPerniagaan}")
+                                @foreach (var taxItem in premisInfo.premis_license_tax)
+                                {
+                                    //Access the premis_license_tax list for each premis
+                                    int status_id = taxItem.status_lesen_id ?? 0;
 
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
-                                                <circle cx="15" cy="15" r="5" fill="@GetColorLot(premis.Type)" />
-                                            </svg>
-                                        </div>
+                                    <DxAccordionItem Expanded=@(i == 0)>
+                                        <HeaderTextTemplate>
+                                            <div>
+                                                <div class="text-center flex-grow-1 dxbl-accordion-item-text">
+                                                        @($"{taxItem.license.business_name}")
+
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
+                                                            <circle cx="15" cy="15" r="5" fill="@GetColorLot(status_id)" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </HeaderTextTemplate>
+                                        <ContentTemplate>
+                                            <PremisCard PremisInfo="@taxItem" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" StatusCukai="@tax_status_id" ImgPremis="@strImagePremis" />
+                                        </ContentTemplate>
+                                    </DxAccordionItem>
+
+                                    //Add the counter
+                                    i += 1;
+                                }
+
+
+                        </Items>
+                    </DxAccordion>
+                }
+                else if (valueType == 2)
+                {
+
+                    <DxAccordion ExpandMode=AccordionExpandMode.SingleOrNone
+                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.End
+                                 AnimationType="LayoutAnimationType.Slide">
+                        <Items>
+
+                            <DxAccordionItem Text="Aras G">
+                                <ContentTemplate Context="ArasG">
+                                    <div class="py-3 px-3">
+
+                                        <DxAccordion ExpandMode=AccordionExpandMode.MultipleOrNone
+                                                     ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                                     RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
+                                                     AnimationType="LayoutAnimationType.Slide">
+                                            <Items>
+
+                                                <DxAccordionItem>
+                                                    <HeaderTextTemplate>
+                                                        <div>
+                                                            <div class="text-center flex-grow-1 dxbl-accordion-item-text">
+                                                                Maklumt Premis
+
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
+                                                                    <circle cx="15" cy="15" r="5" fill=Red />
+                                                                </svg>
+                                                            </div>
+                                                        </div>
+                                                    </HeaderTextTemplate>
+
+                                                    <ContentTemplate Context="Premis1001">
+                                                        <div class="py-3 px-3">
+                                                        </div>
+                                                    </ContentTemplate>
+                                                </DxAccordionItem>
+                                                <DxAccordionItem Text="Maklumat Lesen">
+                                                    <ContentTemplate Context="Lesen1001">
+                                                        <div class="py-3 px-3">
+                                                        </div>
+                                                    </ContentTemplate>
+                                                </DxAccordionItem>
+                                            </Items>
+                                        </DxAccordion>
+
+
+
                                     </div>
-                                </HeaderTextTemplate>
-                                <ContentTemplate>
-                                    <PremisCard PremisInfo="@premis" />
                                 </ContentTemplate>
                             </DxAccordionItem>
-                        }
+                            <DxAccordionItem Text="Aras 1">
+                                <ContentTemplate Context="Aras1">
+                                    <div class="py-3 px-3">
 
-                    </Items>
-                </DxAccordion>
-            }
-            else if (valueType == 2)
-            {
+                                        <DxAccordion ExpandMode=AccordionExpandMode.MultipleOrNone
+                                                     ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                                     RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
+                                                     AnimationType="LayoutAnimationType.Slide">
+                                            <Items>
 
-                <DxAccordion ExpandMode=AccordionExpandMode.SingleOrNone
-                             ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                             RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.End
-                             AnimationType="LayoutAnimationType.Slide">
-                    <Items>
+                                                <DxAccordionItem>
+                                                    <HeaderTextTemplate>
+                                                        <div>
+                                                            <div class="text-center flex-grow-1 dxbl-accordion-item-text">
+                                                                Maklumt Premis
 
-                        <DxAccordionItem Text="Aras G">
-                            <ContentTemplate Context="ArasG">
-                                <div class="py-3 px-3">
-
-                                    <DxAccordion ExpandMode=AccordionExpandMode.MultipleOrNone
-                                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
-                                                 AnimationType="LayoutAnimationType.Slide">
-                                        <Items>
-
-                                            <DxAccordionItem>
-                                                <HeaderTextTemplate>
-                                                    <div>
-                                                        <div class="text-center flex-grow-1 dxbl-accordion-item-text">
-                                                            Maklumt Premis
-
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
-                                                                <circle cx="15" cy="15" r="5" fill=Red />
-                                                            </svg>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
+                                                                    <circle cx="15" cy="15" r="5" fill=Red />
+                                                                </svg>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </HeaderTextTemplate>
-
-                                                <ContentTemplate Context="Premis1001">
-                                                    <div class="py-3 px-3">
-                                                    </div>
-                                                </ContentTemplate>
-                                            </DxAccordionItem>
-                                            <DxAccordionItem Text="Maklumat Lesen">
-                                                <ContentTemplate Context="Lesen1001">
-                                                    <div class="py-3 px-3">
-                                                    </div>
-                                                </ContentTemplate>
-                                            </DxAccordionItem>
-                                        </Items>
-                                    </DxAccordion>
-
-
-
-                                </div>
-                            </ContentTemplate>
-                        </DxAccordionItem>
-                        <DxAccordionItem Text="Aras 1">
-                            <ContentTemplate Context="Aras1">
-                                <div class="py-3 px-3">
-
-                                    <DxAccordion ExpandMode=AccordionExpandMode.MultipleOrNone
-                                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
-                                                 AnimationType="LayoutAnimationType.Slide">
-                                        <Items>
-
-                                            <DxAccordionItem>
-                                                <HeaderTextTemplate>
-                                                    <div>
-                                                        <div class="text-center flex-grow-1 dxbl-accordion-item-text">
-                                                            Maklumt Premis
-
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
-                                                                <circle cx="15" cy="15" r="5" fill=Red />
-                                                            </svg>
+                                                    </HeaderTextTemplate>
+                                                    <ContentTemplate Context="Premis1001">
+                                                        <div class="py-3 px-3">
                                                         </div>
-                                                    </div>
-                                                </HeaderTextTemplate>
-                                                <ContentTemplate Context="Premis1001">
-                                                    <div class="py-3 px-3">
-                                                    </div>
-                                                </ContentTemplate>
-                                            </DxAccordionItem>
-                                            <DxAccordionItem Text="Maklumat Lesen">
-                                                <ContentTemplate Context="Lesen1001">
-                                                    <div class="py-3 px-3">
-                                                    </div>
-                                                </ContentTemplate>
-                                            </DxAccordionItem>
-                                        </Items>
-                                    </DxAccordion>
-                                </div>
-                            </ContentTemplate>
-                        </DxAccordionItem>
-                    </Items>
-                </DxAccordion>
+                                                    </ContentTemplate>
+                                                </DxAccordionItem>
+                                                <DxAccordionItem Text="Maklumat Lesen">
+                                                    <ContentTemplate Context="Lesen1001">
+                                                        <div class="py-3 px-3">
+                                                        </div>
+                                                    </ContentTemplate>
+                                                </DxAccordionItem>
+                                            </Items>
+                                        </DxAccordion>
+                                    </div>
+                                </ContentTemplate>
+                            </DxAccordionItem>
+                        </Items>
+                    </DxAccordion>
 
+                }
             }
-
 
         </div>
     </div>
