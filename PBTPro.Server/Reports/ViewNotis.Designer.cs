@@ -198,7 +198,7 @@
             // 
             // objectDataSource1
             // 
-            this.objectDataSource1.DataSource = typeof(global::PBTPro.DAL.Models.LesenInfo);
+            this.objectDataSource1.DataSource = typeof(global::PBTPro.DAL.Models.PayLoads.trn_notices_view);
             this.objectDataSource1.Name = "objectDataSource1";
             // 
             // Title
@@ -366,7 +366,7 @@
             // 
             this.xrLabel42.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel42.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[NamaSaksi]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[nama_saksi]")});
             this.xrLabel42.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel42.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 526.1666F);
             this.xrLabel42.Name = "xrLabel42";
@@ -441,7 +441,7 @@
             // 
             this.xrLabel49.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel49.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[NamaPegawaiPengeluar]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[nama_pegawai]")});
             this.xrLabel49.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel49.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 498.1666F);
             this.xrLabel49.Name = "xrLabel49";
@@ -455,7 +455,7 @@
             // 
             this.xrLabel50.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel50.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[CaraSerahan]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[cara_serahan]")});
             this.xrLabel50.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel50.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 470.1666F);
             this.xrLabel50.Name = "xrLabel50";
@@ -545,7 +545,7 @@
             // 
             this.xrLabel20.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel20.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[AktaKesalahan]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[akta_kesalahan]")});
             this.xrLabel20.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel20.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 330.1667F);
             this.xrLabel20.Multiline = true;
@@ -561,7 +561,7 @@
             // 
             this.xrLabel21.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel21.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[NoRujukan]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[no_rujukan]")});
             this.xrLabel21.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel21.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 274.1667F);
             this.xrLabel21.Name = "xrLabel21";
@@ -665,7 +665,7 @@
             // 
             this.xrLabel32.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel32.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[TarikhMasa]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[TarikhData]")});
             this.xrLabel32.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel32.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 302.1667F);
             this.xrLabel32.Multiline = true;
@@ -711,7 +711,7 @@
             // 
             this.xrLabel35.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel35.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[KodKesalahan]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[kod_kesalahan]")});
             this.xrLabel35.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel35.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 358.1667F);
             this.xrLabel35.Name = "xrLabel35";
@@ -725,7 +725,7 @@
             // 
             this.xrLabel36.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel36.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[LokasiKesalahan]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[lokasi_kesalahan]")});
             this.xrLabel36.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel36.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 386.1666F);
             this.xrLabel36.Name = "xrLabel36";
@@ -799,7 +799,7 @@
             // 
             this.xrLabel41.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel41.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[TarikhTamatNotis]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[tarikh_tamat]")});
             this.xrLabel41.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel41.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 414.1666F);
             this.xrLabel41.Name = "xrLabel41";
@@ -905,7 +905,7 @@
             // 
             this.xrLabel14.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel14.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "Upper([AlamatPerniagaan])")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[alamat_perniagaan]")});
             this.xrLabel14.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel14.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 155.3333F);
             this.xrLabel14.Name = "xrLabel14";
@@ -919,7 +919,7 @@
             // 
             this.xrLabel9.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel9.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "Upper([NamaPerniagaan])")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[nama_perniagaan]")});
             this.xrLabel9.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel9.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 127.3333F);
             this.xrLabel9.Name = "xrLabel9";
@@ -963,7 +963,7 @@
             // 
             this.xrLabel6.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel6.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "Upper([NamaPemilik])\n")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[nama_pemilik]")});
             this.xrLabel6.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel6.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 71.33331F);
             this.xrLabel6.Multiline = true;
@@ -1087,7 +1087,7 @@
             // 
             this.xrLabel25.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel25.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[NoLesen]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[no_lesen]")});
             this.xrLabel25.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel25.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 43.33333F);
             this.xrLabel25.Name = "xrLabel25";
@@ -1101,7 +1101,7 @@
             // 
             this.xrLabel26.BackColor = System.Drawing.Color.Transparent;
             this.xrLabel26.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[NoDaftarSyarikat]")});
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[ssm_no]")});
             this.xrLabel26.Font = new DevExpress.Drawing.DXFont("Tahoma", 9F);
             this.xrLabel26.LocationFloat = new DevExpress.Utils.PointFloat(232.417F, 99.33332F);
             this.xrLabel26.Multiline = true;
@@ -1133,7 +1133,7 @@
             // 
             // objectDataSource2
             // 
-            this.objectDataSource2.DataSource = typeof(global::PBTPro.DAL.Models.NoticeProp);
+            this.objectDataSource2.DataSource = typeof(global::PBTPro.DAL.Models.PayLoads.trn_notices_view);
             this.objectDataSource2.Name = "objectDataSource2";
             // 
             // PageFooter

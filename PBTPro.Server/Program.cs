@@ -128,7 +128,8 @@ builder.Services.AddTransient<ConfiscationItemNoteService>();
 builder.Services.AddTransient<ReportService>();
 builder.Services.AddTransient<RefLicenseTypeService>();
 builder.Services.AddTransient<RefLicenseCatService>();
-
+builder.Services.AddTransient<RefTrnStatusService>();
+builder.Services.AddTransient<InspectionService>();
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();
 

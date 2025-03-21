@@ -80,7 +80,7 @@ public partial class trn_inspect
 
     public int? license_id { get; set; }
 
-    public int gid { get; set; }
+    //public int gid { get; set; }
 
     public int? schedule_id { get; set; }
 
