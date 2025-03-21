@@ -132,6 +132,7 @@ builder.Services.AddTransient<RefTrnStatusService>();
 builder.Services.AddTransient<InspectionService>();
 builder.Services.AddSingleton<FileUrlStorageService>();
 builder.Services.AddHostedService<EmailNotificationService>();
+builder.Services.AddTransient<RefNoticeDurationService>();
 
 builder.Services.AddDbContext<PBTProDbContext>(options =>
        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
