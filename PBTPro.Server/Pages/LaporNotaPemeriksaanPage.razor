@@ -13,7 +13,6 @@
 @inject PBTAuthPermissionService PermissionService
 @inject RefTrnStatusService _RefTrnStatus
 
-
 <style>
     .dxbl-grid {
         height: 79vh;
@@ -163,39 +162,33 @@ else
                                     <td nowrap>No Lesen</td>
                                     <td nowrap>&nbsp;&nbsp;</td>
                                     <td width="50%" valign="top">
-                                        <DxTextBox @bind-Text="@dtData.no_lesen"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="No Lesen..."
-                                                   Maxlength="60"
-                                                   ShowValidationIcon="true"
-                                                   CssClass="cw-320" style="width:170px;" />
+                                        @no_lesen
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                     <td nowrap>No Daftar Syarikat</td>
                                     <td nowrap>&nbsp;&nbsp;</td>
-                                    <td width="50%" valign="top">
+                                    <td width="50%">
                                         @ssm_no
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
                                     <td nowrap>Nama Pemilik</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7" valign="top">
+                                    <td width="50%" colspan="7" >
                                         @dtData.nama_pemilik
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
                                     <td nowrap>Nama Perniagaan</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="5" valign="top">
+                                    <td width="50%" colspan="5">
                                         @nama_perniagaan
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
-                                    <td nowrap valign="top">Alamat Perniagaan</td>
+                                    <td nowrap>Alamat Perniagaan</td>
                                     <td valign="top">&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7" valign="top">
+                                    <td width="50%" colspan="7" >
                                         @dtData.alamat_perniagaan
                                     </td>
                                 </tr>
@@ -212,24 +205,33 @@ else
                                 <tr style="height:25px;">
                                     <td nowrap>Lokasi Kesalahan</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" valign="top">
+                                    <td width="50%" >
                                         @dtData.lokasi_kesalahan
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                     <td nowrap>Nama Pegawai</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" valign="top">
+                                    <td width="50%" >
                                         @dtData.nama_pegawai
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
+                                    <td nowrap>Jabatan</td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%">
+                                        @dtData.nama_jabatan
+                                    </td>
+                                    <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                </tr>
+                                <tr style="height:25px;">
                                     <td nowrap>Nama Saksi</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" valign="top">
+                                    <td width="50%" >
                                         @nama_saksi
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                 </tr>
+                                
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
                                 <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
@@ -267,6 +269,7 @@ else
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                 </tr>
+                              
                             </table>
                         </DxFormLayoutItem>
                         <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
@@ -333,6 +336,7 @@ else
         PanelVisible = true;
         dtSource = await _InspectionService.ListReport();
         dtTrnStatus = await _RefTrnStatus.ListAll();
+
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
     }
@@ -529,11 +533,11 @@ else
 
     void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
     {
+        // if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_nota_id").ToString() == "1")
+        // {
+        //     e.Style = "color: #fff; background-color:#e46767";
+        // }
         if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_nota_id").ToString() == "1")
-        {
-            e.Style = "color: #fff; background-color:#e46767";
-        }
-        else if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_nota_id").ToString() == "2")
         {
             e.Style = "color: #000; background-color:#89dd85";
         }
@@ -579,4 +583,7 @@ else
                 Title = message
             });
     }
+
+    
+   
 }
