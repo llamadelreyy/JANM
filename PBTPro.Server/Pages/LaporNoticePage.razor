@@ -13,7 +13,7 @@
 @inject IToastNotificationService ToastService
 @inject PBTAuthPermissionService PermissionService
 @inject RefTrnStatusService _RefTrnStatus
-
+@inject RefNoticeDurationService _RefNoticeDuration
 
 <style>
     .dxbl-grid {
@@ -88,10 +88,7 @@ else
                             <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan"><img src="images/icons-small/printer--pencil.png" /></a>
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
-                    @*    <DxGridDataColumn Caption="Bil." MinWidth="70" Width="7%" FieldName="Bil" TextAlignment="GridTextAlignment.Left" AllowGroup="false" /> *@
                     <DxGridDataColumn Caption="No Rujukan" MinWidth="130" Width="13%" FieldName="no_rujukan" />
-                    @* <DxGridDataColumn Caption="Tarikh & Masa" MinWidth="120" Width="12%" FieldName="TarikhMasa" TextAlignment="GridTextAlignment.Center" /> *@
-
                     <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="no_lesen">
                         <CellDisplayTemplate>
                             <div>
@@ -99,7 +96,6 @@ else
                             </div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
-                    @*       <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="200" Width="20%" FieldName="NamaPerniagaan" /> *@
                     <DxGridDataColumn Caption="Nama Pemilik" MinWidth="200" Width="20%" FieldName="nama_pemilik" />
                     <DxGridDataColumn Caption="Nama Pegawai" MinWidth="200" Width="20%" FieldName="nama_pegawai" />
                     <DxGridDataColumn Caption="Tarikh Tamat & Tempoh Notis" MinWidth="150" Width="15%" FieldName="tarikh_tamat" AllowGroup="false" TextAlignment="GridTextAlignment.Center">
@@ -113,18 +109,13 @@ else
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
                     <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="150" Width="15%" FieldName="ssm_no" />
-
                     <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="250" Width="20%" FieldName="alamat_perniagaan" />
                     <DxGridDataColumn Caption="Akta Kesalahan" MinWidth="250" Width="25%" FieldName="akta_kesalahan" />
                     <DxGridDataColumn Caption="Kod Kesalahan" MinWidth="250" Width="25%" FieldName="kod_kesalahan" />
                     <DxGridDataColumn Caption="Arahan" MinWidth="180" Width="18%" FieldName="arahan" />
-
                     <DxGridDataColumn Caption="Lokasi Kesalahan" MinWidth="120" Width="12%" FieldName="lokasi_kesalahan" />
                     <DxGridDataColumn Caption="Nama Saksi" MinWidth="200" Width="20%" FieldName="nama_saksi" />
                     <DxGridDataColumn Caption="Cara Serahan" MinWidth="150" Width="15%" FieldName="cara_serahan" />
-                    @*      <DxGridDataColumn Caption="Ulasan" MinWidth="200" Width="20%" FieldName="Ulasan" /> *@
-
-                    @*Sampel sorting in different way - press shift & click on the field if no code  *@
                     <DxGridDataColumn FieldName="TarikhData"
                                       DisplayFormat="dd/MM/yyyy"
                                       Caption="Tarikh Data"
@@ -138,167 +129,121 @@ else
                 <EditFormTemplate Context="EditFormContext">
                     @{
                         var dtData = (trn_notices_view)EditFormContext.EditModel;
+                        string ssm_no = (!string.IsNullOrEmpty(dtData.ssm_no) ? dtData.ssm_no : "-");
+                        string no_lesen = (!string.IsNullOrEmpty(dtData.no_lesen) ? dtData.no_lesen : "-");
+                        string nama_perniagaan = (!string.IsNullOrEmpty(dtData.nama_perniagaan) ? dtData.nama_perniagaan : "-");
+                        string nama_saksi = (!string.IsNullOrEmpty(dtData.nama_saksi) ? dtData.nama_saksi : "-");
+                        string akta_kesalahan = (!string.IsNullOrEmpty(dtData.akta_kesalahan) ? dtData.akta_kesalahan : "-");
+                        string kod_kesalahan = (!string.IsNullOrEmpty(dtData.kod_kesalahan) ? dtData.kod_kesalahan : "-");
+                        string kod_seksyen = (!string.IsNullOrEmpty(dtData.kod_seksyen) ? dtData.kod_seksyen : "-");
+                        string kod_uuk = (!string.IsNullOrEmpty(dtData.kod_uuk) ? dtData.kod_uuk : "-");
+                        string nama_pemilik = (!string.IsNullOrEmpty(dtData.nama_pemilik) ? dtData.nama_pemilik : "-");
+                        string alamat_perniagaan = (!string.IsNullOrEmpty(dtData.alamat_perniagaan) ? dtData.alamat_perniagaan : "-");
                     }
                     <DxFormLayout CssClass="w-100" style="padding:10px 20px;">
                         <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
                             <table class="layout_edit">
-                                <tr>
-                                    <td nowrap colspan="7">
+                                <tr style="height:25px;">
+                                    <td nowrap colspan="7" valign="top">
                                         #@dtData.no_rujukan &nbsp; @GetStatusNoticeIconHtml(dtData.status_notis, dtData.status_notis_id) <br />
+                                    </td>
+                                </tr>
+                                <tr style="height:25px;">
+                                    <td nowrap colspan="7" valign="top">
                                         @dtData.TarikhData
                                     </td>
                                 </tr>
                                 <tr style="height:5px;"><td colspan="7"></td></tr>
                                 <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
-                                <tr>
+                                <tr style="height:25px;">
                                     <td nowrap>No Lesen</td>
                                     <td nowrap>&nbsp;&nbsp;</td>
                                     <td width="50%">
-                                        <DxTextBox @bind-Text="@dtData.no_lesen"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="No Lesen..."
-                                                   Maxlength="60"
-                                                   ShowValidationIcon="true"
-                                                   CssClass="cw-320" style="width:170px;" />
+                                        @no_lesen
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                     <td nowrap>No Daftar Syarikat</td>
                                     <td nowrap>&nbsp;&nbsp;</td>
                                     <td width="50%">
-                                        <DxTextBox @bind-Text="@dtData.ssm_no"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="No Daftar Syarikat..."
-                                                   Maxlength="60"
-                                                   ShowValidationIcon="true"
-                                                   CssClass="cw-320" style="width:170px;" />
+                                        @ssm_no
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr style="height:25px;">
                                     <td nowrap>Nama Pemilik</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7">
-                                        <DxTextBox @bind-Text="@dtData.nama_pemilik"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="Nama Pemilik..."
-                                                   Maxlength="120"
-                                                   ShowValidationIcon="true"
-                                                   CssClass="cw-320" style="width:370px;" />
+                                    <td width="50%" colspan="7" valign="top">
+                                        @nama_pemilik
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr style="height:25px;">
                                     <td nowrap>Nama Perniagaan</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%" colspan="5">
-                                        <DxTextBox @bind-Text="@dtData.nama_perniagaan"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="Nama Perniagaan..."
-                                                   Maxlength="120"
-                                                   ShowValidationIcon="true"
-                                                   CssClass="cw-320" style="width:370px;" />
+                                        @nama_perniagaan
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr style="height:25px;">
                                     <td nowrap valign="top">Alamat Perniagaan</td>
                                     <td valign="top">&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7">
-                                        <DxMemo @bind-Text="@dtData.alamat_perniagaan"
-                                                CssClass="cw-480"
-                                                Rows="3" />
+                                    <td width="50%" colspan="7" valign="top">
+                                        @alamat_perniagaan
                                     </td>
                                 </tr>
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
                                 <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
-                                <tr>
+                                <tr style="height:25px;">
                                     <td nowrap valign="top">Akta Kesalahan</td>
                                     <td valign="top">&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7">
-                                        <DxMemo @bind-Text="@dtData.akta_kesalahan"
-                                                CssClass="cw-480"
-                                                Rows="3" />
+                                    <td width="50%" colspan="7" valign="top">
+                                        @akta_kesalahan
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr style="height:25px;">
                                     <td nowrap valign="top">Kod Kesalahan</td>
                                     <td valign="top">&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7">
-                                        <DxMemo @bind-Text="@dtData.kod_kesalahan"
-                                                CssClass="cw-480"
-                                                Rows="3" />
+                                    <td width="50%" colspan="7" valign="top">
+                                        @kod_kesalahan
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr style="height:25px;">
                                     <td nowrap>Arahan</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%" colspan="7">
-                                        <DxTextBox @bind-Text="@dtData.arahan"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="Arahan..."
-                                                   Maxlength="120"
-                                                   ShowValidationIcon="true"
-                                                   CssClass="cw-320" />
+                                        @dtData.arahan
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr style="height:25px;">
                                     <td nowrap>Lokasi Kesalahan</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%">
-                                        <DxTextBox @bind-Text="@dtData.lokasi_kesalahan"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="Nama Pegawai Pengeluar..."
-                                                   Maxlength="120"
-                                                   ShowValidationIcon="true"
-                                                   CssClass="cw-320" />
+                                        @dtData.lokasi_kesalahan
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                     <td nowrap>Nama Pegawai</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%">
-                                        <DxTextBox @bind-Text="@dtData.nama_pegawai"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="Nama Pegawai Pengeluar..."
-                                                   Maxlength="120"
-                                                   ShowValidationIcon="true"
-                                                   CssClass="cw-320" />
+                                        @dtData.nama_pegawai
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr style="height:25px;">
                                     <td nowrap>Nama Saksi</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%">
-                                        <DxTextBox @bind-Text="@dtData.nama_saksi"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="Nama Saksi..."
-                                                   Maxlength="120"
-                                                   ShowValidationIcon="true"
-                                                   CssClass="cw-320" />
+                                        @nama_saksi
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                     <td nowrap>Cara Serahan</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%">
-                                        <DxTextBox @bind-Text="@dtData.cara_serahan"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="Cara Serahan..."
-                                                   Maxlength="120"
-                                                   ShowValidationIcon="true"
-                                                   CssClass="cw-320" />
+                                        @dtData.cara_serahan
                                     </td>
                                 </tr>
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
                                 <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
-                                <tr>
+                                <tr style="height:25px;">
                                     <td nowrap>Bukti</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%" colspan="5">
@@ -307,11 +252,17 @@ else
                                     </td>
                                 </tr>
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
-                                <tr>
-
+                                @{
+                                    var status = dtSource.Where(c => c.status_notis_id == dtData.status_notis_id).FirstOrDefault()?.status_notis_id;
+                                    bool boolEnable = status != null && status != 3 && status != 5 && status != 8; //non-editable for : ditutup(3) , telah dibayar(5), dibatalkan(8)
+                                    
+                                    if (Grid.IsEditingNewRow())
+                                        boolEnable = true;
+                                }
+                                <tr style="height:25px;">
                                     <td nowrap>Status Notis</td>
                                     <td nowrap>&nbsp;&nbsp;</td>
-                                    <td width="50%">
+                                    <td width="50%" valign="top">
                                         <DxComboBox Data="@dtTrnStatus"
                                                     NullText="Pilih Status Bayaran..."
                                                     ShowValidationIcon="true"
@@ -319,7 +270,27 @@ else
                                                     @bind-Value="@dtData.status_notis_id"
                                                     TextFieldName="status_name"
                                                     ValueFieldName="status_id"
+                                                    Enabled="@boolEnable"
                                                     CssClass="cw-320">
+                                        </DxComboBox>
+                                    </td>
+                                </tr>
+                                <tr style="height:25px;">
+                                    <td nowrap>Tempoh Notis</td>
+                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td width="50%" valign="top">
+                                        <DxComboBox Data="@dtDuration"
+                                                    NullText="Pilih Tempoh Notis..."
+                                                    ShowValidationIcon="true"
+                                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                    FilteringMode="DataGridFilteringMode.Contains"
+                                                    TextFieldName="duration_value"
+                                                    ValueFieldName="duration_id"
+                                                    CssClass="cw-320"
+                                                    Enabled="@boolEnable"
+                                                    SelectedItemChanged="@((ref_notice_duration x) => SelectedItemChanged(x))"
+                                                    DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
+                                                    @bind-Value="@dtData.tempoh_notis_id">
                                         </DxComboBox>
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
@@ -329,16 +300,16 @@ else
                                         string tarikh_tamat = dtData.tarikh_tamat.HasValue
                                         ? dtData.tarikh_tamat.Value.ToString("dd/MM/yyyy")
                                         : "-";
-                                        string notis = " (" + dtData.tempoh_notis + ")" ?? "";
-                                        string combinetext = tarikh_tamat + notis;
+                                        string combinetext = Convert.ToString(tarikh_tamat);
                                     }
                                     <td width="50%">
-                                        <DxTextBox @bind-Text="@combinetext"
+                                        <DxTextBox @bind-Text="@str_tarikh_tamat_notis"
                                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
                                                    BindValueMode="BindValueMode.OnInput"
                                                    NullText="Tarikh Tamat Notis..."
                                                    Maxlength="120"
                                                    ShowValidationIcon="true"
+                                                   Enabled="false"
                                                    CssClass="cw-320" />
                                     </td>
                                 </tr>
@@ -390,6 +361,7 @@ else
     bool PanelVisible { get; set; }
     List<trn_notices_view> dtSource;
     IEnumerable<ref_trn_status> dtTrnStatus;
+    IEnumerable<ref_notice_duration> dtDuration;
 
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
@@ -403,12 +375,12 @@ else
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-
     protected override async Task OnInitializedAsync()
     {
         PanelVisible = true;
         dtSource = await _NoticeService.ListReport();
         dtTrnStatus = await _RefTrnStatus.ListAll();
+        dtDuration = await _RefNoticeDuration.ListAll();
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
     }
@@ -438,7 +410,6 @@ else
         var item = (trn_notices_view)itemData;
         NavigationManager.NavigateTo("/viewreportperuntukan?norujukan=" + item.no_rujukan, false);
     }
-
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
@@ -546,7 +517,7 @@ else
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
-     public MarkupString GetStatusNoticeIconHtml(string status, int? statusId)
+    public MarkupString GetStatusNoticeIconHtml(string status, int? statusId)
     {
         string priorytyClass = "";
         string title = "";
@@ -613,14 +584,14 @@ else
 
     void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
     {
-        // if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "StatusBayaran").ToString().ToUpper() == "BELUM BAYAR")
+        // if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_notis_id").ToString() == "BELUM BAYAR")
         // {
         //     e.Style = "color: #fff; background-color:#e46767";
         // }
-        // else if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "StatusBayaran").ToString().ToUpper() == "TELAH DIBAYAR")
-        // {
-        //     e.Style = "color: #000; background-color:#89dd85";
-        // }
+        if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_notis_id").ToString() == "1")
+        {
+            e.Style = "color: #000; background-color:#89dd85";
+        }
     }
 
     async Task ExportXlsx_Click()
@@ -664,4 +635,56 @@ else
             });
     }
 
+    private DateTime CalculateTarikhTamat(DateTime createdAt, int? duration)
+    {
+        DateTime tarikhTamat;
+        switch (duration)
+        {
+            case 2:
+                tarikhTamat = createdAt;
+                break;
+
+            case 3:
+                tarikhTamat = createdAt.AddDays(3);
+                break;
+
+            case 4:
+                tarikhTamat = createdAt.AddDays(5);
+                break;
+
+            case 5:
+                tarikhTamat = createdAt.AddDays(7);
+                break;
+
+            case 6:
+                tarikhTamat = createdAt.AddDays(14);
+                break;
+
+            case 7:
+                tarikhTamat = createdAt.AddDays(30);
+                break;
+
+            default:
+                tarikhTamat = createdAt;
+                break;
+        }
+        return tarikhTamat;
+    }
+    string str_tarikh_tamat_notis = "-";
+
+    void SelectedItemChanged(ref_notice_duration x)
+    {
+        if (x != null)
+        {
+            foreach (var item in dtSource)
+            {
+                var calculatedDate = CalculateTarikhTamat((DateTime)item.TarikhData, x.duration_id);
+                str_tarikh_tamat_notis = calculatedDate.ToString("dd/MM/yyyy");
+            }
+        }
+        else
+        {
+            str_tarikh_tamat_notis = "-";
+        }
+    }
 }

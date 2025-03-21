@@ -45,6 +45,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? nama_pemilik { get; set; }
         public string? nama_pegawai { get; set; }
         public DateTime? tarikh_tamat { get; set; }
+        public int? tempoh_notis_id { get; set; }
         public string? tempoh_notis { get; set; }
         public int? status_notis_id { get; set; }
         public string? status_notis { get; set; }
