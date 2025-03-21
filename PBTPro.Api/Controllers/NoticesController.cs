@@ -22,7 +22,6 @@ using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
-using static QuestPDF.Helpers.Colors;
 
 
 namespace PBTPro.Api.Controllers
@@ -468,15 +467,16 @@ namespace PBTPro.Api.Controllers
                 var resultData = new List<dynamic>();
 
                 var notice_lists = await (from n in _tenantDBContext.trn_notices
-                                          where n.creator_id == UserId
-                                          select new
-                                          {
-                                              n.notice_ref_no,
-                                              n.section_code,
-                                              n.act_code,
-                                              n.created_at,
-                                              n.modified_at,
-                                          }).ToListAsync();
+                                                where n.creator_id == UserId
+                                                select new
+                                                {
+                                                    n.notice_ref_no,
+                                                    n.section_code,
+                                                    n.act_code,
+                                                    n.created_at,
+                                                    n.modified_at,
+                                                    n.trnstatus_id,
+                                                }).ToListAsync();
 
                 // Check if no record was found
                 if (notice_lists.Count == 0)
@@ -515,6 +515,7 @@ namespace PBTPro.Api.Controllers
                                               n.act_code,
                                               n.created_at,
                                               n.modified_at,
+                                              n.trnstatus_id,
                                           }).ToListAsync();
 
                 // Check if no record was found
@@ -538,156 +539,38 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<trn_notices_view>>> ListReport()
+        [HttpGet("{TaxAccNo}")]
+        public async Task<IActionResult> GetNoticeListByTaxAccNo(string TaxAccNo)
         {
             try
             {
-                var tenantNotices = await _tenantDBContext.trn_notices
-                   .AsNoTracking()
-                   .ToListAsync();
+                var resultData = new List<dynamic>();
 
-                var tenantOwners = (await _tenantDBContext.mst_owner_licensees
-                    .Where(mol => !string.IsNullOrEmpty(mol.owner_icno))
-                    .Select(mol => new { mol.owner_icno, mol.owner_name })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .ToDictionary(mol => mol.owner_icno, mol => mol);
+                var notice_lists = await (from n in _tenantDBContext.trn_notices
+                                          where n.tax_accno == TaxAccNo
+                                          select new
+                                          {
+                                              n.notice_ref_no,
+                                              n.section_code,
+                                              n.act_code,
+                                              n.created_at,
+                                              n.modified_at,
+                                              n.trnstatus_id,
+                                          }).ToListAsync();
 
-                var tenantLicensees = (await _tenantDBContext.mst_licensees
-                    .Where(ml => !string.IsNullOrEmpty(ml.license_accno))
-                    .Select(ml => new { ml.licensee_id, ml.license_accno, ml.business_name, ml.ssm_no, ml.business_addr })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .ToDictionary(ml => ml.licensee_id, ml => ml);
-
-                var tenantStatuses = await _tenantDBContext.ref_trn_statuses
-                    .Select(rts => new { rts.status_id, rts.status_name })
-                    .AsNoTracking()
-                    .ToListAsync();
-
-                var lawOffenses = (await _dbContext.ref_law_offenses
-                    .Select(lo => new { lo.offense_code, lo.offense_name })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .ToDictionary(lo => lo.offense_code, lo => lo.offense_name);
-
-                var lawActs = (await _dbContext.ref_law_acts
-                    .Where(rla => rla.act_code != null)
-                    .Select(rla => new { rla.act_code, rla.act_name })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .ToDictionary(rla => rla.act_code, rla => rla.act_name);
-
-                var lawSections = (await _dbContext.ref_law_sections
-                    .Where(rls => rls.section_code != null)
-                    .Select(rls => new { rls.section_code, rls.section_name })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .ToDictionary(rls => rls.section_code, rls => rls.section_name);
-
-                var lawUuks = (await _dbContext.ref_law_uuks
-                    .Where(rlu => rlu.uuk_code != null)
-                    .Select(rlu => new { rlu.uuk_code, rlu.uuk_name })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .ToDictionary(rlu => rlu.uuk_code, rlu => rlu.uuk_name);
-
-                var tenantDelivers = (await _tenantDBContext.ref_delivers
-                   .Select(rd => new { rd.deliver_id, rd.deliver_name })
-                   .AsNoTracking()
-                   .ToListAsync())
-                   .ToDictionary(rd => rd.deliver_id, rd => rd.deliver_name);
-
-                var tenantPatrolSchedules = (await _tenantDBContext.mst_patrol_schedules
-                     .Select(mps => new { mps.schedule_id, mps.idno })
-                     .AsNoTracking()
-                     .ToListAsync())
-                     .ToDictionary(mps => mps.schedule_id, mps => mps.idno);
-
-                var tenantWitness = (await _tenantDBContext.trn_witnesses
-                    .Select(tw => new { tw.trn_id, tw.name })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .GroupBy(tw => tw.trn_id)
-                    .ToDictionary(g => g.Key, g => g.Select(tw => tw.name).ToList());
-
-                var users = (await _dbContext.Users
-                    .Select(u => new { u.IdNo, u.full_name })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .ToDictionary(u => u.IdNo, u => u.full_name);
-
-                var tenantNoticeImgs = (await _tenantDBContext.trn_notice_imgs
-                    .Select(img => new { img.trn_notice_id, img.pathurl })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .GroupBy(img => img.trn_notice_id)
-                    .ToDictionary(g => g.Key, g => g.Select(img => img.pathurl).Distinct().ToList());
-
-                var tenantNoticeDurations = (await _tenantDBContext.ref_notice_durations
-                  .Select(nd => new { nd.duration_id, nd.duration_value })
-                  .AsNoTracking()
-                  .ToListAsync())
-                  .ToDictionary(nd => nd.duration_id, nd => nd.duration_value);
-
-
-                var results = tenantNotices.Select(tn =>
+                // Check if no record was found
+                if (notice_lists.Count == 0)
                 {
-                    tenantOwners.TryGetValue(tn.owner_icno, out var owner);
-                    tenantLicensees.TryGetValue((int)tn?.license_id, out var licensee);
-                    lawOffenses.TryGetValue(tn?.offense_code, out var offense);
-                    tenantPatrolSchedules.TryGetValue((int)tn.schedule_id, out var officerId);
-                    users.TryGetValue(officerId, out var officer);
-                    tenantNoticeImgs.TryGetValue(tn.trn_notice_id, out var images);
-                    tenantDelivers.TryGetValue((int)tn.deliver_id, out var deliver);
-                    tenantWitness.TryGetValue(tn.trn_notice_id, out var witnesses);
-                    tenantNoticeDurations.TryGetValue((int)tn?.duration_id, out var duration);
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
 
-                    var law = !string.IsNullOrEmpty(tn?.act_code)
-                    ? lawActs.GetValueOrDefault(tn.act_code, "")
-                    : "";
+                resultData.Add(new
+                {
+                    total_records = notice_lists.Count,
+                    notice_lists,
+                });
 
-                    var section = !string.IsNullOrEmpty(tn?.section_code)
-                        ? lawSections.GetValueOrDefault(tn.section_code, "")
-                        : "";
-
-                    var uuk = !string.IsNullOrEmpty(tn?.uuk_code)
-                        ? lawUuks.GetValueOrDefault(tn.uuk_code, "")
-                        : "";
-
-                    return new trn_notices_view
-                    {
-                        id_notis = tn.trn_notice_id,
-                        no_lesen = licensee?.license_accno,
-                        nama_perniagaan = licensee?.business_name,
-                        nama_pemilik = owner?.owner_name,
-                        no_rujukan = tn.notice_ref_no,
-                        status_notis_id = (int)tn.trnstatus_id,
-                        status_notis = tenantStatuses.FirstOrDefault(s => s.status_id == tn.trnstatus_id)?.status_name,
-                        kod_kesalahan = offense,
-                        akta_kesalahan = law ?? "",
-                        kod_seksyen = section ?? "",
-                        kod_uuk = uuk ?? "",
-                        arahan = tn.instruction,
-                        lokasi_kesalahan = tn.offs_location,
-                        TarikhData = tn.created_at,
-                        nama_pegawai = officer,
-                        ssm_no = licensee?.ssm_no,
-                        alamat_perniagaan = licensee?.business_addr,
-                        nama_dokumen = tn.doc_name,
-                        pautan_dokumen = tn.doc_pathurl,
-                        imej_notis = images ?? new List<string>(),
-                        cara_serahan = deliver,
-                        nama_saksi = witnesses != null && witnesses.Any() ? string.Join(", ", witnesses) : "",
-                        tarikh_tamat = CalculateTarikhTamat((DateTime)tn.created_at, duration),
-                        no_cukai = tn.tax_accno,
-                        tempoh_notis = duration,
-                    };
-                }).ToList();
-
-                return Ok(results, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -696,31 +579,38 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [HttpPut("{Id}")]
-        public async Task<IActionResult> UpdateReport(int Id, [FromBody] trn_notices_view InputModel)
+        [HttpGet("{LicenseAccNo}")]
+        public async Task<IActionResult> GetNoticeListByLicenseAccNo(string LicenseAccNo)
         {
             try
             {
-                int runUserID = await getDefRunUserId();
-                string runUser = await getDefRunUser();
+                var resultData = new List<dynamic>();
+                var licenseInfo = await _tenantDBContext.mst_licensees.AsNoTracking().FirstOrDefaultAsync(x => x.license_accno == LicenseAccNo);
+                var notice_lists = await (from n in _tenantDBContext.trn_notices
+                                          where n.license_id == licenseInfo.licensee_id
+                                          select new
+                                          {
+                                              n.notice_ref_no,
+                                              n.section_code,
+                                              n.act_code,
+                                              n.created_at,
+                                              n.modified_at,
+                                              n.trnstatus_id,
+                                          }).ToListAsync();
 
-                #region Validation
-                var formField = await _tenantDBContext.trn_notices.FirstOrDefaultAsync(x => x.trn_notice_id == Id);
-                if (formField == null)
+                // Check if no record was found
+                if (notice_lists.Count == 0)
                 {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
 
-                #endregion
+                resultData.Add(new
+                {
+                    total_records = notice_lists.Count,
+                    notice_lists,
+                });
 
-                formField.trnstatus_id = InputModel.status_notis_id;
-                formField.modifier_id = runUserID;
-                formField.modified_at = DateTime.Now;
-
-                _tenantDBContext.trn_notices.Update(formField);
-                await _tenantDBContext.SaveChangesAsync();
-
-                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -729,40 +619,38 @@ namespace PBTPro.Api.Controllers
             }
         }
 
-        [HttpDelete("{Id}")]
-        public async Task<IActionResult> DeleteReport(int Id)
+        [HttpGet("{LicenseId}")]
+        public async Task<IActionResult> GetNoticeListByLicenseId(int LicenseId)
         {
             try
             {
-                string runUser = await getDefRunUser();
-                int runUserID = await getDefRunUserId();
+                var resultData = new List<dynamic>();
 
-                #region Validation
-                var formField = await _tenantDBContext.trn_notices.FirstOrDefaultAsync(x => x.trn_notice_id == Id);
-                if (formField == null)
+                var notice_lists = await (from n in _tenantDBContext.trn_notices
+                                          where n.license_id == LicenseId
+                                          select new
+                                          {
+                                              n.notice_ref_no,
+                                              n.section_code,
+                                              n.act_code,
+                                              n.created_at,
+                                              n.modified_at,
+                                              n.trnstatus_id,
+                                          }).ToListAsync();
+
+                // Check if no record was found
+                if (notice_lists.Count == 0)
                 {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
-                #endregion
-
-                try
-                {
-                    _tenantDBContext.trn_notices.Remove(formField);
-                    await _tenantDBContext.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    formField.is_deleted = true;
-                    formField.modifier_id = runUserID;
-                    formField.modified_at = DateTime.Now;
-
-                    _tenantDBContext.trn_notices.Update(formField);
-                    await _tenantDBContext.SaveChangesAsync();
-
-                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
                 }
 
-                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+                resultData.Add(new
+                {
+                    total_records = notice_lists.Count,
+                    notice_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
@@ -1021,8 +909,7 @@ namespace PBTPro.Api.Controllers
                                                   $"boleh memindah dan menahan halangan sehingga belanja dibayar kepada pihak Majlis di bawah {ticketASUO.ref_law_section.section_name} Akta yang sama.";
 
 
-                                    table.Cell().PaddingBottom(5).Text(text =>
-                                    {
+                                    table.Cell().PaddingBottom(5).Text(text => {
                                         text.Justify();
                                         text.Span(message);
                                     });
@@ -1206,45 +1093,6 @@ namespace PBTPro.Api.Controllers
             }
             return result;
         }
-
-        private DateTime CalculateTarikhTamat(DateTime createdAt, string? duration)
-        {
-
-            DateTime tarikhTamat;
-
-            switch (duration)
-            {
-                case "SERTA MERTA":
-                    tarikhTamat = createdAt;
-                    break;
-
-                case "3 HARI":
-                    tarikhTamat = createdAt.AddDays(3);
-                    break;
-
-                case "5 HARI":
-                    tarikhTamat = createdAt.AddDays(5);
-                    break;
-
-                case "7 HARI":
-                    tarikhTamat = createdAt.AddDays(7);
-                    break;
-
-                case "14 HARI":
-                    tarikhTamat = createdAt.AddDays(14);
-                    break;
-
-                case "30 HARI":
-                    tarikhTamat = createdAt.AddDays(30);
-                    break;
-
-                default:
-                    tarikhTamat = createdAt;
-                    break;
-            }
-            return tarikhTamat;
-        }
-
         #endregion
 
     }

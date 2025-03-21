@@ -158,7 +158,9 @@ else
                                                        Maxlength="12"
                                                        ShowValidationIcon="true"
                                                        CssClass="cw-320" style="width:170px"
-                                                       Mask="000000000000" />
+                                                       Mask="000000000000" >
+                                            <DxTextMaskProperties SaveLiteral=false Placeholder="PlaceholderEmpty"></DxTextMaskProperties>
+                                        </DxMaskedInput>
                                     </td>
                                     <td width="100px">&nbsp;</td>
                                     <td nowrap>No Tel. Bimbit</td>
@@ -172,7 +174,7 @@ else
                                                        CssClass="cw-320" style="width:170px"
                                                        MaskMode=MaskMode.Text
                                                        Mask="99999999999999">
-                                            <DxTextMaskProperties SaveLiteral=false></DxTextMaskProperties>
+                                            <DxTextMaskProperties Placeholder="PlaceholderEmpty"></DxTextMaskProperties>
                                         </DxMaskedInput>
 
                                     </td>
@@ -318,6 +320,7 @@ else
 
     MaskAutoCompleteMode AutoCompleteMode { get; set; } = MaskAutoCompleteMode.Strong;
     char Placeholder { get; set; } = '_';
+    char PlaceholderEmpty { get; set; } = ' ';
     bool PlaceholderVisible { get; set; } = true;
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);

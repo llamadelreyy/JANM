@@ -483,6 +483,7 @@ namespace PBTPro.Api.Controllers
                                                 n.act_code,
                                                 n.created_at,
                                                 n.modified_at,
+                                                n.trnstatus_id,
                                             }).ToListAsync();
 
                 // Check if no record was found
@@ -522,6 +523,123 @@ namespace PBTPro.Api.Controllers
                                                 n.act_code,
                                                 n.created_at,
                                                 n.modified_at,
+                                                n.trnstatus_id,
+                                            }).ToListAsync();
+
+                if (compound_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = compound_lists.Count,
+                    compound_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{TaxAccNo}")]
+        public async Task<IActionResult> GetCompoundListByTaxAccNo(string TaxAccNo)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+                var compound_lists = await (from n in _tenantDBContext.trn_cmpds
+                                            where n.tax_accno == TaxAccNo
+                                            select new
+                                            {
+                                                n.cmpd_ref_no,
+                                                n.section_code,
+                                                n.act_code,
+                                                n.created_at,
+                                                n.modified_at,
+                                                n.trnstatus_id,
+                                            }).ToListAsync();
+
+                if (compound_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = compound_lists.Count,
+                    compound_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseAccNo}")]
+        public async Task<IActionResult> GetCompoundListByLicenseAccNo(string LicenseAccNo)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+                var licenseInfo = await _tenantDBContext.mst_licensees.AsNoTracking().FirstOrDefaultAsync(x => x.license_accno == LicenseAccNo);
+                var compound_lists = await (from n in _tenantDBContext.trn_cmpds
+                                            where n.license_id == licenseInfo.licensee_id
+                                            select new
+                                            {
+                                                n.cmpd_ref_no,
+                                                n.section_code,
+                                                n.act_code,
+                                                n.created_at,
+                                                n.modified_at,
+                                                n.trnstatus_id,
+                                            }).ToListAsync();
+
+                if (compound_lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = compound_lists.Count,
+                    compound_lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseId}")]
+        public async Task<IActionResult> GetCompoundListByLicenseId(int LicenseId)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+
+                var compound_lists = await (from n in _tenantDBContext.trn_cmpds
+                                            where n.license_id == LicenseId
+                                            select new
+                                            {
+                                                n.cmpd_ref_no,
+                                                n.section_code,
+                                                n.act_code,
+                                                n.created_at,
+                                                n.modified_at,
+                                                n.trnstatus_id,
                                             }).ToListAsync();
 
                 if (compound_lists.Count == 0)

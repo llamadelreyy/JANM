@@ -1,25 +1,29 @@
 ﻿@using PBTPro.Data
 @using PBTPro.DAL.Models
+@using PBTPro.DAL.Models.PayLoads
+@using GoogleMapsComponents.Maps
+
 @inject IJSRuntime JSRuntime
 
 <div class="e-cukai-title mb-4"><span class="px-3"><img src="/images/icons/paper-bag-label.png" alt="" /><span class="px-1">Info Taksiran</span></span></div>
 <div class="e-card">
     <div class="e-main d-flex align-items-center">
         <div class="flex-shrink-0">
-            <img class="e-photo" src=@PremisInfo.BuktiPath1 alt="" @attributes=@ImageAttributes />
+            <img class="e-photo" src=@ImgPremis alt="" />
         </div>
+
         <div class="e-info flex-grow-1 ms-3">
-            <div class="e-name">Nama Pemilik : @($"{PremisInfo.NamaPemilik}")</div>
-            <div class="e-name">No. Akaun : @($"{PremisInfo.NoLesen}")</div>
-            <div class="e-address">Alamat Premis :</div>
+            <div class="e-name">Nama Pemilik : @($"{PremisInfo.tax_owner.owner_name} - ({PremisInfo.tax_owner.owner_icno})")</div>
+            <div class="e-name">No. Akaun : @($"{PremisInfo.tax.tax_accno}")</div>
+            <div class="e-address">Alamat Premis : </div>
             <div class="e-email">
-                <a class="marker-panel" style="text-decoration:none;cursor:pointer" onclick=@(() => OpenNewStreetWindow(PremisInfo.Position.Lat.ToString(), PremisInfo.Position.Lng.ToString()))>
+                <a class="marker-panel" style="text-decoration:none;cursor:pointer" onclick=@(() => OpenNewStreetWindow(LatLng.Lat.ToString(), LatLng.Lng.ToString()))>
                     <img src="/images/icons/marker.png" alt="" />
-                    @($"{PremisInfo.AlamatPerniagaan}")
+                    @($"{PremisInfo.tax_owner.owner_addr}")
                 </a>
             </div>
 
-            <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
+            <div class="e-status">@GetStatusIconHtml(StatusCukai)</div>
             <div class="e-divider my-3"></div>
             <div class="e-email">
                 <button class="btn-panel" type="button">Maklumat Cukai</button>
@@ -36,7 +40,7 @@
 <div class="e-card">
     <div class="e-main d-flex align-items-center">
         <div class="e-info flex-grow-1 ms-3 py-3">
-            <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
+@*             <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
             <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
             <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
 
@@ -59,7 +63,7 @@
                     Kompaun
                     <span class="badge-button-red">2</span>
                 </a>
-            </div>
+            </div> *@
             <div class="e-divider my-3"></div>
             <div class="e-email">
                 <button class="btn-panel" type="button">Maklumat Lesen</button>
@@ -76,7 +80,7 @@
 <div class="e-card">
     <div class="e-main d-flex align-items-center">
         <div class="e-info flex-grow-1 ms-3 py-3">
-            <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
+@*             <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
             <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
             <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
 
@@ -99,15 +103,15 @@
                     Kompaun
                     <span class="badge-button-red">2</span>
                 </a>
-            </div>
+            </div> *@
             <div class="e-divider my-3"></div>
             <div class="e-email">
 
-                <button class="btn-panel" @onclick="@(() => ShowDetails("Maklumat Lesen", PremisInfo.NamaPerniagaan))" type="button">Maklumat Lesen</button>
+@*                 <button class="btn-panel" @onclick="@(() => ShowDetails("Maklumat Lesen", PremisInfo.NamaPerniagaan))" type="button">Maklumat Lesen</button>
                 <button class="btn-panel" @onclick="@(() => ShowDetails("Nota Pemeriksaan", PremisInfo.NoRujukan))">
                     Nota Pemeriksaan
                     <span class="badge-button-green">0</span>
-                </button>
+                </button> *@
                 <button class="btn-panel" type="button">Maklumat Sitaan</button>
             </div>
         </div>
@@ -117,7 +121,7 @@
 <DxPopup HeaderText="@HeaderText" @bind-Visible="@PopupVisible">
     <Content>
         <div class="e-info flex-grow-1 ms-3 py-3">
-            <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
+@*             <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
             <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
             <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
 
@@ -140,15 +144,15 @@
                     Kompaun
                     <span class="badge-button-red">2</span>
                 </a>
-            </div>
+            </div> *@
             <div class="e-divider my-3"></div>
             <div class="e-email">
 
-                <button class="btn-panel" @onclick="@(() => ShowDetails("Maklumat Lesen", PremisInfo.NamaPerniagaan))" type="button">Maklumat Lesen</button>
+@*                 <button class="btn-panel" @onclick="@(() => ShowDetails("Maklumat Lesen", PremisInfo.NamaPerniagaan))" type="button">Maklumat Lesen</button>
                 <button class="btn-panel" @onclick="@(() => ShowDetails("Nota Pemeriksaan", PremisInfo.NoRujukan))">
                     Nota Pemeriksaan
                     <span class="badge-button-green">0</span>
-                </button>
+                </button> *@
             </div>
         </div>
 
@@ -161,8 +165,16 @@
     string Details;
     string HeaderText;
 
-    [Parameter] public NoticeProp PremisInfo { get; set; }
-    [Parameter] public IEnumerable<KeyValuePair<string, object>> ImageAttributes { get; set; }
+    [Parameter] public premis_license_tax_view PremisInfo { get; set; }
+
+    [Parameter] public LatLngLiteral? LatLng { get; set; }
+
+    [Parameter] public int StatusCukai { get; set; }
+
+    [Parameter] public string? ImgPremis { get; set; }
+
+
+    // [Parameter] public IEnumerable<KeyValuePair<string, object>> ImageAttributes { get; set; }
 
     void ShowDetails(string headerdtl, string details)
     {
@@ -181,11 +193,11 @@
         await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,0,0,0,0", "_blank");
     }
 
-    public MarkupString GetStatusIconHtml(string status)
+    public MarkupString GetStatusIconHtml(int status_id)
     {
         string priorytyClass = "danger";
         string title = " TUTUP ";
-        if (status == "BARU")
+        if (status_id == 1)
         {
             priorytyClass = "info";
             title = " AKTIF ";
