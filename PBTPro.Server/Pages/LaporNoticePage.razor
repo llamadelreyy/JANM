@@ -108,6 +108,13 @@ else
                             <div>@GetStatusNoticeIconHtml(((trn_notices_view)context.DataItem).status_notis, ((trn_notices_view)context.DataItem).status_notis_id)</div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
+                    <DxGridDataColumn Caption="Tempoh Notis" MinWidth="200" Width="20%" FieldName="tempoh_notis">
+                        <CellDisplayTemplate>
+                            <div>
+                                @CombineTempohText(((trn_notices_view)context.DataItem).TarikhData, ((trn_notices_view)context.DataItem).tempoh_notis)
+                            </div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
                     <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="150" Width="15%" FieldName="ssm_no" />
                     <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="250" Width="20%" FieldName="alamat_perniagaan" />
                     <DxGridDataColumn Caption="Akta Kesalahan" MinWidth="250" Width="25%" FieldName="akta_kesalahan" />
@@ -172,7 +179,7 @@ else
                                 <tr style="height:25px;">
                                     <td nowrap>Nama Pemilik</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7" valign="top">
+                                    <td width="50%" colspan="7">
                                         @nama_pemilik
                                     </td>
                                 </tr>
@@ -186,7 +193,7 @@ else
                                 <tr style="height:25px;">
                                     <td nowrap valign="top">Alamat Perniagaan</td>
                                     <td valign="top">&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7" valign="top">
+                                    <td width="50%" colspan="7">
                                         @alamat_perniagaan
                                     </td>
                                 </tr>
@@ -366,6 +373,7 @@ else
     IGrid Grid { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
+    string str_tarikh_tamat_notis = "-";
 
     bool ConfirmationShown { get; set; } = false;
     int ActiveTabIndex;
@@ -574,9 +582,15 @@ else
         string html = string.Format("{0} <br/> {1}", strNoLesen, formattedNama);
         return new MarkupString(html);
     }
-
-    public MarkupString GetTarikhTamatIconHtml(DateTime? dtTarikhTamat, string strTempoh)
+    public MarkupString CombineTempohText(DateTime? dtTarikhData, string strNoLesen)
+    {      
+        string html = string.Format("{0} <br/> {1}", dtTarikhData, strNoLesen);
+        return new MarkupString(html);
+    }
+    public MarkupString GetTarikhTamatIconHtml(DateTime? dtTarikhTamat, string strTempoh, int? intTempoh)
     {
+        var calculatedDate = CalculateTarikhTamat((DateTime)dtTarikhTamat, intTempoh);
+        str_tarikh_tamat_notis = calculatedDate.ToString("dd/MM/yyyy");
         string formattedTempoh = strTempoh?.ToUpper() ?? "";
         string html = string.Format("{0} <br/> {1}", dtTarikhTamat, formattedTempoh);
         return new MarkupString(html);
@@ -670,7 +684,6 @@ else
         }
         return tarikhTamat;
     }
-    string str_tarikh_tamat_notis = "-";
 
     void SelectedItemChanged(ref_notice_duration x)
     {

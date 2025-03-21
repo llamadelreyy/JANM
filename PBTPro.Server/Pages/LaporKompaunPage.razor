@@ -160,7 +160,7 @@
                             <tr style="height:25px;">
                                 <td nowrap>No Lesen</td>
                                 <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%" valign="top">
+                                <td width="50%">
                                     @no_lesen
                                 </td>
                                 <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
@@ -173,21 +173,21 @@
                             <tr style="height:25px;">
                                 <td nowrap>Nama Pemilik</td>
                                 <td>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="7" valign="top">
+                                <td width="50%" colspan="7">
                                     @dtData.nama_pemilik
                                 </td>
                             </tr>
                             <tr style="height:25px;">
                                 <td nowrap>Nama Perniagaan</td>
                                 <td>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="5" valign="top">
+                                <td width="50%" colspan="5">
                                     @nama_perniagaan
                                 </td>
                             </tr>
                             <tr style="height:25px;">
-                                <td nowrap valign="top">Alamat Perniagaan</td>
+                                <td nowrap>Alamat Perniagaan</td>
                                 <td valign="top">&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="7" valign="top">
+                                <td width="50%" colspan="7">
                                     @dtData.alamat_perniagaan
                                 </td>
                             </tr>
@@ -572,7 +572,7 @@
     {
         if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_bayaran_id").ToString() == "1")
         {
-            e.Style = "color: #fff; background-color:#89dd85";
+           e.Style = "color: #003300; background-color: #6BF96B";
         }
         // if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_bayaran").ToString().ToUpper() == "BELUM BAYAR")
         // {
