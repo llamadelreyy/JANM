@@ -100,7 +100,7 @@ else
                     <DxGridDataColumn Caption="Nama Pegawai" MinWidth="200" Width="20%" FieldName="nama_pegawai" />
                     <DxGridDataColumn Caption="Tarikh Tamat & Tempoh Notis" MinWidth="150" Width="15%" FieldName="tarikh_tamat" AllowGroup="false" TextAlignment="GridTextAlignment.Center">
                         <CellDisplayTemplate>
-                            <div>@GetTarikhTamatIconHtml(((trn_notices_view)context.DataItem).tarikh_tamat, ((trn_notices_view)context.DataItem).tempoh_notis)</div>
+                          @*   <div>@GetTarikhTamatIconHtml(((trn_notices_view)context.DataItem).tarikh_tamat, ((trn_notices_view)context.DataItem).tempoh_notis)</div> *@
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
                     <DxGridDataColumn Caption="Status Notis" MinWidth="150" Width="15%" FieldName="status_notis" TextAlignment="GridTextAlignment.Center">
@@ -587,7 +587,7 @@ else
         string html = string.Format("{0} <br/> {1}", dtTarikhData, strNoLesen);
         return new MarkupString(html);
     }
-    public MarkupString GetTarikhTamatIconHtml(DateTime? dtTarikhTamat, string strTempoh, int? intTempoh)
+    public MarkupString GetTarikhTamatIconHtml(DateTime dtTarikhTamat, string strTempoh, int? intTempoh)
     {
         var calculatedDate = CalculateTarikhTamat((DateTime)dtTarikhTamat, intTempoh);
         str_tarikh_tamat_notis = calculatedDate.ToString("dd/MM/yyyy");
