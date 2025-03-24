@@ -27,16 +27,16 @@ namespace PBTPro.Api.Controllers
 {
     [Route("api/[controller]/[Action]")]
     [ApiController]
-    public class RefLicenseTypeController : IBaseController
+    public class RefTrnStatusController : IBaseController
     {
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
         private readonly IHubContext<PushDataHub> _hubContext;
-        private readonly ILogger<RefLicenseTypeController> _logger;
+        private readonly ILogger<RefTrnStatusController> _logger;
 
-        private readonly string _feature = "REF_LICENSE_TYPE";
+        private readonly string _feature = "REF_TRN_STATUS";
 
-        public RefLicenseTypeController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<RefLicenseTypeController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
+        public RefTrnStatusController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<RefTrnStatusController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
             _configuration = configuration;
@@ -46,11 +46,11 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ref_license_type>>> ListAll()
+        public async Task<ActionResult<IEnumerable<ref_trn_status>>> ListAll()
         {
             try
             {
-                var data = await _tenantDBContext.ref_license_types.AsNoTracking().ToListAsync();
+                var data = await _tenantDBContext.ref_trn_statuses.AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -58,27 +58,6 @@ namespace PBTPro.Api.Controllers
                 _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
-        }
-
-        [HttpGet("{Id}")]
-        public async Task<IActionResult> GetDetail(int Id)
-        {
-            try
-            {
-                var ref_license_type = await _tenantDBContext.ref_license_types.FirstOrDefaultAsync(x => x.type_id == Id);
-
-                if (ref_license_type == null)
-                {
-                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
-                }
-
-                return Ok(ref_license_type, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
-                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
-            }
-        }
+        }     
     }
 }
