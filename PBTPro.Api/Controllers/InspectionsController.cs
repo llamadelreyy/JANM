@@ -741,12 +741,16 @@ namespace PBTPro.Api.Controllers
                 {
                     tenantBusiness.TryGetValue(tI.owner_icno, out var ownerlicense);
                     tenantPremis.TryGetValue(tI.owner_icno, out var ownerPremis);
-                    tenantLicensees.TryGetValue((int)tI?.license_id, out var licensee);
+                    //tenantLicensees.TryGetValue((int)tI?.license_id, out var licensee);
                     tenantDepartments.TryGetValue((int)tI?.dept_id, out var department);
                     tenantPatrolSchedules.TryGetValue((int)tI.schedule_id, out var officerId);
                     users.TryGetValue(officerId, out var officer);
                     tenantInspectImgs.TryGetValue(tI.trn_inspect_id, out var images);
                     tenantWitness.TryGetValue(tI.trn_inspect_id, out var witnesses);
+
+                    var licensee = tI?.license_id.HasValue == true
+                    ? tenantLicensees.GetValueOrDefault(tI.license_id.Value)
+                    : null;
 
                     return new trn_inspect_view
                     {
@@ -765,12 +769,12 @@ namespace PBTPro.Api.Controllers
                         pautan_dokumen = tI.doc_pathurl,
                         imej_nota = images ?? new List<string>(),
                         nama_saksi = witnesses != null && witnesses.Any() ? string.Join(", ", witnesses) : "",
-                        no_cukai = tI.tax_accno,
-                        id_jabatan = tI.dept_id,
+                        no_cukai = tI?.tax_accno ?? null,
+                        id_jabatan = tI?.dept_id ?? 0,
                         nama_jabatan = department,
                         status_nota_id = (int)tI.trnstatus_id,
-                        status_nota = tenantStatuses.FirstOrDefault(s => s.status_id == tI.trnstatus_id)?.status_name
-
+                        status_nota = tenantStatuses.FirstOrDefault(s => s.status_id == tI.trnstatus_id)?.status_name,
+                        lesen_id = tI?.license_id ?? null
                     };
 
                 }).ToList();
