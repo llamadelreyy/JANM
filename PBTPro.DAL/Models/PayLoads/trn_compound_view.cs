@@ -10,6 +10,7 @@ namespace PBTPro.DAL.Models.PayLoads
     {
         public int id_kompaun { get; set; }
         public string? no_rujukan { get; set; }
+        public int? lesen_id { get; set; }
         public string? no_lesen { get; set; }
         public string? nama_perniagaan {get; set;}
         public string? nama_pemilik { get; set; }
@@ -40,6 +41,7 @@ namespace PBTPro.DAL.Models.PayLoads
     {
         public int id_notis { get; set; }
         public string? no_rujukan { get; set; }
+        public int? lesen_id { get; set; }
         public string? no_lesen { get; set; }
         public string? nama_perniagaan { get; set; }
         public string? nama_pemilik { get; set; }
@@ -71,6 +73,7 @@ namespace PBTPro.DAL.Models.PayLoads
     {
         public int id_nota { get; set; }
         public string? no_rujukan { get; set; }
+        public int? lesen_id { get; set; }
         public string? no_lesen { get; set; }
         public string? nama_perniagaan { get; set; }
         public string? nama_pemilik { get; set; }

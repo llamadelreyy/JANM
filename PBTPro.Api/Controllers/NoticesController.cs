@@ -760,7 +760,7 @@ namespace PBTPro.Api.Controllers
                 var results = tenantNotices.Select(tn =>
                 {
                     tenantOwners.TryGetValue(tn.owner_icno, out var owner);
-                    tenantLicensees.TryGetValue((int)tn?.license_id, out var licensee);
+                    //tenantLicensees.TryGetValue((int)tn?.license_id, out var licensee);
                     lawOffenses.TryGetValue(tn?.offense_code, out var offense);
                     tenantPatrolSchedules.TryGetValue((int)tn.schedule_id, out var officerId);
                     users.TryGetValue(officerId, out var officer);
@@ -768,6 +768,10 @@ namespace PBTPro.Api.Controllers
                     tenantDelivers.TryGetValue((int)tn.deliver_id, out var deliver);
                     tenantWitness.TryGetValue(tn.trn_notice_id, out var witnesses);
                     //tenantNoticeDurations.TryGetValue((int)tn?.duration_id, out var duration);
+
+                    var licensee = tn?.license_id.HasValue == true
+                    ? tenantLicensees.GetValueOrDefault(tn.license_id.Value)
+                    : null;
 
                     var law = !string.IsNullOrEmpty(tn?.act_code)
                     ? lawActs.GetValueOrDefault(tn.act_code, "")
@@ -787,28 +791,29 @@ namespace PBTPro.Api.Controllers
                         no_lesen = licensee?.license_accno,
                         nama_perniagaan = licensee?.business_name,
                         nama_pemilik = owner?.owner_name,
-                        no_rujukan = tn.notice_ref_no,
-                        status_notis_id = (int)tn.trnstatus_id,
+                        no_rujukan = tn?.notice_ref_no,
+                        status_notis_id = tn?.trnstatus_id,
                         status_notis = tenantStatuses.FirstOrDefault(s => s.status_id == tn.trnstatus_id)?.status_name,
                         kod_kesalahan = offense,
                         akta_kesalahan = law ?? "",
                         kod_seksyen = section ?? "",
                         kod_uuk = uuk ?? "",
-                        arahan = tn.instruction,
-                        lokasi_kesalahan = tn.offs_location,
-                        TarikhData = tn.created_at,
+                        arahan = tn?.instruction,
+                        lokasi_kesalahan = tn?.offs_location ?? "",
+                        TarikhData = tn?.created_at,
                         nama_pegawai = officer,
                         ssm_no = licensee?.ssm_no,
                         alamat_perniagaan = licensee?.business_addr,
-                        nama_dokumen = tn.doc_name,
-                        pautan_dokumen = tn.doc_pathurl,
+                        nama_dokumen = tn?.doc_name ?? null,
+                        pautan_dokumen = tn?.doc_pathurl ?? null,
                         imej_notis = images ?? new List<string>(),
                         cara_serahan = deliver,
                         nama_saksi = witnesses != null && witnesses.Any() ? string.Join(", ", witnesses) : "",
                         tarikh_tamat = CalculateTarikhTamat((DateTime)tn.created_at, tenantNoticeDurations.FirstOrDefault(s => s.duration_id == tn.duration_id)?.duration_value),
-                        no_cukai = tn.tax_accno,
-                        tempoh_notis_id = tn.duration_id,
+                        no_cukai = tn?.tax_accno ?? "",
+                        tempoh_notis_id = tn?.duration_id,
                         tempoh_notis = tenantNoticeDurations.FirstOrDefault(s => s.duration_id == tn.duration_id)?.duration_value,
+                        lesen_id = tn?.license_id ?? null
                     };
                 }).ToList();
 

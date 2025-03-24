@@ -754,13 +754,17 @@ namespace PBTPro.Api.Controllers
                 var results = tenantCmpds.Select(tc =>
                 {
                     tenantOwners.TryGetValue(tc.owner_icno, out var owner);
-                    tenantLicensees.TryGetValue((int)tc?.license_id, out var licensee);
+                    //tenantLicensees.TryGetValue((int)tc?.license_id, out var licensee);
                     lawOffenses.TryGetValue(tc?.offense_code, out var offense);
                     tenantPatrolSchedules.TryGetValue((int)tc.schedule_id, out var officerId);
                     users.TryGetValue(officerId, out var officer);
                     tenantCmpdImgs.TryGetValue(tc.trn_cmpd_id, out var images);
                     tenantDelivers.TryGetValue((int)tc.deliver_id, out var deliver);
                     tenantWitness.TryGetValue(tc.trn_cmpd_id, out var witnesses);
+
+                    var licensee = tc?.license_id.HasValue == true
+                   ? tenantLicensees.GetValueOrDefault(tc.license_id.Value)
+                   : null;
 
                     var law = !string.IsNullOrEmpty(tc?.act_code)
                     ? lawActs.GetValueOrDefault(tc.act_code, "")
@@ -800,6 +804,7 @@ namespace PBTPro.Api.Controllers
                         imej_kompaun = images ?? new List<string>(),
                         cara_serahan = deliver,
                         nama_saksi = witnesses != null && witnesses.Any() ? string.Join(", ", witnesses) : "",
+                        lesen_id = tc?.license_id ?? null
                     };
                 }).ToList();
 
