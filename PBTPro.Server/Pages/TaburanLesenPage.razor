@@ -7,6 +7,7 @@
 @using PBTPro.DAL.Services
 @using PBTPro.Data
 @using PBTPro.DAL.Models.PayLoads
+@inject IJSRuntime JSRuntime
 
 @inject NoticeService _NoticeService
 @inject ApiConnector _ApiConnector // 07/11/2024 - API Fetcher - ismail
@@ -207,33 +208,39 @@
                     int i = 0;
                     double dblLat = 0;
                     double dblLng = 0;
-                    int tax_status_id = 0;
                     string strImagePremis = "";
-                    // // string colorLot = "";
+                    List<string> _floorPremis = new List<string>();
+
                     if (_labelText != "")
                     {
+                        dblLat = premisInfo._latitude ?? 0;
+                        dblLng = premisInfo._longitude ?? 0; //coords[0];
+                        //Get the premis image
+                        strImagePremis = premisInfo.gkeseluruh ?? "";
+                        
 
-                    // // Check if _latitude has a value
-                    // if (premisInfo._latitude.HasValue)
-                    // {
+                        //Need to check how many floor
+                        foreach (var _dtPremis in premisInfo.premis_license_tax)
+                        {
+                            if (!_floorPremis.Contains(_dtPremis.floor_building.ToString()))
+                            {
+                                _floorPremis.Add(_dtPremis.floor_building.ToString());
+                            }
+                        }    
+                        
+                        //Count the list to get how many floor
+                        valueType = 1;  //set the default value - only 1 floor
+                        if (_floorPremis.Count() > 1)
+                            valueType = 2; //more the 1 floor
 
-                    // }         
+    
+                    }
 
-                    // //Clear back the selection
-                    // _labelText = "";
-
-                    //Need to pass parameter to the card
-                    var result = premisData.FirstOrDefault(p => p.codeid_premis == _labelText);
-                    var coords = result.geom.coordinates;
-                    dblLat = coords[1];
-                    dblLng = coords[0];
-                    tax_status_id = result.tax_status_id;
-                    strImagePremis = result.gkeseluruh;
-                    valueType = 1; //HARDCODE for now
-                }
+                    
 
                 if (valueType == 1)
                 {
+                        
                     //ContentTemplate Context dont give name that has this "-"". ex:Level1-Lot1
                     <DxAccordion ShowFilterPanel="true"
                                  ExpandMode=AccordionExpandMode.MultipleOrNone
@@ -242,12 +249,52 @@
                                  AnimationType="LayoutAnimationType.Slide">
                         <Items>
 
+                                @{
+                                    var _dtTax = premisInfo.premis_license_tax.First();
+                                }
+
+                                <DxAccordionItem Text="@($"NO CUKAI TAKSIRAN : {_dtTax.tax_accno}")">
+                                    <ContentTemplate>
+                                        <div class="e-card">
+                                            <div class="e-main d-flex align-items-center">
+                                                @if (strImagePremis.Trim() != "")
+                                                {
+                                                    <div class="flex-shrink-0">
+                                                        <a href="@strImagePremis" target="_blank"><img class="e-photo" src="@($"{strImagePremis}")" alt="" /></a>
+                                                    </div>
+                                                }
+
+                                                <div class="e-info flex-grow-1 ms-3 py-3">
+                                                    <div class="e-name">Tarikh Cukai : @($"{_dtTax.tax.tax_start_date} - {_dtTax.tax.tax_end_date}")</div>
+                                                    <div class="e-name">Nama Pemilik : @($"{_dtTax.tax_owner.owner_name} - ({_dtTax.tax_owner.owner_icno})")</div>
+                                                    <div class="e-name">Telefon No : @($"{_dtTax.tax_owner.owner_telno}")</div>
+                                                    <div class="e-name">Emel : @($"{_dtTax.tax_owner.owner_email}")</div>
+                                                    <div class="e-address">Alamat Premis : </div>
+                                                    <div class="e-email">
+                                                        <a class="marker-panel" style="text-decoration:none;cursor:pointer" onclick=@(() => OpenNewStreetWindow(dblLat.ToString(), dblLng.ToString()))>
+                                                            <img src="/images/icons/marker.png" alt="" />
+                                                            @($"{_dtTax.tax_owner.owner_addr}")
+                                                        </a>
+                                                    </div>
+
+                                                    <div class="e-status">@GetStatusIconHtml(_dtTax.status_tax_id ?? 0)</div>
+                                                    <div class="e-divider my-3"></div>
+                                                    <div class="e-email">
+                                                        <button class="btn-panel" type="button">Maklumat Cukai</button>
+                                                        <button class="btn-panel">
+                                                            Nota Pemeriksaan
+                                                            <span class="badge-button-green">0</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </ContentTemplate>
+                                </DxAccordionItem>
 
                                 @foreach (var taxItem in premisInfo.premis_license_tax)
                                 {
-                                    //Access the premis_license_tax list for each premis
-                                    int status_id = taxItem.status_lesen_id ?? 0;
-
+                                    
                                     <DxAccordionItem Expanded=@(i == 0)>
                                         <HeaderTextTemplate>
                                             <div>
@@ -255,13 +302,13 @@
                                                         @($"{taxItem.license.business_name}")
 
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
-                                                            <circle cx="15" cy="15" r="5" fill="@GetColorLot(status_id)" />
+                                                        <circle cx="15" cy="15" r="5" fill="@GetColorLot(taxItem.status_lesen_id ?? 0)" />
                                                     </svg>
                                                 </div>
                                             </div>
                                         </HeaderTextTemplate>
                                         <ContentTemplate>
-                                            <PremisCard PremisInfo="@taxItem" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" StatusCukai="@tax_status_id" ImgPremis="@strImagePremis" />
+                                            <PremisCard PremisInfo="@taxItem" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" Dtfloor="@_floorPremis" />
                                         </ContentTemplate>
                                     </DxAccordionItem>
 
@@ -275,12 +322,18 @@
                 }
                 else if (valueType == 2)
                 {
+                        <DxAccordion ExpandMode=AccordionExpandMode.SingleOrNone
+                                     ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                     RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.End
+                                     AnimationType="LayoutAnimationType.Slide">
+                            <Items>
 
-                    <DxAccordion ExpandMode=AccordionExpandMode.SingleOrNone
-                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.End
-                                 AnimationType="LayoutAnimationType.Slide">
-                        <Items>
+                        @foreach (var _floor in _floorPremis)
+                        {
+
+                        }
+
+
 
                             <DxAccordionItem Text="Aras G">
                                 <ContentTemplate Context="ArasG">
@@ -310,6 +363,7 @@
                                                         </div>
                                                     </ContentTemplate>
                                                 </DxAccordionItem>
+
                                                 <DxAccordionItem Text="Maklumat Lesen">
                                                     <ContentTemplate Context="Lesen1001">
                                                         <div class="py-3 px-3">
