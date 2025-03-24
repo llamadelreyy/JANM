@@ -1,10 +1,14 @@
 ﻿using DevExpress.Xpo.Logger;
 using GoogleMapsComponents.Maps;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using PBTPro.DAL.Models.PayLoads;
 using PBTPro.DAL.Services;
 using System.Reflection;
+using System.Text;
 
 
 namespace PBTPro.Data
@@ -42,7 +46,7 @@ namespace PBTPro.Data
         private readonly PBTAuthStateProvider _PBTAuthStateProvider;
         protected readonly AuditLogger _cf;
 
-        private string _baseReqURL = "/api/License";
+        private string _baseReqURL = "/api/Notices";
         private string LoggerName = "";
         private int LoggerID = 0;
         private int RoleID = 0;
@@ -425,6 +429,90 @@ namespace PBTPro.Data
             return Task.FromResult(_Notice);
         }
 
+        [HttpGet]
+        public async Task<List<trn_notices_view>> ListReport()
+        {
+            var result = new List<trn_notices_view>();
+            string requestUrl = $"{_baseReqURL}/ListReport";
+            var response = await _apiConnector.ProcessLocalApi(requestUrl);
 
+            try
+            {
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        result = JsonConvert.DeserializeObject<List<trn_notices_view>>(dataString);
+                    }
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Papar semula senarai data.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod : " + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+                result = new List<trn_notices_view>();
+            }
+            return result;
+        }
+
+        public async Task<ReturnViewModel> Delete(int id)
+        {
+            var result = new ReturnViewModel();
+            try
+            {
+                string requestUrl = $"{_baseReqURL}/DeleteReport/{id}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Delete);
+
+                result = response;
+                if (result.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya padam data.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+            }
+            catch (Exception ex)
+            {
+                result = new ReturnViewModel();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+            }
+            return result;
+        }
+        public async Task<ReturnViewModel> Update(trn_notices_view inputModel)
+        {
+            var result = new ReturnViewModel();
+            try
+            {
+                int id = inputModel.id_notis;
+                var reqData = JsonConvert.SerializeObject(inputModel);
+                var reqContent = new StringContent(reqData, Encoding.UTF8, "application/json");
+
+                string requestUrl = $"{_baseReqURL}/UpdateReport/{id}";
+                var response = await _apiConnector.ProcessLocalApi(requestUrl, HttpMethod.Put, reqContent);
+
+                result = response;
+                if (result.ReturnCode == 200)
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Berjaya kemaskini data.", LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+                else
+                {
+                    await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Ralat - Status Kod :" + response.ReturnCode, LoggerID, LoggerName, GetType().Name, RoleID);
+                }
+            }
+            catch (Exception ex)
+            {
+                result = new ReturnViewModel();
+                await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
+            }
+            return result;
+        }
     }
 }

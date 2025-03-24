@@ -1,4 +1,4 @@
-﻿@page "/reportkompaunlesen"
+﻿@page "/reportnotapemeriksaan"
 @attribute [AllowAnonymous]
 
 @using DevExpress.Blazor.Reporting
@@ -9,7 +9,7 @@
 @using PBTPro.DAL.Models
 @using PBTPro.DAL.Models.PayLoads
 
-@inject CompoundService _CompoundService
+@inject InspectionService _InspectionService
 
 @*<h3>Viewer</h3>*@
 <link rel="stylesheet" href="_content/DevExpress.Blazor.Reporting.Viewer/css/dx-blazor-reporting-components.bs5.css">
@@ -41,8 +41,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        IEnumerable<trn_compound_view> KompaunData = await _CompoundService.ListReport();
-        Report = new Reports.ViewKompaunLesen();
-        Report.DataSource = KompaunData.Where(x => x.no_rujukan.Trim() == norujukan);
+        IEnumerable<trn_inspect_view> InspectionData = await _InspectionService.ListReport();
+        // Report = new Reports.ViewNotaPemeriksaan();
+        // Report.DataSource = InspectionData.Where(x => x.no_rujukan == norujukan);
     }
 }

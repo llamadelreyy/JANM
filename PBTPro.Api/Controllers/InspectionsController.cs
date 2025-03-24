@@ -668,6 +668,201 @@ namespace PBTPro.Api.Controllers
             }
         }
         #endregion
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<trn_inspect_view>>> ListReport()
+        {
+            try
+            {
+                var tenantInspects = await _tenantDBContext.trn_inspects
+                   .AsNoTracking()
+                   .ToListAsync();
+
+                var tenantBusiness = (await _tenantDBContext.mst_owner_licensees
+                    .Where(mol => !string.IsNullOrEmpty(mol.owner_icno))
+                    .Select(mol => new { mol.owner_icno, mol.owner_name })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .ToDictionary(mol => mol.owner_icno, mol => mol);
+
+                var tenantPremis = (await _tenantDBContext.mst_owner_premis
+                   .Where(mop => !string.IsNullOrEmpty(mop.owner_icno))
+                   .Select(mop => new { mop.owner_icno, mop.owner_name })
+                   .AsNoTracking()
+                   .ToListAsync())
+                   .ToDictionary(mop => mop.owner_icno, mop => mop);
+
+                var tenantLicensees = (await _tenantDBContext.mst_licensees
+                    .Where(ml => !string.IsNullOrEmpty(ml.license_accno))
+                    .Select(ml => new { ml.licensee_id, ml.license_accno, ml.business_name, ml.ssm_no, ml.business_addr })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .ToDictionary(ml => ml.licensee_id, ml => ml);
+
+                var tenantStatuses = await _tenantDBContext.ref_trn_statuses
+                    .Select(rts => new { rts.status_id, rts.status_name })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                var tenantPatrolSchedules = (await _tenantDBContext.mst_patrol_schedules
+                     .Select(mps => new { mps.schedule_id, mps.idno })
+                     .AsNoTracking()
+                     .ToListAsync())
+                     .ToDictionary(mps => mps.schedule_id, mps => mps.idno);
+
+                var tenantWitness = (await _tenantDBContext.trn_witnesses
+                    .Select(tw => new { tw.trn_id, tw.name })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .GroupBy(tw => tw.trn_id)
+                    .ToDictionary(g => g.Key, g => g.Select(tw => tw.name).ToList());
+
+                var users = (await _dbContext.Users
+                    .Select(u => new { u.IdNo, u.full_name })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .ToDictionary(u => u.IdNo, u => u.full_name);
+
+                var tenantInspectImgs = (await _tenantDBContext.trn_inspect_imgs
+                    .Select(img => new { img.trn_inspect_id, img.pathurl })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .GroupBy(img => img.trn_inspect_id)
+                    .ToDictionary(g => g.Key, g => g.Select(img => img.pathurl).Distinct().ToList());
+
+                var tenantDepartments = (await _tenantDBContext.ref_departments
+                   .Select(dpt => new { dpt.dept_id, dpt.dept_code, dpt.dept_name })
+                   .AsNoTracking()
+                   .ToListAsync())
+                   .ToDictionary(dpt => dpt.dept_id, dpt => dpt.dept_name);
+
+
+                var results = tenantInspects.Select(tI =>
+                {
+                    tenantBusiness.TryGetValue(tI.owner_icno, out var ownerlicense);
+                    tenantPremis.TryGetValue(tI.owner_icno, out var ownerPremis);
+                    //tenantLicensees.TryGetValue((int)tI?.license_id, out var licensee);
+                    tenantDepartments.TryGetValue((int)tI?.dept_id, out var department);
+                    tenantPatrolSchedules.TryGetValue((int)tI.schedule_id, out var officerId);
+                    users.TryGetValue(officerId, out var officer);
+                    tenantInspectImgs.TryGetValue(tI.trn_inspect_id, out var images);
+                    tenantWitness.TryGetValue(tI.trn_inspect_id, out var witnesses);
+
+                    var licensee = tI?.license_id.HasValue == true
+                    ? tenantLicensees.GetValueOrDefault(tI.license_id.Value)
+                    : null;
+
+                    return new trn_inspect_view
+                    {
+                        id_nota = tI.trn_inspect_id,
+                        no_lesen = licensee?.license_accno,
+                        nama_perniagaan = licensee?.business_name,
+                        nama_pemilik = ownerlicense?.owner_name,
+                        no_rujukan = tI.inspect_ref_no,
+                        arahan = tI.notes,
+                        lokasi_kesalahan = tI.offs_location,
+                        TarikhData = tI.created_at,
+                        nama_pegawai = officer,
+                        ssm_no = licensee?.ssm_no,
+                        alamat_perniagaan = licensee?.business_addr,
+                        nama_dokumen = tI.doc_name,
+                        pautan_dokumen = tI.doc_pathurl,
+                        imej_nota = images ?? new List<string>(),
+                        nama_saksi = witnesses != null && witnesses.Any() ? string.Join(", ", witnesses) : "",
+                        no_cukai = tI?.tax_accno ?? null,
+                        id_jabatan = tI?.dept_id ?? 0,
+                        nama_jabatan = department,
+                        status_nota_id = (int)tI.trnstatus_id,
+                        status_nota = tenantStatuses.FirstOrDefault(s => s.status_id == tI.trnstatus_id)?.status_name,
+                        lesen_id = tI?.license_id ?? null
+                    };
+
+                }).ToList();
+
+                return Ok(results, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> UpdateReport(int Id, [FromBody] trn_inspect_view InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                var formField = await _tenantDBContext.trn_inspects.FirstOrDefaultAsync(x => x.trn_inspect_id == Id);
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                
+                #endregion
+
+                formField.trnstatus_id = InputModel.status_nota_id;
+                formField.modifier_id = runUserID;
+                formField.modified_at = DateTime.Now;
+
+                _tenantDBContext.trn_inspects.Update(formField);
+                await _tenantDBContext.SaveChangesAsync();
+
+                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpDelete("{Id}")]
+        public async Task<IActionResult> DeleteReport(int Id)
+        {
+            try
+            {
+                string runUser = await getDefRunUser();
+                int runUserID = await getDefRunUserId();
+
+                #region Validation
+                var formField = await _tenantDBContext.trn_inspects.FirstOrDefaultAsync(x => x.trn_inspect_id == Id);
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                #endregion
+
+                try
+                {
+                    _tenantDBContext.trn_inspects.Remove(formField);
+                    await _tenantDBContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    formField.is_deleted = true;
+                    formField.modifier_id = runUserID;
+                    formField.modified_at = DateTime.Now;
+
+                    _tenantDBContext.trn_inspects.Update(formField);
+                    await _tenantDBContext.SaveChangesAsync();
+
+                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                }
+
+                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
         #region Private Logic
         private async Task<string?> getUploadPath(trn_inspect? record)
         {

@@ -27,16 +27,16 @@ namespace PBTPro.Api.Controllers
 {
     [Route("api/[controller]/[Action]")]
     [ApiController]
-    public class RefLicenseTypeController : IBaseController
+    public class RefNoticeDurationController : IBaseController
     {
         protected readonly string? _dbConn;
         private readonly IConfiguration _configuration;
         private readonly IHubContext<PushDataHub> _hubContext;
-        private readonly ILogger<RefLicenseTypeController> _logger;
+        private readonly ILogger<RefNoticeDurationController> _logger;
 
-        private readonly string _feature = "REF_LICENSE_TYPE";
+        private readonly string _feature = "REF_NOTICE_DURATION";
 
-        public RefLicenseTypeController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<RefLicenseTypeController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
+        public RefNoticeDurationController(IConfiguration configuration, PBTProDbContext dbContext, PBTProTenantDbContext tntdbContext, ILogger<RefNoticeDurationController> logger, IHubContext<PushDataHub> hubContext) : base(dbContext)
         {
             _dbConn = configuration.GetConnectionString("DefaultConnection");
             _configuration = configuration;
@@ -46,11 +46,11 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ref_license_type>>> ListAll()
+        public async Task<ActionResult<IEnumerable<ref_notice_duration>>> ListAll()
         {
             try
             {
-                var data = await _tenantDBContext.ref_license_types.AsNoTracking().ToListAsync();
+                var data = await _tenantDBContext.ref_notice_durations.AsNoTracking().ToListAsync();
                 return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -65,14 +65,14 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var ref_license_type = await _tenantDBContext.ref_license_types.FirstOrDefaultAsync(x => x.type_id == Id);
+                var ref_notice_duration = await _tenantDBContext.ref_notice_durations.FirstOrDefaultAsync(x => x.duration_id == Id);
 
-                if (ref_license_type == null)
+                if (ref_notice_duration == null)
                 {
                     return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
                 }
 
-                return Ok(ref_license_type, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+                return Ok(ref_notice_duration, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
             {
