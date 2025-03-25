@@ -236,7 +236,14 @@ namespace PBTPro.Api.Controllers
                             await SendInspectionFollowUpNotice(deptInfo.dept_email, deptInfo.dept_name, inspect);
                         }
                     }
-                    return Ok(inspect, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta nota pemeriksaan")));
+
+                    var result = new
+                    {
+                        trn_inspect_id = inspect.trn_inspect_id,
+                        doc_name = inspect.doc_name,
+                        doc_pathurl = inspect.doc_pathurl
+                    };
+                    return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta nota pemeriksaan")));
                 }
                 #endregion
             }
@@ -405,7 +412,14 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(inspect, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai nota pemeriksaan")));
+
+                        var result = new
+                        {
+                            trn_inspect_id = inspect.trn_inspect_id,
+                            doc_name = inspect.doc_name,
+                            doc_pathurl = inspect.doc_pathurl
+                        };
+                        return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai nota pemeriksaan")));
                     }
                     catch (Exception ex)
                     {
