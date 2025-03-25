@@ -229,7 +229,14 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(notice, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta notis")));
+
+                        var result = new
+                        {
+                            trn_notice_id = notice.trn_notice_id,
+                            doc_name = notice.doc_name,
+                            doc_pathurl = notice.doc_pathurl
+                        };
+                        return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta notis")));
                     }
                     catch (Exception ex)
                     {
@@ -414,7 +421,14 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(notice, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai notis")));
+
+                        var result = new
+                        {
+                            trn_notice_id = notice.trn_notice_id,
+                            doc_name = notice.doc_name,
+                            doc_pathurl = notice.doc_pathurl
+                        };
+                        return Ok(result, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai notis")));
                     }
                     catch (Exception ex)
                     {

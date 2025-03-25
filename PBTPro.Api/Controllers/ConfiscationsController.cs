@@ -266,7 +266,14 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(confiscation, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta sitaan")));
+
+                        var result = new
+                        {
+                            trn_cfsc_id = confiscation.trn_cfsc_id,
+                            doc_name = confiscation.doc_name,
+                            doc_pathurl = confiscation.doc_pathurl
+                        };
+                        return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta sitaan")));
                     }
                     catch (Exception ex)
                     {
@@ -497,7 +504,14 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(confiscation, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai sitaan")));
+
+                        var result = new
+                        {
+                            trn_cfsc_id = confiscation.trn_cfsc_id,
+                            doc_name = confiscation.doc_name,
+                            doc_pathurl = confiscation.doc_pathurl
+                        };
+                        return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai sitaan")));
                     }
                     catch (Exception ex)
                     {

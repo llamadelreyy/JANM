@@ -236,7 +236,14 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(compound, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta kompaun")));
+
+                        var result = new
+                        {
+                            trn_cmpd_id = compound.trn_cmpd_id,
+                            doc_name = compound.doc_name,
+                            doc_pathurl = compound.doc_pathurl
+                        };
+                        return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta kompaun")));
                     }
                     catch (Exception ex)
                     {
@@ -422,7 +429,14 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(compound, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai kompaun")));
+
+                        var result = new
+                        {
+                            trn_cmpd_id = compound.trn_cmpd_id,
+                            doc_name = compound.doc_name,
+                            doc_pathurl = compound.doc_pathurl
+                        };
+                        return Ok(result, SystemMesg(_feature, "UPDATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai kompaun")));
                     }
                     catch (Exception ex)
                     {
