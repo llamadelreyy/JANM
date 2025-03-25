@@ -12,7 +12,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? no_rujukan { get; set; }
         public int? lesen_id { get; set; }
         public string? no_lesen { get; set; }
-        public string? nama_perniagaan {get; set;}
+        public string? nama_perniagaan { get; set; }
         public string? nama_pemilik { get; set; }
         public string? nama_pegawai { get; set; }
         public double? amaun { get; set; }
@@ -79,7 +79,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? nama_pemilik { get; set; }
         public string? nama_pegawai { get; set; }
         public string? ssm_no { get; set; }
-        public string? alamat_perniagaan { get; set; }        
+        public string? alamat_perniagaan { get; set; }
         public string? arahan { get; set; }
         public string? lokasi_kesalahan { get; set; }
         public string? nama_saksi { get; set; }
@@ -92,5 +92,8 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? nama_jabatan { get; set; }
         public int status_nota_id { get; set; }
         public string? status_nota { get; set; }
+        public decimal? inspect_longitude { get; set; }     
+        public decimal? inspect_latitude { get; set; }
+
     }
 }
