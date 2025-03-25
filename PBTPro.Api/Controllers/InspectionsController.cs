@@ -774,7 +774,9 @@ namespace PBTPro.Api.Controllers
                         nama_jabatan = department,
                         status_nota_id = (int)tI.trnstatus_id,
                         status_nota = tenantStatuses.FirstOrDefault(s => s.status_id == tI.trnstatus_id)?.status_name,
-                        lesen_id = tI?.license_id ?? null
+                        lesen_id = tI?.license_id ?? null,
+                        inspect_latitude = tI.inspect_latitude,
+                        inspect_longitude = tI.inspect_longitude,
                     };
 
                 }).ToList();
