@@ -5,14 +5,14 @@
 
 @inject IJSRuntime JSRuntime
 
-<div class="e-cukai-title mb-4"><span class="px-3"><img src="/images/icons/paper-bag-label.png" alt="" /><span class="px-1">Info Taksiran</span></span></div>
+@* <div class="e-cukai-title mb-4"><span class="px-3"><img src="/images/icons/paper-bag-label.png" alt="" /><span class="px-1">Info Taksiran</span></span></div>
 <div class="e-card">
     <div class="e-main d-flex align-items-center">
         <div class="flex-shrink-0">
             <img class="e-photo" src=@ImgPremis alt="" />
         </div>
 
-        <div class="e-info flex-grow-1 ms-3">
+         <div class="e-info flex-grow-1 ms-3">
             <div class="e-name">Nama Pemilik : @($"{PremisInfo.tax_owner.owner_name} - ({PremisInfo.tax_owner.owner_icno})")</div>
             <div class="e-name">No. Akaun : @($"{PremisInfo.tax.tax_accno}")</div>
             <div class="e-address">Alamat Premis : </div>
@@ -32,19 +32,23 @@
                     <span class="badge-button-green">0</span>
                 </button>
             </div>
-        </div>
+        </div> 
     </div>
-</div>
+</div> *@
 
 <div class="e-lesen-title"><span class="px-3"><img src="/images/icons/document-text-image.png" alt="" /><span class="px-1">Info Lesen</span></span></div>
 <div class="e-card">
     <div class="e-main d-flex align-items-center">
         <div class="e-info flex-grow-1 ms-3 py-3">
-@*             <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
-            <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
-            <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
+            <div class="e-name">No. Lot : @($"{PremisInfo.license.lot}")</div>
+            <div class="e-name">No. Lesen : @($"{PremisInfo.license_accno}")</div>
+            <div class="e-name">Tempoh Lesen : @($"{PremisInfo.license.license_duration}")</div>
+            <div class="e-name">Nama Perniagaan : @($"{PremisInfo.license.business_name}")</div>
+            <div class="e-divider my-3"></div>
+            <div class="e-name">Nama Pemegang Lesen : @($"{PremisInfo.license_owner.owner_name} - ({PremisInfo.license_owner.owner_icno})")</div>
+            <div class="e-name">Alamat : @($"{PremisInfo.license.business_addr}")</div>
 
-            <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
+            <div class="e-status">@GetStatusIconHtml(PremisInfo.status_lesen_id ?? 0)</div>
             <div class="e-divider my-3"></div>
             <div class="e-email">
                 <a class="receipt-panel">
@@ -63,69 +67,32 @@
                     Kompaun
                     <span class="badge-button-red">2</span>
                 </a>
-            </div> *@
+            </div>
             <div class="e-divider my-3"></div>
             <div class="e-email">
-                <button class="btn-panel" type="button">Maklumat Lesen</button>
-                <button class="btn-panel">
+                <button class="btn-panel-l" type="button">Maklumat Lesen</button>
+                <button class="btn-panel-l">
                     Nota Pemeriksaan
                     <span class="badge-button-green">0</span>
                 </button>
-                <button class="btn-panel" type="button">Maklumat Sitaan</button>
+                <button class="btn-panel-l" type="button">Maklumat Sitaan</button>
             </div>
         </div>
     </div>
 </div>
-<hr>
-<div class="e-card">
-    <div class="e-main d-flex align-items-center">
-        <div class="e-info flex-grow-1 ms-3 py-3">
-@*             <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
-            <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
-            <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
 
-            <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
-            <div class="e-divider my-3"></div>
-            <div class="e-email">
-                <a class="receipt-panel">
-                    <img src="/images/icons/script-text.png" alt="" />
-                    Notis
-                    <span class="badge-button-green">0</span>
-                </a>
-                <a class="receipt-panel">
-                    <img src="/images/icons/script.png" alt="" />
-                    Notis Tamat Tempoh
-                    <span class="badge-button-green">0</span>
-                </a>
-
-                <a class="receipt-panel">
-                    <img src="/images/icons/receipt-text.png" alt="" />
-                    Kompaun
-                    <span class="badge-button-red">2</span>
-                </a>
-            </div> *@
-            <div class="e-divider my-3"></div>
-            <div class="e-email">
-
-@*                 <button class="btn-panel" @onclick="@(() => ShowDetails("Maklumat Lesen", PremisInfo.NamaPerniagaan))" type="button">Maklumat Lesen</button>
-                <button class="btn-panel" @onclick="@(() => ShowDetails("Nota Pemeriksaan", PremisInfo.NoRujukan))">
-                    Nota Pemeriksaan
-                    <span class="badge-button-green">0</span>
-                </button> *@
-                <button class="btn-panel" type="button">Maklumat Sitaan</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <DxPopup HeaderText="@HeaderText" @bind-Visible="@PopupVisible">
     <Content>
         <div class="e-info flex-grow-1 ms-3 py-3">
-@*             <div class="e-name">No. Lot : @($"{PremisInfo.NoLot}")</div>
-            <div class="e-name">Nama Perniagaan : @($"{PremisInfo.NamaPerniagaan}")</div>
-            <div class="e-name">No. Lesen : @($"{PremisInfo.NoRujukan}")</div>
+            <div class="e-name">No. Lot : @($"{PremisInfo.license.lot}")</div>
+            <div class="e-name">Nama Perniagaan : @($"{PremisInfo.license.business_name}")</div>
+            <div class="e-name">No. Lesen : @($"{PremisInfo.license_accno}")</div>
+            <div class="e-name">Tempoh Lesen : @($"{PremisInfo.license.license_duration}")</div>
+            <div class="e-name">Nama Pemegang Lesen : @($"{PremisInfo.license_owner} - ({PremisInfo.license.owner_icno})")</div>
+            <div class="e-name">Alamat : @($"{PremisInfo.license.business_addr}")</div>
 
-            <div class="e-status">@GetStatusIconHtml(PremisInfo.StatusNotis)</div>
+            <div class="e-status">@GetStatusIconHtml(PremisInfo.status_lesen_id ?? 0)</div>
             <div class="e-divider my-3"></div>
             <div class="e-email">
                 <a class="receipt-panel">
@@ -144,7 +111,7 @@
                     Kompaun
                     <span class="badge-button-red">2</span>
                 </a>
-            </div> *@
+            </div>
             <div class="e-divider my-3"></div>
             <div class="e-email">
 
@@ -169,9 +136,7 @@
 
     [Parameter] public LatLngLiteral? LatLng { get; set; }
 
-    [Parameter] public int StatusCukai { get; set; }
-
-    [Parameter] public string? ImgPremis { get; set; }
+    [Parameter] public List<string> Dtfloor { get; set; }
 
 
     // [Parameter] public IEnumerable<KeyValuePair<string, object>> ImageAttributes { get; set; }
@@ -195,12 +160,17 @@
 
     public MarkupString GetStatusIconHtml(int status_id)
     {
-        string priorytyClass = "danger";
-        string title = " TUTUP ";
+        string priorytyClass = "none";
+        string title = " TIADA DATA ";
         if (status_id == 1)
         {
             priorytyClass = "info";
-            title = " AKTIF ";
+            title = " CUKAI DIBAYAR ";
+        }
+        else if (status_id == 2)
+        {
+            priorytyClass = "danger";
+            title = " CUKAI BELUM DIBAYAR ";
         }
 
         string html = string.Format("<span class='e-badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);

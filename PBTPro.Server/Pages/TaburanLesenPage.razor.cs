@@ -130,6 +130,30 @@ namespace PBTPro.Pages
             return dataUrl;
         }
 
+        public MarkupString GetStatusIconHtml(int status_id)
+        {
+            string priorytyClass = "none";
+            string title = " TIADA DATA ";
+            if (status_id == 1)
+            {
+                priorytyClass = "info";
+                title = " CUKAI DIBAYAR ";
+            }
+            else if (status_id == 2)
+            {
+                priorytyClass = "danger";
+                title = " CUKAI BELUM DIBAYAR ";
+            }
+
+            string html = string.Format("<span class='e-badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
+            return new MarkupString(html);
+        }
+
+        public async Task OpenNewStreetWindow(string latitude, string longitude)
+        {
+            await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,0,0,0,0", "_blank");
+        }
+
         /*
         Description: Set the map properties
         Author: Azmee
@@ -334,9 +358,9 @@ namespace PBTPro.Pages
                         {
                             Position = latLng,
                             Map = map1.InteropObject,
-                            Title = premisId.Substring(3),
+                            Title = _premis.lot,
                             // Content = index.ToString()
-                            Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(lesen_status_id) + "'/></svg><lable class='map-marker-label'>" + $"{premisId.Substring(3)}" + "</lable></div>",
+                            Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(lesen_status_id) + "'/></svg><lable class='map-marker-label'>" + $"{_premis.lot}" + "</lable></div>",
                         });
 
                         markers.Push(_marker);
@@ -718,13 +742,14 @@ namespace PBTPro.Pages
                                         return; // Skip if already processed
                                     }
 
-                                    if (geometry.type == "Point")
-                                    {
-                                        var coords = geometry.coordinates;
-                                        var latLng = new LatLngLiteral(coords[1], coords[0]);
-                                        await CreateMarker(latLng, data); // Assuming CreateMarker is async
-                                    }
-                                    else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+                                    //if (geometry.type == "Point")
+                                    //{
+                                    //    var coords = geometry.coordinates;
+                                    //    var latLng = new LatLngLiteral(coords[1], coords[0]);
+                                    //    await CreateMarker(latLng, data); // Assuming CreateMarker is async
+                                    //}
+                                    //else 
+                                    if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
                                     {
                                         IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
 
@@ -1058,40 +1083,40 @@ namespace PBTPro.Pages
             return coords.Select(coord => new LatLngLiteral(coord[1], coord[0]));
         }
 
-        private async Task CreateMarker(LatLngLiteral position, dynamic data)
-        {
-            string dataId = data.codeid_premis.ToObject(typeof(string));
-            string title = data.codeid_premis.Substring(3);
-            //var marker = await Marker.CreateAsync(this.map1.JsRuntime, new MarkerOptions
-            //{
-            //    Position = position,
-            //    Map = this.map1.InteropObject,
-            //    Title = title
-            //});
+        //private async Task CreateMarker(LatLngLiteral position, dynamic data)
+        //{
+        //    string dataId = data.codeid_premis.ToObject(typeof(string));
+        //    string title = data.codeid_premis.Substring(3);
+        //    //var marker = await Marker.CreateAsync(this.map1.JsRuntime, new MarkerOptions
+        //    //{
+        //    //    Position = position,
+        //    //    Map = this.map1.InteropObject,
+        //    //    Title = title
+        //    //});
 
-            var marker = await AdvancedMarkerElement.CreateAsync(this.map1.JsRuntime, new AdvancedMarkerElementOptions()
-            {
-                Position = position,
-                Map = this.map1.InteropObject,
-                Title = title,
-                // Content = index.ToString()
-                Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30"">
-                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(data.marker_lesen_status) + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
-            });
+        //    var marker = await AdvancedMarkerElement.CreateAsync(this.map1.JsRuntime, new AdvancedMarkerElementOptions()
+        //    {
+        //        Position = position,
+        //        Map = this.map1.InteropObject,
+        //        Title = title,
+        //        // Content = index.ToString()
+        //        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30"">
+        //            <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(data.marker_lesen_status) + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
+        //    });
 
-            _clusteringMarkers.Add(marker);
+        //    _clusteringMarkers.Add(marker);
 
 
-            // Optionally, add a listener for the marker to show more information or interact with it
-            await marker.AddListener<MouseEvent>("click", async (e) =>
-            {
-                //////await OpenSideBar(title); // Replace with actual function to handle click
+        //    // Optionally, add a listener for the marker to show more information or interact with it
+        //    await marker.AddListener<MouseEvent>("click", async (e) =>
+        //    {
+        //        //////await OpenSideBar(title); // Replace with actual function to handle click
                 
-                //Passing the gId - to get the click premise info
-                await OpenSideBar(dataId.ToString()); // Replace with actual function to handle click
-                StateHasChanged();
-            });
-        }
+        //        //Passing the gId - to get the click premise info
+        //        await OpenSideBar(dataId.ToString()); // Replace with actual function to handle click
+        //        StateHasChanged();
+        //    });
+        //}
 
         private async Task CreatePolygon(IEnumerable<IEnumerable<LatLngLiteral>> latLngs, dynamic data)
         {
