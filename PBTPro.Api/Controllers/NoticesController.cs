@@ -229,7 +229,7 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(notice, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta kompaun")));
+                        return Ok(notice, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta notis")));
                     }
                     catch (Exception ex)
                     {

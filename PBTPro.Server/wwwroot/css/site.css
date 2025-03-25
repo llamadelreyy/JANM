@@ -1279,13 +1279,27 @@ label {
 }
 
 .e-lesen-title {
-    margin-top: 25px;
+    margin-top: 0px;
     border-top: 1px solid #333;
     padding: 10px 0px;
     border-bottom: 1.5px solid #ccc;
 }
 
 .btn-panel {
+    position: relative;
+    font-size: 0.85rem;
+    font-weight: bold;
+    letter-spacing: 0.15rem;
+    text-transform: uppercase;
+    padding: 10px 10px 12px 15px;
+    background-color: #3d638a;
+    color: #fff;
+    border: 0px solid #000;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.btn-panel-l {
     position: relative;
     font-size: 0.85rem;
     font-weight: bold;
@@ -1364,7 +1378,7 @@ label {
 
 .e-photo {
     border: 1px solid currentColor;
-    object-fit: cover;
+    object-fit:contain;
     object-position: center top;
     border-radius: 50%;
     width: 150px;
@@ -1386,6 +1400,11 @@ label {
 .e-priority-warning {
     border-radius: 3px 4px;
     background-color: #eb6d0e;
+}
+
+.e-priority-none {
+    border-radius: 3px 4px;
+    background-color: #bab7b7;
 }
 
 .e-priority-danger {
@@ -1503,7 +1522,7 @@ label {
 
 .text-container, .dxbl-accordion-item-text, .dxbl-text {
     font-size: 0.85rem !important;
-    letter-spacing: 0.02rem !important;
+    letter-spacing: 0.08rem !important;
 }
 
 .dxbl-btn-caption, .btn-edit-grid {
