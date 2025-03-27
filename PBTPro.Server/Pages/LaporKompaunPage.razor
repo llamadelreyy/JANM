@@ -33,12 +33,15 @@
         opacity: 1 !important;
     }
 
+    .custom-grid .dxbl-grid-table > tbody > .dxbl-grid-empty-row {
+        height: 10vh !important;
+        min-height: 0px !important;
+        display: none !important;
+    }
 </style>
-@* @if (!PermissionService.HasPermission("View"))
+
+else
 {
-    NavigationManager.NavigateTo("/no-permission");
-}
- *@
 <DxLoadingPanel @bind-Visible="PanelVisible"
                 IsContentBlocked="true"
                 ApplyBackgroundShading="true"
@@ -46,11 +49,6 @@
                 Text="Capaian Data...">
 
     <div class="item-container-x">
-      @*   <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
-            <DxTab Text="Kompaun Lesen (17)"></DxTab>
-            <DxTab Text="Kompaun Pelbagai (10)"></DxTab>
-        </DxTabs> *@
-
         <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 
         <DxGrid @ref="Grid"
@@ -85,14 +83,22 @@
                         <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
                     </HeaderTemplate>
                     <CellDisplayTemplate>
-                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        <a @onclick="@(() => Delete((trn_compound_view)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
-                        <a @onclick="@(() => OnHistoryRow(context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);" title="Sejarah kompaun"><img src="images/icons-small/folder-search-result.png" /></a>
-                        <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan"><img src="images/icons-small/printer--pencil.png" /></a>
+                        @if (PermissionService.HasPermission("Edit"))
+                        {
+                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        }
+                        @if (PermissionService.HasPermission("Delete"))
+                        {
+                            <a @onclick="@(() => Delete((trn_compound_view)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                        }
+                        @if (PermissionService.HasPermission("Print"))
+                        {
+                            <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan"><img src="images/icons-small/printer--pencil.png" /></a>
+                        }
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
                 <DxGridDataColumn Caption="Bil." MinWidth="70" Width="7%" FieldName="id_kompaun" TextAlignment="GridTextAlignment.Left" AllowGroup="false" onshow="false" />
-                <DxGridDataColumn Caption="No Rujukan" MinWidth="130" Width="13%" FieldName="no_rujukan" />
+                <DxGridDataColumn Caption="No Rujukan" MinWidth="130" Width="13%" FieldName="no_rujukan" AllowSort="true" />
                 <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="no_lesen">
                     <CellDisplayTemplate>
                         <div>
@@ -103,7 +109,7 @@
                 <DxGridDataColumn Caption="Nama Pemilik" MinWidth="200" Width="20%" FieldName="nama_pemilik" />
                 <DxGridDataColumn Caption="Nama Pegawai" MinWidth="200" Width="20%" FieldName="nama_pegawai" />
                 <DxGridDataColumn Caption="Amaun (RM)" MinWidth="120" Width="12%" FieldName="amaun" DisplayFormat="#,###.00" AllowGroup="false" TextAlignment="GridTextAlignment.Right" />
-                <DxGridDataColumn Caption="Status Bayaran" MinWidth="150" Width="15%" FieldName="status_bayaran" TextAlignment="GridTextAlignment.Center">
+                <DxGridDataColumn Caption="Status" MinWidth="150" Width="15%" FieldName="status_bayaran" TextAlignment="GridTextAlignment.Center">
                     <CellDisplayTemplate>
                         <div>@GetStatusBayaranIconHtml(((trn_compound_view)context.DataItem).status_bayaran, ((trn_compound_view)context.DataItem).status_bayaran_id)</div>
                     </CellDisplayTemplate>
@@ -111,7 +117,7 @@
                 <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="150" Width="15%" FieldName="ssm_no" />
                 <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="250" Width="20%" FieldName="alamat_perniagaan" />
                 <DxGridDataColumn Caption="Akta Kesalahan" MinWidth="250" Width="25%" FieldName="akta_kesalahan" />
-                <DxGridDataColumn Caption="Kod Kesalahan" MinWidth="250" Width="25%" FieldName="kod_kesalahan" />
+                <DxGridDataColumn Caption="Kod Kesalahan" MinWidth="250" Width="25%" FieldName="kod_kesalahan"  />
                 <DxGridDataColumn Caption="Undang-undang Kecil" MinWidth="200" Width="20%" FieldName="kod_uuk" />
                 <DxGridDataColumn Caption="Kod Seksyen" MinWidth="200" Width="20%" FieldName="kod_seksyen" />
                 <DxGridDataColumn Caption="Arahan" MinWidth="180" Width="18%" FieldName="arahan" />
@@ -125,21 +131,23 @@
                                   Width="12%"
                                   TextAlignment="GridTextAlignment.Center"
                                   SortOrder="GridColumnSortOrder.Ascending"
-                                  SortIndex="0" />
+                                  SortIndex="0" AllowSort="true" />
             </Columns>
 
             <EditFormTemplate Context="EditFormContext">
                 @{
                     var dtData = (trn_compound_view)EditFormContext.EditModel;
-
+                    isTax = dtData.is_cukai;
                     string ssm_no = (!string.IsNullOrEmpty(dtData.ssm_no) ? dtData.ssm_no : "-");
                     string no_lesen = (!string.IsNullOrEmpty(dtData.no_lesen) ? dtData.no_lesen : "-");
+                    string no_cukai = (!string.IsNullOrEmpty(dtData.no_cukai) ? dtData.no_cukai : "-");
                     string nama_perniagaan = (!string.IsNullOrEmpty(dtData.nama_perniagaan) ? dtData.nama_perniagaan : "-");
                     string nama_saksi = (!string.IsNullOrEmpty(dtData.nama_saksi) ? dtData.nama_saksi : "-");
                     string akta_kesalahan = (!string.IsNullOrEmpty(dtData.akta_kesalahan) ? dtData.akta_kesalahan : "-");
                     string kod_kesalahan = (!string.IsNullOrEmpty(dtData.kod_kesalahan) ? dtData.kod_kesalahan : "-");
                     string kod_seksyen = (!string.IsNullOrEmpty(dtData.kod_seksyen) ? dtData.kod_seksyen : "-");
                     string kod_uuk = (!string.IsNullOrEmpty(dtData.kod_uuk) ? dtData.kod_uuk : "-");
+                    string nama_pemilik = (!string.IsNullOrEmpty(dtData.nama_pemilik) ? dtData.nama_pemilik : "-");
                 }
                 <DxFormLayout CssClass="w-100" style="padding:10px 20px;">
                     <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
@@ -174,7 +182,7 @@
                                 <td nowrap>Nama Pemilik</td>
                                 <td>&nbsp;&nbsp;</td>
                                 <td width="50%" colspan="7">
-                                    @dtData.nama_pemilik
+                                    @nama_pemilik
                                 </td>
                             </tr>
                             <tr style="height:25px;">
@@ -225,7 +233,7 @@
                             <tr style="height:25px;">
                                 <td nowrap>Arahan</td>
                                 <td>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="7" >
+                                <td width="50%" colspan="7">
                                     @dtData.arahan
                                 </td>
                             </tr>
@@ -275,7 +283,47 @@
                                     }
                                 </td>
                             </tr>
+
                             <tr style="height:10px;"><td colspan="7"></td></tr>
+                            <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                            <tr style="height:10px;"><td colspan="7"></td></tr>
+
+                            <tr style="height:25px;">
+                                <td colspan="7">
+                                    SEJARAH KOMPAUN
+                                </td>
+                            </tr>
+                            @{
+                                if (isTax)
+                                    dtHistory = dtSource.Where(x => x.no_cukai == no_cukai);
+                                else
+                                    dtHistory = dtSource.Where(x => x.no_lesen == no_lesen);
+                            }
+
+                            <tr style="height:25px;">
+                                <td colspan="7" height="20%">
+                                    <DxGrid Data="dtHistory" Context="GridAhli" @ref="Grid2" CssClass="custom-grid"
+                                            KeyFieldName="id_kompaun">
+                                        <Columns>
+
+                                            <DxGridDataColumn Caption="No Rujukan" FieldName="no_rujukan" Width="14%" TextAlignment="GridTextAlignment.Center" />
+                                            <DxGridDataColumn Caption="Status" FieldName="status_bayaran" Width="10%" TextAlignment="GridTextAlignment.Center" />
+                                            <DxGridDataColumn Caption="Amaun (RM)" FieldName="amaun" Width="16%" TextAlignment="GridTextAlignment.Center" />
+                                            <DxGridDataColumn Caption="Pegawai" FieldName="nama_pegawai" Width="15%" TextAlignment="GridTextAlignment.Center" />
+                                            <DxGridDataColumn Caption="Arahan" FieldName="arahan" Width="35%" TextAlignment="GridTextAlignment.Center" />
+                                            <DxGridDataColumn FieldName="TarikhData" DisplayFormat="dd/MM/yyyy" Caption="Tarikh Data"
+                                                              TextAlignment="GridTextAlignment.Center" SortOrder="GridColumnSortOrder.Descending" SortIndex="0"
+                                                              Width="10%" />
+                                        </Columns>
+                                    </DxGrid>
+
+                                </td>
+                            </tr>
+
+                            <tr style="height:10px;"><td colspan="7"></td></tr>
+                            <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                            <tr style="height:10px;"><td colspan="7"></td></tr>
+
                             <tr style="height:25px;">
                                 <td nowrap>Amaun Kompaun (RM)</td>
                                 <td>&nbsp;&nbsp;</td>
@@ -340,7 +388,7 @@
 
     </div>
 </DxLoadingPanel>
-
+}
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
         <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
@@ -361,11 +409,13 @@
     IEnumerable<ref_trn_status> dtTrnStatus;
     IEnumerable<ref_trn_status> dtSmknStatus;
     trn_compound_view dtData;
+    IEnumerable<trn_compound_view> dtHistory;
 
     IGrid Grid { get; set; }
+    IGrid Grid2 { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
-
+    bool isTax { get; set; } = false;
     bool ConfirmationShown { get; set; } = false;
     int ActiveTabIndex;
     string strSelected { get; set; }
@@ -400,15 +450,9 @@
     protected async Task OnSelectedRow(object itemData)
     {
         var item = (trn_compound_view)itemData;
-        NavigationManager.NavigateTo("/reportkompaunlesen?norujukan=" + item.no_rujukan, false);
+        NavigationManager.NavigateTo(item.pautan_dokumen, false);
+        //NavigationManager.NavigateTo("/reportkompaunlesen?norujukan=" + item.no_rujukan, false);
     }
-
-    protected async Task OnHistoryRow(object itemData)
-    {
-        var item = (trn_compound_view)itemData;
-        NavigationManager.NavigateTo("/viewreportperuntukan?norujukan=" + item.no_rujukan, false);
-    }
-
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
@@ -561,7 +605,7 @@
             priorytyClass = "cancel";
             title = status.ToUpper();
         }
-     
+
         string html = string.Format("<span class='text-black badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
         title);
         return new MarkupString(html);
@@ -578,7 +622,7 @@
     {
         if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_bayaran_id").ToString() == "1")
         {
-           e.Style = "color: #003300; background-color: #6BF96B";
+            e.Style = "color: #003300; background-color: #6BF96B";
         }
         // if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_bayaran").ToString().ToUpper() == "BELUM BAYAR")
         // {

@@ -54,7 +54,7 @@ namespace PBTPro.Api.Controllers
                 var totalKompaun = await _tenantDBContext.trn_cmpds.CountAsync();
                 var totalNota = await _tenantDBContext.trn_inspects.CountAsync();
                 var totalSita = await _tenantDBContext.trn_cfscs.CountAsync();
-                var premisBerlesen = await _tenantDBContext.mst_licensees.Where(t => t.status_id == 1).CountAsync();
+                var premisBerlesen = await _tenantDBContext.mst_license_premis_taxes.Where(t => t.status_lesen_id == 1 ||  t.status_lesen_id == 2 || t.status_lesen_id == 3).CountAsync();
 
                 var premisTindakan = await _tenantDBContext.mst_owner_premis
                     .Select(lesen => new
@@ -67,8 +67,8 @@ namespace PBTPro.Api.Controllers
                     .ToListAsync();
 
                 var totalPremisTindakan = premisTindakan.Sum(x => x.NoticeCount + x.CompoundCount + x.ConfiscationCount);
-                var premisTiadaLesen = 10;// await _tenantDBContext.mst_premis.Where(p => p.lesen == null || p.lesen == "" || string.IsNullOrEmpty(p.lesen)).CountAsync();
-                var premisTamatTempohLesen = 20;// await _tenantDBContext.mst_premis.Where(p => p.tempoh_sah_lesen <= DateOnly.FromDateTime(DateTime.Today)).CountAsync();
+                var premisTiadaLesen = await _tenantDBContext.mst_license_premis_taxes.Where(p => p.status_lesen_id == 5).CountAsync();
+                var premisTamatTempohLesen = await _tenantDBContext.mst_license_premis_taxes.Where(p => p.status_lesen_id == 2).CountAsync();
 
                 var bilCukaiTahunan = await _tenantDBContext.mst_premis.CountAsync();
 
@@ -76,7 +76,7 @@ namespace PBTPro.Api.Controllers
                 ///pending to get information to sum up :
                 //var totalCukaiTaksiranByr 
                 //var totalCukaiTaksiranblmByr
-                //var totalHslLesenByr
+                var totalHslLesenByr = await _tenantDBContext.mst_licensees.SumAsync(c => c.total_amount);
                 //var totalHslLesenBlmByr
 
                 var totalKompaunDibyr = await _tenantDBContext.trn_cmpds.Where(c => c.trnstatus_id == 5).SumAsync(c => c.amt_cmpd);
@@ -147,7 +147,7 @@ namespace PBTPro.Api.Controllers
             {
                 var totalLesenAktif = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 1).CountAsync();
                 var totalLesenTamatTempoh = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 2).CountAsync();
-                var totalPremisPerniagaan = await _tenantDBContext.mst_licensees.GroupBy(x => x.owner_icno).CountAsync();
+                var totalPremisPerniagaan = await _tenantDBContext.mst_owner_premis.GroupBy(x => x.owner_icno).CountAsync();
                 var pertambahanLsnThnSemasa = 10;// await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue && t.reg_date.Value.Year == DateTime.Now.Year).CountAsync();
                 var pertambahanLsnSemasa = 20;// await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue&& t.reg_date.Value.Year == DateTime.Now.Year && t.reg_date.Value.Month == DateTime.Now.Month).CountAsync();
 
