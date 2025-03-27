@@ -92,18 +92,21 @@ else
                             }
                             @if (PermissionService.HasPermission("Print"))
                             {
-                                <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan"><img src="images/icons-small/printer--pencil.png" /></a>
+                                <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan" target="_blank"><img src="images/icons-small/printer--pencil.png" /></a>
                             }
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
                     <DxGridDataColumn Caption="No Rujukan" MinWidth="130" Width="13%" FieldName="no_rujukan" AllowSort="true" />
-                    <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="no_lesen">
+                    <DxGridDataColumn Caption="No Lesen/Cukai" MinWidth="130" Width="13%" FieldName="no_rujukan" AllowSort="true" />
+                    <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="200" Width="20%" FieldName="nama_perniagaan" />
+
+                    @* <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="no_lesen">
                         <CellDisplayTemplate>
                             <div>
                                 @CombineText(((trn_notices_view)context.DataItem).no_lesen, ((trn_notices_view)context.DataItem).nama_perniagaan)
                             </div>
                         </CellDisplayTemplate>
-                    </DxGridDataColumn>
+                    </DxGridDataColumn> *@
                     <DxGridDataColumn Caption="Nama Pemilik" MinWidth="200" Width="20%" FieldName="nama_pemilik" />
                     <DxGridDataColumn Caption="Nama Pegawai" MinWidth="200" Width="20%" FieldName="nama_pegawai" />
                     <DxGridDataColumn Caption="Tarikh Tamat & Tempoh Notis" MinWidth="150" Width="15%" FieldName="tarikh_tamat" AllowGroup="false" TextAlignment="GridTextAlignment.Center">
