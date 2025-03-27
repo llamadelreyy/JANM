@@ -11,13 +11,10 @@ Changes Logs:
 */
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
-using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
-using PBTPro.DAL.Models.PayLoads;
 
 namespace PBTPro.Api.Controllers
 {
@@ -27,7 +24,6 @@ namespace PBTPro.Api.Controllers
     public class TaxholderController : IBaseController
     {
         protected readonly string? _dbConn;
-        private readonly IHubContext<PushDataHub> _hubContext;
         private readonly IConfiguration _configuration;
         private readonly ILogger<TaxholderController> _logger;
 
@@ -59,7 +55,7 @@ namespace PBTPro.Api.Controllers
         }
 
         #region Transaction ticket count by
-        [HttpGet("{LicenseAccNo}")]
+        [HttpGet("{TaxAccNo}")]
         public async Task<IActionResult> GetTicketCountByTaxAccNo(string TaxAccNo)
         {
             try
