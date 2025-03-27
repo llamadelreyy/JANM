@@ -11,6 +11,7 @@ Changes Logs:
 21/3/2025 - ListReport, UpdateReport, DeleteReport
 */
 
+using DevExpress.Blazor.Tabs.Internal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -668,16 +669,25 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                bool isTax = false;
+
                 var tenantCmpds = await _tenantDBContext.trn_cmpds
                     .AsNoTracking()
                     .ToListAsync();
 
-                var tenantOwners = (await _tenantDBContext.mst_owner_licensees
-                    .Where(mol => !string.IsNullOrEmpty(mol.owner_icno))
-                    .Select(mol => new { mol.owner_icno, mol.owner_name })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .ToDictionary(mol => mol.owner_icno, mol => mol);
+                var tenantBusiness = (await _tenantDBContext.mst_owner_licensees
+                       .Where(mol => !string.IsNullOrEmpty(mol.owner_icno))
+                       .Select(mol => new { mol.owner_icno, mol.owner_name })
+                       .AsNoTracking()
+                       .ToListAsync())
+                       .ToDictionary(mol => mol.owner_icno, mol => mol);
+
+                var tenantPremis = (await _tenantDBContext.mst_owner_premis
+                   .Where(mop => !string.IsNullOrEmpty(mop.owner_icno))
+                   .Select(mop => new { mop.owner_icno, mop.owner_name })
+                   .AsNoTracking()
+                   .ToListAsync())
+                   .ToDictionary(mop => mop.owner_icno, mop => mop);
 
                 var tenantLicensees = (await _tenantDBContext.mst_licensees
                     .Where(ml => !string.IsNullOrEmpty(ml.license_accno))
@@ -753,8 +763,8 @@ namespace PBTPro.Api.Controllers
 
                 var results = tenantCmpds.Select(tc =>
                 {
-                    tenantOwners.TryGetValue(tc.owner_icno, out var owner);
-                    //tenantLicensees.TryGetValue((int)tc?.license_id, out var licensee);
+                    tenantBusiness.TryGetValue(tc.owner_icno, out var ownerlicense);
+                    tenantPremis.TryGetValue(tc.owner_icno, out var ownerPremis);
                     lawOffenses.TryGetValue(tc?.offense_code, out var offense);
                     tenantPatrolSchedules.TryGetValue((int)tc.schedule_id, out var officerId);
                     users.TryGetValue(officerId, out var officer);
@@ -778,12 +788,19 @@ namespace PBTPro.Api.Controllers
                         ? lawUuks.GetValueOrDefault(tc.uuk_code, "")
                         : "";
 
+                    var owner_name = "";
+                    isTax = (bool)tc.is_tax;
+                    if (!isTax)
+                        owner_name = ownerlicense?.owner_name;
+                    else
+                        owner_name = ownerPremis?.owner_name;
+
                     return new trn_compound_view
                     {
                         id_kompaun = tc.trn_cmpd_id,
                         no_lesen = licensee?.license_accno,
                         nama_perniagaan = licensee?.business_name,
-                        nama_pemilik = owner?.owner_name,
+                        nama_pemilik = owner_name,
                         no_rujukan = tc.cmpd_ref_no,
                         amaun = (double)tc.amt_cmpd,
                         status_bayaran_id = (int)tc.trnstatus_id,
@@ -804,7 +821,9 @@ namespace PBTPro.Api.Controllers
                         imej_kompaun = images ?? new List<string>(),
                         cara_serahan = deliver,
                         nama_saksi = witnesses != null && witnesses.Any() ? string.Join(", ", witnesses) : "",
-                        lesen_id = tc?.license_id ?? null
+                        lesen_id = tc?.license_id ?? null,
+                        no_cukai = tc?.tax_accno,
+                        is_cukai = (bool)tc.is_tax,
                     };
                 }).ToList();
 
