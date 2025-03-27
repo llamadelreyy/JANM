@@ -8,11 +8,13 @@
 @using PBTPro.Data
 @using PBTPro.DAL.Models.PayLoads
 @using Components
+
 @inject IJSRuntime JSRuntime
 
 @inject NoticeService _NoticeService
-@inject ApiConnector _ApiConnector // 07/11/2024 - API Fetcher - ismail
 @inject PremisService _PremisService
+@inject ApiConnector _ApiConnector // 07/11/2024 - API Fetcher - ismail
+@inject PBTAuthStateProvider _PBTAuthStateProvider
 
 <style>
     .dxbl-grid {
@@ -233,6 +235,7 @@
                                     _floorPremis.Add(_dtPremis.floor_building.ToString());
                                 }
                             }
+
                         }
 
                         //Count the list to get how many floor
@@ -310,6 +313,30 @@
 
                                         @if (_dtTax.tax != null)
                                         {
+                                            int _taxInspection = 0;
+                                            int _taxConfiscation = 0;
+                                            int _taxNotice = 0;
+                                            int _taxCompound = 0;
+
+                                            _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+                                            string requestUrl = $"/api/Taxholder/GetTicketCountByTaxAccNo/{_dtTax.tax.tax_accno}";
+                                            var _returnData = _ApiConnector.ProcessLocalApi(requestUrl);
+
+                                            if (_returnData.Result.ReturnCode == 200)
+                                            {
+                                                string? dataString = _returnData?.Result.Data?.ToString();
+                                                if (!string.IsNullOrWhiteSpace(dataString))
+                                                {
+                                                    var tasks = new List<Task>();
+                                                    dynamic _dtTicket = JsonConvert.DeserializeObject(dataString);
+
+                                                    _taxInspection = _dtTicket.inspection;
+                                                    _taxConfiscation = _dtTicket.confiscation;
+                                                    _taxNotice = _dtTicket.notice;
+                                                    _taxCompound = _dtTicket.compound;
+                                                }
+                                            }
+
                                             <DxAccordionItem Expanded="true">
                                                 <HeaderTextTemplate>
                                                     <div>
@@ -366,11 +393,37 @@
                                                                 @* <div class="e-status">@GetStatusIconHtml(_dtTax.status_tax_id ?? 0)</div> *@
                                                                 <div class="e-divider my-3"></div>
                                                                 <div class="e-email">
+                                                                    <a class="receipt-panel">
+                                                                        <img src="/images/icons-small/script-text.png" alt="" />
+                                                                        Notis
+                                                                        <span class="@(_taxNotice == 0 ? "badge-button-green" : "badge-button-red")">@_taxNotice</span>
+                                                                    </a>
+
+                                                                    <a class="receipt-panel">
+                                                                        <img src="/images/icons-small/receipt-text.png" alt="" />
+                                                                        Kompaun
+                                                                        <span class="@(_taxCompound == 0 ? "badge-button-green" : "badge-button-red")">@_taxCompound</span>
+                                                                    </a>
+
+                                                                    <a class="receipt-panel">
+                                                                        <img src="/images/icons-small/box.png" alt="" />
+                                                                        Sitaan
+                                                                        <span class="@(_taxConfiscation == 0 ? "badge-button-green" : "badge-button-red")">@_taxConfiscation</span>
+                                                                    </a>
+
+                                                                    <a class="receipt-panel">
+                                                                        <img src="/images/icons-small/document-task.png" alt="" />
+                                                                        Nota Pemeriksaan
+                                                                        <span class="@(_taxInspection == 0 ? "badge-button-green" : "badge-button-red")">@_taxInspection</span>
+                                                                    </a>
+                                                                </div>
+                                                                <div class="e-divider my-3"></div>
+                                                                <div class="e-email">
                                                                     <button class="btn-panel" type="button">Maklumat Cukai</button>
-                                                                    <button class="btn-panel">
+                                                                    @*<button class="btn-panel">
                                                                         Nota Pemeriksaan
                                                                         <span class="badge-button-green">0</span>
-                                                                    </button>
+                                                                    </button>*@
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -583,10 +636,10 @@
                                                                                                     <div class="e-divider my-3"></div>
                                                                                                     <div class="e-email">
                                                                                                         <button class="btn-panel" type="button">Maklumat Cukai</button>
-                                                                                                        <button class="btn-panel">
+                                                                                                        @*<button class="btn-panel">
                                                                                                             Nota Pemeriksaan
                                                                                                             <span class="badge-button-green">0</span>
-                                                                                                        </button>
+                                                                                                        </button>*@
                                                                                                     </div>
                                                                                                 </div>
                                                                                             </div>
