@@ -266,7 +266,14 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(confiscation, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta sitaan")));
+
+                        var result = new
+                        {
+                            trn_cfsc_id = confiscation.trn_cfsc_id,
+                            doc_name = confiscation.doc_name,
+                            doc_pathurl = confiscation.doc_pathurl
+                        };
+                        return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya cipta sitaan")));
                     }
                     catch (Exception ex)
                     {
@@ -497,7 +504,14 @@ namespace PBTPro.Api.Controllers
                         #endregion
 
                         await transaction.CommitAsync();
-                        return Ok(confiscation, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai sitaan")));
+
+                        var result = new
+                        {
+                            trn_cfsc_id = confiscation.trn_cfsc_id,
+                            doc_name = confiscation.doc_name,
+                            doc_pathurl = confiscation.doc_pathurl
+                        };
+                        return Ok(result, SystemMesg(_feature, "CREATE", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai sitaan")));
                     }
                     catch (Exception ex)
                     {
@@ -542,6 +556,7 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        #region Listing by specific field
         [HttpGet("{UserId}")]
         public async Task<IActionResult> GetConfiscationListByUserId(int UserId)
         {
@@ -551,15 +566,22 @@ namespace PBTPro.Api.Controllers
 
                 var confiscation_lists = await (from n in _tenantDBContext.trn_cfscs
                                                 where n.creator_id == UserId
-                                            select new
-                                            {
-                                                n.cfsc_ref_no,
-                                                n.section_code,
-                                                n.act_code,
-                                                n.created_at,
-                                                n.modified_at,
-                                                n.trnstatus_id,
-                                            }).ToListAsync();
+                                                join ts in _tenantDBContext.ref_trn_statuses
+                                                on n.trnstatus_id equals ts.status_id into tsg
+                                                from ts in tsg.DefaultIfEmpty()
+                                                select new
+                                                {
+                                                    n.trn_cfsc_id,
+                                                    n.cfsc_ref_no,
+                                                    n.section_code,
+                                                    n.act_code,
+                                                    n.created_at,
+                                                    n.modified_at,
+                                                    n.trnstatus_id,
+                                                    n.doc_pathurl,
+                                                    n.doc_name,
+                                                    trnstatus_view = ts.status_name,
+                                                }).ToListAsync();
 
                 // Check if no record was found
                 if (confiscation_lists.Count == 0)
@@ -591,14 +613,21 @@ namespace PBTPro.Api.Controllers
 
                 var confiscation_lists = await (from n in _tenantDBContext.trn_cfscs
                                                 where n.schedule_id == ScheduleId
+                                                join ts in _tenantDBContext.ref_trn_statuses
+                                                on n.trnstatus_id equals ts.status_id into tsg
+                                                from ts in tsg.DefaultIfEmpty()
                                                 select new
                                                 {
+                                                    n.trn_cfsc_id,
                                                     n.cfsc_ref_no,
                                                     n.section_code,
                                                     n.act_code,
                                                     n.created_at,
                                                     n.modified_at,
                                                     n.trnstatus_id,
+                                                    n.doc_pathurl,
+                                                    n.doc_name,
+                                                    trnstatus_view = ts.status_name,
                                                 }).ToListAsync();
 
                 // Check if no record was found
@@ -631,14 +660,21 @@ namespace PBTPro.Api.Controllers
 
                 var confiscation_lists = await (from n in _tenantDBContext.trn_cfscs
                                                 where n.tax_accno == TaxAccNo
+                                                join ts in _tenantDBContext.ref_trn_statuses
+                                                on n.trnstatus_id equals ts.status_id into tsg
+                                                from ts in tsg.DefaultIfEmpty()
                                                 select new
                                                 {
+                                                    n.trn_cfsc_id,
                                                     n.cfsc_ref_no,
-                                                    n.act_code,
                                                     n.section_code,
+                                                    n.act_code,
                                                     n.created_at,
                                                     n.modified_at,
                                                     n.trnstatus_id,
+                                                    n.doc_pathurl,
+                                                    n.doc_name,
+                                                    trnstatus_view = ts.status_name,
                                                 }).ToListAsync();
 
                 // Check if no record was found
@@ -669,16 +705,28 @@ namespace PBTPro.Api.Controllers
             {
                 var resultData = new List<dynamic>();
                 var licenseInfo = await _tenantDBContext.mst_licensees.AsNoTracking().FirstOrDefaultAsync(x => x.license_accno == LicenseAccNo);
+                if (licenseInfo == null)
+                {
+                    return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
+                }
+
                 var confiscation_lists = await (from n in _tenantDBContext.trn_cfscs
                                                 where n.license_id == licenseInfo.licensee_id
+                                                join ts in _tenantDBContext.ref_trn_statuses
+                                                on n.trnstatus_id equals ts.status_id into tsg
+                                                from ts in tsg.DefaultIfEmpty()
                                                 select new
                                                 {
+                                                    n.trn_cfsc_id,
                                                     n.cfsc_ref_no,
-                                                    n.act_code,
                                                     n.section_code,
+                                                    n.act_code,
                                                     n.created_at,
                                                     n.modified_at,
                                                     n.trnstatus_id,
+                                                    n.doc_pathurl,
+                                                    n.doc_name,
+                                                    trnstatus_view = ts.status_name,
                                                 }).ToListAsync();
 
                 // Check if no record was found
@@ -711,14 +759,21 @@ namespace PBTPro.Api.Controllers
 
                 var confiscation_lists = await (from n in _tenantDBContext.trn_cfscs
                                                 where n.license_id == LicenseId
+                                                join ts in _tenantDBContext.ref_trn_statuses
+                                                on n.trnstatus_id equals ts.status_id into tsg
+                                                from ts in tsg.DefaultIfEmpty()
                                                 select new
                                                 {
+                                                    n.trn_cfsc_id,
                                                     n.cfsc_ref_no,
                                                     n.section_code,
                                                     n.act_code,
                                                     n.created_at,
                                                     n.modified_at,
                                                     n.trnstatus_id,
+                                                    n.doc_pathurl,
+                                                    n.doc_name,
+                                                    trnstatus_view = ts.status_name,
                                                 }).ToListAsync();
 
                 // Check if no record was found
@@ -741,6 +796,90 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+        #endregion
+
+        #region Count by specific field
+        [HttpGet("{UserId}")]
+        public async Task<IActionResult> GetConfiscationCountByUserId(int UserId)
+        {
+            try
+            {
+                var resultData = await _tenantDBContext.trn_cfscs.Where(x => x.creator_id == UserId).CountAsync();
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{ScheduleId}")]
+        public async Task<IActionResult> GetConfiscationCountBySchedId(int ScheduleId)
+        {
+            try
+            {
+                var resultData = await _tenantDBContext.trn_cfscs.Where(x => x.schedule_id == ScheduleId).CountAsync();
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{TaxAccNo}")]
+        public async Task<IActionResult> GetConfiscationCountByTaxAccNo(string TaxAccNo)
+        {
+            try
+            {
+                var resultData = await _tenantDBContext.trn_cfscs.Where(x => x.tax_accno == TaxAccNo).CountAsync();
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseAccNo}")]
+        public async Task<IActionResult> GetConfiscationCountByLicenseAccNo(string LicenseAccNo)
+        {
+            try
+            {
+                var licenseInfo = await _tenantDBContext.mst_licensees.AsNoTracking().FirstOrDefaultAsync(x => x.license_accno == LicenseAccNo);
+                if (licenseInfo == null)
+                {
+                    return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
+                }
+
+                var resultData = await _tenantDBContext.trn_cfscs.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseId}")]
+        public async Task<IActionResult> GetConfiscationCountByLicenseId(int LicenseId)
+        {
+            try
+            {
+                var resultData = await _tenantDBContext.trn_cfscs.Where(x => x.license_id == LicenseId).CountAsync();
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        #endregion
 
         [AllowAnonymous]
         [HttpGet]

@@ -1,82 +1,215 @@
-﻿@using PBTPro.Data
+﻿@using Components
+@using PBTPro.Data
 @using PBTPro.DAL.Models
 @using PBTPro.DAL.Models.PayLoads
 @using GoogleMapsComponents.Maps
 
 @inject IJSRuntime JSRuntime
 
-@* <div class="e-cukai-title mb-4"><span class="px-3"><img src="/images/icons/paper-bag-label.png" alt="" /><span class="px-1">Info Taksiran</span></span></div>
-<div class="e-card">
-    <div class="e-main d-flex align-items-center">
-        <div class="flex-shrink-0">
-            <img class="e-photo" src=@ImgPremis alt="" />
-        </div>
-
-         <div class="e-info flex-grow-1 ms-3">
-            <div class="e-name">Nama Pemilik : @($"{PremisInfo.tax_owner.owner_name} - ({PremisInfo.tax_owner.owner_icno})")</div>
-            <div class="e-name">No. Akaun : @($"{PremisInfo.tax.tax_accno}")</div>
-            <div class="e-address">Alamat Premis : </div>
-            <div class="e-email">
-                <a class="marker-panel" style="text-decoration:none;cursor:pointer" onclick=@(() => OpenNewStreetWindow(LatLng.Lat.ToString(), LatLng.Lng.ToString()))>
-                    <img src="/images/icons/marker.png" alt="" />
-                    @($"{PremisInfo.tax_owner.owner_addr}")
-                </a>
-            </div>
-
-            <div class="e-status">@GetStatusIconHtml(StatusCukai)</div>
-            <div class="e-divider my-3"></div>
-            <div class="e-email">
-                <button class="btn-panel" type="button">Maklumat Cukai</button>
-                <button class="btn-panel">
-                    Nota Pemeriksaan
-                    <span class="badge-button-green">0</span>
-                </button>
-            </div>
-        </div> 
-    </div>
-</div> *@
 
 <div class="e-lesen-title"><span class="px-3"><img src="/images/icons/document-text-image.png" alt="" /><span class="px-1">Info Lesen</span></span></div>
 <div class="e-card">
     <div class="e-main d-flex align-items-center">
         <div class="e-info flex-grow-1 ms-3 py-3">
-            <div class="e-name">No. Lot : @($"{PremisInfo.license.lot}")</div>
-            <div class="e-name">No. Lesen : @($"{PremisInfo.license_accno}")</div>
-            <div class="e-name">Tempoh Lesen : @($"{PremisInfo.license.license_duration}")</div>
-            <div class="e-name">Nama Perniagaan : @($"{PremisInfo.license.business_name}")</div>
-            <div class="e-divider my-3"></div>
-            <div class="e-name">Nama Pemegang Lesen : @($"{PremisInfo.license_owner.owner_name} - ({PremisInfo.license_owner.owner_icno})")</div>
-            <div class="e-name">Alamat : @($"{PremisInfo.license.business_addr}")</div>
 
-            <div class="e-status">@GetStatusIconHtml(PremisInfo.status_lesen_id ?? 0)</div>
-            <div class="e-divider my-3"></div>
-            <div class="e-email">
-                <a class="receipt-panel">
-                    <img src="/images/icons/script-text.png" alt="" />
-                    Notis
-                    <span class="badge-button-green">0</span>
-                </a>
-                <a class="receipt-panel">
-                    <img src="/images/icons/script.png" alt="" />
-                    Notis Tamat Tempoh
-                    <span class="badge-button-green">0</span>
-                </a>
+            @if (PremisInfo.license != null)
+            {
+                <table class="e-name" style="width:100%;">
+                    <tr>
+                        <td nowrap>No. Lot</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{PremisInfo.license.lot}")</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>No. SSM</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{PremisInfo.license.ssm_no}")</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>No. Lesen</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{PremisInfo.license.license_accno}")</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Tempoh Lesen</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{PremisInfo.license.license_duration} ({PremisInfo.license.start_date} - {PremisInfo.license.end_date})")</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Jumlah (RM)</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@(PremisInfo.license.total_amount != null ? PremisInfo.license.total_amount : "0.00")</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Nama Perniagaan</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{PremisInfo.license.business_name}")</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Alamat</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{PremisInfo.license.business_addr}")
+@*                             <a class="marker-panel" style="text-decoration:none;cursor:pointer" onclick=@(() => OpenNewStreetWindow(LatLng.ToString(), LatLng.ToString()))>
+                                @($"{PremisInfo.license.business_addr}")
+                            </a> *@
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"><div class="e-divider my-3"></div></td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Pemegang Lesen</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{PremisInfo.license_owner.owner_name} - ({PremisInfo.license_owner.owner_icno})")</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Alamat</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{PremisInfo.license_owner.owner_addr}")</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"><div class="e-divider my-3"></div></td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Dokumen Sokongan</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">
+                            @if (!string.IsNullOrEmpty(PremisInfo.license.doc_support))
+                            {
+                                <a href="@PremisInfo.license.doc_support" target="_blank"><img src="/images/icons-small/documents-text.png" /></a>
+                            }  
+                        </td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Gambar Perniagaan</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;"></td>
+                    </tr>
+@*                     <tr>
+                        <td colspan="3"><div class="e-status">@GetStatusIconHtml(PremisInfo.status_lesen_id ?? 0)</div></td>
+                    </tr> *@
+                </table>
+@*                 <div class="e-name">No. Lot : @($"{PremisInfo.license.lot}")</div>
+                <div class="e-name">No. SSM : @($"{PremisInfo.license.ssm_no}")</div>
+                <div class="e-name">No. Lesen : @($"{PremisInfo.license.license_accno}")</div>
+                <div class="e-name"> : </div>
+                <div class="e-name">Nama Perniagaan : </div>
+                <div class="e-name">Alamat : </div>
+                <div class="e-divider my-3"></div>
+                <div class="e-name">Nama Pemegang Lesen : @($"{PremisInfo.license_owner.owner_name} - ({PremisInfo.license_owner.owner_icno})")</div>
+                <div class="e-name">Alamat : @($"{PremisInfo.license_owner.owner_addr}")</div>
 
-                <a class="receipt-panel">
-                    <img src="/images/icons/receipt-text.png" alt="" />
-                    Kompaun
-                    <span class="badge-button-red">2</span>
-                </a>
-            </div>
-            <div class="e-divider my-3"></div>
-            <div class="e-email">
-                <button class="btn-panel-l" type="button">Maklumat Lesen</button>
-                <button class="btn-panel-l">
-                    Nota Pemeriksaan
-                    <span class="badge-button-green">0</span>
-                </button>
-                <button class="btn-panel-l" type="button">Maklumat Sitaan</button>
-            </div>
+                <div class="e-status">@GetStatusIconHtml(PremisInfo.status_lesen_id ?? 0)</div> *@
+                @* <div class="e-divider my-3"></div> *@
+
+                List<ImageFile> lesenImg = new List<ImageFile>();
+
+                if (!string.IsNullOrEmpty(PremisInfo.license.g_activity_1))
+                    lesenImg.Add(new ImageFile() { Url = PremisInfo.license.g_activity_1 });
+
+                if (!string.IsNullOrEmpty(PremisInfo.license.g_activity_2))
+                    lesenImg.Add(new ImageFile() { Url = PremisInfo.license.g_activity_2 });
+
+                if (!string.IsNullOrEmpty(PremisInfo.license.g_activity_3))
+                    lesenImg.Add(new ImageFile() { Url = PremisInfo.license.g_activity_3 });
+
+                if (!string.IsNullOrEmpty(PremisInfo.license.g_signbboard_1))
+                    lesenImg.Add(new ImageFile() { Url = PremisInfo.license.g_signbboard_1 });
+
+                if (!string.IsNullOrEmpty(PremisInfo.license.g_signbboard_2))
+                    lesenImg.Add(new ImageFile() { Url = PremisInfo.license.g_signbboard_2 });
+
+                if (!string.IsNullOrEmpty(PremisInfo.license.g_signbboard_3))
+                    lesenImg.Add(new ImageFile() { Url = PremisInfo.license.g_signbboard_3 });
+
+                <div class="mt-2 mb-3">
+                    <Carousel imageset="@lesenImg" CssClass="col-12"></Carousel>
+                </div>
+
+                @* <div class="e-divider my-3"></div> *@
+                <div class="e-email">
+                    <a class="receipt-panel">
+                        <img src="/images/icons/script-text.png" alt="" />
+                        Notis
+                        <span class="badge-button-green">0</span>
+                    </a>
+                    <a class="receipt-panel">
+                        <img src="/images/icons/script.png" alt="" />
+                        Notis Tamat Tempoh
+                        <span class="badge-button-green">0</span>
+                    </a>
+
+                    <a class="receipt-panel">
+                        <img src="/images/icons/receipt-text.png" alt="" />
+                        Kompaun
+                        <span class="badge-button-red">2</span>
+                    </a>
+                </div>
+                <div class="e-divider my-3"></div>
+                <div class="e-email">
+                    <button class="btn-panel-l" type="button">Maklumat Lesen</button>
+                    <button class="btn-panel-l">
+                        Nota Pemeriksaan
+                        <span class="badge-button-green">0</span>
+                    </button>
+                    <button class="btn-panel-l" type="button">Maklumat Sitaan</button>
+                </div>
+            }
+            else
+            {
+
+                <div class="e-name">No. Lot : -</div>
+                <div class="e-name">No. SSM : -</div>
+                <div class="e-name">No. Lesen : -</div>
+                <div class="e-name">Tempoh Lesen : -</div>
+                <div class="e-name">Jumlah (RM) : -</div>
+                <div class="e-name">Nama Perniagaan : -</div>
+                <div class="e-name">Alamat : -</div>
+                <div class="e-divider my-3"></div>
+                <div class="e-name">Pemegang Lesen : -</div>
+                <div class="e-name">Alamat : -</div>
+                <div class="e-name">Dokumen Sokongan : -</div>
+
+@*                <div class="e-name">No. Lot : TIADA DATA</div>
+                <div class="e-name">No. SSM : TIADA DATA</div>
+                <div class="e-name">No. Lesen : TIADA DATA</div>
+                <div class="e-name">Tempoh Lesen : TIADA DATA</div>
+                <div class="e-name">Nama Perniagaan : TIADA DATA</div>
+                <div class="e-name">Alamat : TIADA DATA</div>
+                <div class="e-divider my-3"></div>
+                <div class="e-name">Nama Pemegang Lesen : TIADA DATA</div>
+                <div class="e-name">Alamat : TIADA DATA</div>
+
+                <div class="e-divider my-3"></div>
+
+                <div class="e-email">
+                    <a class="receipt-panel">
+                        <img src="/images/icons/script-text.png" alt="" />
+                        Notis
+                        <span class="badge-button-green">0</span>
+                    </a>
+                    <a class="receipt-panel">
+                        <img src="/images/icons/script.png" alt="" />
+                        Notis Tamat Tempoh
+                        <span class="badge-button-green">0</span>
+                    </a>
+
+                    <a class="receipt-panel">
+                        <img src="/images/icons/receipt-text.png" alt="" />
+                        Kompaun
+                        <span class="badge-button-red">0</span>
+                    </a>
+                </div>
+                <div class="e-divider my-3"></div>
+                <div class="e-email">
+                    <button class="btn-panel-l" type="button" disabled="true">Maklumat Lesen</button>
+                    <button class="btn-panel-l" disabled="true">
+                        Nota Pemeriksaan
+                        <span class="badge-button-green">0</span>
+                    </button>
+                    <button class="btn-panel-l" type="button" disabled="true">Maklumat Sitaan</button>
+                </div> *@
+            }
         </div>
     </div>
 </div>
@@ -128,18 +261,17 @@
 </DxPopup>
 
 @code {
-    bool PopupVisible = false;
-    string Details;
-    string HeaderText;
-
     [Parameter] public premis_license_tax_view PremisInfo { get; set; }
 
     [Parameter] public LatLngLiteral? LatLng { get; set; }
 
     [Parameter] public List<string> Dtfloor { get; set; }
 
-
     // [Parameter] public IEnumerable<KeyValuePair<string, object>> ImageAttributes { get; set; }
+
+    bool PopupVisible = false;
+    string Details;
+    string HeaderText;
 
     void ShowDetails(string headerdtl, string details)
     {
@@ -160,43 +292,49 @@
 
     public MarkupString GetStatusIconHtml(int status_id)
     {
-        string priorytyClass = "none";
+        string priorytyClass = "nodata";
         string title = " TIADA DATA ";
         if (status_id == 1)
         {
-            priorytyClass = "info";
-            title = " CUKAI DIBAYAR ";
+            priorytyClass = "aktif";
+            title = " LESEN AKTIF ";
         }
-        else if (status_id == 2)
+        else if (status_id == 5)
         {
             priorytyClass = "danger";
-            title = " CUKAI BELUM DIBAYAR ";
+            title = " TIDAK BERLESEN ";
+        }
+        else if (status_id == 3)
+        {
+            priorytyClass = "gantung";
+            title = " LESEN GANTUNG ";
         }
 
         string html = string.Format("<span class='e-badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
         return new MarkupString(html);
+
     }
 
-    string GetColorLot(int typeLot)
-    {
-        switch (typeLot)
-        {
-            case 1:
-                return "Green";
-            case 2:
-                return "Red";
-            case 3:
-                return "Blue";
-            case 4:
-                return "Orange";
-            case 5:
-                return "Yellow";
-            case 6:
-                return "#ccc";
-            case 7:
-                return "Purple";
-            default:
-                return "#ccc";
-        }
-    }
+    // string GetColorLot(int typeLot)
+    // {
+    //     switch (typeLot)
+    //     {
+    //         case 1:
+    //             return "Green";
+    //         case 2:
+    //             return "Red";
+    //         case 3:
+    //             return "Blue";
+    //         case 4:
+    //             return "Orange";
+    //         case 5:
+    //             return "Yellow";
+    //         case 6:
+    //             return "#ccc";
+    //         case 7:
+    //             return "Purple";
+    //         default:
+    //             return "#ccc";
+    //     }
+    // }
 }

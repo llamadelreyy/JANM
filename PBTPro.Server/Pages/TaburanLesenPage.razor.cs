@@ -31,6 +31,7 @@ namespace PBTPro.Pages
     public partial class TaburanLesenPage
     {
         bool PanelVisible { get; set; }
+
         //For check box ===========
         public List<FilterData> FilterList { get; set; }
         protected List<string> SelectedIds = new List<string>();
@@ -163,6 +164,7 @@ namespace PBTPro.Pages
         protected override async Task OnInitializedAsync()
         {
             PanelVisible = true;
+
             //Show legend
             intLegend = 0;
             //Map
