@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PBTPro", "PBTPro.Server\PBT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PBTPro.Api", "PBTPro.Api\PBTPro.Api.csproj", "{C55581EC-1750-4E16-8DDD-90884A8EC702}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Components", "Component\Components.csproj", "{F4BC7CCB-6AC2-461A-A676-262755B62413}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C55581EC-1750-4E16-8DDD-90884A8EC702}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C55581EC-1750-4E16-8DDD-90884A8EC702}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C55581EC-1750-4E16-8DDD-90884A8EC702}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4BC7CCB-6AC2-461A-A676-262755B62413}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4BC7CCB-6AC2-461A-A676-262755B62413}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4BC7CCB-6AC2-461A-A676-262755B62413}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4BC7CCB-6AC2-461A-A676-262755B62413}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

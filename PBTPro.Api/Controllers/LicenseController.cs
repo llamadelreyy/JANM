@@ -11,22 +11,14 @@ Changes Logs:
 12/2/2025 - api for crud lesen
 */
 
-using AutoMapper.Internal;
-using DevExpress.ClipboardSource.SpreadsheetML;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using NpgsqlTypes;
-using OneOf.Types;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
 using PBTPro.DAL.Models.PayLoads;
-using static DevExpress.XtraPrinting.Native.ExportOptionsPropertiesNames;
-using static Duende.IdentityServer.Models.IdentityResources;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PBTPro.Api.Controllers
 {
@@ -215,6 +207,67 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        #region Transaction ticket count by
+        [HttpGet("{LicenseAccNo}")]
+        public async Task<IActionResult> GetTicketCountByLicenseAccNo(string LicenseAccNo)
+        {
+            try
+            {
+                var licenseInfo = await _tenantDBContext.mst_licensees.AsNoTracking().FirstOrDefaultAsync(x => x.license_accno == LicenseAccNo);
+                if (licenseInfo == null)
+                {
+                    return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
+                }
+
+                int cntInspect = await _tenantDBContext.trn_inspects.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
+                int cntConfiscation = await _tenantDBContext.trn_cfscs.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
+                int cntNotice = await _tenantDBContext.trn_notices.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
+                int cntCompound = await _tenantDBContext.trn_cmpds.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
+
+                var resultData = new
+                {
+                    inspection = cntInspect,
+                    confiscation = cntConfiscation,
+                    notice = cntNotice,
+                    compound = cntCompound
+                };
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseId}")]
+        public async Task<IActionResult> GetTicketCountByLicenseId(int LicenseId)
+        {
+            try
+            {
+                int cntInspect = await _tenantDBContext.trn_inspects.Where(x => x.license_id == LicenseId).CountAsync();
+                int cntConfiscation = await _tenantDBContext.trn_cfscs.Where(x => x.license_id == LicenseId).CountAsync();
+                int cntNotice = await _tenantDBContext.trn_notices.Where(x => x.license_id == LicenseId).CountAsync();
+                int cntCompound = await _tenantDBContext.trn_cmpds.Where(x => x.license_id == LicenseId).CountAsync();
+
+                var resultData = new
+                {
+                    inspection = cntInspect,
+                    confiscation = cntConfiscation,
+                    notice = cntNotice,
+                    compound = cntCompound
+                };
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        #endregion
 
     }
 }
