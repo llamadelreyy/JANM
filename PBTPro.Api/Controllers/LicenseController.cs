@@ -12,7 +12,6 @@ Changes Logs:
 */
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
@@ -28,7 +27,6 @@ namespace PBTPro.Api.Controllers
     public class LicenseController : IBaseController
     {
         protected readonly string? _dbConn;
-        private readonly IHubContext<PushDataHub> _hubContext;
         private readonly IConfiguration _configuration;
         private readonly ILogger<LicenseController> _logger;
 
