@@ -1412,20 +1412,6 @@ label {
     background-color: red;
 }
 
-.e-priority-aktif {
-    border-radius: 3px 4px;
-    background-color: green;
-}
-
-.e-priority-nodata {
-    border-radius: 3px 4px;
-    background-color: grey;
-}
-
-.e-priority-gantung {
-    border-radius: 3px 4px;
-    background-color: yellow;
-}
 /*================ FOR PREMISE CARD ========================*/
 
 .ProfileBox {
