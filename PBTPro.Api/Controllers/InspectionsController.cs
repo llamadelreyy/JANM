@@ -464,6 +464,7 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        #region Listing by specific field
         [HttpGet("{UserId}")]
         public async Task<IActionResult> GetInspectionListByUserId(int UserId)
         {
@@ -473,13 +474,20 @@ namespace PBTPro.Api.Controllers
 
                 var inspection_lists = await (from n in _tenantDBContext.trn_inspects
                                               where n.creator_id == UserId
-                                          select new
-                                          {
-                                              n.inspect_ref_no,
-                                              n.created_at,
-                                              n.modified_at,
-                                              n.trnstatus_id,
-                                          }).ToListAsync();
+                                              join ts in _tenantDBContext.ref_trn_statuses
+                                              on n.trnstatus_id equals ts.status_id into tsg
+                                              from ts in tsg.DefaultIfEmpty()
+                                              select new
+                                              {
+                                                  n.trn_inspect_id,
+                                                  n.inspect_ref_no,
+                                                  n.created_at,
+                                                  n.modified_at,
+                                                  n.trnstatus_id,
+                                                  n.doc_pathurl,
+                                                  n.doc_name,
+                                                  trnstatus_view = ts.status_name,
+                                              }).ToListAsync();
 
                 // Check if no record was found
                 if (inspection_lists.Count == 0)
@@ -511,12 +519,19 @@ namespace PBTPro.Api.Controllers
 
                 var inspection_lists = await (from n in _tenantDBContext.trn_inspects
                                               where n.schedule_id == ScheduleId
+                                              join ts in _tenantDBContext.ref_trn_statuses
+                                              on n.trnstatus_id equals ts.status_id into tsg
+                                              from ts in tsg.DefaultIfEmpty()
                                               select new
                                               {
+                                                  n.trn_inspect_id,
                                                   n.inspect_ref_no,
                                                   n.created_at,
                                                   n.modified_at,
                                                   n.trnstatus_id,
+                                                  n.doc_pathurl,
+                                                  n.doc_name,
+                                                  trnstatus_view = ts.status_name,
                                               }).ToListAsync();
 
                 // Check if no record was found
@@ -549,12 +564,19 @@ namespace PBTPro.Api.Controllers
 
                 var inspection_lists = await (from n in _tenantDBContext.trn_inspects
                                               where n.tax_accno == TaxAccNo
+                                              join ts in _tenantDBContext.ref_trn_statuses
+                                              on n.trnstatus_id equals ts.status_id into tsg
+                                              from ts in tsg.DefaultIfEmpty()
                                               select new
                                               {
+                                                  n.trn_inspect_id,
                                                   n.inspect_ref_no,
                                                   n.created_at,
                                                   n.modified_at,
                                                   n.trnstatus_id,
+                                                  n.doc_pathurl,
+                                                  n.doc_name,
+                                                  trnstatus_view = ts.status_name,
                                               }).ToListAsync();
 
                 // Check if no record was found
@@ -585,14 +607,26 @@ namespace PBTPro.Api.Controllers
             {
                 var resultData = new List<dynamic>();
                 var licenseInfo = await _tenantDBContext.mst_licensees.AsNoTracking().FirstOrDefaultAsync(x => x.license_accno == LicenseAccNo);
+                if(licenseInfo == null)
+                {
+                    return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
+                }
+
                 var inspection_lists = await (from n in _tenantDBContext.trn_inspects
                                               where n.license_id == licenseInfo.licensee_id
+                                              join ts in _tenantDBContext.ref_trn_statuses
+                                              on n.trnstatus_id equals ts.status_id into tsg
+                                              from ts in tsg.DefaultIfEmpty()
                                               select new
                                               {
+                                                  n.trn_inspect_id,
                                                   n.inspect_ref_no,
                                                   n.created_at,
                                                   n.modified_at,
                                                   n.trnstatus_id,
+                                                  n.doc_pathurl,
+                                                  n.doc_name,
+                                                  trnstatus_view = ts.status_name,
                                               }).ToListAsync();
 
                 // Check if no record was found
@@ -624,13 +658,20 @@ namespace PBTPro.Api.Controllers
                 var resultData = new List<dynamic>();
 
                 var inspection_lists = await (from n in _tenantDBContext.trn_inspects
-                                              where n.schedule_id == LicenseId
+                                              where n.license_id == LicenseId
+                                              join ts in _tenantDBContext.ref_trn_statuses
+                                              on n.trnstatus_id equals ts.status_id into tsg
+                                              from ts in tsg.DefaultIfEmpty()
                                               select new
                                               {
+                                                  n.trn_inspect_id,
                                                   n.inspect_ref_no,
                                                   n.created_at,
                                                   n.modified_at,
                                                   n.trnstatus_id,
+                                                  n.doc_pathurl,
+                                                  n.doc_name,
+                                                  trnstatus_view = ts.status_name,
                                               }).ToListAsync();
 
                 // Check if no record was found
@@ -653,6 +694,90 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+        #endregion
+
+        #region Count by specific field
+        [HttpGet("{UserId}")]
+        public async Task<IActionResult> GetInspectionCountByUserId(int UserId)
+        {
+            try
+            {
+                var resultData = await _tenantDBContext.trn_inspects.Where(x => x.creator_id == UserId).CountAsync();
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{ScheduleId}")]
+        public async Task<IActionResult> GetInspectionCountBySchedId(int ScheduleId)
+        {
+            try
+            {
+                var resultData = await _tenantDBContext.trn_inspects.Where(x => x.schedule_id == ScheduleId).CountAsync();
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{TaxAccNo}")]
+        public async Task<IActionResult> GetInspectionCountByTaxAccNo(string TaxAccNo)
+        {
+            try
+            {
+                var resultData = await _tenantDBContext.trn_inspects.Where(x => x.tax_accno == TaxAccNo).CountAsync();
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseAccNo}")]
+        public async Task<IActionResult> GetInspectionCountByLicenseAccNo(string LicenseAccNo)
+        {
+            try
+            {
+                var licenseInfo = await _tenantDBContext.mst_licensees.AsNoTracking().FirstOrDefaultAsync(x => x.license_accno == LicenseAccNo);
+                if (licenseInfo == null)
+                {
+                    return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
+                }
+
+                var resultData = await _tenantDBContext.trn_inspects.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{LicenseId}")]
+        public async Task<IActionResult> GetInspectionCountByLicenseId(int LicenseId)
+        {
+            try
+            {
+                var resultData = await _tenantDBContext.trn_inspects.Where(x => x.license_id == LicenseId).CountAsync();
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        #endregion
 
         #region Testing API
         // For Testing Purpose ONLY WIll be removed after finalization
@@ -682,6 +807,8 @@ namespace PBTPro.Api.Controllers
             }
         }
         #endregion
+
+        #region Report
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<trn_inspect_view>>> ListReport()
@@ -878,6 +1005,7 @@ namespace PBTPro.Api.Controllers
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
             }
         }
+        #endregion
 
         #region Private Logic
         private async Task<string?> getUploadPath(trn_inspect? record)
