@@ -1,36 +1,25 @@
-﻿@page "/kompaun_lesen"
-@attribute [AllowAnonymous]
+﻿@page "/lapor_sita"
+@attribute [Authorize]
 
 @using System.Globalization
 @using PBTPro.Data
-@using PBTPro.DAL.Models
+@using PBTPro.DAL.Models;
 @using PBTPro.DAL.Models.PayLoads
 
-@inject CompoundService _CompoundService
-
+@inject ConfiscationService _ConfiscationService
 @inject NavigationManager NavigationManager
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 @inject IToastNotificationService ToastService
 @inject PBTAuthPermissionService PermissionService
 @inject RefTrnStatusService _RefTrnStatus
-
-
-<div class="d-lg-flex border-bottom mb-2">
-    <div class="col-md-12 py-1 dx-helptitle pageTitle">
-        <img class="imgTitle" src="/images/icons-small/document-template.png" />
-        <div class="textTitle">Pelaporan - Laporan Kompaun</div>
-    </div>
-</div>
+@inject ConfiscationItemTypeService _cfscTypeService
+@inject ConfiscationItemNoteService _cfscNoteService
+@inject RefCfscTypeService _refCfscTypeService
 
 <style>
     .dxbl-grid {
         height: 79vh;
         max-height: 79vh;
-    }
-
-    .dxbl-text-edit.dxbl-disabled > *, .dxbl-text-edit:disabled > * {
-        color: black !important;
-        opacity: 1 !important;
     }
 
     .custom-grid .dxbl-grid-table > tbody > .dxbl-grid-empty-row {
@@ -40,20 +29,31 @@
     }
 </style>
 
-else
+@* @if (!PermissionService.HasPermission("View"))
 {
+    NavigationManager.NavigateTo("/no-permission");
+}
+else
+{ *@
 <DxLoadingPanel @bind-Visible="PanelVisible"
                 IsContentBlocked="true"
                 ApplyBackgroundShading="true"
                 IndicatorAreaVisible="false"
                 Text="Capaian Data...">
 
+    <div class="d-lg-flex border-bottom mb-2">
+        <div class="col-md-12 py-1 dx-helptitle pageTitle">
+            <img class="imgTitle" src="/images/icons-small/document-template.png" />
+            <div class="textTitle">Pelaporan - Laporan Sitaan</div>
+        </div>
+    </div>
+
     <div class="item-container-x">
         <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 
         <DxGrid @ref="Grid"
                 Data="dtSource"
-                KeyFieldName="id_kompaun"
+                KeyFieldName="id_sita"
                 ShowGroupPanel="true"
                 ShowFilterRow="false"
                 CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
@@ -80,52 +80,50 @@ else
             <Columns>
                 <DxGridCommandColumn Width="120px">
                     <HeaderTemplate>
-                        <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                        @if (PermissionService.HasPermission("Add"))
+                        {
+                            <a @onclick="@(() => Grid.StartEditNewRowAsync())" style="text-decoration: none;" href="javascript:void(0);"><img src="images/icons/plus-circle.png" /></a>
+                        }
                     </HeaderTemplate>
                     <CellDisplayTemplate>
-                        @if (PermissionService.HasPermission("Edit"))
-                        {
-                            <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
-                        }
+                        @* @if (PermissionService.HasPermission("Edit"))
+                            { *@
+                        <a @onclick="@(() => Grid.StartEditRowAsync(context.VisibleIndex))" style="text-decoration: none; padding:0px 2px;" href="javascript:void(0);"><img src="images/icons-small/table--pencil.png" /></a>
+                        @*   } *@
                         @if (PermissionService.HasPermission("Delete"))
                         {
-                            <a @onclick="@(() => Delete((trn_compound_view)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
+                            <a @onclick="@(() => Delete((trn_cfsc_view)context.DataItem))" style="text-decoration: none;padding-right:5px;" href="javascript:void(0);"><img src="images/icons-small/cross-circle-frame.png" /></a>
                         }
-                        @if (PermissionService.HasPermission("Print"))
-                        {
-                            <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan" target="_blank"><img src="images/icons-small/printer--pencil.png" /></a>
-                        }
+                        @* @if (PermissionService.HasPermission("Print"))
+                            { *@
+                        <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan" target="_blank"><img src="images/icons-small/printer--pencil.png" /></a>
+                        @*  } *@
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
-                <DxGridDataColumn Caption="Bil." MinWidth="70" Width="7%" FieldName="id_kompaun" TextAlignment="GridTextAlignment.Left" AllowGroup="false" onshow="false" />
                 <DxGridDataColumn Caption="No Rujukan" MinWidth="130" Width="13%" FieldName="no_rujukan" AllowSort="true" />
                 <DxGridDataColumn Caption="No Lesen/Cukai" MinWidth="130" Width="13%" FieldName="no_rujukan" AllowSort="true" />
                 <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="200" Width="20%" FieldName="nama_perniagaan" />
-              @*   <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="no_lesen">
-                    <CellDisplayTemplate>
+                    @* <CellDisplayTemplate>
                         <div>
-                            @CombineText(((trn_compound_view)context.DataItem).no_lesen, ((trn_compound_view)context.DataItem).nama_perniagaan)
+                            @CombineText(((trn_cfsc_view)context.DataItem).no_lesen, ((trn_cfsc_view)context.DataItem).nama_perniagaan)
                         </div>
                     </CellDisplayTemplate>
                 </DxGridDataColumn> *@
                 <DxGridDataColumn Caption="Nama Pemilik" MinWidth="200" Width="20%" FieldName="nama_pemilik" />
                 <DxGridDataColumn Caption="Nama Pegawai" MinWidth="200" Width="20%" FieldName="nama_pegawai" />
-                <DxGridDataColumn Caption="Amaun (RM)" MinWidth="120" Width="12%" FieldName="amaun" DisplayFormat="#,###.00" AllowGroup="false" TextAlignment="GridTextAlignment.Right" />
-                <DxGridDataColumn Caption="Status" MinWidth="150" Width="15%" FieldName="status_bayaran" TextAlignment="GridTextAlignment.Center">
+                <DxGridDataColumn Caption="Status" MinWidth="150" Width="15%" FieldName="status_sita" TextAlignment="GridTextAlignment.Center">
                     <CellDisplayTemplate>
-                        <div>@GetStatusBayaranIconHtml(((trn_compound_view)context.DataItem).status_bayaran, ((trn_compound_view)context.DataItem).status_bayaran_id)</div>
+                        <div>@GetStatusInspectionIconHtml(((trn_cfsc_view)context.DataItem).status_sita, ((trn_cfsc_view)context.DataItem).status_sita_id)</div>
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
                 <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="150" Width="15%" FieldName="ssm_no" />
                 <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="250" Width="20%" FieldName="alamat_perniagaan" />
                 <DxGridDataColumn Caption="Akta Kesalahan" MinWidth="250" Width="25%" FieldName="akta_kesalahan" />
-                <DxGridDataColumn Caption="Kod Kesalahan" MinWidth="250" Width="25%" FieldName="kod_kesalahan"  />
+                <DxGridDataColumn Caption="Kod Kesalahan" MinWidth="250" Width="25%" FieldName="kod_kesalahan" />
                 <DxGridDataColumn Caption="Undang-undang Kecil" MinWidth="200" Width="20%" FieldName="kod_uuk" />
                 <DxGridDataColumn Caption="Kod Seksyen" MinWidth="200" Width="20%" FieldName="kod_seksyen" />
                 <DxGridDataColumn Caption="Arahan" MinWidth="180" Width="18%" FieldName="arahan" />
                 <DxGridDataColumn Caption="Lokasi Kesalahan" MinWidth="120" Width="12%" FieldName="lokasi_kesalahan" />
-                <DxGridDataColumn Caption="Nama Saksi" MinWidth="200" Width="20%" FieldName="nama_saksi" />
-                <DxGridDataColumn Caption="Cara Serahan" MinWidth="150" Width="15%" FieldName="cara_serahan" />
                 <DxGridDataColumn FieldName="TarikhData"
                                   DisplayFormat="dd/MM/yyyy"
                                   Caption="Tarikh Data"
@@ -133,30 +131,34 @@ else
                                   Width="12%"
                                   TextAlignment="GridTextAlignment.Center"
                                   SortOrder="GridColumnSortOrder.Ascending"
-                                  SortIndex="0" AllowSort="true" />
+                                  AllowSort="true"
+                                  SortIndex="0" />
             </Columns>
 
             <EditFormTemplate Context="EditFormContext">
                 @{
-                    var dtData = (trn_compound_view)EditFormContext.EditModel;
+                    var dtData = (trn_cfsc_view)EditFormContext.EditModel;
                     isTax = dtData.is_cukai;
                     string ssm_no = (!string.IsNullOrEmpty(dtData.ssm_no) ? dtData.ssm_no : "-");
                     string no_lesen = (!string.IsNullOrEmpty(dtData.no_lesen) ? dtData.no_lesen : "-");
                     string no_cukai = (!string.IsNullOrEmpty(dtData.no_cukai) ? dtData.no_cukai : "-");
                     string nama_perniagaan = (!string.IsNullOrEmpty(dtData.nama_perniagaan) ? dtData.nama_perniagaan : "-");
-                    string nama_saksi = (!string.IsNullOrEmpty(dtData.nama_saksi) ? dtData.nama_saksi : "-");
+                    string nama_pemilik = (!string.IsNullOrEmpty(dtData.nama_pemilik) ? dtData.nama_pemilik : "-");
                     string akta_kesalahan = (!string.IsNullOrEmpty(dtData.akta_kesalahan) ? dtData.akta_kesalahan : "-");
                     string kod_kesalahan = (!string.IsNullOrEmpty(dtData.kod_kesalahan) ? dtData.kod_kesalahan : "-");
                     string kod_seksyen = (!string.IsNullOrEmpty(dtData.kod_seksyen) ? dtData.kod_seksyen : "-");
                     string kod_uuk = (!string.IsNullOrEmpty(dtData.kod_uuk) ? dtData.kod_uuk : "-");
-                    string nama_pemilik = (!string.IsNullOrEmpty(dtData.nama_pemilik) ? dtData.nama_pemilik : "-");
+                    string nama_inventori = (!string.IsNullOrEmpty(dtData.nama_inventori) ? dtData.nama_inventori : "-");
+                    string nama_scenario = (!string.IsNullOrEmpty(dtData.nama_scenario) ? dtData.nama_scenario : "-");
+                    string nama_inv_type = (!string.IsNullOrEmpty(dtData.nama_inv_type) ? dtData.nama_inv_type : "-");
+                    string nama_jabatan = (!string.IsNullOrEmpty(dtData.nama_jabatan) ? dtData.nama_jabatan : "-");
                 }
-                <DxFormLayout CssClass="w-100" style="padding:10px 20px;">
+                <DxFormLayout CssClass="w-100">
                     <DxFormLayoutItem ColSpanMd="4" BeginRow="true">
                         <table class="layout_edit">
                             <tr style="height:25px;">
                                 <td nowrap colspan="7" valign="top">
-                                    @dtData.no_rujukan &nbsp; @GetStatusBayaranIconHtml(dtData.status_bayaran, dtData.status_bayaran_id)<br />
+                                    #@dtData.no_rujukan &nbsp; @GetStatusInspectionIconHtml(dtData.status_sita, dtData.status_sita_id) <br />
                                 </td>
                             </tr>
                             <tr style="height:25px;">
@@ -168,10 +170,13 @@ else
                             <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
                             <tr style="height:10px;"><td colspan="7"></td></tr>
                             <tr style="height:25px;">
-                                <td nowrap>No Lesen</td>
+                                <td nowrap>No Lesen/Cukai</td>
                                 <td nowrap>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    @no_lesen
+                                <td width="50%" valign="top">
+                                    @if (isTax)
+                                        @no_cukai
+                                    else
+                                        @no_lesen
                                 </td>
                                 <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                 <td nowrap>No Daftar Syarikat</td>
@@ -232,10 +237,13 @@ else
                                     @kod_uuk
                                 </td>
                             </tr>
+                            <tr style="height:10px;"><td colspan="7"></td></tr>
+                            <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                            <tr style="height:10px;"><td colspan="7"></td></tr>
                             <tr style="height:25px;">
                                 <td nowrap>Arahan</td>
                                 <td>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="7">
+                                <td width="50%" colspan="7" valign="top">
                                     @dtData.arahan
                                 </td>
                             </tr>
@@ -253,37 +261,12 @@ else
                                 </td>
                             </tr>
                             <tr style="height:25px;">
-                                <td nowrap>Nama Saksi</td>
+                                <td nowrap>Jabatan</td>
                                 <td>&nbsp;&nbsp;</td>
                                 <td width="50%">
-                                    @nama_saksi
+                                    @nama_jabatan
                                 </td>
                                 <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
-                                <td nowrap>Cara Serahan</td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    @dtData.cara_serahan
-                                </td>
-                            </tr>
-                            <tr style="height:10px;"><td colspan="7"></td></tr>
-                            <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                            <tr style="height:10px;"><td colspan="7"></td></tr>
-                            <tr>
-                                <td nowrap>Bukti</td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%" colspan="5">
-                                    @if (dtData.imej_kompaun != null && dtData.imej_kompaun.Any())
-                                    {
-                                        @foreach (var image in dtData.imej_kompaun)
-                                        {
-                                            <img src="@image" style="width:20%; border:1px solid #000; margin:5px;" />
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <img src="/images/Bukti/shoe1.jpg" style="width:20%; border:1px solid #000;" />
-                                    }
-                                </td>
                             </tr>
 
                             <tr style="height:10px;"><td colspan="7"></td></tr>
@@ -291,8 +274,61 @@ else
                             <tr style="height:10px;"><td colspan="7"></td></tr>
 
                             <tr style="height:25px;">
+                                <td nowrap>Inventori</td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    @nama_inventori
+                                </td>
+                                <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                                <td nowrap>Senario</td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    @nama_scenario
+                                </td>
+                            </tr>
+                            <tr style="height:25px;">
+                                <td nowrap>Jenis Inventori</td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td width="50%">
+                                    @nama_inv_type
+                                </td>
+                                <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
+                            </tr>
+
+                            <tr style="height:10px;"><td colspan="7"></td></tr>
+                            <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                            <tr style="height:10px;"><td colspan="7"></td></tr>
+                            <tr style="height:25px;">
+                                <td nowrap>Bukti</td>
+                                <td>&nbsp;&nbsp;</td>
+                                <td width="50%" colspan="5">
+                                    @if (dtData.imej_sita != null && dtData.imej_sita.Any())
+                                    {
+                                        @foreach (var image in dtData.imej_sita)
+                                        {
+                                            <img src="@image" style="width:20%; border:1px solid #000; margin:5px;" />
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <img src="/images/Bukti/herbstore2.jpg" style="width:20%; border:1px solid #000;" />
+                                    }
+                                </td>
+                            </tr>
+                          @*   <tr style="height:50px;">
+                                <td width="50%" colspan="7">
+                                    <img src="images/icons/map.png" /><DxButton Text="Lihat Peta" Click="() => OpenGoogleMaps(dtData.inspect_latitude, dtData.inspect_longitude, dtData.alamat_perniagaan, dtData.nama_perniagaan.ToUpper())" />
+                                    <img src="images/icons/marker.png" /><DxButton Text="Street View" Click="() => OpenGoogleStreetMaps(dtData.inspect_latitude, dtData.inspect_longitude, dtData.alamat_perniagaan, true)" />
+                                </td>
+                            </tr> *@
+
+                            <tr style="height:10px;"><td colspan="7"></td></tr>
+                            <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
+                            <tr style="height:10px;"><td colspan="7"></td></tr>
+
+                            <tr style="height:25px;">
                                 <td colspan="7">
-                                    SEJARAH KOMPAUN
+                                    SEJARAH SITAAN
                                 </td>
                             </tr>
                             @{
@@ -301,21 +337,19 @@ else
                                 else
                                     dtHistory = dtSource.Where(x => x.no_lesen == no_lesen);
                             }
-
                             <tr style="height:25px;">
                                 <td colspan="7" height="20%">
                                     <DxGrid Data="dtHistory" Context="GridAhli" @ref="Grid2" CssClass="custom-grid"
                                             KeyFieldName="id_kompaun">
                                         <Columns>
 
-                                            <DxGridDataColumn Caption="No Rujukan" FieldName="no_rujukan" Width="14%" TextAlignment="GridTextAlignment.Center" />
-                                            <DxGridDataColumn Caption="Status" FieldName="status_bayaran" Width="10%" TextAlignment="GridTextAlignment.Center" />
-                                            <DxGridDataColumn Caption="Amaun (RM)" FieldName="amaun" Width="16%" TextAlignment="GridTextAlignment.Center" />
-                                            <DxGridDataColumn Caption="Pegawai" FieldName="nama_pegawai" Width="15%" TextAlignment="GridTextAlignment.Center" />
-                                            <DxGridDataColumn Caption="Arahan" FieldName="arahan" Width="35%" TextAlignment="GridTextAlignment.Center" />
+                                            <DxGridDataColumn Caption="No Rujukan" FieldName="no_rujukan" Width="15%" TextAlignment="GridTextAlignment.Center" />
+                                            <DxGridDataColumn Caption="Status" FieldName="status_sita" Width="10%" TextAlignment="GridTextAlignment.Center" />
+                                            <DxGridDataColumn Caption="Pegawai" FieldName="nama_pegawai" Width="20%" TextAlignment="GridTextAlignment.Center" />
+                                            <DxGridDataColumn Caption="Arahan" FieldName="arahan" Width="40%" TextAlignment="GridTextAlignment.Center" />
                                             <DxGridDataColumn FieldName="TarikhData" DisplayFormat="dd/MM/yyyy" Caption="Tarikh Data"
                                                               TextAlignment="GridTextAlignment.Center" SortOrder="GridColumnSortOrder.Descending" SortIndex="0"
-                                                              Width="10%" />
+                                                              Width="15%" />
                                         </Columns>
                                     </DxGrid>
 
@@ -323,42 +357,30 @@ else
                             </tr>
 
                             <tr style="height:10px;"><td colspan="7"></td></tr>
-                            <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                            <tr style="height:10px;"><td colspan="7"></td></tr>
-
-                            <tr style="height:25px;">
-                                <td nowrap>Amaun Kompaun (RM)</td>
-                                <td>&nbsp;&nbsp;</td>
-                                <td width="50%">
-                                    <DxSpinEdit @bind-Value="@dtData.amaun" Enabled="false"
-                                                DisplayFormat="C"
-                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                Maxlength="10"
-                                                CssClass="cw-320" />
-                                </td>
-                            </tr>
                             @{
-                                var status = dtSource.Where(c => c.status_bayaran_id == dtData.status_bayaran_id).FirstOrDefault()?.status_bayaran_id;
+                                var status = dtSource.Where(c => c.status_sita_id == dtData.status_sita_id).FirstOrDefault()?.status_sita_id;
                                 bool boolEnable = status != null && status != 3 && status != 5 && status != 8; //non-editable for : ditutup(3) , telah dibayar(5), dibatalkan(8)
 
                                 if (Grid.IsEditingNewRow())
                                     boolEnable = true;
                             }
                             <tr style="height:25px;">
-                                <td nowrap>Status Bayaran</td>
+                                <td nowrap>Status Sitaan</td>
                                 <td nowrap>&nbsp;&nbsp;</td>
                                 <td width="50%" valign="top">
                                     <DxComboBox Data="@dtTrnStatus"
-                                                NullText="Pilih Status Bayaran..."
+                                                NullText="Pilih Status Sitaan..."
                                                 ShowValidationIcon="true"
                                                 FilteringMode="DataGridFilteringMode.Contains"
-                                                @bind-Value="@dtData.status_bayaran_id"
+                                                @bind-Value="@dtData.status_sita_id"
                                                 TextFieldName="status_name"
                                                 ValueFieldName="status_id"
                                                 Enabled="@boolEnable"
                                                 CssClass="cw-320">
                                     </DxComboBox>
+
                                 </td>
+                                <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                             </tr>
                         </table>
                     </DxFormLayoutItem>
@@ -375,7 +397,7 @@ else
 
             @*This is to count the summary*@
             <TotalSummary>
-                <DxGridSummaryItem FooterColumnName="id_kompaun"
+                <DxGridSummaryItem FooterColumnName="id_sita"
                                    Name="Custom"
                                    SummaryType=GridSummaryItemType.Count />
             </TotalSummary>
@@ -383,14 +405,14 @@ else
         </DxGrid>
 
         <hr style="background-color:transparent; border: 2px solid #FFF;padding:0;margin:auto;" />
-        <DxButton Text="Export XLSX" class="btn-edit-grid" Click="ExportXlsx_Click" />
-        <DxButton Text="Export XLS" class="btn-edit-grid" Click="ExportXls_Click" />
-        <DxButton Text="Export CSV" class="btn-edit-grid" Click="ExportCsv_Click" />
+        <DxButton Text="Export XLSX" Click="ExportXlsx_Click" />
+        <DxButton Text="Export XLS" Click="ExportXls_Click" />
+        <DxButton Text="Export CSV" Click="ExportCsv_Click" />
         <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
-
     </div>
 </DxLoadingPanel>
-}
+// }
+
 <DxPopup @bind-Visible="@ConfirmationShown" HeaderText="Hapus rekod" CssClass="confirmation-header" Width="auto" CloseOnOutsideClick="false">
     <BodyContentTemplate>
         <b>@strSelected</b> --> adalah rekod yang dipilih untuk dihapuskan.
@@ -403,35 +425,43 @@ else
     </BodyContentTemplate>
 </DxPopup>
 
-
 @code {
     bool PanelVisible { get; set; }
-    IEnumerable<trn_compound_view> LesenData;
-    List<trn_compound_view> dtSource;
+    IEnumerable<trn_cfsc_view> dtSource;
     IEnumerable<ref_trn_status> dtTrnStatus;
-    trn_compound_view dtData;
-    IEnumerable<trn_compound_view> dtHistory;
+    IEnumerable<ref_cfsc_invtype> dtRefInvType;
+    IEnumerable<ref_cfsc_scenario> dtRefCfscScen;
+    IEnumerable<ref_cfsc_inventory> dtRefInv;
+    trn_cfsc_view dtData { get; set; }
+
+    IEnumerable<trn_cfsc_view> dtHistory;
+
+
 
     IGrid Grid { get; set; }
     IGrid Grid2 { get; set; }
     int GridPageIndex { get; set; } = 0;
     string GridSearchText = "";
-    bool isTax { get; set; } = false;
+
     bool ConfirmationShown { get; set; } = false;
     int ActiveTabIndex;
     string strSelected { get; set; }
+    bool isTax { get; set; } = false;
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    [Inject] IJSRuntime JS { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         PanelVisible = true;
-        dtSource = await _CompoundService.ListReport();
+        dtSource = await _ConfiscationService.ListReport();
         dtTrnStatus = await _RefTrnStatus.ListAll();
+        dtRefInv = await _cfscTypeService.ListAll();
+        dtRefCfscScen = await _cfscNoteService.ListAll();
+        dtRefInvType = await _refCfscTypeService.ListAll();
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
-
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -439,7 +469,7 @@ else
         if (firstRender)
         {
             await DataLoadedTcs.Task;
-            await Grid.CancelEditAsync();
+            await Grid.CancelEditAsync(); //.StartEditRowAsync(0);
         }
     }
 
@@ -450,25 +480,30 @@ else
 
     protected async Task OnSelectedRow(object itemData)
     {
-        var item = (trn_compound_view)itemData;
+        var item = (trn_cfsc_view)itemData;
         NavigationManager.NavigateTo(item.pautan_dokumen, false);
-        //NavigationManager.NavigateTo("/reportkompaunlesen?norujukan=" + item.no_rujukan, false);
+    }
+
+    protected async Task OnHistoryRow(object itemData)
+    {
+        var item = (trn_cfsc_view)itemData;
+        NavigationManager.NavigateTo(item.pautan_dokumen, false);
     }
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
-        var _data = (trn_compound_view)e.EditModel;
+        var _data = (trn_cfsc_view)e.EditModel;
 
-        if (_data.status_bayaran_id == 0)
+        if (_data.status_sita_id == 0)
         {
-            e.AddError(nameof(_data.status_bayaran_id), "Status tidak sah. Medan perlu diisi.");
+            e.AddError(nameof(_data.status_sita_id), "Status tidak sah. Medan perlu diisi.");
         }
     }
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         ReturnViewModel response = new ReturnViewModel();
-        var editModel = e.EditModel as trn_compound_view;
+        var editModel = e.EditModel as trn_cfsc_view;
 
         try
         {
@@ -478,8 +513,7 @@ else
             }
             else
             {
-
-                response = await _CompoundService.Update(editModel);
+                response = await _ConfiscationService.Update(editModel);
             }
 
             if (response.ReturnCode == 200)
@@ -501,7 +535,7 @@ else
 
     async Task UpdateDataAsync()
     {
-        dtSource = await _CompoundService.ListReport();
+        dtSource = await _ConfiscationService.ListReport();
     }
 
     public void Dispose()
@@ -509,7 +543,7 @@ else
         DataLoadedTcs.TrySetCanceled();
     }
 
-    async Task Delete(trn_compound_view item)
+    async Task Delete(trn_cfsc_view item)
     {
         strSelected = item.no_rujukan;
         dtData = item;
@@ -521,7 +555,7 @@ else
         try
         {
             ReturnViewModel response = new ReturnViewModel();
-            response = await _CompoundService.Delete(dtData.id_kompaun);
+            response = await _ConfiscationService.Delete(dtData.id_sita);
 
             if (response.ReturnCode == 200)
             {
@@ -530,7 +564,6 @@ else
                 ConfirmationShown = false;
                 StateHasChanged();
                 HandleResponse(response.ReturnMessage);
-
             }
             else
             {
@@ -562,10 +595,11 @@ else
             e.DisplayText = string.Format("Bil. : {0}", e.Value);
     }
 
-    public MarkupString GetStatusBayaranIconHtml(string status, int? statusId)
+    public MarkupString GetStatusInspectionIconHtml(string status, int? statusId)
     {
         string priorytyClass = "";
         string title = "";
+
         if (statusId == 1)
         {
             priorytyClass = "new";
@@ -608,7 +642,7 @@ else
         }
 
         string html = string.Format("<span class='text-black badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
-        title);
+         title);
         return new MarkupString(html);
     }
 
@@ -621,22 +655,10 @@ else
 
     void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
     {
-        if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_bayaran_id").ToString() == "1")
+        if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_sita_id").ToString() == "1")
         {
-            e.Style = "color: #003300; background-color: #6BF96B";
+            e.Style = "color: #000; background-color:#89dd85";
         }
-        // if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_bayaran").ToString().ToUpper() == "BELUM BAYAR")
-        // {
-        //     e.Style = "color: #fff; background-color:#e46767";
-        // }
-        // else if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_bayaran").ToString().ToUpper() == "TELAH DIBAYAR")
-        // {
-        //     e.Style = "color: #000; background-color:#89dd85";
-        // }
-        // else if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_bayaran").ToString().ToUpper() == "BARU")
-        // {
-        //     e.Style = "color: #000; background-color:#89dd85";
-        // }
     }
 
     async Task ExportXlsx_Click()
@@ -679,4 +701,71 @@ else
                 Title = message
             });
     }
+
+    private async Task OpenGoogleMaps(decimal? lat, decimal? lng, string address = null, string businessName = null)
+    {
+        string url;
+
+        if (!string.IsNullOrWhiteSpace(businessName) && !string.IsNullOrWhiteSpace(address))
+        {
+            var query = Uri.EscapeDataString($"{businessName} {address}");
+            url = $"https://www.google.com/maps/search/?api=1&query={query}";
+        }
+        else if (!string.IsNullOrWhiteSpace(address))
+        {
+            var encodedAddress = Uri.EscapeDataString(address);
+            url = $"https://www.google.com/maps/search/?api=1&query={encodedAddress}";
+        }
+        else if (lat.HasValue && lng.HasValue)
+        {
+            url = $"https://www.google.com/maps?q={lat},{lng}";
+        }
+        else
+        {
+            return;
+        }
+        await JS.InvokeVoidAsync("window.open", url, "_blank");
+    }
+
+    private async Task OpenGoogleStreetMaps(decimal? lat, decimal? lng, string address = null, bool streetView = false)
+    {
+        string url;
+
+        if (streetView)
+        {
+            if (lat.HasValue && lng.HasValue)
+            {
+                url = $"https://www.google.com/maps?q=&layer=c&cbll={lat},{lng}";
+            }
+            else if (!string.IsNullOrWhiteSpace(address))
+            {
+                var encodedAddress = Uri.EscapeDataString(address);
+                url = $"https://www.google.com/maps?q={encodedAddress}&layer=c";
+            }
+            else
+            {
+                return;
+            }
+        }
+        else
+        {
+            if (lat.HasValue && lng.HasValue)
+            {
+                url = $"https://www.google.com/maps?q={lat},{lng}";
+            }
+            else if (!string.IsNullOrWhiteSpace(address))
+            {
+                var encodedAddress = Uri.EscapeDataString(address);
+                url = $"https://www.google.com/maps/search/?api=1&query={encodedAddress}";
+            }
+            else
+            {
+                return;
+            }
+        }
+        await JS.InvokeVoidAsync("window.open", url, "_blank");
+    }
+
+
+
 }
