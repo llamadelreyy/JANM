@@ -1359,7 +1359,7 @@ label {
     font-weight: bold;
     letter-spacing: 0.08rem;
     text-transform: uppercase;
-    padding: 10px 15px 10px 15px;
+    padding: 10px 15px 10px 0px;
     color: #666;
     border: 0px solid #000;
     border-radius: 3px;
@@ -1412,6 +1412,20 @@ label {
     background-color: red;
 }
 
+.e-priority-aktif {
+    border-radius: 3px 4px;
+    background-color: green;
+}
+
+.e-priority-nodata {
+    border-radius: 3px 4px;
+    background-color: grey;
+}
+
+.e-priority-gantung {
+    border-radius: 3px 4px;
+    background-color: yellow;
+}
 /*================ FOR PREMISE CARD ========================*/
 
 .ProfileBox {
@@ -1711,4 +1725,60 @@ label {
     object-position: center middle;
     width: 150px;
     height: 150px;
+}
+
+.blazor-carousel-templated-item {
+    height: 300px;
+    max-height: 300px;
+}
+
+.blazor-carousel-image {
+    height: 300px;
+    max-height: 300px;
+}
+
+.blazor-carousel-templated-item img {
+    width: 100%;
+    height: 100%;
+}
+
+.tbRightPane-tab .dxbl-scroll-viewer-content {
+    background-color: #dbe2e9;
+}
+
+    .tbRightPane-tab .dxbl-scroll-viewer-content ul li .dxbl-tabs-item {
+        color: #fff;
+        border: 1px solid #d2d2d2 !important;
+        margin-right: 1px;
+    }
+
+
+.tbRightPane-tab .dxbl-scroll-viewer-content ul li .dxbl-tabs-item .dxbl-text  {
+    font-size: 0.8rem !important;
+    letter-spacing: 0.1rem !important;
+    text-transform: uppercase;
+
+}
+
+    .tbRightPane-tab .dxbl-scroll-viewer-content ul li .dxbl-active {
+        background-color: #63abc7 !important;
+        font-weight: bold;
+        color: #fff !important;
+
+    }
+
+/*corusel*/
+
+.blazor-carousel-control-next {
+    padding-left: 10px;
+}
+
+.blazor-carousel-control-prev {
+    padding-right: 200px;
+}
+
+.blazor-carousel-control-nav {
+    width: 10px;
+    height: 10px;
+    cursor: pointer;
 }
