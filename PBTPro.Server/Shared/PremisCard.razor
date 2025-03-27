@@ -5,7 +5,8 @@
 @using GoogleMapsComponents.Maps
 
 @inject IJSRuntime JSRuntime
-
+@inject ApiConnector _ApiConnector // 07/11/2024 - API Fetcher - ismail
+@inject PBTAuthStateProvider _PBTAuthStateProvider
 
 <div class="e-lesen-title"><span class="px-3"><img src="/images/icons/document-text-image.png" alt="" /><span class="px-1">Info Lesen</span></span></div>
 <div class="e-card">
@@ -14,6 +15,7 @@
 
             @if (PremisInfo.license != null)
             {
+
                 <table class="e-name" style="width:100%;">
                     <tr>
                         <td nowrap>No. Lot</td>
@@ -129,30 +131,36 @@
                 @* <div class="e-divider my-3"></div> *@
                 <div class="e-email">
                     <a class="receipt-panel">
-                        <img src="/images/icons/script-text.png" alt="" />
+                        <img src="/images/icons-small/script-text.png" alt="" />
                         Notis
-                        <span class="badge-button-green">0</span>
-                    </a>
-                    <a class="receipt-panel">
-                        <img src="/images/icons/script.png" alt="" />
-                        Notis Tamat Tempoh
-                        <span class="badge-button-green">0</span>
+                        <span class="@(_notice == 0 ? "badge-button-green" : "badge-button-red")">@_notice</span>
                     </a>
 
                     <a class="receipt-panel">
-                        <img src="/images/icons/receipt-text.png" alt="" />
+                        <img src="/images/icons-small/receipt-text.png" alt="" />
                         Kompaun
-                        <span class="badge-button-red">2</span>
+                        <span class="@(_compound == 0 ? "badge-button-green" : "badge-button-red")">@_compound</span>
+                    </a>
+
+                    <a class="receipt-panel">
+                        <img src="/images/icons-small/box.png" alt="" />
+                        Sitaan
+                        <span class="@(_confiscation == 0 ? "badge-button-green" : "badge-button-red")">@_confiscation</span>
+                    </a>
+
+                    <a class="receipt-panel">
+                        <img src="/images/icons-small/document-task.png" alt="" />
+                        Nota Pemeriksaan
+                        <span class="@(_inspection == 0 ? "badge-button-green" : "badge-button-red")">@_inspection</span>
                     </a>
                 </div>
                 <div class="e-divider my-3"></div>
                 <div class="e-email">
                     <button class="btn-panel-l" type="button">Maklumat Lesen</button>
-                    <button class="btn-panel-l">
+                    @*<button class="btn-panel-l">
                         Nota Pemeriksaan
-                        <span class="badge-button-green">0</span>
-                    </button>
-                    <button class="btn-panel-l" type="button">Maklumat Sitaan</button>
+                        <span class="badge-button-green">@_inspection</span>
+                    </button>*@
                 </div>
             }
             else
@@ -217,45 +225,6 @@
 
 <DxPopup HeaderText="@HeaderText" @bind-Visible="@PopupVisible">
     <Content>
-        <div class="e-info flex-grow-1 ms-3 py-3">
-            <div class="e-name">No. Lot : @($"{PremisInfo.license.lot}")</div>
-            <div class="e-name">Nama Perniagaan : @($"{PremisInfo.license.business_name}")</div>
-            <div class="e-name">No. Lesen : @($"{PremisInfo.license_accno}")</div>
-            <div class="e-name">Tempoh Lesen : @($"{PremisInfo.license.license_duration}")</div>
-            <div class="e-name">Nama Pemegang Lesen : @($"{PremisInfo.license_owner} - ({PremisInfo.license.owner_icno})")</div>
-            <div class="e-name">Alamat : @($"{PremisInfo.license.business_addr}")</div>
-
-            <div class="e-status">@GetStatusIconHtml(PremisInfo.status_lesen_id ?? 0)</div>
-            <div class="e-divider my-3"></div>
-            <div class="e-email">
-                <a class="receipt-panel">
-                    <img src="/images/icons/script-text.png" alt="" />
-                    Notis
-                    <span class="badge-button-green">0</span>
-                </a>
-                <a class="receipt-panel">
-                    <img src="/images/icons/script.png" alt="" />
-                    Notis Tamat Tempoh
-                    <span class="badge-button-green">0</span>
-                </a>
-
-                <a class="receipt-panel">
-                    <img src="/images/icons/receipt-text.png" alt="" />
-                    Kompaun
-                    <span class="badge-button-red">2</span>
-                </a>
-            </div>
-            <div class="e-divider my-3"></div>
-            <div class="e-email">
-
-@*                 <button class="btn-panel" @onclick="@(() => ShowDetails("Maklumat Lesen", PremisInfo.NamaPerniagaan))" type="button">Maklumat Lesen</button>
-                <button class="btn-panel" @onclick="@(() => ShowDetails("Nota Pemeriksaan", PremisInfo.NoRujukan))">
-                    Nota Pemeriksaan
-                    <span class="badge-button-green">0</span>
-                </button> *@
-            </div>
-        </div>
-
         @Details
     </Content>
 </DxPopup>
@@ -272,6 +241,10 @@
     bool PopupVisible = false;
     string Details;
     string HeaderText;
+    int _inspection = 0;
+    int _confiscation = 0;
+    int _notice = 0;
+    int _compound = 0;
 
     void ShowDetails(string headerdtl, string details)
     {
@@ -280,10 +253,28 @@
         HeaderText = headerdtl;
     }
 
-    public string GetPhotoUrl()
+    protected override async Task OnInitializedAsync()
     {
-        return "";
+        _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+        string requestUrl = $"/api/License/GetTicketCountByLicenseAccNo/{PremisInfo.license_accno}";
+        var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+        if (response.ReturnCode == 200)
+        {
+            string? dataString = response?.Data?.ToString();
+            if (!string.IsNullOrWhiteSpace(dataString))
+            {
+                var tasks = new List<Task>();
+                dynamic _dtTicket = JsonConvert.DeserializeObject(dataString);
+
+                _inspection = _dtTicket.inspection;
+                _confiscation = _dtTicket.confiscation;
+                _notice = _dtTicket.notice;
+                _compound = _dtTicket.compound;
+            }
+        }
     }
+
 
     public async Task OpenNewStreetWindow(string latitude, string longitude)
     {
