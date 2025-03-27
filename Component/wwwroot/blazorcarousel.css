@@ -1,0 +1,87 @@
+﻿.blazor-carousel {
+    width: 100%;
+    min-height: 100%;
+    background-color: #dbe2e9;
+    margin: 0 auto;
+    text-align: center;
+    padding: 0.07rem;
+    border:1px solid #d2d2d2;
+}
+
+.blazor-carousel-inner {
+    padding: 0;
+    margin: 0;
+}
+
+.hidden {
+    display: none;
+}
+
+.blazor-carousel-image {
+    padding: 0;
+    margin: 0;
+}
+
+.blazor-carousel-image img {
+    width: 100%;
+    height: 100%;
+}
+
+.blazor-carousel-indicators-container, .blazor-carousel-arrow-container {
+    display:inline-block;
+    height:10px;
+}
+.blazor-carousel-indicators-container {
+    padding-top: 2px;
+}
+
+.blazor-carousel-arrow-container {
+    padding-bottom: 12px;
+}
+
+.blazor-carousel-indicator {
+    vertical-align: middle;
+    height: 28px;
+}
+
+.blazor-carousel-indicator {
+    list-style: none;
+    width: 20px;
+    height: 5px;
+    background-color: white;
+    margin-right: 5px;
+    float: left;
+    cursor: pointer;
+}
+
+.blazor-carousel-indicator-active {
+    background-color: cornflowerblue;
+}
+.blazor-carousel-nav-container {
+    display: inline-block;
+    width: 100%;
+    height: 10px;
+    text-align: center;
+    position: relative;
+    bottom: 0px;
+    left: 0;
+}
+
+.blazor-carousel-control-next {
+    padding-left: 10px;
+}
+
+
+.blazor-carousel-control-prev {
+    padding-right: 10px;
+}
+
+.blazor-carousel-control-nav {
+    width: 5px;
+    height: 5px;
+    cursor: pointer;
+}
+
+.blazor-carousel-pointer {
+    cursor: pointer;
+}
