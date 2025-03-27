@@ -245,7 +245,7 @@
                             <tr style="height:25px;">
                                 <td nowrap>Nama Saksi</td>
                                 <td>&nbsp;&nbsp;</td>
-                                <td width="50%" valign="top">
+                                <td width="50%">
                                     @nama_saksi
                                 </td>
                                 <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
@@ -262,10 +262,17 @@
                                 <td nowrap>Bukti</td>
                                 <td>&nbsp;&nbsp;</td>
                                 <td width="50%" colspan="5">
-                                    <img src="/images/Bukti/shoe1.jpg" style="width:20%" />
-                                    <img src="/images/Bukti/shoe2.jpg" style="width:20%" />
-                                    <img src="/images/Bukti/shoe3.jpg" style="width:20%" />
-                                    <img src="/images/Bukti/shoe4.jpg" style="width:20%" />
+                                    @if (dtData.imej_kompaun != null && dtData.imej_kompaun.Any())
+                                    {
+                                        @foreach (var image in dtData.imej_kompaun)
+                                        {
+                                            <img src="@image" style="width:20%; border:1px solid #000; margin:5px;" />
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <img src="/images/Bukti/shoe1.jpg" style="width:20%; border:1px solid #000;" />
+                                    }
                                 </td>
                             </tr>
                             <tr style="height:10px;"><td colspan="7"></td></tr>
@@ -514,25 +521,24 @@
     {
         string priorytyClass = "";
         string title = "";
-
         if (statusId == 1)
         {
-            priorytyClass = "danger";
+            priorytyClass = "new";
             title = status.ToUpper();
         }
         else if (statusId == 2)
         {
-            priorytyClass = "warning";
+            priorytyClass = "action";
             title = status.ToUpper();
         }
         else if (statusId == 3)
         {
-            priorytyClass = "info";
+            priorytyClass = "close";
             title = status.ToUpper();
         }
         else if (statusId == 4)
         {
-            priorytyClass = "danger";
+            priorytyClass = "warning";
             title = status.ToUpper();
         }
         else if (statusId == 5)
@@ -542,21 +548,21 @@
         }
         else if (statusId == 6)
         {
-            priorytyClass = "info";
+            priorytyClass = "check";
             title = status.ToUpper();
         }
         else if (statusId == 7)
         {
-            priorytyClass = "warning";
+            priorytyClass = "transfer";
             title = status.ToUpper();
         }
         else if (statusId == 8)
         {
-            priorytyClass = "warning";
+            priorytyClass = "cancel";
             title = status.ToUpper();
         }
-
-        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+     
+        string html = string.Format("<span class='text-black badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
         title);
         return new MarkupString(html);
     }

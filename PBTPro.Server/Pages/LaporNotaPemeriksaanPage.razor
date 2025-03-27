@@ -40,11 +40,11 @@ else
         </div>
 
         <div class="item-container-x">
-            <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+            @*    <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
                 <DxTab Text="Baru (10)"></DxTab>
                 <DxTab Text="Dalam Tindakan (3)"></DxTab>
                 <DxTab Text="Tutup (15)"></DxTab>
-            </DxTabs>
+            </DxTabs> *@
 
             <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 
@@ -174,7 +174,7 @@ else
                                 <tr style="height:25px;">
                                     <td nowrap>Nama Pemilik</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7" >
+                                    <td width="50%" colspan="7">
                                         @dtData.nama_pemilik
                                     </td>
                                 </tr>
@@ -188,7 +188,7 @@ else
                                 <tr style="height:25px;">
                                     <td nowrap>Alamat Perniagaan</td>
                                     <td valign="top">&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7" >
+                                    <td width="50%" colspan="7">
                                         @dtData.alamat_perniagaan
                                     </td>
                                 </tr>
@@ -205,13 +205,13 @@ else
                                 <tr style="height:25px;">
                                     <td nowrap>Lokasi Kesalahan</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" >
+                                    <td width="50%">
                                         @dtData.lokasi_kesalahan
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                     <td nowrap>Nama Pegawai</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" >
+                                    <td width="50%">
                                         @dtData.nama_pegawai
                                     </td>
                                 </tr>
@@ -226,12 +226,12 @@ else
                                 <tr style="height:25px;">
                                     <td nowrap>Nama Saksi</td>
                                     <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" >
+                                    <td width="50%">
                                         @nama_saksi
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                 </tr>
-                                
+
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
                                 <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
@@ -239,8 +239,25 @@ else
                                     <td nowrap>Bukti</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%" colspan="5">
-                                        <img src="/images/Bukti/herbstore.jpg" style="width:20%;border:1px solid #000;" />
-                                        <img src="/images/Bukti/herbstore2.jpg" style="width:20%;border:1px solid #000;" />
+                                        @if (dtData.imej_nota != null && dtData.imej_nota.Any())
+                                        {
+                                            @foreach (var image in dtData.imej_nota)
+                                            {
+                                                <img src="@image" style="width:20%; border:1px solid #000; margin:5px;" />
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <img src="/images/Bukti/herbstore2.jpg" style="width:20%; border:1px solid #000;" />
+                                        }
+                                    </td>
+                                </tr>
+                                <tr style="height:50px;">
+                                    <td nowrap></td>
+                                    <td>&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="5">
+                                        <img src="images/icons/map.png" /><DxButton Text="Lihat Lokasi" Click="() => OpenGoogleMaps(dtData.inspect_latitude, dtData.inspect_longitude, dtData.alamat_perniagaan, dtData.nama_perniagaan.ToUpper())" />
+                                        <img src="images/icons/marker.png" /><DxButton Text="Street View" Click="() => OpenGoogleStreetMaps(dtData.inspect_latitude, dtData.inspect_longitude, dtData.alamat_perniagaan, true)" />
                                     </td>
                                 </tr>
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
@@ -269,7 +286,7 @@ else
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
                                 </tr>
-                              
+
                             </table>
                         </DxFormLayoutItem>
                         <DxFormLayoutItem ColSpanMd="12"><hr style="padding:0;margin:0;" /></DxFormLayoutItem>
@@ -313,6 +330,27 @@ else
     </BodyContentTemplate>
 </DxPopup>
 
+<script>
+        function initializeStreetView(lat, lng) {
+        const position = { lat: lat, lng: lng };
+
+        const panorama = new google.maps.StreetViewPanorama(
+            document.getElementById("street-view"), {
+                position: position,
+                pov: { heading: 165, pitch: 0 },
+                zoom: 1
+            }
+        );
+
+        const map = new google.maps.Map(document.getElementById("map"), {
+            center: position,
+            zoom: 14
+        });
+
+        map.setStreetView(panorama);
+    }
+
+</script>
 @code {
     bool PanelVisible { get; set; }
     IEnumerable<trn_inspect_view> dtSource;
@@ -329,7 +367,7 @@ else
 
     GridColumnResizeMode ColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer;
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
+    [Inject] IJSRuntime JS { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -366,7 +404,6 @@ else
         var item = (trn_inspect_view)itemData;
         NavigationManager.NavigateTo("/viewreportperuntukan?norujukan=" + item.no_rujukan, false);
     }
-
 
     void ValidateGridData(ValidationMessageStoreEventArgs e)
     {
@@ -480,22 +517,22 @@ else
 
         if (statusId == 1)
         {
-            priorytyClass = "danger";
+            priorytyClass = "new";
             title = status.ToUpper();
         }
         else if (statusId == 2)
         {
-            priorytyClass = "warning";
+            priorytyClass = "action";
             title = status.ToUpper();
         }
         else if (statusId == 3)
         {
-            priorytyClass = "info";
+            priorytyClass = "close";
             title = status.ToUpper();
         }
         else if (statusId == 4)
         {
-            priorytyClass = "danger";
+            priorytyClass = "warning";
             title = status.ToUpper();
         }
         else if (statusId == 5)
@@ -505,22 +542,22 @@ else
         }
         else if (statusId == 6)
         {
-            priorytyClass = "info";
+            priorytyClass = "check";
             title = status.ToUpper();
         }
         else if (statusId == 7)
         {
-            priorytyClass = "warning";
+            priorytyClass = "transfer";
             title = status.ToUpper();
         }
         else if (statusId == 8)
         {
-            priorytyClass = "warning";
+            priorytyClass = "cancel";
             title = status.ToUpper();
         }
 
-        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
-        title);
+        string html = string.Format("<span class='text-black badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+         title);
         return new MarkupString(html);
     }
 
@@ -584,6 +621,71 @@ else
             });
     }
 
-    
-   
+    private async Task OpenGoogleMaps(decimal? lat, decimal? lng, string address = null, string businessName = null)
+    {
+        string url;
+
+        if (!string.IsNullOrWhiteSpace(businessName) && !string.IsNullOrWhiteSpace(address))
+        {
+            var query = Uri.EscapeDataString($"{businessName} {address}");
+            url = $"https://www.google.com/maps/search/?api=1&query={query}";
+        }
+        else if (!string.IsNullOrWhiteSpace(address))
+        {
+            var encodedAddress = Uri.EscapeDataString(address);
+            url = $"https://www.google.com/maps/search/?api=1&query={encodedAddress}";
+        }
+        else if (lat.HasValue && lng.HasValue)
+        {
+            url = $"https://www.google.com/maps?q={lat},{lng}";
+        }
+        else
+        {
+            return;
+        }
+        await JS.InvokeVoidAsync("window.open", url, "_blank");
+    }
+
+    private async Task OpenGoogleStreetMaps(decimal? lat, decimal? lng, string address = null, bool streetView = false)
+    {
+        string url;
+
+        if (streetView)
+        {
+            if (lat.HasValue && lng.HasValue)
+            {
+                url = $"https://www.google.com/maps?q=&layer=c&cbll={lat},{lng}";
+            }
+            else if (!string.IsNullOrWhiteSpace(address))
+            {
+                var encodedAddress = Uri.EscapeDataString(address);
+                url = $"https://www.google.com/maps?q={encodedAddress}&layer=c";
+            }
+            else
+            {
+                return;
+            }
+        }
+        else
+        {
+            if (lat.HasValue && lng.HasValue)
+            {
+                url = $"https://www.google.com/maps?q={lat},{lng}";
+            }
+            else if (!string.IsNullOrWhiteSpace(address))
+            {
+                var encodedAddress = Uri.EscapeDataString(address);
+                url = $"https://www.google.com/maps/search/?api=1&query={encodedAddress}";
+            }
+            else
+            {
+                return; 
+            }
+        }
+
+        await JS.InvokeVoidAsync("window.open", url, "_blank");
+    }
+
+
+
 }

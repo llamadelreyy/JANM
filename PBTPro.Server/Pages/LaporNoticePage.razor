@@ -42,10 +42,10 @@ else
         </div>
 
         <div class="item-container-x">
-            <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+           @*  <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
                 <DxTab Text="Notis Lesen (8)"></DxTab>
                 <DxTab Text="Notis Pelbagai (5)"></DxTab>
-            </DxTabs>
+            </DxTabs> *@
 
             <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
 
@@ -108,13 +108,13 @@ else
                             <div>@GetStatusNoticeIconHtml(((trn_notices_view)context.DataItem).status_notis, ((trn_notices_view)context.DataItem).status_notis_id)</div>
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
-                    <DxGridDataColumn Caption="Tempoh Notis" MinWidth="200" Width="20%" FieldName="tempoh_notis">
+                   @*  <DxGridDataColumn Caption="Tempoh Notis" MinWidth="200" Width="20%" FieldName="tempoh_notis">
                         <CellDisplayTemplate>
                             <div>
                                 @CombineTempohText(((trn_notices_view)context.DataItem).TarikhData, ((trn_notices_view)context.DataItem).tempoh_notis)
                             </div>
                         </CellDisplayTemplate>
-                    </DxGridDataColumn>
+                    </DxGridDataColumn> *@
                     <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="150" Width="15%" FieldName="ssm_no" />
                     <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="250" Width="20%" FieldName="alamat_perniagaan" />
                     <DxGridDataColumn Caption="Akta Kesalahan" MinWidth="250" Width="25%" FieldName="akta_kesalahan" />
@@ -191,7 +191,7 @@ else
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
-                                    <td nowrap valign="top">Alamat Perniagaan</td>
+                                    <td nowrap >Alamat Perniagaan</td>
                                     <td valign="top">&nbsp;&nbsp;</td>
                                     <td width="50%" colspan="7">
                                         @alamat_perniagaan
@@ -254,8 +254,17 @@ else
                                     <td nowrap>Bukti</td>
                                     <td>&nbsp;&nbsp;</td>
                                     <td width="50%" colspan="5">
-                                        <img src="/images/Bukti/herbstore.jpg" style="width:20%;border:1px solid #000;" />
-                                        <img src="/images/Bukti/herbstore2.jpg" style="width:20%;border:1px solid #000;" />
+                                        @if (dtData.imej_notis != null && dtData.imej_notis.Any())
+                                        {
+                                            @foreach (var image in dtData.imej_notis)
+                                            {
+                                                <img src="@image" style="width:20%; border:1px solid #000; margin:5px;" />
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <img src="/images/Bukti/herbstore.jpg" style="width:20%; border:1px solid #000;" />
+                                        }
                                     </td>
                                 </tr>
                                 <tr style="height:10px;"><td colspan="7"></td></tr>
@@ -532,22 +541,22 @@ else
 
         if (statusId == 1)
         {
-            priorytyClass = "danger";
+            priorytyClass = "new";
             title = status.ToUpper();
         }
         else if (statusId == 2)
         {
-            priorytyClass = "warning";
+            priorytyClass = "action";
             title = status.ToUpper();
         }
         else if (statusId == 3)
         {
-            priorytyClass = "info";
+            priorytyClass = "close";
             title = status.ToUpper();
         }
         else if (statusId == 4)
         {
-            priorytyClass = "danger";
+            priorytyClass = "warning";
             title = status.ToUpper();
         }
         else if (statusId == 5)
@@ -557,21 +566,21 @@ else
         }
         else if (statusId == 6)
         {
-            priorytyClass = "info";
+            priorytyClass = "check";
             title = status.ToUpper();
         }
         else if (statusId == 7)
         {
-            priorytyClass = "warning";
+            priorytyClass = "transfer";
             title = status.ToUpper();
         }
         else if (statusId == 8)
         {
-            priorytyClass = "warning";
+            priorytyClass = "cancel";
             title = status.ToUpper();
         }
 
-        string html = string.Format("<span class='badge priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+        string html = string.Format("<span class='text-black badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
         title);
         return new MarkupString(html);
     }
@@ -582,17 +591,18 @@ else
         string html = string.Format("{0} <br/> {1}", strNoLesen, formattedNama);
         return new MarkupString(html);
     }
-    public MarkupString CombineTempohText(DateTime? dtTarikhData, string strNoLesen)
-    {      
-        string html = string.Format("{0} <br/> {1}", dtTarikhData, strNoLesen);
-        return new MarkupString(html);
-    }
+    // public MarkupString CombineTempohText(DateTime? dtTarikhData, string strNoLesen)
+    // {      
+    //     string html = string.Format("{0}", dtTarikhData);
+    //     //string html = string.Format("{0} <br/> {1}", dtTarikhData, strNoLesen);
+    //     return new MarkupString(html);
+    // }
     public MarkupString GetTarikhTamatIconHtml(DateTime? dtTarikhTamat, string strTempoh, int? intTempohId)
     {
         var calculatedDate = CalculateTarikhTamat((DateTime)dtTarikhTamat, intTempohId);
         str_tarikh_tamat_notis = calculatedDate.ToString("dd/MM/yyyy");
         string formattedTempoh = strTempoh?.ToUpper() ?? "";
-        string html = string.Format("{0} <br/> {1}", dtTarikhTamat, formattedTempoh);
+        string html = string.Format("{0} <br/> {1}", str_tarikh_tamat_notis, formattedTempoh);
         return new MarkupString(html);
     }
 
