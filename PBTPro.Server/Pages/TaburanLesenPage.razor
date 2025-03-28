@@ -275,7 +275,7 @@
                                         @foreach (var lesenItem in premisInfo.premis_license_tax)
                                         {
 
-                                            <DxAccordionItem Expanded="true">
+                                            @*<DxAccordionItem Expanded="true">
                                                 <HeaderTextTemplate>
                                                     <div>
                                                         <div class="text-center flex-grow-1 dxbl-accordion-item-text">
@@ -290,7 +290,41 @@
                                                 <ContentTemplate>
                                                         <PremisCard PremisInfo="@lesenItem" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" Dtfloor="@_floorPremis" />
                                                 </ContentTemplate>
-                                            </DxAccordionItem>
+                                            </DxAccordionItem>*@
+
+                                                if (lesenItem.license != null)
+                                                {
+                                                    <DxAccordionItem Expanded="true">
+                                                        <HeaderTextTemplate>
+                                                            <div>
+                                                                <div class="text-center flex-grow-1 dxbl-accordion-item-text">
+                                                                    @($"{lesenItem.license.business_name}")
+
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
+                                                                        <circle cx="15" cy="15" r="5" fill="@GetColorLot(lesenItem.status_lesen_id ?? 0)" />
+                                                                    </svg>
+                                                                </div>
+                                                            </div>
+                                                        </HeaderTextTemplate>
+                                                        <ContentTemplate>
+                                                            <PremisCard PremisInfo="@lesenItem" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" Dtfloor="@_floorPremis" />
+                                                        </ContentTemplate>
+                                                    </DxAccordionItem>
+                                                }
+                                                else
+                                                {
+                                                    <DxAccordionItem Expanded="true">
+                                                        <HeaderTextTemplate>
+                                                            <div>
+                                                                <div class="text-center flex-grow-1 dxbl-accordion-item-text">TIADA DATA</div>
+                                                            </div>
+                                                        </HeaderTextTemplate>
+                                                        <ContentTemplate>
+                                                            <PremisCard PremisInfo="@lesenItem" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" Dtfloor="@_floorPremis" />
+                                                        </ContentTemplate>
+                                                    </DxAccordionItem>
+                                                }
+
                                         }
 
 
@@ -318,30 +352,34 @@
                                             int _taxNotice = 0;
                                             int _taxCompound = 0;
 
-                                            _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
-                                            string requestUrl = $"/api/Taxholder/GetTicketCountByTaxAccNo/{_dtTax.tax.tax_accno}";
-                                            var _returnData = _ApiConnector.ProcessLocalApi(requestUrl);
+                                            // _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+                                            // string requestUrl = $"/api/Taxholder/GetTicketCountByTaxAccNo/{_dtTax.tax.tax_accno}";
+                                            // var _returnData = _ApiConnector.ProcessLocalApi(requestUrl);
 
-                                            if (_returnData.Result.ReturnCode == 200)
-                                            {
-                                                string? dataString = _returnData?.Result.Data?.ToString();
-                                                if (!string.IsNullOrWhiteSpace(dataString))
-                                                {
-                                                    var tasks = new List<Task>();
-                                                    dynamic _dtTicket = JsonConvert.DeserializeObject(dataString);
+                                            // if (_returnData.Result != null)
+                                            // {
+                                            //         if (_returnData.Result.ReturnCode == 200)
+                                            //         {
+                                            //             string? dataString = _returnData?.Result.Data?.ToString();
+                                            //             if (!string.IsNullOrWhiteSpace(dataString))
+                                            //             {
+                                            //                 var tasks = new List<Task>();
+                                            //                 dynamic _dtTicket = JsonConvert.DeserializeObject(dataString);
 
-                                                    _taxInspection = _dtTicket.inspection;
-                                                    _taxConfiscation = _dtTicket.confiscation;
-                                                    _taxNotice = _dtTicket.notice;
-                                                    _taxCompound = _dtTicket.compound;
-                                                }
-                                            }
+                                            //                 _taxInspection = _dtTicket.inspection;
+                                            //                 _taxConfiscation = _dtTicket.confiscation;
+                                            //                 _taxNotice = _dtTicket.notice;
+                                            //                 _taxCompound = _dtTicket.compound;
+                                            //             }
+                                            //         }
+                                            // }
+
 
                                             <DxAccordionItem Expanded="true">
                                                 <HeaderTextTemplate>
                                                     <div>
                                                         <div class="text-center flex-grow-1 dxbl-accordion-item-text">
-                                                            @($"NO CUKAI : {_dtTax.tax.tax_accno}")
+                                                                @($"NO CUKAI : {(string.IsNullOrEmpty(_dtTax.tax.tax_accno) ? "TIADA DATA" : _dtTax.tax.tax_accno)}")
                                                             &nbsp;&nbsp;&nbsp;&nbsp;
                                                             <span class="e-status">@GetStatusIconHtml(_dtTax.status_tax_id ?? 0)</span>
                                                         </div>
@@ -356,35 +394,34 @@
                                                                     <tr>
                                                                         <td nowrap>No. Cukai</td>
                                                                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                        <td style="width:100%;">@($"{_dtTax.tax.tax_accno}")</td>
+                                                                            <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax.tax_accno) ? "" : _dtTax.tax.tax_accno)}")</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <td nowrap>Tarikh Cukai</td>
                                                                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                        <td style="width:100%;">@($"{_dtTax.tax.tax_start_date} - {_dtTax.tax.tax_end_date}")</td>
+                                                                        <td style="width:100%;">@($"{(_dtTax.tax.tax_start_date == null ? "" : _dtTax.tax.tax_start_date)} - {(_dtTax.tax.tax_end_date == null ? "" : _dtTax.tax.tax_end_date)}")</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <td nowrap>Nama Pemilik</td>
                                                                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                        <td style="width:100%;">@($"{_dtTax.tax_owner.owner_name} - ({_dtTax.tax_owner.owner_icno})")</td>
+                                                                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_name) ? "" : _dtTax.tax_owner.owner_name)} - ({(string.IsNullOrEmpty(_dtTax.tax_owner.owner_icno) ? "" : _dtTax.tax_owner.owner_icno)})")</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <td nowrap>Alamat Pemilik</td>
                                                                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                        <td style="width:100%;">@($"{_dtTax.tax_owner.owner_addr})")</td>
+                                                                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_addr) ? "" : _dtTax.tax_owner.owner_addr)})")</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <td nowrap>Telefon No</td>
                                                                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                        <td style="width:100%;">@($"{_dtTax.tax_owner.owner_telno}")</td>
+                                                                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_telno) ? "" : _dtTax.tax_owner.owner_telno)}")</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <td nowrap>Alamat Premis &nbsp;&nbsp; <img src="/images/icons-small/marker.png" alt="" /></td>
                                                                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
                                                                         <td style="width:100%;">
                                                                             <a class="marker-panel" style="text-decoration:none;cursor:pointer" onclick=@(() => OpenNewStreetWindow(dblLat.ToString(), dblLng.ToString()))>
-
-                                                                                @($"{_dtTax.tax.alamat}")
+                                                                                @($"{(string.IsNullOrEmpty(_dtTax.tax.alamat) ? "" : _dtTax.tax.alamat)}")
                                                                             </a>
                                                                         </td>
                                                                     </tr>
