@@ -25,17 +25,17 @@
                     <tr>
                         <td nowrap>No. SSM</td>
                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                        <td style="width:100%;">@($"{PremisInfo.license.ssm_no}")</td>
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(PremisInfo.license.ssm_no) ? "" : PremisInfo.license.ssm_no)}")</td>
                     </tr>
                     <tr>
                         <td nowrap>No. Lesen</td>
                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                        <td style="width:100%;">@($"{PremisInfo.license.license_accno}")</td>
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(PremisInfo.license.license_accno) ? "" : PremisInfo.license.license_accno)}")</td>
                     </tr>
                     <tr>
                         <td nowrap>Tempoh Lesen</td>
                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                        <td style="width:100%;">@($"{PremisInfo.license.license_duration} ({PremisInfo.license.start_date} - {PremisInfo.license.end_date})")</td>
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(PremisInfo.license.license_duration) ? "" : PremisInfo.license.license_duration)} ({(PremisInfo.license.start_date == null ? "" : PremisInfo.license.start_date)} - {(PremisInfo.license.end_date == null ? "" : PremisInfo.license.end_date)})")</td>
                     </tr>
                     <tr>
                         <td nowrap>Jumlah (RM)</td>
@@ -45,12 +45,12 @@
                     <tr>
                         <td nowrap>Nama Perniagaan</td>
                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                        <td style="width:100%;">@($"{PremisInfo.license.business_name}")</td>
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(PremisInfo.license.business_name) ? "" : PremisInfo.license.business_name)}")</td>
                     </tr>
                     <tr>
                         <td nowrap>Alamat</td>
                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                        <td style="width:100%;">@($"{PremisInfo.license.business_addr}")
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(PremisInfo.license.business_addr) ? "" : PremisInfo.license.business_addr)}")
 @*                             <a class="marker-panel" style="text-decoration:none;cursor:pointer" onclick=@(() => OpenNewStreetWindow(LatLng.ToString(), LatLng.ToString()))>
                                 @($"{PremisInfo.license.business_addr}")
                             </a> *@
@@ -62,12 +62,12 @@
                     <tr>
                         <td nowrap>Pemegang Lesen</td>
                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                        <td style="width:100%;">@($"{PremisInfo.license_owner.owner_name} - ({PremisInfo.license_owner.owner_icno})")</td>
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(PremisInfo.license_owner?.owner_name) ? "" : PremisInfo.license_owner?.owner_name)} - ({(string.IsNullOrEmpty(PremisInfo.license_owner?.owner_icno) ? "" : PremisInfo.license_owner?.owner_icno)})")</td>
                     </tr>
                     <tr>
                         <td nowrap>Alamat</td>
                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                        <td style="width:100%;">@($"{PremisInfo.license_owner.owner_addr}")</td>
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(PremisInfo.license_owner?.owner_addr) ? "" : PremisInfo.license_owner?.owner_addr)}")</td>
                     </tr>
                     <tr>
                         <td colspan="3"><div class="e-divider my-3"></div></td>
@@ -130,7 +130,7 @@
 
                 @* <div class="e-divider my-3"></div> *@
                 <div class="e-email">
-                    <a class="receipt-panel">
+                    <a class="receipt-panel" onclick=@(() => ShowDetails("Notis", (string.IsNullOrEmpty(PremisInfo.license.license_accno) ? "" : PremisInfo.license.license_accno)))>
                         <img src="/images/icons-small/script-text.png" alt="" />
                         Notis
                         <span class="@(_notice == 0 ? "badge-button-green" : "badge-button-red")">@_notice</span>
@@ -225,7 +225,23 @@
 
 <DxPopup HeaderText="@HeaderText" @bind-Visible="@PopupVisible">
     <Content>
-        @Details
+
+        <DxListBox Data="@_dtDataTaburan"
+                   @bind-Value="@_valueTaburan"
+                   CssClass="cw-640 ch-360">
+            <ItemDisplayTemplate>
+                <div class="listbox-item-template">
+                    <div class="listbox-item-template-text">
+                        <span>@context.DataItem.ref_no</span>
+                        <span class="listbox-item-template-text-phone">@context.DataItem.trnstatus_view</span>
+                        <span>@context.DataItem.doc_name</span>
+                        <span><a href="@context.DataItem.doc_pathurl" target="_blank">@context.DataItem.doc_pathurl</a></span>
+                    </div>
+                </div>
+            </ItemDisplayTemplate>
+        </DxListBox>
+
+
     </Content>
 </DxPopup>
 
@@ -238,19 +254,56 @@
 
     // [Parameter] public IEnumerable<KeyValuePair<string, object>> ImageAttributes { get; set; }
 
+    List<taburan_view> _dtDataTaburan { get; set; }
+    taburan_view _valueTaburan { get; set; }
+
     bool PopupVisible = false;
-    string Details;
     string HeaderText;
     int _inspection = 0;
     int _confiscation = 0;
     int _notice = 0;
     int _compound = 0;
 
-    void ShowDetails(string headerdtl, string details)
+    async Task ShowDetails(string headerdtl, string _accNo)
     {
         PopupVisible = true;
-        Details = details;
         HeaderText = headerdtl;
+
+        // Data = await NwindDataService.GetEmployeesAsync();
+        // Value = Data.FirstOrDefault();
+
+        _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
+        // string requestUrl = $"/api/Notices/GetNoticeListByLicenseAccNo/{_accNo}";
+        string requestUrl = $"/api/Notices/GetNoticeListByLicenseAccNo/L01010114436620149";
+        var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+        if (response.ReturnCode == 200)
+        {
+            string? dataString = response?.Data?.ToString();
+            if (!string.IsNullOrWhiteSpace(dataString))
+            {
+                dynamic result = JsonConvert.DeserializeObject(dataString);
+                List<dynamic> dataList = result.ToObject<List<dynamic>>();
+
+                foreach (var _dt in dataList)
+                {
+                    taburan_view _notice = new taburan_view
+                    {
+                        ref_no = _dt.notice_ref_no,
+                        section_code = _dt.section_code,
+                        act_code = _dt.act_code,
+                        doc_pathurl = _dt.doc_pathurl,
+                        doc_name = _dt.doc_name,
+                        trnstatus_view = _dt.trnstatus_view,
+                        created_at = _dt.created_at
+                    };
+
+                    _dtDataTaburan.Add(_notice);
+                }
+
+                _valueTaburan = _dtDataTaburan.FirstOrDefault();
+            }
+        }
     }
 
     protected override async Task OnInitializedAsync()

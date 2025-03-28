@@ -228,6 +228,11 @@ else
             e.AddError(nameof(_data.Name), "Medan Peranan perlu diisi.");
         }
 
+        if (_data.RoleDesc == null || _data.RoleDesc.Trim() == "")
+        {
+            e.AddError(nameof(_data.RoleDesc), "Medan Keterangan Peranan perlu diisi.");
+        }
+
 
         if (Grid.IsEditingNewRow())
         {
