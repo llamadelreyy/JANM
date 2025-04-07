@@ -141,25 +141,25 @@ namespace PBTPro.Api.Controllers
 
                 var members = await _tenantDBContext.trn_patrol_officers.Where(x => x.schedule_id == patrol.schedule_id).AsNoTracking().ToListAsync();
                 var jnMembers = (from pm in members
-                                join u in _dbContext.Users on pm.idno equals u.IdNo
-                                select new
-                                {
-                                    pm.idno,
-                                    pm.schedule_id,
-                                    pm.officer_id,
-                                    pm.cnt_notice,
-                                    pm.cnt_cmpd,
-                                    pm.cnt_notes,
-                                    pm.cnt_seizure,
-                                    pm.creator_id,
-                                    pm.created_at,
-                                    pm.modifier_id,
-                                    pm.modified_at,
-                                    pm.start_time,
-                                    pm.end_time,
-                                    member_fullname = u.full_name,
-                                    pm.user_id
-                                }).ToList();
+                                 join u in _dbContext.Users on pm.idno equals u.IdNo
+                                 select new
+                                 {
+                                     pm.idno,
+                                     pm.schedule_id,
+                                     pm.officer_id,
+                                     pm.cnt_notice,
+                                     pm.cnt_cmpd,
+                                     pm.cnt_notes,
+                                     pm.cnt_seizure,
+                                     pm.creator_id,
+                                     pm.created_at,
+                                     pm.modifier_id,
+                                     pm.modified_at,
+                                     pm.start_time,
+                                     pm.end_time,
+                                     member_fullname = u.full_name,
+                                     pm.user_id
+                                 }).ToList();
 
                 var result = new
                 {
@@ -218,7 +218,8 @@ namespace PBTPro.Api.Controllers
                     is_leader = false,
                     start_time = DateTime.Now,
                     creator_id = runUserID,
-                    created_at = DateTime.Now
+                    created_at = DateTime.Now,
+                    user_id = await getUseridByUsername(InputModel.username)
                 };
 
                 _tenantDBContext.trn_patrol_officers.Add(patrolDet);
@@ -483,7 +484,9 @@ namespace PBTPro.Api.Controllers
                         creator_id = runUserID,
                         created_at = DateTime.Now,
                         status_id = 3, //"Belum Mula",
-                        is_scheduled = false
+                        is_scheduled = false,
+                        type_id = InputModel?.type_id ?? null,
+                        dept_id = InputModel?.dept_id ?? null,
                     };
 
                     isNew = true;
@@ -542,6 +545,7 @@ namespace PBTPro.Api.Controllers
 
                 foreach (var member in teamMembers)
                 {
+
                     bool isLeader = member == runUser;
                     trn_patrol_officer patrolDet = new trn_patrol_officer
                     {
@@ -550,7 +554,8 @@ namespace PBTPro.Api.Controllers
                         is_leader = isLeader,
                         start_time = (DateTime)patrol.start_time,
                         creator_id = runUserID,
-                        created_at = DateTime.Now
+                        created_at = DateTime.Now,
+                        user_id = await getUseridByUsername(member)
                     };
 
                     patrolDets.Add(patrolDet);
@@ -672,5 +677,17 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+
+        #region Private Logic
+        private async Task<int?> getUseridByUsername(string? username)
+        {
+            int? result = null;
+            if (!string.IsNullOrEmpty(username))
+            {
+                result = await _dbContext.Users.Where(x => x.UserName.ToUpper() == username.ToUpper()).Select(x => x.Id).FirstOrDefaultAsync();
+            }
+            return result;
+        }
+        #endregion
     }
 }

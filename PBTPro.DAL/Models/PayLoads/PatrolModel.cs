@@ -5,6 +5,8 @@ namespace PBTPro.DAL.Models.PayLoads
     public class StartPatrolModel
     {
         public int? schedule_id { get; set; }
+        public int? type_id { get; set; }
+        public int? dept_id { get; set; }
         public List<string>? usernames { get; set; }
         public CurrentLocation? current_location { get; set; }
     }
