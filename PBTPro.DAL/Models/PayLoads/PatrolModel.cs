@@ -37,4 +37,11 @@ namespace PBTPro.DAL.Models.PayLoads
         public double Longitude { get; set; }
         public double Latitude { get; set; }
     }
+
+    public class PatrolInputCheckInModel
+    {
+        public int? schedule_id { get; set; }
+        public string? codeid_premis { get; set; }
+        public bool? status_visit { get; set; }
+    }
 }

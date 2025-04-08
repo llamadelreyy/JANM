@@ -105,6 +105,16 @@ public partial class trn_cmpd
 
     public int? user_id { get; set; }
 
+    public string? recipient_name { get; set; }
+
+    public string? recipient_icno { get; set; }
+
+    public string? recipient_telno { get; set; }
+
+    public string? recipient_addr { get; set; }
+
+    public string? recipient_sign { get; set; }
+
     public virtual ref_deliver? deliver { get; set; }
 
     public virtual mst_patrol_schedule? schedule { get; set; }
