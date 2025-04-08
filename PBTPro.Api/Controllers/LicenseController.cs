@@ -207,7 +207,7 @@ namespace PBTPro.Api.Controllers
 
         #region Transaction ticket count by
         [HttpGet("{LicenseAccNo}")]
-        public async Task<IActionResult> GetTicketCountByLicenseAccNo(string LicenseAccNo)
+        public async Task<IActionResult> GetTicketCountByLicenseAccNo(string LicenseAccNo, DateTime? startDate, DateTime? endDate)
         {
             try
             {
@@ -217,10 +217,27 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
                 }
 
-                int cntInspect = await _tenantDBContext.trn_inspects.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
-                int cntConfiscation = await _tenantDBContext.trn_cfscs.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
-                int cntNotice = await _tenantDBContext.trn_notices.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
-                int cntCompound = await _tenantDBContext.trn_cmpds.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
+                IQueryable<trn_inspect> initInspect = _tenantDBContext.trn_inspects.Where(x => x.license_id == licenseInfo.licensee_id);
+                IQueryable<trn_cfsc> initConfiscation = _tenantDBContext.trn_cfscs.Where(x => x.license_id == licenseInfo.licensee_id);
+                IQueryable<trn_notice> initNotice = _tenantDBContext.trn_notices.Where(x => x.license_id == licenseInfo.licensee_id);
+                IQueryable<trn_cmpd> initCompound = _tenantDBContext.trn_cmpds.Where(x => x.license_id == licenseInfo.licensee_id);
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initInspect = initInspect.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initConfiscation = initConfiscation.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initNotice = initNotice.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initCompound = initCompound.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                int cntInspect = await initInspect.CountAsync();
+                int cntConfiscation = await initConfiscation.CountAsync();
+                int cntNotice = await initNotice.CountAsync();
+                int cntCompound = await initCompound.CountAsync();
 
                 var resultData = new
                 {
@@ -240,14 +257,31 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{LicenseId}")]
-        public async Task<IActionResult> GetTicketCountByLicenseId(int LicenseId)
+        public async Task<IActionResult> GetTicketCountByLicenseId(int LicenseId, DateTime? startDate, DateTime? endDate)
         {
             try
             {
-                int cntInspect = await _tenantDBContext.trn_inspects.Where(x => x.license_id == LicenseId).CountAsync();
-                int cntConfiscation = await _tenantDBContext.trn_cfscs.Where(x => x.license_id == LicenseId).CountAsync();
-                int cntNotice = await _tenantDBContext.trn_notices.Where(x => x.license_id == LicenseId).CountAsync();
-                int cntCompound = await _tenantDBContext.trn_cmpds.Where(x => x.license_id == LicenseId).CountAsync();
+                IQueryable<trn_inspect> initInspect = _tenantDBContext.trn_inspects.Where(x => x.license_id == LicenseId);
+                IQueryable<trn_cfsc> initConfiscation = _tenantDBContext.trn_cfscs.Where(x => x.license_id == LicenseId);
+                IQueryable<trn_notice> initNotice = _tenantDBContext.trn_notices.Where(x => x.license_id == LicenseId);
+                IQueryable<trn_cmpd> initCompound = _tenantDBContext.trn_cmpds.Where(x => x.license_id == LicenseId);
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initInspect = initInspect.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initConfiscation = initConfiscation.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initNotice = initNotice.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initCompound = initCompound.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                int cntInspect = await initInspect.CountAsync();
+                int cntConfiscation = await initConfiscation.CountAsync();
+                int cntNotice = await initNotice.CountAsync();
+                int cntCompound = await initCompound.CountAsync();
 
                 var resultData = new
                 {

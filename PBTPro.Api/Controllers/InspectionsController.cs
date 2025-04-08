@@ -466,14 +466,26 @@ namespace PBTPro.Api.Controllers
 
         #region Listing by specific field
         [HttpGet("{UserId}")]
-        public async Task<IActionResult> GetInspectionListByUserId(int UserId)
+        public async Task<IActionResult> GetInspectionListByUserId(int UserId, DateTime? startDate, DateTime? endDate)
         {
             try
             {
                 var resultData = new List<dynamic>();
 
-                var inspection_lists = await (from n in _tenantDBContext.trn_inspects
-                                              where n.creator_id == UserId
+                IQueryable<trn_inspect> initQuery = _tenantDBContext.trn_inspects.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.creator_id == UserId);
+
+                var inspection_lists = await (from n in initQuery
                                               join ts in _tenantDBContext.ref_trn_statuses
                                               on n.trnstatus_id equals ts.status_id into tsg
                                               from ts in tsg.DefaultIfEmpty()
@@ -556,14 +568,26 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{TaxAccNo}")]
-        public async Task<IActionResult> GetInspectionListByTaxAccNo(string TaxAccNo)
+        public async Task<IActionResult> GetInspectionListByTaxAccNo(string TaxAccNo, DateTime? startDate, DateTime? endDate)
         {
             try
             {
                 var resultData = new List<dynamic>();
 
-                var inspection_lists = await (from n in _tenantDBContext.trn_inspects
-                                              where n.tax_accno == TaxAccNo
+                IQueryable<trn_inspect> initQuery = _tenantDBContext.trn_inspects.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.tax_accno == TaxAccNo);
+
+                var inspection_lists = await (from n in initQuery
                                               join ts in _tenantDBContext.ref_trn_statuses
                                               on n.trnstatus_id equals ts.status_id into tsg
                                               from ts in tsg.DefaultIfEmpty()
@@ -601,7 +625,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{LicenseAccNo}")]
-        public async Task<IActionResult> GetInspectionListByLicenseAccNo(string LicenseAccNo)
+        public async Task<IActionResult> GetInspectionListByLicenseAccNo(string LicenseAccNo, DateTime? startDate, DateTime? endDate)
         {
             try
             {
@@ -612,8 +636,20 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
                 }
 
-                var inspection_lists = await (from n in _tenantDBContext.trn_inspects
-                                              where n.license_id == licenseInfo.licensee_id
+                IQueryable<trn_inspect> initQuery = _tenantDBContext.trn_inspects.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.license_id == licenseInfo.licensee_id);
+
+                var inspection_lists = await (from n in initQuery
                                               join ts in _tenantDBContext.ref_trn_statuses
                                               on n.trnstatus_id equals ts.status_id into tsg
                                               from ts in tsg.DefaultIfEmpty()
@@ -651,14 +687,26 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{LicenseId}")]
-        public async Task<IActionResult> GetInspectionListByLicenseId(int LicenseId)
+        public async Task<IActionResult> GetInspectionListByLicenseId(int LicenseId, DateTime? startDate, DateTime? endDate)
         {
             try
             {
                 var resultData = new List<dynamic>();
 
-                var inspection_lists = await (from n in _tenantDBContext.trn_inspects
-                                              where n.license_id == LicenseId
+                IQueryable<trn_inspect> initQuery = _tenantDBContext.trn_inspects.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.license_id == LicenseId);
+
+                var inspection_lists = await (from n in initQuery
                                               join ts in _tenantDBContext.ref_trn_statuses
                                               on n.trnstatus_id equals ts.status_id into tsg
                                               from ts in tsg.DefaultIfEmpty()
@@ -698,11 +746,24 @@ namespace PBTPro.Api.Controllers
 
         #region Count by specific field
         [HttpGet("{UserId}")]
-        public async Task<IActionResult> GetInspectionCountByUserId(int UserId)
+        public async Task<IActionResult> GetInspectionCountByUserId(int UserId, DateTime? startDate, DateTime? endDate)
         {
             try
             {
-                var resultData = await _tenantDBContext.trn_inspects.Where(x => x.creator_id == UserId).CountAsync();
+                IQueryable<trn_inspect> initQuery = _tenantDBContext.trn_inspects.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.creator_id == UserId);
+
+                var resultData = await initQuery.CountAsync();
                 return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -728,11 +789,24 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{TaxAccNo}")]
-        public async Task<IActionResult> GetInspectionCountByTaxAccNo(string TaxAccNo)
+        public async Task<IActionResult> GetInspectionCountByTaxAccNo(string TaxAccNo, DateTime? startDate, DateTime? endDate)
         {
             try
             {
-                var resultData = await _tenantDBContext.trn_inspects.Where(x => x.tax_accno == TaxAccNo).CountAsync();
+                IQueryable<trn_inspect> initQuery = _tenantDBContext.trn_inspects.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.tax_accno == TaxAccNo);
+
+                var resultData = await initQuery.CountAsync();
                 return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -743,7 +817,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{LicenseAccNo}")]
-        public async Task<IActionResult> GetInspectionCountByLicenseAccNo(string LicenseAccNo)
+        public async Task<IActionResult> GetInspectionCountByLicenseAccNo(string LicenseAccNo, DateTime? startDate, DateTime? endDate)
         {
             try
             {
@@ -753,7 +827,20 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
                 }
 
-                var resultData = await _tenantDBContext.trn_inspects.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
+                IQueryable<trn_inspect> initQuery = _tenantDBContext.trn_inspects.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.license_id == licenseInfo.licensee_id);
+
+                var resultData = await initQuery.CountAsync();
                 return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -764,11 +851,24 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{LicenseId}")]
-        public async Task<IActionResult> GetInspectionCountByLicenseId(int LicenseId)
+        public async Task<IActionResult> GetInspectionCountByLicenseId(int LicenseId, DateTime? startDate, DateTime? endDate)
         {
             try
             {
-                var resultData = await _tenantDBContext.trn_inspects.Where(x => x.license_id == LicenseId).CountAsync();
+                IQueryable<trn_inspect> initQuery = _tenantDBContext.trn_inspects.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.license_id == LicenseId);
+
+                var resultData = await initQuery.CountAsync();
                 return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
