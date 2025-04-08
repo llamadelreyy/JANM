@@ -64,5 +64,7 @@ public partial class mst_patrol_schedule
 
     public virtual ICollection<trn_patrol_officer> trn_patrol_officers { get; set; } = new List<trn_patrol_officer>();
 
+    public virtual ICollection<trn_premis_visit> trn_premis_visits { get; set; } = new List<trn_premis_visit>();
+
     public virtual ref_patrol_type? type { get; set; }
 }

@@ -101,6 +101,8 @@ public partial class mst_taxholder
 
     public virtual mst_dun? dun { get; set; }
 
+    public virtual ICollection<mst_license_premis_tax> mst_license_premis_taxes { get; set; } = new List<mst_license_premis_tax>();
+
     public virtual mst_parliament? parliment { get; set; }
 
     public virtual ref_tax_status? status { get; set; }

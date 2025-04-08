@@ -117,5 +117,11 @@ public partial class mst_licensee
 
     public virtual mst_premis? codeid_premisNavigation { get; set; }
 
+    public virtual ICollection<mst_license_premis_tax> mst_license_premis_taxlicensees { get; set; } = new List<mst_license_premis_tax>();
+
+    public virtual ICollection<mst_license_premis_tax> mst_license_premis_taxlicenses { get; set; } = new List<mst_license_premis_tax>();
+
+    public virtual ICollection<mst_pic_licensee> mst_pic_licensees { get; set; } = new List<mst_pic_licensee>();
+
     public virtual ref_license_status? status { get; set; }
 }
