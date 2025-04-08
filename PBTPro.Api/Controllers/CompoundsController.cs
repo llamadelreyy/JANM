@@ -163,7 +163,29 @@ namespace PBTPro.Api.Controllers
                             is_deleted = false,
                             creator_id = runUserID,
                             created_at = DateTime.Now,
+                            //2025-04-08 - added new field
+                            recipient_name = InputModel.recipient_name,
+                            recipient_icno = InputModel.recipient_icno,
+                            recipient_telno = InputModel.recipient_telno,
+                            recipient_addr = InputModel.recipient_addr,
                         };
+
+                        #region receipient signature
+                        //2025-04-08 - added new field
+                        if (InputModel.recipient_sign != null)
+                        {
+                            string ImageUploadExt = Path.GetExtension(InputModel.recipient_sign.FileName).ToString().ToLower();
+                            string Filename = $"{GetValidFilename(compound.cmpd_ref_no)}_receipient_signature{ImageUploadExt}";
+                            var UploadPath = await getUploadPath(compound);
+                            var Fullpath = Path.Combine(UploadPath, Filename);
+                            using (var stream = new FileStream(Fullpath, FileMode.Create))
+                            {
+                                await InputModel.recipient_sign.CopyToAsync(stream);
+                            }
+                            string pathurl = await getViewUrl(compound);
+                            compound.recipient_sign = $"{pathurl}/{Filename}";
+                        }
+                        #endregion
 
                         _tenantDBContext.trn_cmpds.Add(compound);
                         await _tenantDBContext.SaveChangesAsync();
@@ -337,6 +359,29 @@ namespace PBTPro.Api.Controllers
                         compound.is_tax = InputModel.is_tax;
                         compound.modifier_id = runUserID;
                         compound.modified_at = DateTime.Now;
+
+                        //2025-04-08 - added new field
+                        compound.recipient_name = InputModel.recipient_name;
+                        compound.recipient_icno = InputModel.recipient_icno;
+                        compound.recipient_telno = InputModel.recipient_telno;
+                        compound.recipient_addr = InputModel.recipient_addr;
+
+                        #region receipient signature
+                        //2025-04-08 - added new field
+                        if (InputModel.recipient_sign != null)
+                        {
+                            string ImageUploadExt = Path.GetExtension(InputModel.recipient_sign.FileName).ToString().ToLower();
+                            string Filename = $"{GetValidFilename(compound.cmpd_ref_no)}_receipient_signature{ImageUploadExt}";
+                            var UploadPath = await getUploadPath(compound);
+                            var Fullpath = Path.Combine(UploadPath, Filename);
+                            using (var stream = new FileStream(Fullpath, FileMode.Create))
+                            {
+                                await InputModel.recipient_sign.CopyToAsync(stream);
+                            }
+                            string pathurl = await getViewUrl(compound);
+                            compound.recipient_sign = $"{pathurl}/{Filename}";
+                        }
+                        #endregion
 
                         _tenantDBContext.trn_cmpds.Update(compound);
                         await _tenantDBContext.SaveChangesAsync();

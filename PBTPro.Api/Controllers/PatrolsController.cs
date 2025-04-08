@@ -677,6 +677,99 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        #region Premis Check-In
+        [HttpPost]
+        public async Task<IActionResult> PatrolCheckIn([FromBody] PatrolInputCheckInModel InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                if (string.IsNullOrWhiteSpace(InputModel.codeid_premis))
+                {
+                    return Error("", SystemMesg(_feature, "CODEID_PREMIS_ISNULL", MessageTypeEnum.Error, string.Format("Premis tidah sah")));
+                }
+
+                if (!InputModel.schedule_id.HasValue || InputModel.schedule_id.Value < 1)
+                {
+                    return Error("", SystemMesg(_feature, "PATROLID_ISNULL", MessageTypeEnum.Error, string.Format("Rondaan tidah sah")));
+                }
+
+                var premisExists = await _tenantDBContext.mst_premis.CountAsync(x => x.codeid_premis == InputModel.codeid_premis);
+                if (premisExists < 1)
+                {
+                    return Error("", SystemMesg(_feature, "PREMIS_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Premis tidak dijumpai")));
+                }
+
+                var patrolExists = await _tenantDBContext.mst_patrol_schedules.CountAsync(x => x.schedule_id == InputModel.schedule_id && x.status_id == 2);
+                if (patrolExists < 1)
+                {
+                    return Error("", SystemMesg(_feature, "PATROL_NOT_EXISTS", MessageTypeEnum.Error, string.Format("Rondaan tidak dijumpai")));
+                }
+                #endregion
+
+                trn_premis_visit visitDet = new trn_premis_visit
+                {
+                    schedule_id = InputModel.schedule_id,
+                    codeid_premis = InputModel.codeid_premis,
+                    status_visit = InputModel.status_visit,
+                    creator_id = runUserID,
+                    created_at = DateTime.Now,
+                    is_deleted = false,
+                    user_id = runUserID,
+                };
+
+                _tenantDBContext.trn_premis_visits.Add(visitDet);
+                await _tenantDBContext.SaveChangesAsync();
+
+                return Ok(visitDet, SystemMesg(_feature, "PATROL_CHECKIN", MessageTypeEnum.Success, string.Format("Berjaya mendaftar masuk premis")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet("{ScheduleId}")]
+        public async Task<IActionResult> GetCheckInListBySchedId(int ScheduleId)
+        {
+            try
+            {
+                var resultData = new List<dynamic>();
+
+                var lists = await (from n in _tenantDBContext.trn_premis_visits
+                                          where n.schedule_id == ScheduleId
+                                          select new
+                                          {
+                                              n.visit_id,
+                                              n.codeid_premis,
+                                              n.status_visit,
+                                              n.created_at,
+                                              n.creator_id,
+                                          }).ToListAsync();
+
+                if (lists.Count == 0)
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                resultData.Add(new
+                {
+                    total_records = lists.Count,
+                    lists,
+                });
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+        #endregion
 
         #region Private Logic
         private async Task<int?> getUseridByUsername(string? username)
