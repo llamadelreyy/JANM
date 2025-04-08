@@ -183,6 +183,7 @@ namespace PBTPro.Api.Controllers
                             if (witnesses.Count > 0)
                             {
                                 _tenantDBContext.trn_witnesses.AddRange(witnesses);
+                                await _tenantDBContext.SaveChangesAsync();
                             }
                         }
                         #endregion
@@ -219,6 +220,7 @@ namespace PBTPro.Api.Controllers
                             if (proofs.Count > 0)
                             {
                                 _tenantDBContext.trn_inspect_imgs.AddRange(proofs);
+                                await _tenantDBContext.SaveChangesAsync();
                             }
                         }
                         #endregion
@@ -366,6 +368,7 @@ namespace PBTPro.Api.Controllers
                             if (witnesses.Count > 0)
                             {
                                 _tenantDBContext.trn_witnesses.AddRange(witnesses);
+                                await _tenantDBContext.SaveChangesAsync();
                             }
                         }
                         #endregion
@@ -415,6 +418,7 @@ namespace PBTPro.Api.Controllers
                             if (proofs.Count > 0)
                             {
                                 _tenantDBContext.trn_inspect_imgs.AddRange(proofs);
+                                await _tenantDBContext.SaveChangesAsync();
                             }
                         }
                         #endregion
