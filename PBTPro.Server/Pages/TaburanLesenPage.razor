@@ -347,33 +347,6 @@
 
                                         @if (_dtTax.tax != null)
                                         {
-                                            int _taxInspection = 0;
-                                            int _taxConfiscation = 0;
-                                            int _taxNotice = 0;
-                                            int _taxCompound = 0;
-
-                                            // _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
-                                            // string requestUrl = $"/api/Taxholder/GetTicketCountByTaxAccNo/{_dtTax.tax.tax_accno}";
-                                            // var _returnData = _ApiConnector.ProcessLocalApi(requestUrl);
-
-                                            // if (_returnData.Result != null)
-                                            // {
-                                            //         if (_returnData.Result.ReturnCode == 200)
-                                            //         {
-                                            //             string? dataString = _returnData?.Result.Data?.ToString();
-                                            //             if (!string.IsNullOrWhiteSpace(dataString))
-                                            //             {
-                                            //                 var tasks = new List<Task>();
-                                            //                 dynamic _dtTicket = JsonConvert.DeserializeObject(dataString);
-
-                                            //                 _taxInspection = _dtTicket.inspection;
-                                            //                 _taxConfiscation = _dtTicket.confiscation;
-                                            //                 _taxNotice = _dtTicket.notice;
-                                            //                 _taxCompound = _dtTicket.compound;
-                                            //             }
-                                            //         }
-                                            // }
-
 
                                             <DxAccordionItem Expanded="true">
                                                 <HeaderTextTemplate>
@@ -386,85 +359,7 @@
                                                     </div>
                                                 </HeaderTextTemplate>
                                                 <ContentTemplate>
-                                                    <div class="e-card">
-                                                        <div class="e-main d-flex align-items-center">
-                                                            <div class="e-info flex-grow-1 ms-3 py-3">
-
-                                                                <table class="e-name" style="width:100%;">
-                                                                    <tr>
-                                                                        <td nowrap>No. Cukai</td>
-                                                                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                            <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax.tax_accno) ? "" : _dtTax.tax.tax_accno)}")</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td nowrap>Tarikh Cukai</td>
-                                                                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                        <td style="width:100%;">@($"{(_dtTax.tax.tax_start_date == null ? "" : _dtTax.tax.tax_start_date)} - {(_dtTax.tax.tax_end_date == null ? "" : _dtTax.tax.tax_end_date)}")</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td nowrap>Nama Pemilik</td>
-                                                                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_name) ? "" : _dtTax.tax_owner.owner_name)} - ({(string.IsNullOrEmpty(_dtTax.tax_owner.owner_icno) ? "" : _dtTax.tax_owner.owner_icno)})")</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td nowrap>Alamat Pemilik</td>
-                                                                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_addr) ? "" : _dtTax.tax_owner.owner_addr)})")</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td nowrap>Telefon No</td>
-                                                                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_telno) ? "" : _dtTax.tax_owner.owner_telno)}")</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td nowrap>Alamat Premis &nbsp;&nbsp; <img src="/images/icons-small/marker.png" alt="" /></td>
-                                                                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                        <td style="width:100%;">
-                                                                            <a class="marker-panel" style="text-decoration:none;cursor:pointer" onclick=@(() => OpenNewStreetWindow(dblLat.ToString(), dblLng.ToString()))>
-                                                                                @($"{(string.IsNullOrEmpty(_dtTax.tax.alamat) ? "" : _dtTax.tax.alamat)}")
-                                                                            </a>
-                                                                        </td>
-                                                                    </tr>
-                                                                </table>
-
-                                                                @* <div class="e-status">@GetStatusIconHtml(_dtTax.status_tax_id ?? 0)</div> *@
-                                                                <div class="e-divider my-3"></div>
-                                                                <div class="e-email">
-                                                                    <a class="receipt-panel">
-                                                                        <img src="/images/icons-small/script-text.png" alt="" />
-                                                                        Notis
-                                                                        <span class="@(_taxNotice == 0 ? "badge-button-green" : "badge-button-red")">@_taxNotice</span>
-                                                                    </a>
-
-                                                                    <a class="receipt-panel">
-                                                                        <img src="/images/icons-small/receipt-text.png" alt="" />
-                                                                        Kompaun
-                                                                        <span class="@(_taxCompound == 0 ? "badge-button-green" : "badge-button-red")">@_taxCompound</span>
-                                                                    </a>
-
-                                                                    <a class="receipt-panel">
-                                                                        <img src="/images/icons-small/box.png" alt="" />
-                                                                        Sitaan
-                                                                        <span class="@(_taxConfiscation == 0 ? "badge-button-green" : "badge-button-red")">@_taxConfiscation</span>
-                                                                    </a>
-
-                                                                    <a class="receipt-panel">
-                                                                        <img src="/images/icons-small/document-task.png" alt="" />
-                                                                        Nota Pemeriksaan
-                                                                        <span class="@(_taxInspection == 0 ? "badge-button-green" : "badge-button-red")">@_taxInspection</span>
-                                                                    </a>
-                                                                </div>
-                                                                <div class="e-divider my-3"></div>
-                                                                <div class="e-email">
-                                                                    <button class="btn-panel" type="button">Maklumat Cukai</button>
-                                                                    @*<button class="btn-panel">
-                                                                        Nota Pemeriksaan
-                                                                        <span class="badge-button-green">0</span>
-                                                                    </button>*@
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                        <PremisTax _dtTax="@_dtTax" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" />
                                                 </ContentTemplate>
                                             </DxAccordionItem>
                                         } 
@@ -627,60 +522,7 @@
                                                                                         </div>
                                                                                     </HeaderTextTemplate>
                                                                                     <ContentTemplate>
-                                                                                        <div class="e-card">
-                                                                                            <div class="e-main d-flex align-items-center">
-                                                                                                <div class="e-info flex-grow-1 ms-3 py-3">
-
-                                                                                                    <table class="e-name" style="width:100%;">
-                                                                                                        <tr>
-                                                                                                            <td nowrap>No. Cukai</td>
-                                                                                                            <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                                                            <td style="width:100%;">@($"{_dtTax.tax.tax_accno}")</td>
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td nowrap>Tarikh Cukai</td>
-                                                                                                            <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                                                            <td style="width:100%;">@($"{_dtTax.tax.tax_start_date} - {_dtTax.tax.tax_end_date}")</td>
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td nowrap>Nama Pemilik</td>
-                                                                                                            <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                                                            <td style="width:100%;">@($"{_dtTax.tax_owner.owner_name} - ({_dtTax.tax_owner.owner_icno})")</td>
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td nowrap>Alamat Pemilik</td>
-                                                                                                            <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                                                            <td style="width:100%;">@($"{_dtTax.tax_owner.owner_addr})")</td>
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td nowrap>Telefon No</td>
-                                                                                                            <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                                                            <td style="width:100%;">@($"{_dtTax.tax_owner.owner_telno}")</td>
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td nowrap>Alamat Premis &nbsp;&nbsp; <img src="/images/icons-small/marker.png" alt="" /></td>
-                                                                                                            <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                                                                                            <td style="width:100%;">
-                                                                                                                <a class="marker-panel" style="text-decoration:none;cursor:pointer" onclick=@(() => OpenNewStreetWindow(dblLat.ToString(), dblLng.ToString()))>
-                                                                                                                    
-                                                                                                                    @($"{_dtTax.tax.alamat}")
-                                                                                                                </a>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                    </table>
-                     
-                                                                                                    @* <div class="e-status">@GetStatusIconHtml(_dtTax.status_tax_id ?? 0)</div> *@
-                                                                                                    <div class="e-divider my-3"></div>
-                                                                                                    <div class="e-email">
-                                                                                                        <button class="btn-panel" type="button">Maklumat Cukai</button>
-                                                                                                        @*<button class="btn-panel">
-                                                                                                            Nota Pemeriksaan
-                                                                                                            <span class="badge-button-green">0</span>
-                                                                                                        </button>*@
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
+                                                                                            <PremisTax _dtTax="@_dtTax" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" />
                                                                                     </ContentTemplate>
                                                                                 </DxAccordionItem>
                                                                             }
@@ -816,8 +658,8 @@
     </div>
 </div>
 
-
 </DxLoadingPanel>
+
 
 <link rel="stylesheet" href="./css/style-sideNav.css">
 <link rel="stylesheet" href="./css/firepanel/style.css">

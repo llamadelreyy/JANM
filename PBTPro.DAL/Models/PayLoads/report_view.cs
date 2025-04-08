@@ -31,10 +31,11 @@ namespace PBTPro.DAL.Models.PayLoads
 
     public class taburan_view
     {
+        public int trn_id { get; set; }
         public string ref_no { get; set; }
         public string section_code { get; set; }
         public string act_code { get; set; }
-        public DateTime? created_at { get; set; }
+        public string created_at { get; set; }
         public string doc_pathurl { get; set; }
         public string doc_name { get; set; }
         public string trnstatus_view { get; set; }
