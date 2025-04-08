@@ -24,6 +24,8 @@ using DevExpress.Xpo.Logger;
 using PBTPro.DAL.Models.CommonServices;
 using System.Reflection;
 using DevExpress.XtraRichEdit.API.Layout;
+using DevExpress.XtraRichEdit.Import.Html;
+using DevExpress.DataAccess.Native.Web;
 
 
 namespace PBTPro.Pages
@@ -31,6 +33,13 @@ namespace PBTPro.Pages
     public partial class TaburanLesenPage
     {
         bool PanelVisible { get; set; }
+
+        //DxWindow windowRef;
+        //ElementReference popupTarget;
+        //bool windowVisible;
+
+        List<taburan_view> _dtDataTaburan { get; set; }
+        taburan_view _valueTaburan { get; set; }
 
         //For check box ===========
         public List<FilterData> FilterList { get; set; }
@@ -150,10 +159,10 @@ namespace PBTPro.Pages
             return new MarkupString(html);
         }
 
-        public async Task OpenNewStreetWindow(string latitude, string longitude)
-        {
-            await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,0,0,0,0", "_blank");
-        }
+        //public async Task OpenNewStreetWindow(string latitude, string longitude)
+        //{
+        //    await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,0,0,0,0", "_blank");
+        //}
 
         /*
         Description: Set the map properties
@@ -432,10 +441,16 @@ namespace PBTPro.Pages
                 if (_labelText.Length > 0)
                 {
                     premisInfo = await _PremisService.GetPremisInfo(codeid);
+
+                    if (premisInfo.premis_license_tax != null)
+                    {
+                        var taxInfo = premisInfo.premis_license_tax.First();
+                    }
                 }
 
                 IJSObjectReference serverSideScripts4 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
                 await serverSideScripts4.InvokeVoidAsync("openRightBar");
+
             }
             catch (Exception ex)
             {
@@ -589,6 +604,14 @@ namespace PBTPro.Pages
             await lastMarker.SetAnimation(Animation.Bounce);
 
         }
+
+        //async Task TogglePopupVisibilityAsync()
+        //{
+        //    if (windowVisible)
+        //        await windowRef.CloseAsync();
+        //    else
+        //        await windowRef.ShowAtAsync(popupTarget);
+        //}
 
 
         public void Dispose()

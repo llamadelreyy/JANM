@@ -58,4 +58,10 @@
     <Folder Include="wwwroot\images\tempProfile\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Shared\PremisTax.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
 </Project>
