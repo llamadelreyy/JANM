@@ -679,7 +679,7 @@ namespace PBTPro.Api.Controllers
 
         #region Premis Check-In
         [HttpPost]
-        public async Task<IActionResult> PatrolCheckIn([FromBody] PatrolInputCheckInModel InputModel)
+        public async Task<IActionResult> PremisCheckIn([FromBody] PatrolInputCheckInModel InputModel)
         {
             try
             {
