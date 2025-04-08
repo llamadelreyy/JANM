@@ -94,7 +94,11 @@ namespace PBTPro.Api.Controllers
                     if (Request["witnesses"] != StringValues.Empty)
                     {
                         var rawItemReq = Request["witnesses"].ToString();
-                        var fixedJson = "[" + rawItemReq + "]";
+                        var fixedJson = rawItemReq;
+                        if (!rawItemReq.StartsWith("[") || !rawItemReq.EndsWith("]"))
+                        {
+                            fixedJson = "[" + rawItemReq + "]";
+                        }
                         InputModel.witnesses = JsonConvert.DeserializeObject<List<patrol_inspect_witness>>(fixedJson);
                     }
                 }
@@ -265,7 +269,11 @@ namespace PBTPro.Api.Controllers
                     if (Request["witnesses"] != StringValues.Empty)
                     {
                         var rawItemReq = Request["witnesses"].ToString();
-                        var fixedJson = "[" + rawItemReq + "]";
+                        var fixedJson = rawItemReq;
+                        if (!rawItemReq.StartsWith("[") || !rawItemReq.EndsWith("]"))
+                        {
+                            fixedJson = "[" + rawItemReq + "]";
+                        }
                         InputModel.witnesses = JsonConvert.DeserializeObject<List<patrol_inspect_witness>>(fixedJson);
                     }
                 }
