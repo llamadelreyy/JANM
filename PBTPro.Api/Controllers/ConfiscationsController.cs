@@ -11,6 +11,7 @@ Changes Logs:
 */
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
@@ -167,7 +168,29 @@ namespace PBTPro.Api.Controllers
                             is_deleted = false,
                             creator_id = runUserID,
                             created_at = DateTime.Now,
+                            //2025-04-08 - added new field
+                            recipient_name = InputModel.recipient_name,
+                            recipient_icno = InputModel.recipient_icno,
+                            recipient_telno = InputModel.recipient_telno,
+                            recipient_addr = InputModel.recipient_addr,
                         };
+
+                        #region receipient signature
+                        //2025-04-08 - added new field
+                        if (InputModel.recipient_sign != null)
+                        {
+                            string ImageUploadExt = Path.GetExtension(InputModel.recipient_sign.FileName).ToString().ToLower();
+                            string Filename = $"{GetValidFilename(confiscation.cfsc_ref_no)}_receipient_signature{ImageUploadExt}";
+                            var UploadPath = await getUploadPath(confiscation);
+                            var Fullpath = Path.Combine(UploadPath, Filename);
+                            using (var stream = new FileStream(Fullpath, FileMode.Create))
+                            {
+                                await InputModel.recipient_sign.CopyToAsync(stream);
+                            }
+                            string pathurl = await getViewUrl(confiscation);
+                            confiscation.recipient_sign = $"{pathurl}/{Filename}";
+                        }
+                        #endregion
 
                         _tenantDBContext.trn_cfscs.Add(confiscation);
                         await _tenantDBContext.SaveChangesAsync();
@@ -379,7 +402,29 @@ namespace PBTPro.Api.Controllers
                         confiscation.is_deleted = false;
                         confiscation.modifier_id = runUserID;
                         confiscation.modified_at = DateTime.Now;
-                        
+                        //2025-04-08 - added new field
+                        confiscation.recipient_name = InputModel.recipient_name;
+                        confiscation.recipient_icno = InputModel.recipient_icno;
+                        confiscation.recipient_telno = InputModel.recipient_telno;
+                        confiscation.recipient_addr = InputModel.recipient_addr;
+
+                        #region receipient signature
+                        //2025-04-08 - added new field
+                        if (InputModel.recipient_sign != null)
+                        {
+                            string ImageUploadExt = Path.GetExtension(InputModel.recipient_sign.FileName).ToString().ToLower();
+                            string Filename = $"{GetValidFilename(confiscation.cfsc_ref_no)}_receipient_signature{ImageUploadExt}";
+                            var UploadPath = await getUploadPath(confiscation);
+                            var Fullpath = Path.Combine(UploadPath, Filename);
+                            using (var stream = new FileStream(Fullpath, FileMode.Create))
+                            {
+                                await InputModel.recipient_sign.CopyToAsync(stream);
+                            }
+                            string pathurl = await getViewUrl(confiscation);
+                            confiscation.recipient_sign = $"{pathurl}/{Filename}";
+                        }
+                        #endregion
+
                         _tenantDBContext.trn_cfscs.Update(confiscation);
                         await _tenantDBContext.SaveChangesAsync();
                         #endregion

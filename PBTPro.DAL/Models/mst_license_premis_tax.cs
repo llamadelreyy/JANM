@@ -29,9 +29,21 @@ public partial class mst_license_premis_tax
 
     public bool? is_deleted { get; set; }
 
+    public int? licensee_id { get; set; }
+
+    public int? taxholder_id { get; set; }
+
+    public int? license_id { get; set; }
+
     public virtual mst_premis? codeid_premisNavigation { get; set; }
+
+    public virtual mst_licensee? license { get; set; }
+
+    public virtual mst_licensee? licensee { get; set; }
 
     public virtual ref_license_status? status_lesen { get; set; }
 
     public virtual ref_tax_status? status_tax { get; set; }
+
+    public virtual mst_taxholder? taxholder { get; set; }
 }

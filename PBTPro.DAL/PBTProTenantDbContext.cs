@@ -15,6 +15,8 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<mst_ahliparl> mst_ahliparls { get; set; }
 
+    public virtual DbSet<mst_area> mst_areas { get; set; }
+
     public virtual DbSet<mst_device_bind> mst_device_binds { get; set; }
 
     public virtual DbSet<mst_dun> mst_duns { get; set; }
@@ -32,6 +34,8 @@ public partial class PBTProTenantDbContext : DbContext
     public virtual DbSet<mst_parliament> mst_parliaments { get; set; }
 
     public virtual DbSet<mst_patrol_schedule> mst_patrol_schedules { get; set; }
+
+    public virtual DbSet<mst_pic_licensee> mst_pic_licensees { get; set; }
 
     public virtual DbSet<mst_premis> mst_premis { get; set; }
 
@@ -76,6 +80,8 @@ public partial class PBTProTenantDbContext : DbContext
     public virtual DbSet<ref_patrol_status> ref_patrol_statuses { get; set; }
 
     public virtual DbSet<ref_patrol_type> ref_patrol_types { get; set; }
+
+    public virtual DbSet<ref_relationship> ref_relationships { get; set; }
 
     public virtual DbSet<ref_tax_cat> ref_tax_cats { get; set; }
 
@@ -223,6 +229,18 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasConstraintName("fk_pbt_ahliparl_belong_to_parl");
         });
 
+        modelBuilder.Entity<mst_area>(entity =>
+        {
+            entity.HasKey(e => e.gid).HasName("mst_area_pkey");
+
+            entity.ToTable("mst_area", "tenant");
+
+            entity.HasIndex(e => e.geom, "mst_area_geom_idx").HasMethod("gist");
+
+            entity.Property(e => e.area).HasMaxLength(254);
+            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,4326)");
+        });
+
         modelBuilder.Entity<mst_device_bind>(entity =>
         {
             entity.HasKey(e => e.device_bind_id).HasName("device_binding_pkey");
@@ -308,6 +326,14 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasForeignKey(d => d.codeid_premis)
                 .HasConstraintName("codeid_premis");
 
+            entity.HasOne(d => d.license).WithMany(p => p.mst_license_premis_taxlicenses)
+                .HasForeignKey(d => d.license_id)
+                .HasConstraintName("fk_license_id");
+
+            entity.HasOne(d => d.licensee).WithMany(p => p.mst_license_premis_taxlicensees)
+                .HasForeignKey(d => d.licensee_id)
+                .HasConstraintName("fk_licensee_id");
+
             entity.HasOne(d => d.status_lesen).WithMany(p => p.mst_license_premis_taxes)
                 .HasForeignKey(d => d.status_lesen_id)
                 .HasConstraintName("status_lesen_id");
@@ -315,6 +341,10 @@ public partial class PBTProTenantDbContext : DbContext
             entity.HasOne(d => d.status_tax).WithMany(p => p.mst_license_premis_taxes)
                 .HasForeignKey(d => d.status_tax_id)
                 .HasConstraintName("status_tax_id");
+
+            entity.HasOne(d => d.taxholder).WithMany(p => p.mst_license_premis_taxes)
+                .HasForeignKey(d => d.taxholder_id)
+                .HasConstraintName("fk_taxholder_id");
         });
 
         modelBuilder.Entity<mst_licensee>(entity =>
@@ -570,6 +600,44 @@ public partial class PBTProTenantDbContext : DbContext
             entity.HasOne(d => d.type).WithMany(p => p.mst_patrol_schedules)
                 .HasForeignKey(d => d.type_id)
                 .HasConstraintName("type_id_refers_to_patrol_type_id");
+        });
+
+        modelBuilder.Entity<mst_pic_licensee>(entity =>
+        {
+            entity.HasKey(e => e.pic_id).HasName("pk_pic_id");
+
+            entity.ToTable("mst_pic_licensees", "tenant", tb => tb.HasComment("This table stores about person in charge on the premise, based on license"));
+
+            entity.HasIndex(e => e.pic_icno, "unique_pic_icno").IsUnique();
+
+            entity.Property(e => e.codeid_premis).HasColumnType("character varying");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasDefaultValue(0);
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.license_accno).HasColumnType("character varying");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasDefaultValue(0);
+            entity.Property(e => e.pic_addr).HasMaxLength(255);
+            entity.Property(e => e.pic_icno).HasMaxLength(14);
+            entity.Property(e => e.pic_name).HasMaxLength(50);
+            entity.Property(e => e.pic_telno).HasMaxLength(14);
+
+            entity.HasOne(d => d.codeid_premisNavigation).WithMany(p => p.mst_pic_licensees)
+                .HasPrincipalKey(p => p.codeid_premis)
+                .HasForeignKey(d => d.codeid_premis)
+                .HasConstraintName("fk_codeid_premis");
+
+            entity.HasOne(d => d.licensee).WithMany(p => p.mst_pic_licensees)
+                .HasForeignKey(d => d.licensee_id)
+                .HasConstraintName("fk_license_id");
+
+            entity.HasOne(d => d.relation).WithMany(p => p.mst_pic_licensees)
+                .HasForeignKey(d => d.relation_id)
+                .HasConstraintName("fk_relation_id");
         });
 
         modelBuilder.Entity<mst_premis>(entity =>
@@ -1276,6 +1344,22 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.type_name).HasMaxLength(50);
         });
 
+        modelBuilder.Entity<ref_relationship>(entity =>
+        {
+            entity.HasKey(e => e.relation_id).HasName("ref_relationships_pkey");
+
+            entity.ToTable("ref_relationships", "tenant", tb => tb.HasComment("This table stores relationships between the recipient to the premise owner e.g., Pekerja, Ahli Keluarga, Tiada kaitan"));
+
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.relation_name).HasMaxLength(20);
+        });
+
         modelBuilder.Entity<ref_tax_cat>(entity =>
         {
             entity.HasKey(e => e.cat_id).HasName("tax_cat_pk");
@@ -1480,6 +1564,11 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.owner_icno)
                 .HasMaxLength(30)
                 .HasComment("Identification number of the owner associated with the confiscated items.");
+            entity.Property(e => e.recipient_addr).HasMaxLength(255);
+            entity.Property(e => e.recipient_icno).HasMaxLength(20);
+            entity.Property(e => e.recipient_name).HasMaxLength(50);
+            entity.Property(e => e.recipient_sign).HasMaxLength(255);
+            entity.Property(e => e.recipient_telno).HasMaxLength(12);
             entity.Property(e => e.scen_id).HasComment("Scenario that happened during confiscation (e.g., Pemilik Tidak Dijumpai, linked to a reference ref_cfsc_scenarios table.");
             entity.Property(e => e.section_code).HasColumnType("character varying");
             entity.Property(e => e.tax_accno)
@@ -1632,6 +1721,11 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.owner_icno)
                 .HasMaxLength(30)
                 .HasComment("Identification number of the owner.");
+            entity.Property(e => e.recipient_addr).HasMaxLength(255);
+            entity.Property(e => e.recipient_icno).HasMaxLength(20);
+            entity.Property(e => e.recipient_name).HasMaxLength(50);
+            entity.Property(e => e.recipient_sign).HasMaxLength(255);
+            entity.Property(e => e.recipient_telno).HasMaxLength(12);
             entity.Property(e => e.section_code).HasColumnType("character varying");
             entity.Property(e => e.tax_accno).HasColumnType("character varying");
             entity.Property(e => e.trnstatus_id)
@@ -1820,6 +1914,11 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.owner_icno)
                 .HasMaxLength(30)
                 .HasComment("Identification number of the owner.");
+            entity.Property(e => e.recipient_addr).HasMaxLength(255);
+            entity.Property(e => e.recipient_icno).HasMaxLength(20);
+            entity.Property(e => e.recipient_name).HasMaxLength(50);
+            entity.Property(e => e.recipient_sign).HasMaxLength(255);
+            entity.Property(e => e.recipient_telno).HasMaxLength(12);
             entity.Property(e => e.section_code).HasColumnType("character varying");
             entity.Property(e => e.tax_accno)
                 .HasMaxLength(40)
@@ -1924,10 +2023,20 @@ public partial class PBTProTenantDbContext : DbContext
 
             entity.ToTable("trn_premis_visit", "tenant", tb => tb.HasComment("This table stores status visited premis that has been done by officer"));
 
+            entity.Property(e => e.codeid_premis).HasColumnType("character varying");
             entity.Property(e => e.created_at).HasColumnType("timestamp without time zone");
             entity.Property(e => e.is_deleted).HasDefaultValue(false);
             entity.Property(e => e.modified_at).HasColumnType("timestamp without time zone");
             entity.Property(e => e.status_visit).HasDefaultValue(false);
+
+            entity.HasOne(d => d.codeid_premisNavigation).WithMany(p => p.trn_premis_visits)
+                .HasPrincipalKey(p => p.codeid_premis)
+                .HasForeignKey(d => d.codeid_premis)
+                .HasConstraintName("fk_codeid_premis");
+
+            entity.HasOne(d => d.schedule).WithMany(p => p.trn_premis_visits)
+                .HasForeignKey(d => d.schedule_id)
+                .HasConstraintName("fk_schedule_id");
         });
 
         modelBuilder.Entity<trn_witness>(entity =>
