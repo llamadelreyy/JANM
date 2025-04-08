@@ -100,7 +100,11 @@ namespace PBTPro.Api.Controllers
                     if (Request["witnesses"] != StringValues.Empty)
                     {
                         var rawItemReq = Request["witnesses"].ToString();
-                        var fixedJson = "[" + rawItemReq + "]";
+                        var fixedJson = rawItemReq;
+                        if (!rawItemReq.StartsWith("[") || !rawItemReq.EndsWith("]"))
+                        {
+                            fixedJson = "[" + rawItemReq + "]";
+                        }
                         InputModel.witnesses = JsonConvert.DeserializeObject<List<patrol_cmpd_witness>>(fixedJson);
                     }
                 }
@@ -163,7 +167,29 @@ namespace PBTPro.Api.Controllers
                             is_deleted = false,
                             creator_id = runUserID,
                             created_at = DateTime.Now,
+                            //2025-04-08 - added new field
+                            recipient_name = InputModel.recipient_name,
+                            recipient_icno = InputModel.recipient_icno,
+                            recipient_telno = InputModel.recipient_telno,
+                            recipient_addr = InputModel.recipient_addr,
                         };
+
+                        #region receipient signature
+                        //2025-04-08 - added new field
+                        if (InputModel.recipient_sign != null)
+                        {
+                            string ImageUploadExt = Path.GetExtension(InputModel.recipient_sign.FileName).ToString().ToLower();
+                            string Filename = $"{GetValidFilename(compound.cmpd_ref_no)}_receipient_signature{ImageUploadExt}";
+                            var UploadPath = await getUploadPath(compound);
+                            var Fullpath = Path.Combine(UploadPath, Filename);
+                            using (var stream = new FileStream(Fullpath, FileMode.Create))
+                            {
+                                await InputModel.recipient_sign.CopyToAsync(stream);
+                            }
+                            string pathurl = await getViewUrl(compound);
+                            compound.recipient_sign = $"{pathurl}/{Filename}";
+                        }
+                        #endregion
 
                         _tenantDBContext.trn_cmpds.Add(compound);
                         await _tenantDBContext.SaveChangesAsync();
@@ -272,7 +298,11 @@ namespace PBTPro.Api.Controllers
                     if (Request["witnesses"] != StringValues.Empty)
                     {
                         var rawItemReq = Request["witnesses"].ToString();
-                        var fixedJson = "[" + rawItemReq + "]";
+                        var fixedJson = rawItemReq;
+                        if (!rawItemReq.StartsWith("[") || !rawItemReq.EndsWith("]"))
+                        {
+                            fixedJson = "[" + rawItemReq + "]";
+                        }
                         InputModel.witnesses = JsonConvert.DeserializeObject<List<patrol_cmpd_witness>>(fixedJson);
                     }
                 }
@@ -337,6 +367,29 @@ namespace PBTPro.Api.Controllers
                         compound.is_tax = InputModel.is_tax;
                         compound.modifier_id = runUserID;
                         compound.modified_at = DateTime.Now;
+
+                        //2025-04-08 - added new field
+                        compound.recipient_name = InputModel.recipient_name;
+                        compound.recipient_icno = InputModel.recipient_icno;
+                        compound.recipient_telno = InputModel.recipient_telno;
+                        compound.recipient_addr = InputModel.recipient_addr;
+
+                        #region receipient signature
+                        //2025-04-08 - added new field
+                        if (InputModel.recipient_sign != null)
+                        {
+                            string ImageUploadExt = Path.GetExtension(InputModel.recipient_sign.FileName).ToString().ToLower();
+                            string Filename = $"{GetValidFilename(compound.cmpd_ref_no)}_receipient_signature{ImageUploadExt}";
+                            var UploadPath = await getUploadPath(compound);
+                            var Fullpath = Path.Combine(UploadPath, Filename);
+                            using (var stream = new FileStream(Fullpath, FileMode.Create))
+                            {
+                                await InputModel.recipient_sign.CopyToAsync(stream);
+                            }
+                            string pathurl = await getViewUrl(compound);
+                            compound.recipient_sign = $"{pathurl}/{Filename}";
+                        }
+                        #endregion
 
                         _tenantDBContext.trn_cmpds.Update(compound);
                         await _tenantDBContext.SaveChangesAsync();
@@ -483,14 +536,26 @@ namespace PBTPro.Api.Controllers
 
         #region Listing by specific field
         [HttpGet("{UserId}")]
-        public async Task<IActionResult> GetCompoundListByUserId(int UserId)
+        public async Task<IActionResult> GetCompoundListByUserId(int UserId, DateTime? startDate, DateTime? endDate)
         {
             try
             {
                 var resultData = new List<dynamic>();
 
-                var compound_lists = await (from n in _tenantDBContext.trn_cmpds
-                                            where n.creator_id == UserId
+                IQueryable<trn_cmpd> initQuery = _tenantDBContext.trn_cmpds.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x=> x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.creator_id == UserId);
+
+                var compound_lists = await (from n in initQuery
                                             join ts in _tenantDBContext.ref_trn_statuses
                                             on n.trnstatus_id equals ts.status_id into tsg
                                             from ts in tsg.DefaultIfEmpty()
@@ -576,13 +641,26 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{TaxAccNo}")]
-        public async Task<IActionResult> GetCompoundListByTaxAccNo(string TaxAccNo)
+        public async Task<IActionResult> GetCompoundListByTaxAccNo(string TaxAccNo, DateTime? startDate, DateTime? endDate)
         {
             try
             {
                 var resultData = new List<dynamic>();
-                var compound_lists = await (from n in _tenantDBContext.trn_cmpds
-                                            where n.tax_accno == TaxAccNo
+
+                IQueryable<trn_cmpd> initQuery = _tenantDBContext.trn_cmpds.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.tax_accno == TaxAccNo);
+
+                var compound_lists = await (from n in initQuery
                                             join ts in _tenantDBContext.ref_trn_statuses
                                             on n.trnstatus_id equals ts.status_id into tsg
                                             from ts in tsg.DefaultIfEmpty()
@@ -621,7 +699,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{LicenseAccNo}")]
-        public async Task<IActionResult> GetCompoundListByLicenseAccNo(string LicenseAccNo)
+        public async Task<IActionResult> GetCompoundListByLicenseAccNo(string LicenseAccNo, DateTime? startDate, DateTime? endDate)
         {
             try
             {
@@ -632,8 +710,20 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
                 }
 
-                var compound_lists = await (from n in _tenantDBContext.trn_cmpds
-                                            where n.license_id == licenseInfo.licensee_id
+                IQueryable<trn_cmpd> initQuery = _tenantDBContext.trn_cmpds.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.license_id == licenseInfo.licensee_id);
+
+                var compound_lists = await (from n in initQuery
                                             join ts in _tenantDBContext.ref_trn_statuses
                                             on n.trnstatus_id equals ts.status_id into tsg
                                             from ts in tsg.DefaultIfEmpty()
@@ -672,14 +762,26 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{LicenseId}")]
-        public async Task<IActionResult> GetCompoundListByLicenseId(int LicenseId)
+        public async Task<IActionResult> GetCompoundListByLicenseId(int LicenseId, DateTime? startDate, DateTime? endDate)
         {
             try
             {
                 var resultData = new List<dynamic>();
 
-                var compound_lists = await (from n in _tenantDBContext.trn_cmpds
-                                            where n.license_id == LicenseId
+                IQueryable<trn_cmpd> initQuery = _tenantDBContext.trn_cmpds.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.license_id == LicenseId);
+
+                var compound_lists = await (from n in initQuery
                                             join ts in _tenantDBContext.ref_trn_statuses
                                             on n.trnstatus_id equals ts.status_id into tsg
                                             from ts in tsg.DefaultIfEmpty()
@@ -720,11 +822,24 @@ namespace PBTPro.Api.Controllers
 
         #region Count by specific field
         [HttpGet("{UserId}")]
-        public async Task<IActionResult> GetCompoundCountByUserId(int UserId)
+        public async Task<IActionResult> GetCompoundCountByUserId(int UserId, DateTime? startDate, DateTime? endDate)
         {
             try
             {
-                var resultData = await _tenantDBContext.trn_cmpds.Where(x => x.creator_id == UserId).CountAsync();
+                IQueryable<trn_cmpd> initQuery = _tenantDBContext.trn_cmpds.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.creator_id == UserId);
+
+                var resultData = await initQuery.CountAsync();
                 return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -750,11 +865,25 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{TaxAccNo}")]
-        public async Task<IActionResult> GetCompoundCountByTaxAccNo(string TaxAccNo)
+        public async Task<IActionResult> GetCompoundCountByTaxAccNo(string TaxAccNo, DateTime? startDate, DateTime? endDate)
         {
             try
             {
-                var resultData = await _tenantDBContext.trn_cmpds.Where(x => x.tax_accno == TaxAccNo).CountAsync();
+                IQueryable<trn_cmpd> initQuery = _tenantDBContext.trn_cmpds.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.tax_accno == TaxAccNo);
+
+
+                var resultData = await initQuery.CountAsync();
                 return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -765,7 +894,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{LicenseAccNo}")]
-        public async Task<IActionResult> GetCompoundCountByLicenseAccNo(string LicenseAccNo)
+        public async Task<IActionResult> GetCompoundCountByLicenseAccNo(string LicenseAccNo, DateTime? startDate, DateTime? endDate)
         {
             try
             {
@@ -775,7 +904,20 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
                 }
 
-                var resultData = await _tenantDBContext.trn_cmpds.Where(x => x.license_id == licenseInfo.licensee_id).CountAsync();
+                IQueryable<trn_cmpd> initQuery = _tenantDBContext.trn_cmpds.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.license_id == licenseInfo.licensee_id);
+
+                var resultData = await initQuery.CountAsync();
                 return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
@@ -786,11 +928,24 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{LicenseId}")]
-        public async Task<IActionResult> GetCompoundCountByLicenseId(int LicenseId)
+        public async Task<IActionResult> GetCompoundCountByLicenseId(int LicenseId, DateTime? startDate, DateTime? endDate)
         {
             try
             {
-                var resultData = await _tenantDBContext.trn_cmpds.Where(x => x.license_id == LicenseId).CountAsync();
+                IQueryable<trn_cmpd> initQuery = _tenantDBContext.trn_cmpds.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                initQuery = initQuery.Where(x => x.license_id == LicenseId);
+
+                var resultData = await initQuery.CountAsync();
                 return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Rekod berjaya dijana")));
             }
             catch (Exception ex)
