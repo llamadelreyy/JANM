@@ -13,7 +13,6 @@ namespace PBTPro.DAL.Models.PayLoads
         public decimal? inspect_latitude { get; set; }
         public int? trnstatus_id { get; set; }
         public int? license_id { get; set; }
-        public int gid { get; set; }
         public int? schedule_id { get; set; }
         public string? tax_accno { get; set; }
         public bool? is_tax { get; set; }
