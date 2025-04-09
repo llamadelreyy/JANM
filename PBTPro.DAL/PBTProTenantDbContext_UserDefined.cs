@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 using NetTopologySuite.Geometries;
+using NpgsqlTypes;
+using PBTPro.DAL.Models;
 using PBTPro.DAL.Services;
 
 namespace PBTPro.DAL
@@ -30,6 +33,8 @@ namespace PBTPro.DAL
         {
             _tenantSchema = tenantSchema;
         }
+
+        public virtual DbSet<view_premis_detail> view_premis_details { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -94,8 +99,60 @@ namespace PBTPro.DAL
                 .GetMethod(nameof(PostGISFunctions.ST_Collect), new[] { typeof(Geometry) }))
                 .HasName("st_collect");
 
-            #endregion 
+            #endregion
 
+            var intervalToStringConverter = new ValueConverter<NpgsqlInterval?, string>(
+        interval => interval.HasValue ? interval.Value.ToString() : null,
+        str => string.IsNullOrEmpty(str) ? (NpgsqlInterval?)null : null);
+
+            modelBuilder.Entity<view_premis_detail>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToView("view_premis_details", _tenantSchema);
+
+                entity.Property(e => e.codeid_premis).HasColumnType("character varying");
+                entity.Property(e => e.license_accno).HasColumnType("character varying");
+                entity.Property(e => e.license_business_address).HasMaxLength(255);
+                entity.Property(e => e.license_business_name).HasMaxLength(100);
+                entity.Property(e => e.license_district_code).HasMaxLength(10);
+                entity.Property(e => e.license_doc_support).HasColumnType("character varying");
+                entity.Property(e => e.license_duration).HasColumnType("character varying");
+                entity.Property(e => e.license_g_activity_1).HasColumnType("character varying");
+                entity.Property(e => e.license_g_activity_2).HasColumnType("character varying");
+                entity.Property(e => e.license_g_activity_3).HasColumnType("character varying");
+                entity.Property(e => e.license_g_signbboard_1).HasColumnType("character varying");
+                entity.Property(e => e.license_g_signbboard_2).HasColumnType("character varying");
+                entity.Property(e => e.license_g_signbboard_3).HasColumnType("character varying");
+                entity.Property(e => e.license_lot).HasColumnType("character varying");
+                entity.Property(e => e.license_owner_addess).HasMaxLength(255);
+                entity.Property(e => e.license_owner_disctict_code).HasMaxLength(20);
+                entity.Property(e => e.license_owner_email).HasMaxLength(100);
+                entity.Property(e => e.license_owner_icno).HasMaxLength(40);
+                entity.Property(e => e.license_owner_name).HasMaxLength(100);
+                entity.Property(e => e.license_owner_state_code).HasMaxLength(10);
+                entity.Property(e => e.license_owner_telno).HasMaxLength(40);
+                entity.Property(e => e.license_ssmno).HasColumnType("character varying");
+                entity.Property(e => e.license_state_code).HasMaxLength(10);
+                entity.Property(e => e.license_status_view).HasMaxLength(40);
+                entity.Property(e => e.license_type).HasColumnType("character varying");
+                entity.Property(e => e.premis_floor).HasColumnType("character varying");
+                entity.Property(e => e.premis_geom).HasColumnType("geometry(PointZM,4326)");
+                entity.Property(e => e.premis_gkeseluruh).HasMaxLength(255);
+                entity.Property(e => e.premis_lot).HasColumnType("character varying");
+                entity.Property(e => e.tax_accno).HasColumnType("character varying");
+                entity.Property(e => e.tax_address).HasColumnType("character varying");
+                entity.Property(e => e.tax_district_code).HasMaxLength(10);
+                entity.Property(e => e.tax_owner_addess).HasMaxLength(255);
+                entity.Property(e => e.tax_owner_disctict_code).HasMaxLength(20);
+                entity.Property(e => e.tax_owner_email).HasMaxLength(100);
+                entity.Property(e => e.tax_owner_icno).HasMaxLength(40);
+                entity.Property(e => e.tax_owner_name).HasMaxLength(100);
+                entity.Property(e => e.tax_owner_state_code).HasMaxLength(10);
+                entity.Property(e => e.tax_owner_telno).HasMaxLength(40);
+                entity.Property(e => e.tax_state_code).HasMaxLength(10);
+                entity.Property(e => e.tax_status_view).HasMaxLength(100);
+            });
         }
     }
 }
