@@ -99,6 +99,17 @@ namespace PBTPro.DAL
                 .GetMethod(nameof(PostGISFunctions.ST_Collect), new[] { typeof(Geometry) }))
                 .HasName("st_collect");
 
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_X), new[] { typeof(Geometry) }))
+                .HasName("st_x");
+
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_Y), new[] { typeof(Geometry) }))
+                .HasName("st_y");
+
+            modelBuilder.HasDbFunction(typeof(PostGISFunctions)
+                .GetMethod(nameof(PostGISFunctions.ST_Z), new[] { typeof(Geometry) }))
+                .HasName("st_z");
             #endregion
 
             var intervalToStringConverter = new ValueConverter<NpgsqlInterval?, string>(
