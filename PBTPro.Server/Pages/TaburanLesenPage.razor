@@ -13,6 +13,7 @@
 
 @inject NoticeService _NoticeService
 @inject PremisService _PremisService
+@inject SearchService _SearchService
 @inject ApiConnector _ApiConnector // 07/11/2024 - API Fetcher - ismail
 @inject PBTAuthStateProvider _PBTAuthStateProvider
 
@@ -54,8 +55,8 @@
         
 
         <DxGrid @ref="Grid"
-                Data="NoticeData"
-                KeyFieldName="IdNotice"
+                Data="searchData"
+                KeyFieldName="license_id"
                 ShowGroupPanel="false"
                 VirtualScrollingEnabled=true
                 ShowFilterRow="false"
@@ -83,16 +84,31 @@
                         <img src="images/icons/marker.png" />
                     </HeaderTemplate>
                     <CellDisplayTemplate>
-                        <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Muat turun laporan"><img src="images/icons-small/marker.png" /></a>
+                        <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Pin pada peta"><img src="images/icons-small/marker.png" /></a>
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
-                <DxGridDataColumn Caption="No Lot" MinWidth="80" Width="8%" FieldName="NoLot" SortIndex="0" />
-                <DxGridDataColumn Caption="No Rujukan" MinWidth="80" Width="8%" FieldName="NoRujukan" />
-                <DxGridDataColumn Caption="No Lesen" MinWidth="130" Width="13%" FieldName="NoLesen" />
-                <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="100" Width="10%" FieldName="NoDaftarSyarikat" />
-                <DxGridDataColumn Caption="Nama Pemilik" MinWidth="160" Width="16%" FieldName="NamaPemilik" />
-                <DxGridDataColumn Caption="Nama Premis" MinWidth="160" Width="16%" FieldName="NamaPerniagaan" />
-                <DxGridDataColumn Caption="Alamat Premis" MinWidth="230" Width="33%" FieldName="AlamatPerniagaan" />
+                    <DxGridDataColumn Caption="No Lot" MinWidth="80" Width="8%" FieldName="premis_lot" SortIndex="0" />
+                    <DxGridDataColumn Caption="Tingkat" MinWidth="80" Width="8%" FieldName="premis_floor" />
+                    <DxGridDataColumn Caption="No SSM" MinWidth="130" Width="13%" FieldName="license_ssmno" />
+                    <DxGridDataColumn Caption="No Akaun Lesen" MinWidth="130" Width="13%" FieldName="license_accno" />
+                    <DxGridDataColumn Caption="Status Lesen" MinWidth="150" Width="15%" FieldName="license_status_view" />
+
+                    <DxGridDataColumn Caption="Nama Pemegang Lesen" MinWidth="130" Width="13%" FieldName="license_owner_name" />
+                    <DxGridDataColumn Caption="No Kad Pengenalan" MinWidth="130" Width="13%" FieldName="license_owner_icno" />
+                    <DxGridDataColumn Caption="Alamat Pemegang Lesen" MinWidth="230" Width="23%" FieldName="license_owner_addess" />
+                    <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="160" Width="16%" FieldName="license_business_name" />
+                    <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="230" Width="23%" FieldName="license_business_address" />
+                    <DxGridDataColumn Caption="Tempoh" MinWidth="100" Width="10%" FieldName="license_duration" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Tarikh Mula" MinWidth="120" Width="12%" FieldName="license_start_date" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Tarikh Tamat" MinWidth="120" Width="12%" FieldName="license_end_date" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="Jenis Lesen" MinWidth="130" Width="13%" FieldName="license_type" />
+                    <DxGridDataColumn Caption="Amaun (RM)" MinWidth="130" Width="13%" FieldName="license_type" TextAlignment="GridTextAlignment.Right" />
+
+                    <DxGridDataColumn Caption="Nama Pemilik" MinWidth="130" Width="13%" FieldName="tax_owner_name" />
+                    <DxGridDataColumn Caption="No Kad Pengenalan" MinWidth="130" Width="13%" FieldName="tax_owner_icno" />
+                    <DxGridDataColumn Caption="Alamat Pemilik" MinWidth="230" Width="23%" FieldName="tax_owner_addess" />
+                    <DxGridDataColumn Caption="Alamat Cukai" MinWidth="230" Width="23%" FieldName="tax_address" />
+
 @*                 <DxGridDataColumn FieldName="DateCreated" MinWidth="110" DisplayFormat="dd/MM/yyyy" Caption="Tarikh Masuk" Width="10%"
                 TextAlignment="GridTextAlignment.Center" SortOrder="GridColumnSortOrder.Descending" SortIndex="0" /> *@
             </Columns>

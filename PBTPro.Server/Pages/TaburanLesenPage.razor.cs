@@ -53,12 +53,14 @@ namespace PBTPro.Pages
         private string LesenID { get; set; } = string.Empty;
         private string _labelText = "";
 
-        //Lesen Information
-        IEnumerable<NoticeProp> NoticeData;
-        IEnumerable<(NoticeProp, int)> Items;
+        ////Lesen Information
+        ////IEnumerable<NoticeProp> NoticeData;
+        ////IEnumerable<(NoticeProp, int)> Items;
 
         //Premis data
         IEnumerable<dynamic> premisData;
+        IEnumerable<view_premis_detail> searchData;
+        IEnumerable<(view_premis_detail, int)> Items;
         IEnumerable<(premis_license_tax_view, int)> premisItem;
         premis_view premisInfo;
 
@@ -275,6 +277,9 @@ namespace PBTPro.Pages
 
                 //Get record
                 premisData = await _PremisService.GetList();
+                //Get search record
+                searchData = await _SearchService.GetListPremisDetails();
+
                 ////premisItem = premisData.Select((item, index) => (item, index));
 
                 DataLoadedTcs.TrySetResult(true);
@@ -560,8 +565,10 @@ namespace PBTPro.Pages
             }
             //====================================
 
-            var item = (NoticeProp)itemData;
-            await PremiseLocation(item.Position);
+            var item = (view_premis_detail)itemData;
+            LatLngLiteral LatLng = new LatLngLiteral { Lat = 1.001, Lng = 1.002 };
+
+            ////await PremiseLocation(item.premis_geom.);
             //NavigationManager.NavigateTo("/reportnotis?nolesen=" + item.NoLesen, false);
         }
 
