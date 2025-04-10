@@ -25,6 +25,7 @@ using QuestPDF.Infrastructure;
 using static DevExpress.XtraPrinting.Native.ExportOptionsPropertiesNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.ComponentModel;
+using PBTPro.DAL.Models.PayLoads;
 
 namespace PBTPro.Api.Controllers
 {
@@ -513,7 +514,7 @@ namespace PBTPro.Api.Controllers
                 }
                 #endregion
 
-                var results = await initQuery.Select(x => new 
+                var results = await initQuery.Select(x => new general_search_premis_detail
                 {
                     //primary key
                     codeid_premis = x.codeid_premis,
