@@ -216,7 +216,7 @@ namespace PBTPro.Data
                 }
 
                 if (crs != null)
-                    requestquery = $"{requestquery}?crs={crs}";
+                    requestquery = $"{requestquery}&crs={crs}";
 
 
                 string requestUrl = $"{_baseReqURL}/GetFilteredListByBound?minLng={minLng}&minLat={minLat}&maxLng={maxLng}&maxLat={maxLat}{requestquery}";
