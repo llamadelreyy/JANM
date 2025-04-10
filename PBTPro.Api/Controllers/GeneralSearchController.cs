@@ -11,6 +11,9 @@ Additional Notes:
 Changes Logs:
 11/02/2025 - initial create
 */
+using DevExpress.ClipboardSource.SpreadsheetML;
+using DevExpress.XtraPrinting;
+using GoogleMapsComponents.Maps;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +21,10 @@ using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
+using QuestPDF.Infrastructure;
 using static DevExpress.XtraPrinting.Native.ExportOptionsPropertiesNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.ComponentModel;
 
 namespace PBTPro.Api.Controllers
 {
@@ -475,6 +481,116 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetListPremisDetails(int? maxResult = null, int? page = 1)
+        {
+            try
+            {
+                IQueryable<view_premis_detail> initQuery = _tenantDBContext.view_premis_details;
+
+                #region Building Pagination
+                var pageInfo = new PaginationInfo();
+                if (maxResult.HasValue || maxResult > 0)
+                {
+                    var totalCount = await initQuery.CountAsync();
+                    int totalPages = (int)Math.Ceiling(totalCount / (double)maxResult.Value);
+                    pageInfo.TotalPages = totalPages;
+                    pageInfo.TotalRecords = totalCount;
+                    pageInfo.RecordPerPage = maxResult!.Value;
+                    pageInfo.CurrentPageNo = page!.Value;
+                    initQuery = initQuery
+                        .Skip((page.Value - 1) * maxResult.Value)
+                        .Take(maxResult.Value);
+                }
+                else
+                {
+                    var totalCount = await initQuery.CountAsync();
+                    pageInfo.TotalPages = 1;
+                    pageInfo.TotalRecords = totalCount;
+                    pageInfo.RecordPerPage = totalCount;
+                    pageInfo.CurrentPageNo = 1;
+                }
+                #endregion
+
+                var results = await initQuery.Select(x => new 
+                {
+                    //primary key
+                    codeid_premis = x.codeid_premis,
+                    taxholder_id = x.taxholder_id,
+                    tax_accno = x.tax_accno,
+                    license_id = x.license_id,
+                    license_accno = x.license_accno,
+                    //premis data
+                    premis_floor = x.premis_floor,
+                    premis_lot = x.premis_lot,
+                    premis_gkeseluruh = x.premis_gkeseluruh,
+                    premis_geom = PostGISFunctions.ParseGeoJsonSafely(
+                        PostGISFunctions.ST_AsGeoJSON(x.premis_geom)
+                    ),
+                    //tax data
+                    tax_status_id = x.tax_status_id,
+                    tax_status_view = x.tax_status_view,
+                    tax_state_code = x.tax_state_code,
+                    tax_district_code = x.tax_district_code,
+                    tax_town_id = x.tax_town_id,
+                    tax_parliment_id = x.tax_parliment_id,
+                    tax_dun_id = x.tax_dun_id,
+                    tax_zon_id = x.tax_zon_id,
+                    tax_address = x.tax_address,
+                    tax_start_date = x.tax_start_date,
+                    tax_end_date = x.tax_end_date,
+                    tax_owner_icno = x.tax_owner_icno,
+                    tax_owner_name = x.tax_owner_name,
+                    tax_owner_email = x.tax_owner_email,
+                    tax_owner_telno = x.tax_owner_telno,
+                    tax_owner_state_code = x.tax_owner_state_code,
+                    tax_owner_disctict_code = x.tax_owner_disctict_code,
+                    tax_owner_town_id = x.tax_owner_town_id,
+                    tax_owner_addess = x.tax_owner_addess,
+                    //license data
+                    license_status_id = x.license_status_id,
+                    license_status_view = x.license_status_view,
+                    license_ssmno = x.license_ssmno,
+                    license_business_name = x.license_business_name,
+                    license_business_address = x.license_business_address,
+                    license_state_code = x.license_state_code,
+                    license_district_code = x.license_district_code,
+                    license_town_id = x.license_town_id,
+                    license_mukim_id = x.license_mukim_id,
+                    license_lot = x.license_lot,
+                    license_duration = x.license_duration,
+                    license_cat_id = x.license_cat_id,
+                    license_type = x.license_type,
+                    license_total_amount = x.license_total_amount,
+                    license_start_date = x.license_start_date,
+                    license_end_date = x.license_end_date,
+                    license_total_signboard = x.license_total_signboard,
+                    license_signboard_size = x.license_signboard_size,
+                    license_doc_support = x.license_doc_support,
+                    license_g_activity_1 = x.license_g_activity_1,
+                    license_g_activity_2 = x.license_g_activity_2,
+                    license_g_activity_3 = x.license_g_activity_3,
+                    license_g_signbboard_1 = x.license_g_signbboard_1,
+                    license_g_signbboard_2 = x.license_g_signbboard_2,
+                    license_g_signbboard_3 = x.license_g_signbboard_3,
+                    license_owner_icno = x.license_owner_icno,
+                    license_owner_name = x.license_owner_name,
+                    license_owner_email = x.license_owner_email,
+                    license_owner_telno = x.license_owner_telno,
+                    license_owner_state_code = x.license_owner_state_code,
+                    license_owner_disctict_code = x.license_owner_disctict_code,
+                    license_owner_town_id = x.license_owner_town_id,
+                    license_owner_addess = x.license_owner_addess
+                }).ToListAsync();
+                return Ok(results, pageInfo, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
 
         #region Private Logic
         #endregion
