@@ -43,6 +43,18 @@ public static class PostGISFunctions
     [DbFunction("st_collect")]
     public static Geometry ST_Collect(Geometry geometry) => throw new NotImplementedException();
 
+    // st_x
+    [DbFunction("st_x")]
+    public static Double ST_X(Geometry geometry) => throw new NotImplementedException();
+    
+    // st_y
+    [DbFunction("st_y")]
+    public static Double ST_Y(Geometry geometry) => throw new NotImplementedException();
+
+    // st_z
+    [DbFunction("st_z")]
+    public static Double ST_Z(Geometry geometry) => throw new NotImplementedException();
+
     public static JsonDocument ParseGeoJsonSafely(string geoJson)
     {
         if (string.IsNullOrEmpty(geoJson)) return null;
