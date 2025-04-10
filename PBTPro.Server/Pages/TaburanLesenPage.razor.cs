@@ -26,6 +26,7 @@ using System.Reflection;
 using DevExpress.XtraRichEdit.API.Layout;
 using DevExpress.XtraRichEdit.Import.Html;
 using DevExpress.DataAccess.Native.Web;
+using NetTopologySuite.Index.HPRtree;
 
 
 namespace PBTPro.Pages
@@ -566,9 +567,8 @@ namespace PBTPro.Pages
             //====================================
 
             var item = (view_premis_detail)itemData;
-            LatLngLiteral LatLng = new LatLngLiteral { Lat = 1.001, Lng = 1.002 };
-
-            ////await PremiseLocation(item.premis_geom.);
+            //LatLngLiteral LatLng = new LatLngLiteral { Lat = item.premis_latitude, Lng = item.premis_longitude };
+            //await PremiseLocation(new LatLngLiteral { Lat = item.premis_geom.. premis_latitude, Lng = item.premis_longitude });
             //NavigationManager.NavigateTo("/reportnotis?nolesen=" + item.NoLesen, false);
         }
 
