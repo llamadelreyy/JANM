@@ -23,6 +23,8 @@ public partial class view_premis_detail
     public string? premis_gkeseluruh { get; set; }
 
     public Point? premis_geom { get; set; }
+    //public double premis_longitude { get; set; }
+    //public double premis_latitude { get; set; }
 
     public int? tax_status_id { get; set; }
 
