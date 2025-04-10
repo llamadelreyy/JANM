@@ -157,7 +157,7 @@
             ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
             GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
             HighlightRowOnHover="true"
-            CssClass="mv-1000">
+            CssClass="mv-600">
 
                 <Columns>
                     <DxGridDataColumn Caption="Ref. No" MinWidth="120" Width="20%" FieldName="ref_no" />
@@ -180,7 +180,7 @@
                 </Columns>
                 @*This is to count the summary*@
                 <TotalSummary>
-                    <DxGridSummaryItem FooterColumnName="Name"
+                    <DxGridSummaryItem FooterColumnName="ref_no"
                                        Name="Custom"
                                        SummaryType=GridSummaryItemType.Count />
                 </TotalSummary>
@@ -226,6 +226,7 @@
 
     async Task ShowNotis(string headerdtl, string _accNo)
     {
+        _dtDataTaburan = new List<taburan_view>();
         _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         string requestUrl = $"/api/Notices/GetNoticeListByTaxAccNo/{_accNo}";
         var response = await _ApiConnector.ProcessLocalApi(requestUrl);
@@ -238,7 +239,6 @@
                 var noticeRoot = JsonConvert.DeserializeObject<List<NoticeRoot>>(dataString);
                 var result = new NoticeRoot();
                 result = noticeRoot.FirstOrDefault();
-                _dtDataTaburan = new List<taburan_view>();
                 _totalRec = result.total_records;
 
                 foreach (var _dt in result.notice_lists)
@@ -271,7 +271,7 @@
 
     async Task ShowCompound(string headerdtl, string _accNo)
     {
-
+        _dtDataTaburan = new List<taburan_view>();
         _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         string requestUrl = $"/api/Compounds/GetCompoundListByTaxAccNo/{_accNo}";
         // string requestUrl = $"/api/Compounds/GetCompoundListByLicenseAccNo/L01010114436620149";
@@ -285,7 +285,7 @@
                 var cmpdRoot = JsonConvert.DeserializeObject<List<CompoundRoot>>(dataString);
                 var result = new CompoundRoot();
                 result = cmpdRoot.FirstOrDefault();
-                _dtDataTaburan = new List<taburan_view>();
+                
                 _totalRec = result.total_records;
 
                 foreach (var _dt in result.compound_lists)
@@ -318,7 +318,7 @@
 
     async Task ShowConfiscation(string headerdtl, string _accNo)
     {
-
+        _dtDataTaburan = new List<taburan_view>();
         _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         string requestUrl = $"/api/Confiscations/GetConfiscationListByTaxAccNo/{_accNo}";
         // string requestUrl = $"/api/Confiscations/GetConfiscationListByLicenseAccNo/L01010114436620149";
@@ -332,7 +332,6 @@
                 var confiscationRoot = JsonConvert.DeserializeObject<List<ConfiscationRoot>>(dataString);
                 var result = new ConfiscationRoot();
                 result = confiscationRoot.FirstOrDefault();
-                _dtDataTaburan = new List<taburan_view>();
                 _totalRec = result.total_records;
 
                 foreach (var _dt in result.confiscation_lists)
@@ -365,7 +364,7 @@
 
     async Task ShowInspection(string headerdtl, string _accNo)
     {
-
+        _dtDataTaburan = new List<taburan_view>();
         _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         string requestUrl = $"/api/Inspections/GetInspectionListByTaxAccNo/{_accNo}";
         // string requestUrl = $"/api/Inspections/GetInspectionListByLicenseAccNo/L01010114436620149";
@@ -379,7 +378,6 @@
                 var inspectionRoot = JsonConvert.DeserializeObject<List<InspectionRoot>>(dataString);
                 var result = new InspectionRoot();
                 result = inspectionRoot.FirstOrDefault();
-                _dtDataTaburan = new List<taburan_view>();
                 _totalRec = result.total_records;
 
                 foreach (var _dt in result.inspection_lists)
