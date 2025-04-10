@@ -525,9 +525,8 @@ namespace PBTPro.Api.Controllers
                     premis_floor = x.premis_floor,
                     premis_lot = x.premis_lot,
                     premis_gkeseluruh = x.premis_gkeseluruh,
-                    premis_geom = PostGISFunctions.ParseGeoJsonSafely(
-                        PostGISFunctions.ST_AsGeoJSON(x.premis_geom)
-                    ),
+                    premis_longitude = PostGISFunctions.ST_X(x.premis_geom),
+                    premis_latitude = PostGISFunctions.ST_Y(x.premis_geom),
                     //tax data
                     tax_status_id = x.tax_status_id,
                     tax_status_view = x.tax_status_view,
