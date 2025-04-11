@@ -172,6 +172,8 @@ namespace PBTPro.Api.Controllers
                             recipient_icno = InputModel.recipient_icno,
                             recipient_telno = InputModel.recipient_telno,
                             recipient_addr = InputModel.recipient_addr,
+                            //2025-04-11 - add field for relationshipation_id,
+                            recipient_relation_id = InputModel.recipient_relation_id,
                         };
 
                         #region receipient signature
@@ -374,6 +376,9 @@ namespace PBTPro.Api.Controllers
                         compound.recipient_telno = InputModel.recipient_telno;
                         compound.recipient_addr = InputModel.recipient_addr;
 
+                        //2025-04-11 - add field for relationship
+                        compound.recipient_relation_id = InputModel.recipient_relation_id;
+
                         #region receipient signature
                         //2025-04-08 - added new field
                         if (InputModel.recipient_sign != null)
@@ -550,7 +555,7 @@ namespace PBTPro.Api.Controllers
                     {
                         endDate = startDate;
                     }
-                    initQuery = initQuery.Where(x=> x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initQuery = initQuery.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
                 }
 
                 initQuery = initQuery.Where(x => x.creator_id == UserId);
@@ -1000,14 +1005,14 @@ namespace PBTPro.Api.Controllers
                     .ToDictionary(rla => rla.act_code, rla => rla.act_name);
 
                 var lawSections = (await _dbContext.ref_law_sections
-                    .Where(rls => rls.section_code != null) 
+                    .Where(rls => rls.section_code != null)
                     .Select(rls => new { rls.section_code, rls.section_name })
                     .AsNoTracking()
                     .ToListAsync())
                     .ToDictionary(rls => rls.section_code, rls => rls.section_name);
 
                 var lawUuks = (await _dbContext.ref_law_uuks
-                    .Where(rlu => rlu.uuk_code != null) 
+                    .Where(rlu => rlu.uuk_code != null)
                     .Select(rlu => new { rlu.uuk_code, rlu.uuk_name })
                     .AsNoTracking()
                     .ToListAsync())
@@ -1030,7 +1035,7 @@ namespace PBTPro.Api.Controllers
                     .AsNoTracking()
                     .ToListAsync())
                     .GroupBy(tw => tw.trn_id)
-                    .ToDictionary(g => g.Key, g => g.Select(tw => tw.name).ToList());              
+                    .ToDictionary(g => g.Key, g => g.Select(tw => tw.name).ToList());
 
                 var users = (await _dbContext.Users
                     .Select(u => new { u.IdNo, u.full_name })
@@ -1044,7 +1049,7 @@ namespace PBTPro.Api.Controllers
                     .ToListAsync())
                     .GroupBy(img => img.trn_cmpd_id)
                     .ToDictionary(g => g.Key, g => g.Select(img => img.pathurl).Distinct().ToList());
-               
+
 
                 var results = tenantCmpds.Select(tc =>
                 {
@@ -1082,7 +1087,7 @@ namespace PBTPro.Api.Controllers
                         no_rujukan = tc.cmpd_ref_no,
                         amaun = (double)tc.amt_cmpd,
                         status_bayaran_id = (int)tc.trnstatus_id,
-                        status_bayaran = tenantStatuses.FirstOrDefault(s => s.status_id == tc.trnstatus_id)?.status_name, 
+                        status_bayaran = tenantStatuses.FirstOrDefault(s => s.status_id == tc.trnstatus_id)?.status_name,
                         kod_kesalahan = offense,
                         akta_kesalahan = law ?? "",
                         kod_seksyen = section ?? "",
@@ -1109,7 +1114,7 @@ namespace PBTPro.Api.Controllers
             {
                 _logger.LogError($"{_feature} Message: {ex.Message}, Inner Exception: {ex.InnerException}");
                 return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, "Maaf berlaku ralat yang tidak dijangka. Sila hubungi pentadbir sistem atau cuba semula kemudian."));
-            }            
+            }
         }
 
         [HttpPut("{Id}")]
