@@ -30,6 +30,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? recipient_icno { get; set; }
         public string? recipient_telno { get; set; }
         public string? recipient_addr { get; set; }
+        public int? recipient_relation_id { get; set; }
         public IFormFile? recipient_sign { get; set; }
     }
 

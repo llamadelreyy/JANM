@@ -115,6 +115,8 @@ public partial class trn_cmpd
 
     public string? recipient_sign { get; set; }
 
+    public int? recipient_relation_id { get; set; }
+
     public virtual ref_deliver? deliver { get; set; }
 
     public virtual mst_patrol_schedule? schedule { get; set; }

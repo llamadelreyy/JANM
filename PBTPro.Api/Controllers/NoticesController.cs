@@ -165,6 +165,8 @@ namespace PBTPro.Api.Controllers
                             recipient_icno = InputModel.recipient_icno,
                             recipient_telno = InputModel.recipient_telno,
                             recipient_addr = InputModel.recipient_addr,
+                            //2025-04-11 - add field for relationship
+                            recipient_relation_id = InputModel.recipient_relation_id,
                         };
 
                         #region receipient signature
@@ -365,6 +367,9 @@ namespace PBTPro.Api.Controllers
                         notice.recipient_icno = InputModel.recipient_icno;
                         notice.recipient_telno = InputModel.recipient_telno;
                         notice.recipient_addr = InputModel.recipient_addr;
+
+                        //2025-04-11 - add field for relationship
+                        notice.recipient_relation_id = InputModel.recipient_relation_id;
 
                         #region receipient signature
                         //2025-04-08 - added new field
@@ -1446,7 +1451,8 @@ namespace PBTPro.Api.Controllers
                                                   $"boleh memindah dan menahan halangan sehingga belanja dibayar kepada pihak Majlis di bawah {ticketASUO.ref_law_section.section_name} Akta yang sama.";
 
 
-                                    table.Cell().PaddingBottom(5).Text(text => {
+                                    table.Cell().PaddingBottom(5).Text(text =>
+                                    {
                                         text.Justify();
                                         text.Span(message);
                                     });
