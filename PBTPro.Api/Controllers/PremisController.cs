@@ -359,8 +359,8 @@ namespace PBTPro.Api.Controllers
 
                 foreach (var rawJD in rawJDs
                 .OrderBy(x => string.IsNullOrEmpty(x.jnLicTax.floor_building) ? 1 : (char.IsLetter(x.jnLicTax.floor_building.Trim().FirstOrDefault()) ? 0 : 1))
-                .ThenBy(x => new string(x.jnLicTax.floor_building.TakeWhile(char.IsLetter).ToArray()))
-                .ThenBy(x => GetNumericPart(x.jnLicTax.floor_building))
+                //.ThenBy(x => new string(x.jnLicTax.floor_building.TakeWhile(char.IsLetter).ToArray()))
+                //.ThenBy(x => GetNumericPart(x.jnLicTax.floor_building))
                 //.OrderBy(x => x.jnLicTax.floor_building)
                 .ThenBy(x => x.jnLicTax.license_premis_tax_id)
                 )
