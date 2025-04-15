@@ -181,6 +181,8 @@ namespace PBTPro.Api.Controllers
                             recipient_icno = InputModel.recipient_icno,
                             recipient_telno = InputModel.recipient_telno,
                             recipient_addr = InputModel.recipient_addr,
+                            //2025-04-11 - add field for relationship
+                            recipient_relation_id = InputModel.recipient_relation_id,
                         };
 
                         #region receipient signature
@@ -423,6 +425,8 @@ namespace PBTPro.Api.Controllers
                         confiscation.recipient_icno = InputModel.recipient_icno;
                         confiscation.recipient_telno = InputModel.recipient_telno;
                         confiscation.recipient_addr = InputModel.recipient_addr;
+                        //2025-04-11 - add field for relationship
+                        confiscation.recipient_relation_id = InputModel.recipient_relation_id;
 
                         #region receipient signature
                         //2025-04-08 - added new field
@@ -1309,11 +1313,12 @@ namespace PBTPro.Api.Controllers
                                     });
 
 
-                                    var message = "Jika tiada tuntutan dalam tempoh 1 bulan, barang-barang BTMM akan dilupuskan oleh pihak Majlis, "+
-                                                  "manakala bagi barang-barang BMM pula pihak Majlis akan melupuskan dalam tempoh masa yang munsabah sekiranya "+
+                                    var message = "Jika tiada tuntutan dalam tempoh 1 bulan, barang-barang BTMM akan dilupuskan oleh pihak Majlis, " +
+                                                  "manakala bagi barang-barang BMM pula pihak Majlis akan melupuskan dalam tempoh masa yang munsabah sekiranya " +
                                                   "tiada sebarang tuntutan dibuat.";
 
-                                    table.Cell().PaddingBottom(5).Text(text => {
+                                    table.Cell().PaddingBottom(5).Text(text =>
+                                    {
                                         text.Justify();
                                         text.Span(message);
                                     });
@@ -1391,9 +1396,9 @@ namespace PBTPro.Api.Controllers
                                                 columns.RelativeColumn();
                                             });
 
-                                            if(btmmItems.Count > 0)
+                                            if (btmmItems.Count > 0)
                                             {
-                                                foreach(var item in btmmItems)
+                                                foreach (var item in btmmItems)
                                                 {
                                                     table.Cell().AlignRight().Text($"{item.invInfo.inv_name} - {item.itemInfo.cnt_item}");
                                                 }

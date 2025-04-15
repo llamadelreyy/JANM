@@ -1569,6 +1569,7 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.recipient_name).HasMaxLength(50);
             entity.Property(e => e.recipient_sign).HasMaxLength(255);
             entity.Property(e => e.recipient_telno).HasMaxLength(12);
+            entity.Property(e => e.recipient_relation_id);
             entity.Property(e => e.scen_id).HasComment("Scenario that happened during confiscation (e.g., Pemilik Tidak Dijumpai, linked to a reference ref_cfsc_scenarios table.");
             entity.Property(e => e.section_code).HasColumnType("character varying");
             entity.Property(e => e.tax_accno)
@@ -1726,6 +1727,7 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.recipient_name).HasMaxLength(50);
             entity.Property(e => e.recipient_sign).HasMaxLength(255);
             entity.Property(e => e.recipient_telno).HasMaxLength(12);
+            entity.Property(e => e.recipient_relation_id);
             entity.Property(e => e.section_code).HasColumnType("character varying");
             entity.Property(e => e.tax_accno).HasColumnType("character varying");
             entity.Property(e => e.trnstatus_id)
@@ -1919,6 +1921,7 @@ public partial class PBTProTenantDbContext : DbContext
             entity.Property(e => e.recipient_name).HasMaxLength(50);
             entity.Property(e => e.recipient_sign).HasMaxLength(255);
             entity.Property(e => e.recipient_telno).HasMaxLength(12);
+            entity.Property(e => e.recipient_relation_id);
             entity.Property(e => e.section_code).HasColumnType("character varying");
             entity.Property(e => e.tax_accno)
                 .HasMaxLength(40)
