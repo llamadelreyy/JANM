@@ -139,7 +139,7 @@ namespace PBTPro.Api.Controllers
                                         taxStatus = taxStatus
                                     };
 
-                var mst_premis = await queryWithJoin
+                var mst_premis = await queryWithJoin.Where(x => x.jnLicTax != null)
                 .OrderBy(x => x.licStatus.priority == x.taxStatus.priority ? x.licStatus.priority : Math.Min(x.licStatus.priority, x.taxStatus.priority))
                 .ThenBy(x => x.licStatus.priority == x.taxStatus.priority ? 0 : (x.licStatus.priority < x.taxStatus.priority ? 0 : 1))
                 .Select(x => new PremisMarkerViewModel
@@ -244,7 +244,7 @@ namespace PBTPro.Api.Controllers
                     .ThenBy(x => x.licStatus.priority == x.taxStatus.priority ? 0 : (x.licStatus.priority < x.taxStatus.priority ? 0 : 1));
                 }
 
-                var mst_premisList = await queryWithJoin
+                var mst_premisList = await queryWithJoin.Where(x => x.jnLicTax != null)
                 .Select(x => new
                 {
                     codeid_premis = x.Premis.codeid_premis,
