@@ -56,9 +56,9 @@ namespace PBTPro.Api.Controllers
                 if (string.IsNullOrEmpty(type))
                 {
                     initQuery = from mlpt in _tenantDBContext.mst_license_premis_taxes
-                            join ml in _tenantDBContext.mst_licensees on mlpt.license_accno equals ml.license_accno into mlJoin
+                            join ml in _tenantDBContext.mst_licensees on mlpt.licensee_id equals ml.licensee_id into mlJoin
                             from ml in mlJoin.DefaultIfEmpty()
-                            join mt in _tenantDBContext.mst_taxholders on mlpt.tax_accno equals mt.tax_accno into mtJoin
+                            join mt in _tenantDBContext.mst_taxholders on mlpt.taxholder_id equals mt.taxholder_id into mtJoin
                             from mt in mtJoin.DefaultIfEmpty()
                             join mol in _tenantDBContext.mst_owner_licensees on ml.owner_icno equals mol.owner_icno into molJoin
                             from mol in molJoin.DefaultIfEmpty()
@@ -377,9 +377,9 @@ namespace PBTPro.Api.Controllers
                 var initQuery = from mlpt in _tenantDBContext.mst_license_premis_taxes
                                 join mp in _tenantDBContext.mst_premis on mlpt.codeid_premis equals mp.codeid_premis into mpJoin
                                 from mp in mpJoin.DefaultIfEmpty()
-                                join ml in _tenantDBContext.mst_licensees on mlpt.license_accno equals ml.license_accno into mlJoin
+                                join ml in _tenantDBContext.mst_licensees on mlpt.licensee_id equals ml.licensee_id into mlJoin
                                 from ml in mlJoin.DefaultIfEmpty()
-                                join mt in _tenantDBContext.mst_taxholders on mlpt.tax_accno equals mt.tax_accno into mtJoin
+                                join mt in _tenantDBContext.mst_taxholders on mlpt.taxholder_id equals mt.taxholder_id into mtJoin
                                 from mt in mtJoin.DefaultIfEmpty()
                                 join mol in _tenantDBContext.mst_owner_licensees on ml.owner_icno equals mol.owner_icno into molJoin
                                 from mol in molJoin.DefaultIfEmpty()
