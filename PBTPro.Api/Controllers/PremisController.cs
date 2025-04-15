@@ -323,13 +323,13 @@ namespace PBTPro.Api.Controllers
                 var queryWithJoin = from mlpt in _tenantDBContext.mst_license_premis_taxes
                                     where mlpt.codeid_premis == premisInfo.codeid_premis
                                     join license in _tenantDBContext.mst_licensees
-                                    on mlpt.license_accno equals license.license_accno into licenseGroup
+                                    on mlpt.licensee_id equals license.licensee_id into licenseGroup
                                     from license in licenseGroup.DefaultIfEmpty()
                                     join licOwner in _tenantDBContext.mst_owner_licensees
                                     on license.owner_icno equals licOwner.owner_icno into licOwnerGroup
                                     from licOwner in licOwnerGroup.DefaultIfEmpty()
                                     join tax in _tenantDBContext.mst_taxholders
-                                    on mlpt.tax_accno equals tax.tax_accno into taxGroup
+                                    on mlpt.taxholder_id equals tax.taxholder_id into taxGroup
                                     from tax in taxGroup.DefaultIfEmpty()
                                     join taxOwner in _tenantDBContext.mst_owner_premis
                                     on tax.owner_icno equals taxOwner.owner_icno into taxOwnerGroup

@@ -115,6 +115,8 @@ public partial class trn_notice
 
     public string? recipient_sign { get; set; }
 
+    public int? recipient_relation_id { get; set; }
+
     public virtual ref_deliver? deliver { get; set; }
 
     public virtual ref_notice_duration? duration { get; set; }
