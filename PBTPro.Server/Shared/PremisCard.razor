@@ -88,22 +88,8 @@
                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
                         <td style="width:100%;"></td>
                     </tr>
-@*                     <tr>
-                        <td colspan="3"><div class="e-status">@GetStatusIconHtml(PremisInfo.status_lesen_id ?? 0)</div></td>
-                    </tr> *@
                 </table>
-@*                 <div class="e-name">No. Lot : @($"{PremisInfo.license.lot}")</div>
-                <div class="e-name">No. SSM : @($"{PremisInfo.license.ssm_no}")</div>
-                <div class="e-name">No. Lesen : @($"{PremisInfo.license.license_accno}")</div>
-                <div class="e-name"> : </div>
-                <div class="e-name">Nama Perniagaan : </div>
-                <div class="e-name">Alamat : </div>
-                <div class="e-divider my-3"></div>
-                <div class="e-name">Nama Pemegang Lesen : @($"{PremisInfo.license_owner.owner_name} - ({PremisInfo.license_owner.owner_icno})")</div>
-                <div class="e-name">Alamat : @($"{PremisInfo.license_owner.owner_addr}")</div>
 
-                <div class="e-status">@GetStatusIconHtml(PremisInfo.status_lesen_id ?? 0)</div> *@
-                @* <div class="e-divider my-3"></div> *@
 
                 List<ImageFile> lesenImg = new List<ImageFile>();
 
@@ -285,6 +271,7 @@
             PageSizeSelectorAllRowsItemVisible="true"
             PagerAutoHideNavButtons="false"
             ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            CustomizeElement="Grid_CustomizeElement"
             GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
             HighlightRowOnHover="true"
             CssClass="mv-600">
@@ -561,6 +548,14 @@
     public async Task OpenNewStreetWindow(string latitude, string longitude)
     {
         await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,0,0,0,0", "_blank");
+    }
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType == GridElementType.SearchBoxContainer)
+        {
+            e.Style = "Width: 100%";
+        }
     }
 
     void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)

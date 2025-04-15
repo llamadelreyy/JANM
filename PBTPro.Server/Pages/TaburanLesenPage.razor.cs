@@ -60,8 +60,8 @@ namespace PBTPro.Pages
 
         //Premis data
         IEnumerable<dynamic> premisData;
-        IEnumerable<view_premis_detail> searchData;
-        IEnumerable<(view_premis_detail, int)> Items;
+        IEnumerable<general_search_premis_detail> searchData;
+        //IEnumerable<(general_search_premis_detail, int)> Items;
         IEnumerable<(premis_license_tax_view, int)> premisItem;
         premis_view premisInfo;
 
@@ -566,9 +566,11 @@ namespace PBTPro.Pages
             }
             //====================================
 
-            var item = (view_premis_detail)itemData;
+            var item = (general_search_premis_detail)itemData;
+            double premisLat = item.premis_latitude ?? 0;
+            double premisLong = item.premis_longitude ?? 0;
             //LatLngLiteral LatLng = new LatLngLiteral { Lat = item.premis_latitude, Lng = item.premis_longitude };
-            //await PremiseLocation(new LatLngLiteral { Lat = item.premis_geom.. premis_latitude, Lng = item.premis_longitude });
+            await PremiseLocation(new LatLngLiteral { Lat = premisLat, Lng = premisLong });
             //NavigationManager.NavigateTo("/reportnotis?nolesen=" + item.NoLesen, false);
         }
 
@@ -600,7 +602,7 @@ namespace PBTPro.Pages
 
             markerSearch.Push(marker);
             await this.map1.InteropObject.SetCenter(premisePos);
-            await this.map1.InteropObject.SetZoom(21);
+            await this.map1.InteropObject.SetZoom(17);
 
             //Set the animation
             if (!markerSearch.Any())
@@ -620,6 +622,11 @@ namespace PBTPro.Pages
         //        await windowRef.ShowAtAsync(popupTarget);
         //}
 
+        void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+        {
+            if (e.Item.Name == "Custom")
+                e.DisplayText = string.Format("Bil. : {0}", e.Value);
+        }
 
         public void Dispose()
         {

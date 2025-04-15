@@ -1171,7 +1171,7 @@ img.dxbl-image {
 .chart-title {
     font-weight: bold;
     color: #666;
-    font-size: 1rem;
+    font-size: 0.85rem;
     letter-spacing: 0.08rem;
     text-transform: uppercase;
     position: relative;
@@ -1491,6 +1491,18 @@ label {
     font-size: 0.8rem !important;
     letter-spacing: 0.02rem !important;
 }
+
+.layout_search td {
+
+    letter-spacing: 0.02rem;
+    font-size: 0.8rem !important;
+    text-transform: uppercase;
+}
+
+.layout_search tr {
+    padding: 10px 0;
+}
+
 
 .text-container, .dxbl-accordion-item-text, .dxbl-text {
     font-size: 0.85rem !important;

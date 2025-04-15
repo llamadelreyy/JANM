@@ -64,9 +64,10 @@
                 ShowSearchBox="true"
                 EditorRenderMode="GridEditorRenderMode.Integrated"
                 FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                PageSize="100"
+                PageSize="100000"
                 SearchBoxNullText="Masukkan kata carian..."
                 SearchTextParseMode="GridSearchTextParseMode.GroupWordsByAnd"
+                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
                 PageSizeSelectorVisible="false"
                 PageSizeSelectorAllRowsItemVisible="true"
                 PagerAutoHideNavButtons="true"
@@ -87,24 +88,24 @@
                         <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Pin pada peta"><img src="images/icons-small/marker.png" /></a>
                     </CellDisplayTemplate>
                 </DxGridCommandColumn>
-                    <DxGridDataColumn Caption="No Lot" MinWidth="80" Width="8%" FieldName="premis_lot" SortIndex="0" />
-                    <DxGridDataColumn Caption="Tingkat" MinWidth="80" Width="8%" FieldName="premis_floor" />
+                    <DxGridDataColumn Caption="No Lot" MinWidth="120" Width="12%" FieldName="premis_lot" SortIndex="0" />
+                    <DxGridDataColumn Caption="Tingkat" MinWidth="100" Width="10%" FieldName="premis_floor" TextAlignment="GridTextAlignment.Center"  />
                     <DxGridDataColumn Caption="No SSM" MinWidth="130" Width="13%" FieldName="license_ssmno" />
-                    <DxGridDataColumn Caption="No Akaun Lesen" MinWidth="130" Width="13%" FieldName="license_accno" />
+                    <DxGridDataColumn Caption="No Akaun Lesen" MinWidth="150" Width="15%" FieldName="license_accno" />
                     <DxGridDataColumn Caption="Status Lesen" MinWidth="150" Width="15%" FieldName="license_status_view" />
 
-                    <DxGridDataColumn Caption="Nama Pemegang Lesen" MinWidth="130" Width="13%" FieldName="license_owner_name" />
+                    <DxGridDataColumn Caption="Nama Pemegang Lesen" MinWidth="170" Width="17%" FieldName="license_owner_name" />
                     <DxGridDataColumn Caption="No Kad Pengenalan" MinWidth="130" Width="13%" FieldName="license_owner_icno" />
                     <DxGridDataColumn Caption="Alamat Pemegang Lesen" MinWidth="230" Width="23%" FieldName="license_owner_addess" />
-                    <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="160" Width="16%" FieldName="license_business_name" />
+                    <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="200" Width="20%" FieldName="license_business_name" />
                     <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="230" Width="23%" FieldName="license_business_address" />
                     <DxGridDataColumn Caption="Tempoh" MinWidth="100" Width="10%" FieldName="license_duration" TextAlignment="GridTextAlignment.Center" />
                     <DxGridDataColumn Caption="Tarikh Mula" MinWidth="120" Width="12%" FieldName="license_start_date" TextAlignment="GridTextAlignment.Center" />
                     <DxGridDataColumn Caption="Tarikh Tamat" MinWidth="120" Width="12%" FieldName="license_end_date" TextAlignment="GridTextAlignment.Center" />
-                    <DxGridDataColumn Caption="Jenis Lesen" MinWidth="130" Width="13%" FieldName="license_type" />
-                    <DxGridDataColumn Caption="Amaun (RM)" MinWidth="130" Width="13%" FieldName="license_type" TextAlignment="GridTextAlignment.Right" />
+                    <DxGridDataColumn Caption="Jenis Lesen" MinWidth="300" Width="30%" FieldName="license_type" />
+                    <DxGridDataColumn Caption="Amaun (RM)" MinWidth="120" Width="12%" FieldName="license_total_amount" TextAlignment="GridTextAlignment.Right" />
 
-                    <DxGridDataColumn Caption="Nama Pemilik" MinWidth="130" Width="13%" FieldName="tax_owner_name" />
+                    <DxGridDataColumn Caption="Nama Pemilik" MinWidth="170" Width="17%" FieldName="tax_owner_name" />
                     <DxGridDataColumn Caption="No Kad Pengenalan" MinWidth="130" Width="13%" FieldName="tax_owner_icno" />
                     <DxGridDataColumn Caption="Alamat Pemilik" MinWidth="230" Width="23%" FieldName="tax_owner_addess" />
                     <DxGridDataColumn Caption="Alamat Cukai" MinWidth="230" Width="23%" FieldName="tax_address" />
@@ -115,7 +116,7 @@
 
             @*This is to count the summary*@
             <TotalSummary>
-                <DxGridSummaryItem FooterColumnName="NoLot"
+                    <DxGridSummaryItem FooterColumnName="premis_lot"
                                    Name="Custom"
                                    SummaryType=GridSummaryItemType.Count />
             </TotalSummary>
@@ -146,7 +147,7 @@
 
         <tr style="height:35px;">
             <td colspan="3">
-                <b>@OutPutValue</b>
+@*                 <b>@OutPutValue</b> *@
             </td>
         </tr>
         <tr class="buttonTapis">
@@ -243,15 +244,17 @@
 
                         if (premisInfo != null)
                         {
-                            //Need to check how many floor
-                            foreach (var _dtPremis in premisInfo.premis_license_tax)
+                            if (premisInfo.premis_license_tax != null)
                             {
-                                if (!_floorPremis.Contains(_dtPremis.floor_building.ToString()))
+                                //Need to check how many floor
+                                foreach (var _dtPremis in premisInfo.premis_license_tax)
                                 {
-                                    _floorPremis.Add(_dtPremis.floor_building.ToString());
+                                    if (!_floorPremis.Contains(_dtPremis.floor_building.ToString()))
+                                    {
+                                        _floorPremis.Add(_dtPremis.floor_building.ToString());
+                                    }
                                 }
                             }
-
                         }
 
                         //Count the list to get how many floor
@@ -273,8 +276,20 @@
                             <Carousel imageset="@AssetImages" CssClass="col-12"></Carousel>
                         </div>
                     }
-
-                if (valueType == 1)
+                
+                if (valueType == 0)
+                {
+                    <div class="tbRightPane-tab" style="align-content:center;">
+                        <table style="height:100%;padding: 0px 10px;">
+                            <tr style="height:50px;"><td colspan="2"></td></tr>
+                            <tr>
+                                <td><img src="/images/icons/information.png"/></td>
+                                <td style="padding:4px 5px 0px 5px;"><span style="font-size: 1rem;letter-spacing: 0.08rem;text-transform: uppercase;font-weight: bold;">Maaf! Tiada Rekod Untuk Dipaparkan.</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                }
+                else if (valueType == 1)
                 {
 
                     <div class="tbRightPane-tab">
@@ -404,7 +419,6 @@
                         </DxTabs>
                     </div>
 
-                   
                 }
                 else if (valueType == 2)
                 {
@@ -568,8 +582,6 @@
 
                                                             </Items>
                                                         </DxAccordion>
-
-
 
                                                     </div>
                                                 </ContentTemplate>
