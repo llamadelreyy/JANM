@@ -156,6 +156,7 @@
             PageSizeSelectorAllRowsItemVisible="true"
             PagerAutoHideNavButtons="false"
             ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                CustomizeElement="Grid_CustomizeElement"
             GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
             HighlightRowOnHover="true"
             CssClass="mv-600">
@@ -450,6 +451,14 @@
     //     _valueTaburan = (taburan_view)context.DataItem;
     //     await JSRuntime.InvokeVoidAsync("open", _valueTaburan.doc_pathurl, "_blank");
     // }
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType == GridElementType.SearchBoxContainer)
+        {
+            e.Style = "Width: 100%";
+        }
+    }
 
     void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
     {

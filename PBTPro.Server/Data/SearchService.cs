@@ -57,9 +57,9 @@ namespace PBTPro.Data
             RoleID = _PBTAuthStateProvider.CurrentUser.Roleid;
         }
 
-        public async Task<List<view_premis_detail>> GetListPremisDetails(int? maxResult = null, int? page = 1)
+        public async Task<List<general_search_premis_detail>> GetListPremisDetails(int? maxResult = null, int? page = 1)
         {
-            var result = new List<view_premis_detail>();
+            var result = new List<general_search_premis_detail>();
 
             try
             {
@@ -77,7 +77,7 @@ namespace PBTPro.Data
                     string? dataString = response?.Data?.ToString();
                     if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        result = JsonConvert.DeserializeObject<List<view_premis_detail>>(dataString);
+                        result = JsonConvert.DeserializeObject<List<general_search_premis_detail>>(dataString);
                     }
                     await _cf.CreateAuditLog((int)AuditType.Information, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, "Carian maklumat premis.", LoggerID, LoggerName, GetType().Name, RoleID);
                 }
@@ -89,7 +89,7 @@ namespace PBTPro.Data
             catch (Exception ex)
             {
                 await _cf.CreateAuditLog((int)AuditType.Error, GetType().Name + " - " + MethodBase.GetCurrentMethod().Name, ex.Message, LoggerID, LoggerName, GetType().Name, RoleID);
-                result = new List<view_premis_detail>();
+                result = new List<general_search_premis_detail>();
             }
             return result;
         }
