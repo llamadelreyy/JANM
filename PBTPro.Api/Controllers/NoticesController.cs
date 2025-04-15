@@ -1291,6 +1291,7 @@ namespace PBTPro.Api.Controllers
                 var Fullpath = Path.Combine(UploadPath, Filename);
                 string Pathurl = await getViewUrl(record);
                 #region Massage Data
+                #region Main Ticket Data
                 var initQuery = _tenantDBContext.trn_notices
                                 .Where(t => t.trn_notice_id == record.trn_notice_id)
                                 .GroupJoin(
@@ -1312,6 +1313,16 @@ namespace PBTPro.Api.Controllers
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
                                     (jd, rnd) => new { jd.trn_notice, jd.ref_deliver, ref_notice_duration = rnd, mst_licensee = (mst_licensee)null, mst_taxtholder = (mst_taxholder)null, mst_owner = (mst_owner)null }
+                                )
+                                .GroupJoin(
+                                    _tenantDBContext.ref_relationships,
+                                    t => t.trn_notice.recipient_relation_id,
+                                    d => d.relation_id,
+                                    (jd, gd) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, gd }
+                                )
+                                .SelectMany(
+                                    jd => jd.gd.DefaultIfEmpty(),
+                                    (jd, rnd) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, ref_relationship = rnd, mst_licensee = (mst_licensee)null, mst_taxtholder = (mst_taxholder)null, mst_owner = (mst_owner)null }
                                 );
 
                 if (record.is_tax == true)
@@ -1321,21 +1332,21 @@ namespace PBTPro.Api.Controllers
                                     _tenantDBContext.mst_taxholders,
                                     t => t.trn_notice.tax_accno,
                                     d => d.tax_accno,
-                                    (t, gd) => new { t.trn_notice, t.ref_deliver, t.ref_notice_duration, gd }
+                                    (t, gd) => new { t.trn_notice, t.ref_deliver, t.ref_notice_duration, t.ref_relationship, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, mth) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, mst_licensee = (mst_licensee)null, mst_taxtholder = mth }
+                                    (jd, mth) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, jd.ref_relationship, mst_licensee = (mst_licensee)null, mst_taxtholder = mth }
                                 )
                                 .GroupJoin(
                                     _tenantDBContext.mst_owner_premis,
                                     t => t.mst_taxtholder.owner_icno,
                                     d => d.owner_icno,
-                                    (t, gd) => new { t.trn_notice, t.ref_deliver, t.ref_notice_duration, t.mst_licensee, t.mst_taxtholder, gd }
+                                    (t, gd) => new { t.trn_notice, t.ref_deliver, t.ref_notice_duration, t.ref_relationship, t.mst_licensee, t.mst_taxtholder, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, mto) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, jd.mst_licensee, jd.mst_taxtholder, mst_owner = (mst_owner)mto }
+                                    (jd, mto) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, jd.ref_relationship, jd.mst_licensee, jd.mst_taxtholder, mst_owner = (mst_owner)mto }
                                 );
                 }
                 else
@@ -1345,21 +1356,21 @@ namespace PBTPro.Api.Controllers
                                     _tenantDBContext.mst_licensees,
                                     t => t.trn_notice.license_id,
                                     d => d.licensee_id,
-                                    (t, gd) => new { t.trn_notice, t.ref_deliver, t.ref_notice_duration, gd }
+                                    (t, gd) => new { t.trn_notice, t.ref_deliver, t.ref_notice_duration, t.ref_relationship, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, mli) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, mst_licensee = mli, mst_taxtholder = (mst_taxholder)null }
+                                    (jd, mli) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, jd.ref_relationship, mst_licensee = mli, mst_taxtholder = (mst_taxholder)null }
                                 )
                                 .GroupJoin(
                                     _tenantDBContext.mst_owner_licensees,
                                     t => t.mst_licensee.owner_icno,
                                     d => d.owner_icno,
-                                    (t, gd) => new { t.trn_notice, t.ref_deliver, t.ref_notice_duration, t.mst_licensee, t.mst_taxtholder, gd }
+                                    (t, gd) => new { t.trn_notice, t.ref_deliver, t.ref_notice_duration, t.ref_relationship, t.mst_licensee, t.mst_taxtholder, gd }
                                 )
                                 .SelectMany(
                                     jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, mto) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, jd.mst_licensee, jd.mst_taxtholder, mst_owner = (mst_owner)mto }
+                                    (jd, mto) => new { jd.trn_notice, jd.ref_deliver, jd.ref_notice_duration, jd.ref_relationship, jd.mst_licensee, jd.mst_taxtholder, mst_owner = (mst_owner)mto }
                                 );
                 }
 
@@ -1367,40 +1378,85 @@ namespace PBTPro.Api.Controllers
                                 .AsNoTracking()
                                 .FirstOrDefaultAsync();
 
+                byte[]? receipient_sign_byte = null;
+                if (!string.IsNullOrWhiteSpace(record.recipient_sign))
+                {
+                    var filename = Path.GetFileName(record.recipient_sign);
+                    var receipient_sign_path = Path.Combine(UploadPath, filename);
+                    receipient_sign_byte = GetPhysicalFileByte(receipient_sign_path);
+                }
+                #endregion
 
-                var ticketASUO = await _dbContext.ref_law_offenses
-                                .Where(t => t.offense_code == record.offense_code)
-                                .GroupJoin(
-                                    _dbContext.ref_law_acts,
-                                    t => t.act_code,
-                                    d => d.act_code,
-                                    (t, gd) => new { t, gd }
-                                )
-                                .SelectMany(
-                                    jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, rla) => new { ref_law_offense = jd.t, ref_law_act = rla }
-                                )
-                                .GroupJoin(
-                                    _dbContext.ref_law_sections,
-                                    t => t.ref_law_offense.section_code,
-                                    d => d.section_code,
-                                    (t, gd) => new { t.ref_law_offense, t.ref_law_act, gd }
-                                )
-                                .SelectMany(
-                                    jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, rls) => new { jd.ref_law_offense, jd.ref_law_act, ref_law_section = rls }
-                                ).GroupJoin(
-                                    _dbContext.ref_law_uuks,
-                                    t => t.ref_law_offense.uuk_code,
-                                    d => d.uuk_code,
-                                    (t, gd) => new { t.ref_law_offense, t.ref_law_act, t.ref_law_section, gd }
-                                )
-                                .SelectMany(
-                                    jd => jd.gd.DefaultIfEmpty(),
-                                    (jd, rlu) => new { jd.ref_law_offense, jd.ref_law_act, jd.ref_law_section, ref_law_uuk = rlu }
-                                )
-                                .AsNoTracking()
-                                .FirstOrDefaultAsync();
+                #region Akta/Seksyen/UUK/KEsalahan
+                ref_law_offense? LawOffcense = null;
+                ref_law_uuk? LawUUK = null;
+                ref_law_section? LawSection = null;
+                ref_law_act? LawAct = null;
+
+                if (!string.IsNullOrWhiteSpace(record.offense_code))
+                {
+                    LawOffcense = await _dbContext.ref_law_offenses.FirstOrDefaultAsync(x => x.offense_code == record.offense_code);
+                    if (LawOffcense != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(LawOffcense.uuk_code))
+                        {
+                            LawUUK = await _dbContext.ref_law_uuks.FirstOrDefaultAsync(x => x.uuk_code == LawOffcense.uuk_code);
+                        }
+                        if (!string.IsNullOrWhiteSpace(LawOffcense.section_code))
+                        {
+                            LawSection = await _dbContext.ref_law_sections.FirstOrDefaultAsync(x => x.section_code == LawOffcense.section_code);
+                        }
+                        if (!string.IsNullOrWhiteSpace(LawOffcense.act_code))
+                        {
+                            LawAct = await _dbContext.ref_law_acts.FirstOrDefaultAsync(x => x.act_code == LawOffcense.act_code);
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(record.uuk_code) && LawUUK == null)
+                {
+                    LawUUK = await _dbContext.ref_law_uuks.FirstOrDefaultAsync(x => x.uuk_code == record.uuk_code);
+                    if (LawUUK != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(LawUUK.section_code))
+                        {
+                            LawSection = await _dbContext.ref_law_sections.FirstOrDefaultAsync(x => x.section_code == LawUUK.section_code);
+                        }
+                        if (!string.IsNullOrWhiteSpace(LawUUK.act_code))
+                        {
+                            LawAct = await _dbContext.ref_law_acts.FirstOrDefaultAsync(x => x.act_code == LawUUK.act_code);
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(record.section_code) && LawSection == null)
+                {
+                    LawSection = await _dbContext.ref_law_sections.FirstOrDefaultAsync(x => x.section_code == record.section_code);
+                    if (LawSection != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(LawSection.act_code))
+                        {
+                            LawAct = await _dbContext.ref_law_acts.FirstOrDefaultAsync(x => x.act_code == LawSection.act_code);
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(record.act_code) && LawAct == null)
+                {
+                    LawAct = await _dbContext.ref_law_acts.FirstOrDefaultAsync(x => x.act_code == record.act_code);
+                }
+
+                var ticketASUO = new
+                {
+                    ref_law_offense = LawOffcense,
+                    ref_law_uuk = LawUUK,
+                    ref_law_section = LawSection,
+                    ref_law_act = LawAct
+                };
+
+                string aktaKesalahan = ticketASUO?.ref_law_uuk != null ? $"{ticketASUO?.ref_law_uuk?.uuk_code} {ticketASUO?.ref_law_uuk?.uuk_description}" : $"{ticketASUO?.ref_law_act?.act_code} {ticketASUO?.ref_law_act?.act_description}";
+                string kodKesalahan = $"{ticketASUO?.ref_law_section?.section_name} {ticketASUO?.ref_law_offense?.offense_name}";
+                #endregion
                 #endregion
 
                 var document = Document.Create(container =>
@@ -1424,14 +1480,14 @@ namespace PBTPro.Api.Controllers
 
                                     if (tenantInfo?.tn_photo_byte?.Length > 0)
                                     {
-                                        table.Cell().AlignCenter().PaddingBottom(5).Height(30).Image(tenantInfo.tn_photo_byte).FitArea();
+                                        table.Cell().AlignCenter().PaddingBottom(5).Height(30).Image(tenantInfo?.tn_photo_byte).FitArea();
                                     }
                                     else
                                     {
                                         table.Cell().AlignCenter().Height(30).Text($"   ").FontSize(4).Underline().Bold();
                                     }
 
-                                    table.Cell().AlignCenter().PaddingBottom(5).Text($"{tenantInfo.tn_name.ToUpper()}").FontSize(4);
+                                    table.Cell().AlignCenter().PaddingBottom(5).Text($"{tenantInfo?.tn_name?.ToUpper()}").FontSize(4);
                                     table.Cell().AlignCenter().PaddingBottom(5).Text($"NOTIS PEMBERITAHUAN KESALAHAN").FontSize(4).Underline().Bold();
                                 });
 
@@ -1444,11 +1500,11 @@ namespace PBTPro.Api.Controllers
 
 
                                     var message = "Dimaklumkan bahawa hasil pemeriksaan yang dijalankan mendapati tuan/puan telah melakukan kesalahan " +
-                                                  $"di bawah {ticketASUO.ref_law_uuk.uuk_name ?? ticketASUO.ref_law_act.act_name} iaitu {ticketASUO.ref_law_offense.offense_name} " +
+                                                  $"di bawah {ticketASUO?.ref_law_uuk?.uuk_name ?? ticketASUO?.ref_law_act?.act_name} iaitu {ticketASUO?.ref_law_offense?.offense_name} " +
                                                   "yang dikeluarkan oleh Pihak Berkuasa Melesen di lokasi kejadian seperti alamat di atas.\r\n\r\n" +
                                                   "Kegagalan tuan/puan mematuhi arahan di atas, boleh didenda sebanyak RM500.00 (Ringgit Malaysia Lima Ratus " +
                                                   "sahaja) atau kali kemudiannya denda sebanyak RM1,000.00 (Ringgit Malaysia Seribu) atau pihak Majlis " +
-                                                  $"boleh memindah dan menahan halangan sehingga belanja dibayar kepada pihak Majlis di bawah {ticketASUO.ref_law_section.section_name} Akta yang sama.";
+                                                  $"boleh memindah dan menahan halangan sehingga belanja dibayar kepada pihak Majlis di bawah {ticketASUO?.ref_law_section?.section_name} Akta yang sama.";
 
 
                                     table.Cell().PaddingBottom(5).Text(text =>
@@ -1457,8 +1513,7 @@ namespace PBTPro.Api.Controllers
                                         text.Span(message);
                                     });
 
-
-                                    table.Cell().PaddingBottom(5).PaddingLeft(2).AlignLeft().Text($"MAKLUMAT PENERIMA").Bold();
+                                    table.Cell().PaddingBottom(5).AlignLeft().Text($"MAKLUMAT PEMILIK").Bold();
 
                                     table.Cell().PaddingBottom(5).Table(table =>
                                     {
@@ -1468,30 +1523,30 @@ namespace PBTPro.Api.Controllers
                                             columns.RelativeColumn();
                                         });
 
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Nama Pemilik :");
-                                        table.Cell().AlignRight().Text($"{ticketDet.mst_owner.owner_name}");
+                                        table.Cell().AlignLeft().Text("Nama :");
+                                        table.Cell().AlignLeft().Text($"{ticketDet?.mst_owner?.owner_name}");
 
                                         if (record.is_tax != true)
                                         {
-                                            table.Cell().PaddingLeft(5).AlignLeft().Text("Nama Syarikat :");
-                                            table.Cell().AlignRight().Text($"{ticketDet.mst_licensee.business_name}");
-                                            table.Cell().PaddingLeft(5).AlignLeft().Text("No. Syarikat :");
-                                            table.Cell().AlignRight().Text($"{ticketDet.mst_licensee.ssm_no}");
-                                            table.Cell().PaddingLeft(5).AlignLeft().AlignMiddle().Text("Alamat :");
-                                            table.Cell().AlignRight().AlignMiddle().Text($"{ticketDet.mst_licensee.business_addr}");
+                                            table.Cell().AlignLeft().Text("Nama Syarikat :");
+                                            table.Cell().AlignLeft().Text($"{ticketDet?.mst_licensee?.business_name}");
+                                            table.Cell().AlignLeft().Text("No. Syarikat :");
+                                            table.Cell().AlignLeft().Text($"{ticketDet?.mst_licensee?.ssm_no}");
+                                            table.Cell().AlignLeft().AlignMiddle().Text("Alamat :");
+                                            table.Cell().AlignLeft().AlignMiddle().Text($"{ticketDet?.mst_licensee?.business_addr}");
                                         }
                                         else
                                         {
-                                            table.Cell().PaddingLeft(5).AlignLeft().Text("No K/P :");
-                                            table.Cell().AlignRight().Text($"{ticketDet.mst_owner.owner_icno}");
-                                            table.Cell().PaddingLeft(5).AlignLeft().Text("No Telefon :");
-                                            table.Cell().AlignRight().Text($"{ticketDet.mst_owner.owner_telno}");
-                                            table.Cell().PaddingLeft(5).AlignLeft().AlignMiddle().Text("Alamat :");
-                                            table.Cell().AlignRight().AlignMiddle().Text($"{ticketDet.mst_taxtholder.alamat}");
+                                            table.Cell().AlignLeft().Text("No K/P :");
+                                            table.Cell().AlignLeft().Text($"{ticketDet?.mst_owner?.owner_icno}");
+                                            table.Cell().AlignLeft().Text("No Telefon :");
+                                            table.Cell().AlignLeft().Text($"{ticketDet?.mst_owner?.owner_telno}");
+                                            table.Cell().AlignLeft().AlignMiddle().Text("Alamat :");
+                                            table.Cell().AlignLeft().AlignMiddle().Text($"{ticketDet?.mst_taxtholder?.alamat}");
                                         }
                                     });
 
-                                    table.Cell().PaddingBottom(5).PaddingLeft(2).AlignLeft().Text($"MAKLUMAT KESALAHAN").Bold();
+                                    table.Cell().PaddingBottom(5).AlignLeft().Text($"MAKLUMAT KESALAHAN").Bold();
 
 
                                     table.Cell().PaddingBottom(5).Table(table =>
@@ -1502,29 +1557,89 @@ namespace PBTPro.Api.Controllers
                                             columns.RelativeColumn();
                                         });
 
-                                        string aktaKesalahan = ticketASUO.ref_law_uuk != null ? $"{ticketASUO.ref_law_uuk.uuk_code} {ticketASUO.ref_law_uuk.uuk_description}" : $"{ticketASUO.ref_law_act.act_code} {ticketASUO.ref_law_act.act_description}";
+                                        table.Cell().AlignLeft().Text("No Rujukan Notis :");
+                                        table.Cell().AlignLeft().Text($"{record.notice_ref_no ?? "-"}");
+                                        table.Cell().AlignLeft().Text("Tarikh & Masa :");
+                                        table.Cell().AlignLeft().Text($"{record.created_at?.ToString("dd/MM/yyyy hh:mm:ss tt")}");
+                                        //table.Cell().PaddingLeft(5).AlignLeft().Text("Akta Kesalahan:");
+                                        //table.Cell().AlignRight().Text($"{aktaKesalahan}");
+                                        //table.Cell().PaddingLeft(5).AlignLeft().Text("Kod Kesalahan :");
+                                        //table.Cell().AlignRight().Text($"{kodKesalahan}");
+                                        //table.Cell().PaddingLeft(5).AlignLeft().Text("Butir-Butir Kesalahan :");
+                                        //table.Cell().AlignRight().Text($"{ticketASUO.ref_law_offense.offense_description}");
+                                        table.Cell().AlignLeft().Text("Tempoh Notis :");
+                                        table.Cell().AlignLeft().Text($"{ticketDet?.ref_notice_duration?.duration_value}");
+                                        table.Cell().AlignLeft().Text("Cara Penyerahan :");
+                                        table.Cell().AlignLeft().Text($"{ticketDet?.ref_deliver?.deliver_name}");
+                                        table.Cell().AlignLeft().Text("Arahan :");
+                                        string[] instructions = record.instruction.Split('|');
+                                        if (instructions?.Length > 0)
+                                        {
+                                            int i = 0;
+                                            foreach (var instruction in instructions)
+                                            {
+                                                if (i > 0)
+                                                {
+                                                    table.Cell().AlignLeft().Text("");
+                                                }
 
-                                        string kodKesalahan = $"{ticketASUO.ref_law_section.section_name} {ticketASUO.ref_law_offense.offense_name}";
-
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("No Rujukan Notis :");
-                                        table.Cell().AlignRight().Text($"{record.notice_ref_no}");
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Tarikh & Masa :");
-                                        table.Cell().AlignRight().Text($"{record.created_at?.ToString("dd/MM/yyyy hh:mm:ss tt")}");
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Akta Kesalahan:");
-                                        table.Cell().AlignRight().Text($"{aktaKesalahan}");
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Kod Kesalahan :");
-                                        table.Cell().AlignRight().Text($"{kodKesalahan}");
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Butir-Butir Kesalahan :");
-                                        table.Cell().AlignRight().Text($"{ticketASUO.ref_law_offense.offense_description}");
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Tempoh Notis :");
-                                        table.Cell().AlignRight().Text($"{ticketDet.ref_notice_duration.duration_value}");
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Arahan :");
-                                        table.Cell().AlignRight().Text($"{record.instruction}");
-                                        table.Cell().PaddingLeft(5).AlignLeft().Text("Cara Penyerahan :");
-                                        table.Cell().AlignRight().Text($"{ticketDet.ref_deliver.deliver_name}");
+                                                table.Cell().AlignLeft().Text($"{instruction}");
+                                                i++;
+                                            }
+                                        }
                                     });
 
-                                    table.Cell().PaddingTop(5).AlignLeft().Text("_________________________________");
+
+                                    if (tenantInfo?.tn_signature_byte?.Length > 0)
+                                    {
+                                        table.Cell().AlignLeft().PaddingLeft(5).Height(20).Image(tenantInfo?.tn_signature_byte).FitArea();
+                                    }
+                                    else
+                                    {
+                                        table.Cell().AlignLeft().Height(30).Text($"   ").FontSize(4).Underline().Bold();
+                                    }
+
+                                    table.Cell().AlignLeft().Text("_________________________________");
+                                    table.Cell().AlignLeft().Text("(PENGARAH UNDANG-UNDANG)");
+                                    table.Cell().AlignLeft().Text("JABATAN UNDANG-UNDANG");
+                                    table.Cell().AlignLeft().Text("b.p DATUK BANDAR");
+                                    table.Cell().PaddingBottom(5).AlignLeft().Text($"{tenantInfo?.tn_name?.ToUpper()}");
+
+
+
+                                    table.Cell().PaddingBottom(5).AlignLeft().Text($"MAKLUMAT PENERIMA").Bold();
+
+                                    table.Cell().PaddingBottom(5).Table(table =>
+                                    {
+                                        table.ColumnsDefinition(columns =>
+                                        {
+                                            columns.RelativeColumn();
+                                            columns.RelativeColumn();
+                                        });
+
+                                        table.Cell().AlignLeft().Text("Nama :");
+                                        table.Cell().AlignLeft().Text($"{record.recipient_name}");
+                                        table.Cell().AlignLeft().Text("No K/P :");
+                                        table.Cell().AlignLeft().Text($"{record.recipient_icno}");
+                                        table.Cell().AlignLeft().Text("No Telefon :");
+                                        table.Cell().AlignLeft().Text($"{record.recipient_telno}");
+                                        table.Cell().AlignLeft().AlignMiddle().Text("Alamat :");
+                                        table.Cell().AlignLeft().AlignMiddle().Text($"{record.recipient_addr}");
+                                        table.Cell().AlignLeft().AlignMiddle().Text("Hubungan :");
+                                        table.Cell().AlignLeft().AlignMiddle().Text($"{ticketDet?.ref_relationship?.relation_name}");
+
+                                    });
+
+                                    if (receipient_sign_byte?.Length > 0)
+                                    {
+                                        table.Cell().AlignLeft().PaddingLeft(5).Height(20).Image(receipient_sign_byte).FitArea();
+                                    }
+                                    else
+                                    {
+                                        table.Cell().AlignLeft().Height(30).Text($"   ").FontSize(4).Underline().Bold();
+                                    }
+
+                                    table.Cell().AlignLeft().Text("_________________________________");
                                     table.Cell().AlignLeft().Text("(TANDATANGAN PENERIMA)");
 
                                 });
