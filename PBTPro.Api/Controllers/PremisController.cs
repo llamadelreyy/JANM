@@ -71,7 +71,7 @@ namespace PBTPro.Api.Controllers
                                         taxStatus = taxStatus
                                     };
 
-                var mst_premis = await queryWithJoin
+                var mst_premis = await queryWithJoin.Where(x => x.jnLicTax != null)
                 .Select(x => new PremisMarkerViewModel
                 {
                     codeid_premis = x.Premis.codeid_premis,
