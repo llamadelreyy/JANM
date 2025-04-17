@@ -2,14 +2,25 @@
 @attribute [AllowAnonymous]
 
 @using System.Drawing
+@using PBTPro
+@using PBTPro.Shared
+@using PBTPro.Data
+@using PBTPro.DAL
+@using PBTPro.DAL.Models
+@using PBTPro.DAL.Services
+@using PBTPro.DAL.Models.CommonServices
+@using DevExpress.Blazor
+@using PBTPro.DAL.Models.PayLoads
+
+@inject DashboardService _DashboardService
 
 <div class="d-lg-flex border-bottom">
-    <div class="textTitle p-2"><a onclick="history.back();" class="nav-title">Ringkasan Eksekutif</a><span class="nav-subPage">/Perincian Jumlah Lesen Aktif</span></div>
+    <div class="textTitle p-2"><a onclick="history.back();" class="nav-title">Ringkasan Eksekutif</a><span class="nav-subPage">/Perincian Lesen</span></div>
 </div>
 
 <div class="item-container-y">
     <div class="w-100 row borderGraph">
-        <span class="chart-title">Jumlah Lesen Mengikut Status Terkini</span>
+        <span class="chart-title">Jumlah Premis Mengikut Status Lesen Terkini</span>
         <div class="col-9" style="justify-items:center;">
 
             <DxPieChart Data="@GetData()"
@@ -57,37 +68,16 @@
 
 
     <div class="w-100 row borderGraph">
-        <span class="chart-title">Jumlah Lesen Aktif Mengikut Kawasan Dari Tahun 2021 - 2023</span>
+        <span class="chart-title">Jumlah Status Rondaan Premis @DateTime.Now.Year.ToString()</span>
         <div class="col-9 mt-3" style="justify-items:center;">
 
-            <DxChart Data="@GetArea()" CssClass="mw-1100">
+            <DxChart Data="@GetArea()" BarGroupWidth="50" Width="100%">
 
-    @*             <DxChartTooltip Enabled="true" Position="RelativePosition.Outside" /> *@
-
-                <DxChartBarSeries Name="2021"
+                <DxChartBarSeries Name="@DateTime.Now.Year.ToString()"
                                   T="DataArea"
                                   TArgument="string"
                                   TValue="int"
-                                  Filter="@((DataArea s) => s.Year == 2021)"
-                                  Color="Color.Red"
-                                  SummaryMethod="Enumerable.Sum"
-                                  ArgumentField="@(s => s.City)"
-                                  ValueField="@(s => s.Total)" />
-                <DxChartBarSeries Name="2022"
-                                  T="DataArea"
-                                  TArgument="string"
-                                  TValue="int"
-                                  Filter="@((DataArea s) => s.Year == 2022)"
                                   Color="Color.Orange"
-                                  SummaryMethod="Enumerable.Sum"
-                                  ArgumentField="@(s => s.City)"                                  
-                                  ValueField="@(s => s.Total)" />
-                <DxChartBarSeries Name="2023"
-                                  T="DataArea"
-                                  TArgument="string"
-                                  TValue="int"
-                                  Filter="@((DataArea s) => s.Year == 2023)"
-                                  Color="Color.Green"
                                   SummaryMethod="Enumerable.Sum"
                                   ArgumentField="@(s => s.City)"
                                   ValueField="@(s => s.Total)" />
@@ -96,39 +86,15 @@
                 <DxChartTooltip Enabled="true"
                                 Position="RelativePosition.Outside">
                     <div style="margin: 0.75rem">
-                        <div class="fw-bold chart-tooltip">@context.Point.Argument</div>
-                        <div class="chart-tooltip">Tahun: @context.Point.SeriesName</div>
-                        <div class="chart-tooltip">Jumlah: @($"{context.Point.Value:N0}")</div>
+                        <div class="fw-bold chart-tooltip">@context.Point.Argument : @($"{context.Point.Value:N0}")</div>
                     </div>
                 </DxChartTooltip>
             </DxChart>
         </div>
-        <div class="col" style="border-left:1px solid #ccc;">
-            <div class="card border-0 w-100 mt-lg-3">
-                <div class="card-body p-1">
-                    <div class="palette-container">
-                        <div class="p-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><rect width="15" height="15" x="5" y="7" rx="1" ry="1" fill="Red" /></svg>
-                            <span class="chart-legend">2021</span>
-                        </div>
-
-                        <div class="p-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><rect width="15" height="15" x="5" y="7" rx="1" ry="1" fill="Orange" /></svg>
-                            <span class="chart-legend">2022</span>
-                        </div>
-
-                        <div class="p-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><rect width="15" height="15" x="5" y="7" rx="1" ry="1" fill="Green" /></svg>
-                            <span class="chart-legend">2023</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
 
-    <div class="item-container-y">
+    @* <div class="item-container-y">
         <div class="w-100 row borderGraph">
             <span class="chart-title">Jumlah Lesen Aktif Mengikut Jenis Lesen</span>
             <div class="col-9" style="justify-items:center;">
@@ -161,7 +127,6 @@
                 <div class="card border-0 w-100 mt-lg-3">
                     <div class="card-body p-1">
                         <div class="palette-container">
-                            @* @for (int i = 0; i < Colors.Length; i++) *@
                             @foreach (var data in GetLesenType())
                             {
                                 var color = Colors[data.No];
@@ -175,27 +140,35 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>*@
 
-</div>
+</div> 
 
 @code {
-    string[] Colors = new string[] { "green", "red", "orange", "chartreuse", "blue", "grey", "purple", "chocolate", "saddlebrown", "burlywood" };
-    // ChartPaletteExtensionMode CurrentPaletteMode = ChartPaletteExtensionMode.Alternate;
 
-    // double[] Values = new double[] { 90.27, 65.32, 84.59, 81.86, 9 };
-    // string LabelFormat = "##.#'%' ";
-    // string[] LegendItemCaptions = new string[] { "Lesen Aktif", "Lesen Tamat Tempoh", "Lesen Batal", "Gantung", "Lot Kosong" };
+    dashboard_view dtSource = new dashboard_view();
+    dashboard_view dtFinancial = new dashboard_view();
+
+    string[] Colors = new string[] { "green", "red", "orange", "chartreuse", "blue", "grey", "purple", "chocolate", "saddlebrown", "burlywood" };
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (dtSource != null)
+            dtSource = await _DashboardService.GetDashboardData();
+
+        dtFinancial = await _DashboardService.GetFinancialDashboard();
+
+        DataLoadedTcs.TrySetResult(true);
+    }
 
 
     List<DataPoint> GetData()
     {
         List<DataPoint> result = new List<DataPoint>();
-        result.Add(new DataPoint("Lesen Aktif", 70, 0));
-        result.Add(new DataPoint("Lesen Tamat Tempoh", 23, 1));
-        result.Add(new DataPoint("Lesen Batal", 7, 2));
-        result.Add(new DataPoint("Lesen Gantung", 0, 3));
-        result.Add(new DataPoint("Lot Kosong", 3, 4));
+        result.Add(new DataPoint("Premis Berlesen", dtSource.premis_berlesen, 0));
+        result.Add(new DataPoint("Premis Lesen Tamat Tempoh", dtSource.premis_tamat_tempoh_lesen, 1));
+        result.Add(new DataPoint("Premis Tidak Berlesen", dtSource.premis_tiada_lesen, 2));
 
         return result;
     }
@@ -216,18 +189,11 @@
     List<DataArea> GetArea()
     {
         List<DataArea> result = new List<DataArea>();
-        result.Add(new DataArea("Sabak Bernam", 70, 2021));
-        result.Add(new DataArea("Sabak Bernam", 23, 2022));
-        result.Add(new DataArea("Sabak Bernam", 89, 2023));
+        result.Add(new DataArea("Premis Diperiksa", dtSource.premis_diperiksa, DateTime.Now.Year));
 
-        result.Add(new DataArea("Sungai Besar", 33, 2021));
-        result.Add(new DataArea("Sungai Besar", 45, 2022));
-        result.Add(new DataArea("Sungai Besar", 67, 2023));
+        result.Add(new DataArea("Premis Dikenakan Tindakan", dtSource.premis_dikenakan_tindakan, DateTime.Now.Year));
 
-        result.Add(new DataArea("Hulu Selangor", 13, 2021));
-        result.Add(new DataArea("Hulu Selangor", 38, 2022));
-        result.Add(new DataArea("Hulu Selangor", 95, 2023));
-
+        result.Add(new DataArea(" Premis Dilawati", dtSource.total_premis_dilawat ?? 0, DateTime.Now.Year));
 
         return result;
     }
@@ -245,32 +211,32 @@
         }
     }
 
-    List<DataType> GetLesenType()
-    {
-        List<DataType> result = new List<DataType>();
-        result.Add(new DataType(0, "Lesen Premis", 2154));
-        result.Add(new DataType(1, "Lesen Kantin Sekolah", 113));
-        result.Add(new DataType(2, "Lesen Komposit Premis & Papan Tanda", 300));
-        result.Add(new DataType(3, "Lesen Hotel Dan Asrama", 30));
-        result.Add(new DataType(4, "Lesen Haiwan Peliharaan", 1123));
-        result.Add(new DataType(5, "Lesen Kantin Kilang", 56));
-        result.Add(new DataType(6, "Lesen Papan Tanda", 389));
-        result.Add(new DataType(7, "Lain-Lain Perniagaan", 130));
+    // List<DataType> GetLesenType()
+    // {
+    //     List<DataType> result = new List<DataType>();
+    //     result.Add(new DataType(0, "Lesen Premis", 2154));
+    //     result.Add(new DataType(1, "Lesen Kantin Sekolah", 113));
+    //     result.Add(new DataType(2, "Lesen Komposit Premis & Papan Tanda", 300));
+    //     result.Add(new DataType(3, "Lesen Hotel Dan Asrama", 30));
+    //     result.Add(new DataType(4, "Lesen Haiwan Peliharaan", 1123));
+    //     result.Add(new DataType(5, "Lesen Kantin Kilang", 56));
+    //     result.Add(new DataType(6, "Lesen Papan Tanda", 389));
+    //     result.Add(new DataType(7, "Lain-Lain Perniagaan", 130));
 
-        return result;
-    }
+    //     return result;
+    // }
 
-    public class DataType
-    {
-        public int No { get; set; }
-        public string Type { get; set; }
-        public int Total { get; set; }
-        public DataType(int index, string argument, int value)
-        {
-            No = index;
-            Type = argument;
-            Total = value;
-        }
-    }
+    // public class DataType
+    // {
+    //     public int No { get; set; }
+    //     public string Type { get; set; }
+    //     public int Total { get; set; }
+    //     public DataType(int index, string argument, int value)
+    //     {
+    //         No = index;
+    //         Type = argument;
+    //         Total = value;
+    //     }
+    // }
 
 }

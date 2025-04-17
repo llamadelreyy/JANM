@@ -1,5 +1,5 @@
 ﻿@page "/lapor_notis"
-@attribute [AllowAnonymous]
+@attribute [Authorize]
 
 @using System.Globalization
 @using PBTPro.Data
@@ -17,8 +17,8 @@
 
 <style>
     .dxbl-grid {
-        height: 79vh;
-        max-height: 79vh;
+        height: 83.5vh;
+        max-height: 83.5vh;
     }
 </style>
 
@@ -34,7 +34,7 @@ else
                     IndicatorAreaVisible="false"
                     Text="Capaian Data...">
 
-        <div class="d-lg-flex border-bottom mb-2">
+        <div class="d-lg-flex border-bottom">
             <div class="col-md-12 py-1 dx-helptitle pageTitle">
                 <img class="imgTitle" src="/images/icons-small/document-template.png" />
                 <div class="textTitle">Pelaporan - Laporan Notis</div>
@@ -45,9 +45,9 @@ else
            @*  <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
                 <DxTab Text="Notis Lesen (8)"></DxTab>
                 <DxTab Text="Notis Pelbagai (5)"></DxTab>
-            </DxTabs> *@
+            </DxTabs>
 
-            <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />
+        <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />*@
 
             <DxGrid @ref="Grid"
                     Data="dtSource"
@@ -60,6 +60,7 @@ else
                     ShowSearchBox="true"
                     AllowSelectRowByClick="true"
                     @bind-SearchText="@GridSearchText"
+                    SearchBoxNullText="Masukkan kata carian..."
                     PageSize="25"
                     @bind-PageIndex="@GridPageIndex"
                     PagerPosition="GridPagerPosition.Bottom"
@@ -89,13 +90,14 @@ else
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
                     <DxGridDataColumn Caption="No Rujukan" MinWidth="130" Width="13%" FieldName="no_rujukan" />
-                    <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="no_lesen">
+@*                     <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="no_lesen">
                         <CellDisplayTemplate>
                             <div>
                                 @CombineText(((trn_notices_view)context.DataItem).no_lesen, ((trn_notices_view)context.DataItem).nama_perniagaan)
                             </div>
                         </CellDisplayTemplate>
-                    </DxGridDataColumn>
+                    </DxGridDataColumn> *@
+                    <DxGridDataColumn Caption="No Lesen" MinWidth="150" Width="15%" FieldName="no_lesen" />
                     <DxGridDataColumn Caption="Nama Pemilik" MinWidth="200" Width="20%" FieldName="nama_pemilik" />
                     <DxGridDataColumn Caption="Nama Pegawai" MinWidth="200" Width="20%" FieldName="nama_pegawai" />
                     <DxGridDataColumn Caption="Tarikh Tamat & Tempoh Notis" MinWidth="150" Width="15%" FieldName="tarikh_tamat" AllowGroup="false" TextAlignment="GridTextAlignment.Center">
@@ -105,7 +107,7 @@ else
                     </DxGridDataColumn>
                     <DxGridDataColumn Caption="Status Notis" MinWidth="150" Width="15%" FieldName="status_notis" TextAlignment="GridTextAlignment.Center">
                         <CellDisplayTemplate>
-                            <div>@GetStatusNoticeIconHtml(((trn_notices_view)context.DataItem).status_notis, ((trn_notices_view)context.DataItem).status_notis_id)</div>
+                            @GetStatusNoticeIconHtml(((trn_notices_view)context.DataItem).status_notis, ((trn_notices_view)context.DataItem).status_notis_id)
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
                    @*  <DxGridDataColumn Caption="Tempoh Notis" MinWidth="200" Width="20%" FieldName="tempoh_notis">
@@ -116,6 +118,7 @@ else
                         </CellDisplayTemplate>
                     </DxGridDataColumn> *@
                     <DxGridDataColumn Caption="No Daftar Syarikat" MinWidth="150" Width="15%" FieldName="ssm_no" />
+                    <DxGridDataColumn Caption="Nama Perniagaan" MinWidth="200" Width="20%" FieldName="nama_perniagaan" />
                     <DxGridDataColumn Caption="Alamat Perniagaan" MinWidth="250" Width="20%" FieldName="alamat_perniagaan" />
                     <DxGridDataColumn Caption="Akta Kesalahan" MinWidth="250" Width="25%" FieldName="akta_kesalahan" />
                     <DxGridDataColumn Caption="Kod Kesalahan" MinWidth="250" Width="25%" FieldName="kod_kesalahan" />
@@ -160,99 +163,95 @@ else
                                         @dtData.TarikhData
                                     </td>
                                 </tr>
-                                <tr style="height:5px;"><td colspan="7"></td></tr>
-                                <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                                <tr style="height:10px;"><td colspan="7"></td></tr>
+                                <tr><td colspan="7"><hr style="height:0.08rem;background-color:#333;border:none;" /></td></tr>
                                 <tr style="height:25px;">
-                                    <td nowrap>No Lesen</td>
-                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td nowrap class="edit_title">No Lesen</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
                                     <td width="50%">
                                         @no_lesen
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
-                                    <td nowrap>No Daftar Syarikat</td>
-                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td nowrap class="edit_title">No Daftar Syarikat</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
                                     <td width="50%">
                                         @ssm_no
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
-                                    <td nowrap>Nama Pemilik</td>
-                                    <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7">
+                                    <td nowrap class="edit_title">Nama Pemilik</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="5">
                                         @nama_pemilik
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
-                                    <td nowrap>Nama Perniagaan</td>
-                                    <td>&nbsp;&nbsp;</td>
+                                    <td nowrap class="edit_title">Nama Perniagaan</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
                                     <td width="50%" colspan="5">
                                         @nama_perniagaan
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
-                                    <td nowrap >Alamat Perniagaan</td>
-                                    <td valign="top">&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7">
+                                    <td nowrap class="edit_title">Alamat Perniagaan</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
+                                    <td colspan="5">
                                         @alamat_perniagaan
                                     </td>
                                 </tr>
-                                <tr style="height:10px;"><td colspan="7"></td></tr>
-                                <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                                <tr style="height:10px;"><td colspan="7"></td></tr>
+                                <tr><td colspan="7"><hr style="height:0.05rem;background-color:#333;border:none;" /></td></tr>
                                 <tr style="height:25px;">
-                                    <td nowrap valign="top">Akta Kesalahan</td>
-                                    <td valign="top">&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7" valign="top">
+                                    <td nowrap class="edit_title">Akta Kesalahan</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
+                                    <td colspan="5">
                                         @akta_kesalahan
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
-                                    <td nowrap valign="top">Kod Kesalahan</td>
-                                    <td valign="top">&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7" valign="top">
+                                    <td nowrap class="edit_title">Kod Kesalahan</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
+                                    <td colspan="5">
                                         @kod_kesalahan
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
-                                    <td nowrap>Arahan</td>
-                                    <td>&nbsp;&nbsp;</td>
-                                    <td width="50%" colspan="7">
+                                    <td nowrap class="edit_title">Arahan</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
+                                    <td colspan="5">
                                         @dtData.arahan
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
-                                    <td nowrap>Lokasi Kesalahan</td>
-                                    <td>&nbsp;&nbsp;</td>
-                                    <td width="50%">
-                                        @dtData.lokasi_kesalahan
-                                    </td>
-                                    <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
-                                    <td nowrap>Nama Pegawai</td>
-                                    <td>&nbsp;&nbsp;</td>
-                                    <td width="50%">
+                                    <td nowrap class="edit_title">Nama Pegawai</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
+                                    <td colspan="5">
                                         @dtData.nama_pegawai
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
-                                    <td nowrap>Nama Saksi</td>
-                                    <td>&nbsp;&nbsp;</td>
-                                    <td width="50%">
+                                    <td nowrap class="edit_title">Nama Saksi</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
+                                    <td colspan="5">
                                         @nama_saksi
                                     </td>
-                                    <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
-                                    <td nowrap>Cara Serahan</td>
-                                    <td>&nbsp;&nbsp;</td>
-                                    <td width="50%">
+                                </tr>
+                                <tr style="height:25px;">
+                                    <td nowrap class="edit_title">Lokasi Kesalahan</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="5">
+                                        @dtData.lokasi_kesalahan
+                                    </td>
+                                </tr>
+                                <tr style="height:25px;">
+                                    <td nowrap class="edit_title">Cara Serahan</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
+                                    <td width="50%" colspan="5">
                                         @dtData.cara_serahan
                                     </td>
                                 </tr>
-                                <tr style="height:10px;"><td colspan="7"></td></tr>
-                                <tr style="height:1px;background-color:#ccc;"><td colspan="7"></td></tr>
-                                <tr style="height:10px;"><td colspan="7"></td></tr>
+                                <tr><td colspan="7"><hr style="height:0.08rem;background-color:#333;border:none;" /></td></tr>
                                 <tr style="height:25px;">
-                                    <td nowrap>Bukti</td>
-                                    <td>&nbsp;&nbsp;</td>
+                                    <td nowrap class="edit_title">Bukti</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
                                     <td width="50%" colspan="5">
                                         @if (dtData.imej_notis != null && dtData.imej_notis.Any())
                                         {
@@ -267,7 +266,7 @@ else
                                         }
                                     </td>
                                 </tr>
-                                <tr style="height:10px;"><td colspan="7"></td></tr>
+                                <tr><td colspan="7"><hr style="height:0.05rem;background-color:#333;border:none;" /></td></tr>
                                 @{
                                     var status = dtSource.Where(c => c.status_notis_id == dtData.status_notis_id).FirstOrDefault()?.status_notis_id;
                                     bool boolEnable = status != null && status != 3 && status != 5 && status != 8; //non-editable for : ditutup(3) , telah dibayar(5), dibatalkan(8)
@@ -276,9 +275,9 @@ else
                                         boolEnable = true;
                                 }
                                 <tr style="height:25px;">
-                                    <td nowrap>Status Notis</td>
-                                    <td nowrap>&nbsp;&nbsp;</td>
-                                    <td width="50%" valign="top">
+                                    <td nowrap class="edit_title">Status Notis</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
+                                    <td width="50%" valign="top" colspan="5">
                                         <DxComboBox Data="@dtTrnStatus"
                                                     NullText="Pilih Status Bayaran..."
                                                     ShowValidationIcon="true"
@@ -287,13 +286,14 @@ else
                                                     TextFieldName="status_name"
                                                     ValueFieldName="status_id"
                                                     Enabled="@boolEnable"
-                                                    CssClass="cw-320">
+                                                    CssClass="cw-320"
+                                                    style="width:250px;">
                                         </DxComboBox>
                                     </td>
                                 </tr>
                                 <tr style="height:25px;">
-                                    <td nowrap>Tempoh Notis</td>
-                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td nowrap class="edit_title">Tempoh Notis</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
                                     <td width="50%" valign="top">
                                         <DxComboBox Data="@dtDuration"
                                                     NullText="Pilih Tempoh Notis..."
@@ -304,14 +304,15 @@ else
                                                     ValueFieldName="duration_id"
                                                     CssClass="cw-320"
                                                     Enabled="@boolEnable"
+                                                    style="width:250px;"
                                                     SelectedItemChanged="@((ref_notice_duration x) => SelectedItemChanged(x))"
                                                     DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
                                                     @bind-Value="@dtData.tempoh_notis_id">
                                         </DxComboBox>
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
-                                    <td nowrap>Tarikh Tamat Notis</td>
-                                    <td nowrap>&nbsp;&nbsp;</td>
+                                    <td nowrap class="edit_title">Tarikh Tamat Notis</td>
+                                    <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
                                     @{
                                         string tarikh_tamat = dtData.tarikh_tamat.HasValue
                                         ? dtData.tarikh_tamat.Value.ToString("dd/MM/yyyy")
@@ -326,6 +327,7 @@ else
                                                    Maxlength="120"
                                                    ShowValidationIcon="true"
                                                    Enabled="false"
+                                                   style="width:150px;"
                                                    CssClass="cw-320" />
                                     </td>
                                 </tr>
@@ -580,7 +582,7 @@ else
             title = status.ToUpper();
         }
 
-        string html = string.Format("<span class='text-black badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
+        string html = string.Format("<span class='text-priority e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass,
         title);
         return new MarkupString(html);
     }
@@ -614,7 +616,7 @@ else
         // }
         if (e.ElementType == GridElementType.DataRow && e.Grid.GetRowValue(e.VisibleIndex, "status_notis_id").ToString() == "1")
         {
-            e.Style = "color: #000; background-color:#89dd85";
+            e.Style = "color: #000; background-color:#62F57D";
         }
     }
 
