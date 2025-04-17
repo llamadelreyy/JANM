@@ -78,7 +78,7 @@
                                     </p>
                                 </div>
                             </div>
-                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Kompaun</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
+                            <a href="graphcompound"><div class="panel-box-footer"><span class="pull-left">Perincian Kompaun</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
                         </div>
                     </div>
 
@@ -99,7 +99,7 @@
                                     </p>
                                 </div>
                             </div>
-                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Nota Pemeriksaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
+                            <a href="graphinspection"><div class="panel-box-footer"><span class="pull-left">Perincian Nota Pemeriksaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
                         </div>
                     </div>
 
@@ -121,7 +121,7 @@
                                     </p>
                                 </div>
                             </div>
-                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Sitaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
+                            <a href="graphconfiscation"><div class="panel-box-footer"><span class="pull-left">Perincian Sitaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
                         </div>
                     </div>
 
@@ -166,17 +166,14 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M21 21H3C2.44772 21 2 20.5523 2 20V12.4868C2 12.1978 2.12501 11.9229 2.34282 11.733L6 8.54435V4C6 3.44772 6.44772 3 7 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21ZM9 19H12V12.9416L8 9.45402L4 12.9416V19H7V15H9V19ZM14 19H20V5H8V7.12729C8.23444 7.12729 8.46888 7.20938 8.65718 7.37355L13.6572 11.733C13.875 11.9229 14 12.1978 14 12.4868V19ZM16 11H18V13H16V11ZM16 15H18V17H16V15ZM16 7H18V9H16V7ZM12 7H14V9H12V7Z"></path></svg>
                                     </div>
                                 </div>
-                                <div class="dashboard-wrap" style="width:50%;height:260px">
+                                <div class="dashboard-wrap" style="width:50%;height:200px">
                                     <div class="dashboard-center-text">
                                         <span class="totalinword">Bilangan Premis Perniagaan</span>
                                         <span class="totalinnumber">@dtFinancial.total_premis_perniagaan</span>
                                         <hr style="padding:0;margin:0;color:#fff" />
                                         <br />
-                                        <span class="totalallbig">Bilangan Premis Berlesen <i class="ri-arrow-right-fill"></i> @dtSource.premis_berlesen</span>
-                                        <span class="totalallbig">Bilangan Premis Lesen Tamat Tempoh <i class="ri-arrow-right-fill"></i> @dtSource.premis_tamat_tempoh_lesen</span>
                                         <span class="totalallbig">Bilangan Premis Diperiksa <i class="ri-arrow-right-fill"></i> @dtSource.premis_diperiksa</span>
                                         <span class="totalallbig">Bilangan Premis Dikenakan Tindakan <i class="ri-arrow-right-fill"></i> @dtSource.premis_dikenakan_tindakan</span>
-                                        <span class="totalallbig">Bilangan Premis Tidak Berlesen <i class="ri-arrow-right-fill"></i> @dtSource.premis_tiada_lesen</span>
                                         <span class="totalallbig">Bilangan Premis Dilawati <i class="ri-arrow-right-fill"></i> @dtSource.total_premis_dilawat</span>
                                         <span class="totalallbig">Bilangan Rondaan Dibuat <i class="ri-arrow-right-fill"></i> @dtSource.total_rondaan_dibuat</span>
                                     </div>
@@ -240,12 +237,12 @@
                                 </div>
                                 <div class="dashboard-wrap" style="width:50%;height:200px">
                                     <div class="dashboard-center-text">
-                                        <span class="totalinword">Bilangan Lesen Perniagaan</span>
-                                        <span class="totalinnumber">0</span>
+                                        <span class="totalinword">Bilangan Lesen Aktif</span>
+                                        <span class="totalinnumber">@dtFinancial.total_lesen_aktif</span>
                                         <hr style="padding:0;margin:0;color:#fff" />
                                         <br />
-                                        <span class="totalallbig">Bilangan Lesen Aktif <i class="ri-arrow-right-line"></i> @dtFinancial.total_lesen_aktif</span>
-                                        <span class="totalallbig">Bilangan Lesen Tamat Tempoh <i class="ri-arrow-right-line"></i> @dtFinancial.lesen_tamat_tempoh</span>
+                                        <span class="totalallbig">Bilangan Lesen Tamat Tempoh <i class="ri-arrow-right-line"></i> @dtSource.premis_tamat_tempoh_lesen</span>
+                                        <span class="totalallbig">Bilangan Premis Tidak Berlesen <i class="ri-arrow-right-fill"></i> @dtSource.premis_tiada_lesen</span>
                                         <span class="totalallbig">Pertambahan Lesen Tahun Semasa <i class="ri-arrow-right-line"></i> @dtFinancial.ptmbahan_lesen_thn_semasa</span>
                                         <span class="totalallbig">Bilangan Lesen Bulan Semasa <i class="ri-arrow-right-line"></i> @dtFinancial.ptmbahan_lesen_semasa</span>
                                     </div>

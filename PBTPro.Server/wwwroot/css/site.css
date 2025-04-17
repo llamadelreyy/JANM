@@ -1392,6 +1392,44 @@ label {
     }
 }
 
+.text-priority {
+    font-size: 0.65rem;
+    font-weight: bold;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+    color:#fff;
+}
+
+.e-priority-new {
+    border-radius: 3px 4px;
+    background-color: #1D90F5;
+}
+
+.e-priority-action {
+    border-radius: 3px 4px;
+    background-color: #ED9609;
+}
+
+.e-priority-close {
+    border-radius: 3px 4px;
+    background-color: #048F53;
+}
+
+.e-priority-check {
+    border-radius: 3px 4px;
+    background-color: #BDE607;
+}
+
+.e-priority-transfer {
+    border-radius: 3px 4px;
+    background-color: #0760E6;
+}
+
+.e-priority-cancel {
+    border-radius: 3px 4px;
+    background-color: #DB6239;
+}
+
 .e-priority-info {
     border-radius: 3px 4px;
     background-color: #89dd85;
@@ -1815,4 +1853,12 @@ label {
 
 .listbox-item-template-text-phone {
     opacity: 0.85;
+}
+
+.edit_title {
+    font-weight: normal;
+    color: #000;
+    font-size: 1rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
 }
