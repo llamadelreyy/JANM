@@ -147,7 +147,7 @@ namespace PBTPro.Api.Controllers
             {
                 var totalLesenAktif = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 1).CountAsync();
                 var totalLesenTamatTempoh = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 2).CountAsync();
-                var totalPremisPerniagaan = await _tenantDBContext.mst_licensees.GroupBy(x => x.owner_icno).CountAsync();
+                var totalPremisPerniagaan = await _tenantDBContext.mst_premis.CountAsync();//await _tenantDBContext.mst_licensees.GroupBy(x => x.owner_icno).CountAsync();
                 var pertambahanLsnThnSemasa = 10;// await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue && t.reg_date.Value.Year == DateTime.Now.Year).CountAsync();
                 var pertambahanLsnSemasa = 20;// await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue&& t.reg_date.Value.Year == DateTime.Now.Year && t.reg_date.Value.Month == DateTime.Now.Month).CountAsync();
 
