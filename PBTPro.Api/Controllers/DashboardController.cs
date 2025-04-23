@@ -54,7 +54,7 @@ namespace PBTPro.Api.Controllers
                 var totalKompaun = await _tenantDBContext.trn_cmpds.CountAsync();
                 var totalNota = await _tenantDBContext.trn_inspects.CountAsync();
                 var totalSita = await _tenantDBContext.trn_cfscs.CountAsync();
-                var premisBerlesen = await _tenantDBContext.mst_licensees.Where(t => t.status_id == 1).CountAsync();
+                var premisBerlesen = await _tenantDBContext.mst_license_premis_taxes.Where(t => t.status_lesen_id == 1).CountAsync();
 
                 var premisTindakan = await _tenantDBContext.mst_owner_premis
                     .Select(lesen => new
@@ -67,8 +67,8 @@ namespace PBTPro.Api.Controllers
                     .ToListAsync();
 
                 var totalPremisTindakan = premisTindakan.Sum(x => x.NoticeCount + x.CompoundCount + x.ConfiscationCount);
-                var premisTiadaLesen = 10;// await _tenantDBContext.mst_premis.Where(p => p.lesen == null || p.lesen == "" || string.IsNullOrEmpty(p.lesen)).CountAsync();
-                var premisTamatTempohLesen = 20;// await _tenantDBContext.mst_premis.Where(p => p.tempoh_sah_lesen <= DateOnly.FromDateTime(DateTime.Today)).CountAsync();
+                var premisTiadaLesen = await _tenantDBContext.mst_license_premis_taxes.Where(p => p.status_lesen_id == 4).CountAsync(); // await _tenantDBContext.mst_premis.Where(p => p.lesen == null || p.lesen == "" || string.IsNullOrEmpty(p.lesen)).CountAsync();
+                var premisTamatTempohLesen = await _tenantDBContext.mst_license_premis_taxes.Where(p => p.status_lesen_id == 2).CountAsync();// await _tenantDBContext.mst_premis.Where(p => p.tempoh_sah_lesen <= DateOnly.FromDateTime(DateTime.Today)).CountAsync();
 
                 var bilCukaiTahunan = await _tenantDBContext.mst_premis.CountAsync();
 
@@ -112,10 +112,10 @@ namespace PBTPro.Api.Controllers
                     premis_tamat_tempoh_lesen = premisTamatTempohLesen,
                     total_cukai_tahunan = bilCukaiTahunan,
                     amaun_kutipan_cukai = 4569.93M,
-                    cukai_taksiran_dibyr = 100230,
-                    cukai_taksiran_blm_dibyr = 10230,
-                    hsl_lesen_dibyr = 150230,
-                    hsl_lesen_blm_dibyr = 15230,
+                    cukai_taksiran_dibyr = 0,// 100230,
+                    cukai_taksiran_blm_dibyr = 0, //10230,
+                    hsl_lesen_dibyr = 0,//150230,
+                    hsl_lesen_blm_dibyr = 0,//15230,
                     kompaun_dibyr = totalKompaunDibyr,
                     kompaun_blm_dibyr = totalKompaunBlmByr,
                     total_premis_dilawat = totalPremisDilawat,
@@ -156,7 +156,7 @@ namespace PBTPro.Api.Controllers
                     total_lesen_aktif = totalLesenAktif,
                     lesen_tamat_tempoh = totalLesenTamatTempoh,
                     total_premis_perniagaan = totalPremisPerniagaan,
-                    hsl_tahunan_semasa = 202543.00M,
+                    hsl_tahunan_semasa = 0,//202543.00M,
                     ptmbahan_lesen_thn_semasa = pertambahanLsnThnSemasa,
                     ptmbahan_lesen_semasa = pertambahanLsnSemasa,
                 };
