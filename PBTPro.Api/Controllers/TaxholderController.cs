@@ -11,13 +11,11 @@ Changes Logs:
 */
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PBTPro.Api.Controllers.Base;
 using PBTPro.DAL;
 using PBTPro.DAL.Models;
 using PBTPro.DAL.Models.CommonServices;
-using PBTPro.DAL.Models.PayLoads;
 
 namespace PBTPro.Api.Controllers
 {
@@ -27,7 +25,6 @@ namespace PBTPro.Api.Controllers
     public class TaxholderController : IBaseController
     {
         protected readonly string? _dbConn;
-        private readonly IHubContext<PushDataHub> _hubContext;
         private readonly IConfiguration _configuration;
         private readonly ILogger<TaxholderController> _logger;
 
@@ -59,15 +56,32 @@ namespace PBTPro.Api.Controllers
         }
 
         #region Transaction ticket count by
-        [HttpGet("{LicenseAccNo}")]
-        public async Task<IActionResult> GetTicketCountByTaxAccNo(string TaxAccNo)
+        [HttpGet("{TaxAccNo}")]
+        public async Task<IActionResult> GetTicketCountByTaxAccNo(string TaxAccNo, DateTime? startDate, DateTime? endDate)
         {
             try
             {
-                int cntInspect = await _tenantDBContext.trn_inspects.Where(x => x.tax_accno == TaxAccNo).CountAsync();
-                int cntConfiscation = await _tenantDBContext.trn_cfscs.Where(x => x.tax_accno == TaxAccNo).CountAsync();
-                int cntNotice = await _tenantDBContext.trn_notices.Where(x => x.tax_accno == TaxAccNo).CountAsync();
-                int cntCompound = await _tenantDBContext.trn_cmpds.Where(x => x.tax_accno == TaxAccNo).CountAsync();
+                IQueryable<trn_inspect> initInspect = _tenantDBContext.trn_inspects.Where(x => x.tax_accno == TaxAccNo);
+                IQueryable<trn_cfsc> initConfiscation = _tenantDBContext.trn_cfscs.Where(x => x.tax_accno == TaxAccNo);
+                IQueryable<trn_notice> initNotice = _tenantDBContext.trn_notices.Where(x => x.tax_accno == TaxAccNo);
+                IQueryable<trn_cmpd> initCompound = _tenantDBContext.trn_cmpds.Where(x => x.tax_accno == TaxAccNo);
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initInspect = initInspect.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initConfiscation = initConfiscation.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initNotice = initNotice.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initCompound = initCompound.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                int cntInspect = await initInspect.CountAsync();
+                int cntConfiscation = await initConfiscation.CountAsync();
+                int cntNotice = await initNotice.CountAsync();
+                int cntCompound = await initCompound.CountAsync();
 
                 var resultData = new
                 {
@@ -87,7 +101,7 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet("{TaxId}")]
-        public async Task<IActionResult> GetTicketCountByTaxId(int TaxId)
+        public async Task<IActionResult> GetTicketCountByTaxId(int TaxId, DateTime? startDate, DateTime? endDate)
         {
             try
             {
@@ -97,10 +111,27 @@ namespace PBTPro.Api.Controllers
                     return Error("", SystemMesg(_feature, "LICENSENO_INVALID", MessageTypeEnum.Error, string.Format("no akaun lesen tidak sah")));
                 }
 
-                int cntInspect = await _tenantDBContext.trn_inspects.Where(x => x.tax_accno == taxholderInfo.tax_accno).CountAsync();
-                int cntConfiscation = await _tenantDBContext.trn_cfscs.Where(x => x.tax_accno == taxholderInfo.tax_accno).CountAsync();
-                int cntNotice = await _tenantDBContext.trn_notices.Where(x => x.tax_accno == taxholderInfo.tax_accno).CountAsync();
-                int cntCompound = await _tenantDBContext.trn_cmpds.Where(x => x.tax_accno == taxholderInfo.tax_accno).CountAsync();
+                IQueryable<trn_inspect> initInspect = _tenantDBContext.trn_inspects.Where(x => x.tax_accno == taxholderInfo.tax_accno);
+                IQueryable<trn_cfsc> initConfiscation = _tenantDBContext.trn_cfscs.Where(x => x.tax_accno == taxholderInfo.tax_accno);
+                IQueryable<trn_notice> initNotice = _tenantDBContext.trn_notices.Where(x => x.tax_accno == taxholderInfo.tax_accno);
+                IQueryable<trn_cmpd> initCompound = _tenantDBContext.trn_cmpds.Where(x => x.tax_accno == taxholderInfo.tax_accno);
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initInspect = initInspect.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initConfiscation = initConfiscation.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initNotice = initNotice.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                    initCompound = initCompound.Where(x => x.created_at.Value.Date >= startDate.Value.Date && x.created_at.Value.Date <= endDate.Value.Date);
+                }
+
+                int cntInspect = await initInspect.CountAsync();
+                int cntConfiscation = await initConfiscation.CountAsync();
+                int cntNotice = await initNotice.CountAsync();
+                int cntCompound = await initCompound.CountAsync();
 
                 var resultData = new
                 {

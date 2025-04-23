@@ -1,5 +1,4 @@
-﻿using DevExpress.XtraPrinting.Native;
-using GoogleMapsComponents;
+﻿using GoogleMapsComponents;
 using GoogleMapsComponents.Maps;
 using Microsoft.AspNetCore.Components;
 using GoogleMapsComponents.Maps.Coordinates;
@@ -11,19 +10,37 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GoogleMapsComponents.Maps.Places;
-using DevExpress.ClipboardSource.SpreadsheetML;
 using PBTPro.DAL.Models;
-using DevExpress.DashboardCommon;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PBTPro.Data;
+using System.Threading;
+using PBTPro.DAL.Models.PayLoads;
 using System.Collections.Concurrent;
+using DevExpress.Blazor;
+using DevExpress.Data.Storage;
+using DevExpress.ClipboardSource.SpreadsheetML;
+using DevExpress.Xpo.Logger;
+using PBTPro.DAL.Models.CommonServices;
+using System.Reflection;
+using DevExpress.XtraRichEdit.API.Layout;
+using DevExpress.XtraRichEdit.Import.Html;
+using DevExpress.DataAccess.Native.Web;
+using NetTopologySuite.Index.HPRtree;
 
 
 namespace PBTPro.Pages
 {
     public partial class TaburanCukaiPage
     {
+        bool PanelVisible { get; set; }
+
+        //DxWindow windowRef;
+        //ElementReference popupTarget;
+        //bool windowVisible;
+
+        List<taburan_view> _dtDataTaburan { get; set; }
+        taburan_view _valueTaburan { get; set; }
 
         //For check box ===========
         public List<FilterData> FilterList { get; set; }
@@ -31,15 +48,24 @@ namespace PBTPro.Pages
         public List<FilterData> ObjectList { get; set; }
         public string OutPutValue { get; set; }
 
-        //public List<FilterData> NotaList { get; set; }
+        //////public List<FilterData> NotaList { get; set; }
         //=======================
 
         private string LesenID { get; set; } = string.Empty;
         private string _labelText = "";
 
-        //Lesen Information
-        IEnumerable<NoticeProp> NoticeData;
-        IEnumerable<(NoticeProp, int)> Items;
+        ////Lesen Information
+        ////IEnumerable<NoticeProp> NoticeData;
+        ////IEnumerable<(NoticeProp, int)> Items;
+
+        //Premis data
+        IEnumerable<dynamic> premisData;
+        IEnumerable<general_search_premis_detail> searchData;
+        //IEnumerable<(general_search_premis_detail, int)> Items;
+        IEnumerable<(premis_license_tax_view, int)> premisItem;
+        premis_view premisInfo;
+
+        IGrid Grid { get; set; }
         TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
 
@@ -47,6 +73,12 @@ namespace PBTPro.Pages
         private Autocomplete autocomplete;
         private string message;
         private ElementReference searchBox;
+
+        //Total count map based on boundries
+        private int mintAktif { get; set; } = 0;
+        private int mintTamatTempoh { get; set; } = 0;
+        private int mintGantung { get; set; } = 0;
+        private int mintTiadaData { get; set; } = 0;
 
         //Map
         private GoogleMap map1;
@@ -56,6 +88,7 @@ namespace PBTPro.Pages
         [Inject] private IJSRuntime JsRuntime { get; set; }
         public int ZIndex { get; set; } = 0;
         private readonly Stack<Marker> markersPin = new Stack<Marker>();
+        private readonly Stack<Marker> markerSearch = new Stack<Marker>();
         private readonly Stack<AdvancedMarkerElement> markers = new Stack<AdvancedMarkerElement>();
 
         private LatLngBounds _bounds = null!;
@@ -66,7 +99,7 @@ namespace PBTPro.Pages
         private DateTime _lastMoveTime;
         private readonly TimeSpan _throttleTime = TimeSpan.FromMilliseconds(300);
         private ConcurrentDictionary<int, bool> _processedLotGids = new ConcurrentDictionary<int, bool>(); // Thread-safe GID tracking
-        private ConcurrentDictionary<int, bool> _processedPremisGids = new ConcurrentDictionary<int, bool>(); // Thread-safe GID tracking
+        private ConcurrentDictionary<string, bool> _processedPremisGids = new ConcurrentDictionary<string, bool>(); // Thread-safe GID tracking
         private readonly object _lockLot = new object();
         private bool _isProcessing = false;  // Flag to track if tasks are processing
         private Queue<Task> _pendingTasks = new Queue<Task>();
@@ -82,17 +115,15 @@ namespace PBTPro.Pages
             }
         }
 
-        string GetColorLot(string _status)
+        string GetColorLot(int typeLot)
         {
-            switch (_status)
+            switch (typeLot)
             {
-                case "Aktif":
+                case 1:
                     return "Green";
-                case "Tamat Tempoh":
+                case 2:
                     return "Red";
-                case "Gantung":
-                    return "Yellow";
-                case "Tiada Data":
+                case 3:
                     return "Grey";
                 default:
                     return "Black";
@@ -110,6 +141,30 @@ namespace PBTPro.Pages
             return dataUrl;
         }
 
+        public MarkupString GetStatusIconHtml(int status_id)
+        {
+            string priorytyClass = "none";
+            string title = " TIADA DATA ";
+            if (status_id == 1)
+            {
+                priorytyClass = "info";
+                title = " CUKAI DIBAYAR ";
+            }
+            else if (status_id == 2)
+            {
+                priorytyClass = "danger";
+                title = " CUKAI BELUM DIBAYAR ";
+            }
+
+            string html = string.Format("<span class='e-badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
+            return new MarkupString(html);
+        }
+
+        //public async Task OpenNewStreetWindow(string latitude, string longitude)
+        //{
+        //    await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,0,0,0,0", "_blank");
+        //}
+
         /*
         Description: Set the map properties
         Author: Azmee
@@ -118,20 +173,22 @@ namespace PBTPro.Pages
         */
         protected override async Task OnInitializedAsync()
         {
+            PanelVisible = true;
+
             //Show legend
             intLegend = 0;
             //Map
             _mapOptions = new MapOptions
             {
-                Zoom = 13,
+                Zoom = 15,
                 ZoomControlOptions = new ZoomControlOptions
                 {
                     Position = ControlPosition.RightBottom
                 },
                 Center = new LatLngLiteral
                 {
-                    Lat = 3.0501028427254098,
-                    Lng = 101.62482171721311
+                    Lat = 2.9441900567880896,
+                    Lng = 101.37866540001413
                 },
                 IsFractionalZoomEnabled = false,
                 HeadingInteractionEnabled = false,
@@ -155,6 +212,7 @@ namespace PBTPro.Pages
 
             //For check box
             FilterList = GetMockFilter();
+            //NotaList = GetNotaFilter();
         }
 
         private async Task OnAfterMapInit()
@@ -204,17 +262,40 @@ namespace PBTPro.Pages
 
                 _bounds = await LatLngBounds.CreateAsync(map1.JsRuntime);
 
-                //Get record
-                NoticeData = await _NoticeService.GetNoticeAsync();
+                ////////Get record
+                //////NoticeData = await _NoticeService.GetNoticeAsync();
                 //Items = NoticeData.Select((item, index) => (item, index));
-                DataLoadedTcs.TrySetResult(true);
-                //Start populate the map
-                await InvokeClustering(1);
+
+
+                //////DataLoadedTcs.TrySetResult(true);
+                //////Start populate the map
+                ////await InvokeClustering(1);
 
                 // Add listener for map api polygon data -- ismail
-                await ProcessMapAPIData();
-                await this.map1.InteropObject.AddListener("dragend", async () => await ProcessMapAPIData());
-                await this.map1.InteropObject.AddListener("zoom_changed", async () => await ProcessMapAPIData());
+                await ProcessMapAPIData(1);
+
+                //Get record
+                premisData = await _PremisService.GetList();
+                //Get search record
+                searchData = await _SearchService.GetListPremisDetails();
+
+                ////premisItem = premisData.Select((item, index) => (item, index));
+
+                DataLoadedTcs.TrySetResult(true);
+                await InvokeClustering(1);
+
+                await this.map1.InteropObject.AddListener("dragend", async () =>
+                {
+                    await ProcessMapAPIData();
+                    StateHasChanged();
+                });
+                await this.map1.InteropObject.AddListener("zoom_changed", async () =>
+                {
+                    await ProcessMapAPIData();
+                    StateHasChanged();
+                });
+
+                PanelVisible = false;
             }
             catch (Exception ex)
             {
@@ -234,9 +315,20 @@ namespace PBTPro.Pages
             });
 
 
-            foreach (var _notice in NoticeData)
+            foreach (var _premis in premisData)
             {
-                await _bounds.Extend(_notice.Position);
+                var geometry = _premis.geom;
+                if (geometry.type == "Point")
+                {
+                    var coords = geometry.coordinates;
+                    //var latLng = new LatLngLiteral(coords[1], coords[0]);
+                    var latLng = new LatLngLiteral()
+                    {
+                        Lat = coords[1],
+                        Lng = coords[0]
+                    };
+                    await _bounds.Extend(latLng);
+                }
             }
 
             var boundsLiteral = await _bounds.ToJson();
@@ -245,57 +337,75 @@ namespace PBTPro.Pages
 
         private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart)
         {
-            var result = new List<AdvancedMarkerElement>(NoticeData.Count());
-            bool blnValidFilter = true;
-            foreach (var _notice in NoticeData)
+            var result = new List<AdvancedMarkerElement>(premisData.Count());
+            try
             {
-                blnValidFilter = true;
-                if (initStart != 1)
+                bool blnValidFilter = true;
+                foreach (var _premis in premisData)
                 {
-                    blnValidFilter = false;
-                    if (SelectedIds.Contains(_notice.Type.ToString()))
+                    string premisId = _premis.codeid_premis;
+                    string tax_status = _premis.tax_status_view;
+                    int tax_status_id = _premis.tax_status_id;
+
+                    blnValidFilter = true;
+                    if (initStart != 1)
                     {
-                        blnValidFilter = true;
+                        blnValidFilter = false;
+                        if (SelectedIds.Contains(tax_status_id.ToString()))
+                        {
+                            blnValidFilter = true;
+                        }
                     }
-                }
 
-                //Start filtering based on selected tapisan
-                if (blnValidFilter)
-                {
-                    var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
+                    var geometry = _premis.geom;
+                    var coords = geometry.coordinates;
+                    //var latLng = new LatLngLiteral(coords[1], coords[0]);
+                    var latLng = new LatLngLiteral()
                     {
-                        Position = _notice.Position,
-                        Map = map1.InteropObject,
-                        Title = _notice.NoLesen,
-                        // Content = index.ToString()
-                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30"">
-                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(_notice.Type) + "'/></svg><lable class='map-marker-label'>" + $"{_notice.NoLot}" + "</lable></div>",
-                    });
+                        Lat = coords[1],
+                        Lng = coords[0]
+                    };
 
-                    markers.Push(_marker);
-
-                    await _marker.AddListener<MouseEvent>("click", async e =>
+                    //Start filtering based on selected tapisan
+                    if (blnValidFilter)
                     {
-                        //string markerLabelText = await marker.GetLabelText();
-                        //string _title = await _marker.GetTitle();
-                        // _events.Add("click on " + _title);
-                        await OpenSideBar(_notice.NoLesen);
-                        StateHasChanged();
-                        ///await e.Stop();
-                    });
+                        var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
+                        {
+                            Position = latLng,
+                            Map = map1.InteropObject,
+                            Title = _premis.lot,
+                            // Content = index.ToString()
+                            Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(tax_status_id) + "'/></svg><lable class='map-marker-label'>" + $"{_premis.lot}" + "</lable></div>",
+                        });
 
-                    result.Add(_marker);
-                }
+                        markers.Push(_marker);
 
-                //Add all selected filter
-                if (initStart == 1) // first init
-                {
-                    if (!SelectedIds.Contains(_notice.Type.ToString()))
-                    {
-                        SelectedIds.Add(_notice.Type.ToString());
+                        await _marker.AddListener<MouseEvent>("click", async e =>
+                        {
+                            //string markerLabelText = await marker.GetLabelText();
+                            //string _title = await _marker.GetTitle();
+                            // _events.Add("click on " + _title);
+                            await OpenSideBar(premisId);
+                            StateHasChanged();
+                            ///await e.Stop();
+                        });
+
+                        result.Add(_marker);
                     }
-                }
 
+                    //Add all selected filter
+                    if (initStart == 1) // first init
+                    {
+                        if (!SelectedIds.Contains(tax_status_id.ToString()))
+                        {
+                            SelectedIds.Add(tax_status_id.ToString());
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
             }
 
             return result;
@@ -313,7 +423,6 @@ namespace PBTPro.Pages
 
         private async Task AddLegend()
         {
-            //////await map1.InteropObject.AddControl(_controlPosition, LegendReference);
             intLegend++;
 
             if (intLegend == 1)
@@ -323,24 +432,46 @@ namespace PBTPro.Pages
                 intLegend = 0;
                 await map1.InteropObject.RemoveControl(_controlPosition, LegendReference);
             }
-
-            //await OpenSideBar("Test");
         }
 
-        private async Task OpenSideBar(string msg)
+        private async Task OpenSideBar(string codeid)
         {
-            //Populate all the value from parameter. ex:LesenID
-            // await JsRuntime.InvokeVoidAsync("alert", msg);
-            _labelText = msg;
-            // await JsRuntime.InvokeVoidAsync("openRightBar");
-            IJSObjectReference serverSideScripts4 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
-            await serverSideScripts4.InvokeVoidAsync("openRightBar");
+            try
+            {
+                //Populate all the value from parameter. ex:LesenID
+                // await JsRuntime.InvokeVoidAsync("alert", msg);
+                _labelText = codeid;
+
+                if (_labelText.Length > 0)
+                {
+                    premisInfo = await _PremisService.GetPremisInfo(codeid);
+
+                    if (premisInfo.premis_license_tax != null)
+                    {
+                        var taxInfo = premisInfo.premis_license_tax.First();
+                    }
+                }
+
+                IJSObjectReference serverSideScripts4 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
+                await serverSideScripts4.InvokeVoidAsync("openRightBar");
+
+            }
+            catch (Exception ex)
+            {
+            }
         }
 
-        private async Task OpenFilter()
+        private async Task OpenFilter(int mode)
         {
             IJSObjectReference serverSideScripts1 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
-            await serverSideScripts1.InvokeVoidAsync("openNav");
+            if (mode == 0)
+            {
+                await serverSideScripts1.InvokeVoidAsync("openNav");
+            }
+            else
+            {
+                await serverSideScripts1.InvokeVoidAsync("openNavSearch");
+            }
         }
 
         private async Task CloseFilter()
@@ -366,22 +497,17 @@ namespace PBTPro.Pages
             var vSubOne = new FilterData()
             {
                 TypeId = 1,
-                Description = "Aktif",
+                Description = "Cukai DiBayar",
                 Color = "Green"
             };
             var vSubTwo = new FilterData()
             {
-                TypeId = 4,
-                Description = "Tidak Berlesen",
+                TypeId = 2,
+                Description = "Cukai Tertunggak",
                 Color = "Red"
             };
+
             var vSubThree = new FilterData()
-            {
-                TypeId = 2,
-                Description = "Lesen Gantung",
-                Color = "Yellow"
-            };
-            var vSubFour = new FilterData()
             {
                 TypeId = 3,
                 Description = "Tiada Data",
@@ -390,8 +516,7 @@ namespace PBTPro.Pages
 
             var vSubList = new List<FilterData>
             {
-                vSubOne, vSubTwo,
-                vSubThree, vSubFour
+                vSubOne, vSubTwo, vSubThree
             };
 
             return vSubList;
@@ -413,6 +538,87 @@ namespace PBTPro.Pages
 
         //    return vSubList;
         //}
+
+        void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+        {
+            if (e.ElementType == GridElementType.SearchBoxContainer)
+            {
+                e.Style = "Width: 100%";
+            }
+        }
+
+        //Search premise function, click from the grid
+        protected async Task OnSelectedRow(object itemData)
+        {
+            //Remove the last marker ==========
+            if (markerSearch.Any())
+            {
+                var lastMarker = markerSearch.Pop();
+                await lastMarker.SetMap(null);
+            }
+            //====================================
+
+            var item = (general_search_premis_detail)itemData;
+            double premisLat = item.premis_latitude ?? 0;
+            double premisLong = item.premis_longitude ?? 0;
+            //LatLngLiteral LatLng = new LatLngLiteral { Lat = item.premis_latitude, Lng = item.premis_longitude };
+            await PremiseLocation(new LatLngLiteral { Lat = premisLat, Lng = premisLong });
+            //NavigationManager.NavigateTo("/reportnotis?nolesen=" + item.NoLesen, false);
+        }
+
+        private async Task PremiseLocation(LatLngLiteral? pos)
+        {
+            if (pos == null)
+            {
+                return;
+            }
+
+            //Close the search window
+            await CloseFilter();
+
+            LatLngLiteral premisePos = pos;
+            ZIndex++;
+
+            var marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
+            {
+                Position = premisePos,
+                Map = map1.InteropObject,
+                ZIndex = -1,
+                Animation = Animation.Bounce,
+                //Icon = new Icon()
+                //{
+                //    Url = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+                //}
+                Icon = "images/icons/marker.png"
+            });
+
+            markerSearch.Push(marker);
+            await this.map1.InteropObject.SetCenter(premisePos);
+            await this.map1.InteropObject.SetZoom(17);
+
+            //Set the animation
+            if (!markerSearch.Any())
+            {
+                return;
+            }
+            var lastMarker = markerSearch.Peek();
+            await lastMarker.SetAnimation(Animation.Bounce);
+
+        }
+
+        //async Task TogglePopupVisibilityAsync()
+        //{
+        //    if (windowVisible)
+        //        await windowRef.CloseAsync();
+        //    else
+        //        await windowRef.ShowAtAsync(popupTarget);
+        //}
+
+        void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+        {
+            if (e.Item.Name == "Custom")
+                e.DisplayText = string.Format("Bil. : {0}", e.Value);
+        }
 
         public void Dispose()
         {
@@ -474,7 +680,7 @@ namespace PBTPro.Pages
             return Task.Run(() => ProcessMapAPIData());
         }
 
-        private async Task ProcessMapAPIData()
+        private async Task ProcessMapAPIData(int intStart = 2)
         {
             try
             {
@@ -491,9 +697,13 @@ namespace PBTPro.Pages
                 if (bounds != null)
                 {
                     _isProcessing = true;
-                    await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    if (intStart == 1)
+                    {
+                        await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    }
                     await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
                     _isProcessing = false;
+
                 }
 
                 if (_pendingTasks.Count > 0)
@@ -563,13 +773,14 @@ namespace PBTPro.Pages
                                         return; // Skip if already processed
                                     }
 
-                                    if (geometry.type == "Point")
-                                    {
-                                        var coords = geometry.coordinates;
-                                        var latLng = new LatLngLiteral(coords[1], coords[0]);
-                                        await CreateMarker(latLng, data); // Assuming CreateMarker is async
-                                    }
-                                    else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+                                    //if (geometry.type == "Point")
+                                    //{
+                                    //    var coords = geometry.coordinates;
+                                    //    var latLng = new LatLngLiteral(coords[1], coords[0]);
+                                    //    await CreateMarker(latLng, data); // Assuming CreateMarker is async
+                                    //}
+                                    //else 
+                                    if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
                                     {
                                         IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
 
@@ -625,7 +836,7 @@ namespace PBTPro.Pages
         {
             try
             {
-                string requestUrl = $"/api/Premis/GetListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
                 var response = await _ApiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -637,96 +848,123 @@ namespace PBTPro.Pages
                         dynamic datas = JsonConvert.DeserializeObject(dataString);
 
                         List<dynamic> dataList = datas.ToObject<List<dynamic>>();
-                        var filteredDatas = dataList.Where(d =>
+
+                        ////var filteredDatas = dataList.Where(d =>
+                        ////{
+                        ////    string dataId = d.codeid_premis;  // Convert gid to int (ensure it's valid)
+                        ////    return !_processedPremisGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
+                        ////}).ToList();
+
+                        ////var semaphore = new SemaphoreSlim(1000);
+
+
+                        //////Count and mark the premise
+                        ////foreach (var data in dataList)
+                        ////{
+                        ////    string dataId = data.codeid_premis.ToObject(typeof(string));
+
+                        ////    if (dataId == null)
+                        ////    {
+                        ////        continue;
+                        ////    }
+
+                        ////    //bool skipProcessing = false;
+
+                        ////    if (_processedPremisGids.ContainsKey(dataId))
+                        ////    {
+                        ////        continue;
+                        ////    }
+
+                        ////    var geometry = data.geom;
+                        ////    tasks.Add(Task.Run(async () =>
+                        ////    {
+                        ////        await semaphore.WaitAsync();
+                        ////        try
+                        ////        {
+                        ////            if (_processedPremisGids.ContainsKey(dataId))
+                        ////            {
+                        ////                return; // Skip if already processed
+                        ////            }
+
+                        ////            if (geometry.type == "Point")
+                        ////            {
+                        ////                var coords = geometry.coordinates;
+                        ////                double x = coords[1];
+                        ////                double y = coords[0];
+                        ////                var latLng = new LatLngLiteral(x, y);
+                        ////                await CreateMarker(latLng, data); // Assuming CreateMarker is async
+                        ////            }
+                        ////            else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+                        ////            {
+                        ////                IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
+
+                        ////                if (geometry.type == "Polygon")
+                        ////                {
+                        ////                    var polygonCoords = geometry.coordinates[0];
+                        ////                    latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+                        ////                }
+                        ////                else if (geometry.type == "MultiPolygon")
+                        ////                {
+                        ////                    List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+                        ////                    foreach (var polygon in geometry.coordinates)
+                        ////                    {
+                        ////                        multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+                        ////                    }
+
+                        ////                    latLngs = multiPolygonCoords;
+                        ////                }
+
+                        ////                await CreatePolygon(latLngs, data);
+                        ////            }
+
+                        ////            _processedPremisGids[dataId] = true;
+                        ////        }
+                        ////        catch (Exception geometryEx)
+                        ////        {
+                        ////            Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+                        ////        }
+                        ////        finally
+                        ////        {
+                        ////            semaphore.Release();
+                        ////        }
+                        ////    }));
+
+                        ////}
+
+                        //Count display premis - AZMEE
+                        mintAktif = 0;
+                        mintTamatTempoh = 0;
+                        mintTiadaData = 0;
+                        foreach (var data in dataList)
                         {
-                            int dataId = (int)d.gid;  // Convert gid to int (ensure it's valid)
-                            return !_processedPremisGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
-                        }).ToList();
-
-                        var semaphore = new SemaphoreSlim(1000);
-
-                        foreach (var data in filteredDatas)
-                        {
-                            int dataId = data.gid.ToObject(typeof(int));
-
-                            if (dataId == null)
-                            {
-                                continue;
-                            }
-
-                            //bool skipProcessing = false;
-
-                            if (_processedPremisGids.ContainsKey(dataId))
-                            {
-                                continue;
-                            }
-
                             var geometry = data.geom;
-                            tasks.Add(Task.Run(async () =>
+                            //string lesen_status = data.license_status_view;
+
+
+                            if (geometry.type == "Point")
                             {
-                                await semaphore.WaitAsync();
-                                try
-                                {
-                                    if (_processedPremisGids.ContainsKey(dataId))
-                                    {
-                                        return; // Skip if already processed
-                                    }
+                                if (data.marker_cukai_status.ToString().ToUpper() == "CUKAI TERTUNGGAK")
+                                    mintTamatTempoh += 1;
+                                else if (data.marker_cukai_status.ToString().ToUpper() == "CUKAI DIBAYAR")
+                                    //Count total visible point based on boundries
+                                    mintAktif += 1;
+                                else if (data.marker_cukai_status.ToString().ToUpper() == "TIADA DATA")
+                                    //Count total visible point based on boundries
+                                    mintTiadaData += 1;
 
-                                    if (geometry.type == "Point")
-                                    {
-                                        var coords = geometry.coordinates;
-                                        double x = coords[1];
-                                        double y = coords[0];
-                                        var latLng = new LatLngLiteral(x, y);
-                                        await CreateMarker(latLng, data); // Assuming CreateMarker is async
-                                    }
-                                    else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
-                                    {
-                                        IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
-
-                                        if (geometry.type == "Polygon")
-                                        {
-                                            var polygonCoords = geometry.coordinates[0];
-                                            latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
-                                        }
-                                        else if (geometry.type == "MultiPolygon")
-                                        {
-                                            List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
-
-                                            foreach (var polygon in geometry.coordinates)
-                                            {
-                                                multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
-                                            }
-
-                                            latLngs = multiPolygonCoords;
-                                        }
-
-                                        await CreatePolygon(latLngs, data);
-                                    }
-
-                                    _processedPremisGids[dataId] = true;
-                                }
-                                catch (Exception geometryEx)
-                                {
-                                    Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
-                                }
-                                finally
-                                {
-                                    semaphore.Release();
-                                }
-                            }));
-
+                            }
                         }
 
-                        if (tasks.Count > 0)
-                        {
-                            await Task.WhenAll(tasks);
+                        ////if (tasks.Count > 0)
+                        ////{
+                        ////    await Task.WhenAll(tasks);
 
-                            _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
-                            {
-                                ZoomOnClick = true,
-                            });
-                        }
+                        ////    _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+                        ////    {
+                        ////        ZoomOnClick = true,
+                        ////    });
+                        ////}
                     }
                 }
             }
@@ -735,6 +973,140 @@ namespace PBTPro.Pages
                 Console.WriteLine($"API request error: {ex.Message}");
             }
         }
+        //private async Task GeneratePremisData(double southLat, double westLng, double northLat, double eastLng)
+        //{
+        //    try
+        //    {
+        //        string requestUrl = $"/api/Premis/GetListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+        //        var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+        //        if (response.ReturnCode == 200)
+        //        {
+        //            string? dataString = response?.Data?.ToString();
+        //            if (!string.IsNullOrWhiteSpace(dataString))
+        //            {
+        //                var tasks = new List<Task>();
+        //                dynamic datas = JsonConvert.DeserializeObject(dataString);
+
+        //                List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+        //                var filteredDatas = dataList.Where(d =>
+        //                {
+        //                    int dataId = (int)d.gid;  // Convert gid to int (ensure it's valid)
+        //                    return !_processedPremisGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
+        //                }).ToList();
+
+        //                var semaphore = new SemaphoreSlim(1000);
+
+
+        //                //Count and mark the premise
+        //                foreach (var data in filteredDatas)
+        //                {
+        //                    int dataId = data.gid.ToObject(typeof(int));
+
+        //                    if (dataId == null)
+        //                    {
+        //                        continue;
+        //                    }
+
+        //                    //bool skipProcessing = false;
+
+        //                    if (_processedPremisGids.ContainsKey(dataId))
+        //                    {
+        //                        continue;
+        //                    }
+
+        //                    var geometry = data.geom;
+        //                    tasks.Add(Task.Run(async () =>
+        //                    {
+        //                        await semaphore.WaitAsync();
+        //                        try
+        //                        {
+        //                            if (_processedPremisGids.ContainsKey(dataId))
+        //                            {
+        //                                return; // Skip if already processed
+        //                            }
+
+        //                            if (geometry.type == "Point")
+        //                            {
+        //                                var coords = geometry.coordinates;
+        //                                double x = coords[1];
+        //                                double y = coords[0];
+        //                                var latLng = new LatLngLiteral(x, y);
+        //                                await CreateMarker(latLng, data); // Assuming CreateMarker is async
+        //                            }
+        //                            else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+        //                            {
+        //                                IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
+
+        //                                if (geometry.type == "Polygon")
+        //                                {
+        //                                    var polygonCoords = geometry.coordinates[0];
+        //                                    latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+        //                                }
+        //                                else if (geometry.type == "MultiPolygon")
+        //                                {
+        //                                    List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+        //                                    foreach (var polygon in geometry.coordinates)
+        //                                    {
+        //                                        multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+        //                                    }
+
+        //                                    latLngs = multiPolygonCoords;
+        //                                }
+
+        //                                await CreatePolygon(latLngs, data);
+        //                            }
+
+        //                            _processedPremisGids[dataId] = true;
+        //                        }
+        //                        catch (Exception geometryEx)
+        //                        {
+        //                            Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+        //                        }
+        //                        finally
+        //                        {
+        //                            semaphore.Release();
+        //                        }
+        //                    }));
+
+        //                }
+
+        //                //Count display premis - AZMEE
+        //                mintAktif = 0;
+        //                mintTamatTempoh = 0;
+        //                foreach (var data in dataList)
+        //                {
+        //                    var geometry = data.geom;
+        //                    if (geometry.type == "Point")
+        //                    {
+        //                        //Count total visible point based on boundries
+        //                        mintAktif += 1;
+
+        //                        if (data.status_lesen == "Expired")
+        //                            mintTamatTempoh += 1;
+        //                    }
+
+        //                }
+
+
+        //                if (tasks.Count > 0)
+        //                {
+        //                    await Task.WhenAll(tasks);
+
+        //                    _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+        //                    {
+        //                        ZoomOnClick = true,
+        //                    });
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"API request error: {ex.Message}");
+        //    }
+        //}
 
         public IEnumerable<LatLngLiteral> ConvertGeoJsonToLatLng(JArray geoJsonCoords)
         {
@@ -742,35 +1114,40 @@ namespace PBTPro.Pages
             return coords.Select(coord => new LatLngLiteral(coord[1], coord[0]));
         }
 
-        private async Task CreateMarker(LatLngLiteral position, dynamic data)
-        {
-            int dataId = data.gid.ToObject(typeof(int));
-            string title = data.lot;
-            //var marker = await Marker.CreateAsync(this.map1.JsRuntime, new MarkerOptions
-            //{
-            //    Position = position,
-            //    Map = this.map1.InteropObject,
-            //    Title = title
-            //});
+        //private async Task CreateMarker(LatLngLiteral position, dynamic data)
+        //{
+        //    string dataId = data.codeid_premis.ToObject(typeof(string));
+        //    string title = data.codeid_premis.Substring(3);
+        //    //var marker = await Marker.CreateAsync(this.map1.JsRuntime, new MarkerOptions
+        //    //{
+        //    //    Position = position,
+        //    //    Map = this.map1.InteropObject,
+        //    //    Title = title
+        //    //});
 
-            var marker = await AdvancedMarkerElement.CreateAsync(this.map1.JsRuntime, new AdvancedMarkerElementOptions()
-            {
-                Position = position,
-                Map = this.map1.InteropObject,
-                Title = title,
-                // Content = index.ToString()
-                Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30"">
-                    <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot("Aktif") + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
-            });
+        //    var marker = await AdvancedMarkerElement.CreateAsync(this.map1.JsRuntime, new AdvancedMarkerElementOptions()
+        //    {
+        //        Position = position,
+        //        Map = this.map1.InteropObject,
+        //        Title = title,
+        //        // Content = index.ToString()
+        //        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30"">
+        //            <circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(data.marker_lesen_status) + "'/></svg><lable class='map-marker-label'>" + $"{title}" + "</lable></div>",
+        //    });
 
-            _clusteringMarkers.Add(marker);
+        //    _clusteringMarkers.Add(marker);
 
-            await marker.AddListener<MouseEvent>("click", async (e) =>
-            {
-                await OpenSideBar(title); // Replace with actual function to handle click
-                StateHasChanged();
-            });
-        }
+
+        //    // Optionally, add a listener for the marker to show more information or interact with it
+        //    await marker.AddListener<MouseEvent>("click", async (e) =>
+        //    {
+        //        //////await OpenSideBar(title); // Replace with actual function to handle click
+
+        //        //Passing the gId - to get the click premise info
+        //        await OpenSideBar(dataId.ToString()); // Replace with actual function to handle click
+        //        StateHasChanged();
+        //    });
+        //}
 
         private async Task CreatePolygon(IEnumerable<IEnumerable<LatLngLiteral>> latLngs, dynamic data)
         {
@@ -788,19 +1165,9 @@ namespace PBTPro.Pages
 
             var polygon = await GoogleMapsComponents.Maps.Polygon.CreateAsync(this.map1.JsRuntime, polygonOptions);
             await polygon.SetMap(this.map1.InteropObject);
-            // incase need to popup
-            //await polygon.AddListener<MouseEvent>("click", async (e) =>
-            //{
-            //    await OpenSideBar(data.NoLesen);
-            //    StateHasChanged();
-            //});
+
         }
         #endregion
     }
 
-    //public class FilterData
-    //{
-
-
-    //}
 }

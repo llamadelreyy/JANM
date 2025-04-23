@@ -24,6 +24,9 @@ using DevExpress.Xpo.Logger;
 using PBTPro.DAL.Models.CommonServices;
 using System.Reflection;
 using DevExpress.XtraRichEdit.API.Layout;
+using DevExpress.XtraRichEdit.Import.Html;
+using DevExpress.DataAccess.Native.Web;
+using NetTopologySuite.Index.HPRtree;
 
 
 namespace PBTPro.Pages
@@ -31,6 +34,13 @@ namespace PBTPro.Pages
     public partial class TaburanLesenPage
     {
         bool PanelVisible { get; set; }
+
+        //DxWindow windowRef;
+        //ElementReference popupTarget;
+        //bool windowVisible;
+
+        List<taburan_view> _dtDataTaburan { get; set; }
+        taburan_view _valueTaburan { get; set; }
 
         //For check box ===========
         public List<FilterData> FilterList { get; set; }
@@ -44,12 +54,14 @@ namespace PBTPro.Pages
         private string LesenID { get; set; } = string.Empty;
         private string _labelText = "";
 
-        //Lesen Information
-        IEnumerable<NoticeProp> NoticeData;
-        IEnumerable<(NoticeProp, int)> Items;
+        ////Lesen Information
+        ////IEnumerable<NoticeProp> NoticeData;
+        ////IEnumerable<(NoticeProp, int)> Items;
 
         //Premis data
         IEnumerable<dynamic> premisData;
+        IEnumerable<general_search_premis_detail> searchData;
+        //IEnumerable<(general_search_premis_detail, int)> Items;
         IEnumerable<(premis_license_tax_view, int)> premisItem;
         premis_view premisInfo;
 
@@ -150,10 +162,10 @@ namespace PBTPro.Pages
             return new MarkupString(html);
         }
 
-        public async Task OpenNewStreetWindow(string latitude, string longitude)
-        {
-            await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,0,0,0,0", "_blank");
-        }
+        //public async Task OpenNewStreetWindow(string latitude, string longitude)
+        //{
+        //    await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,0,0,0,0", "_blank");
+        //}
 
         /*
         Description: Set the map properties
@@ -266,6 +278,9 @@ namespace PBTPro.Pages
 
                 //Get record
                 premisData = await _PremisService.GetList();
+                //Get search record
+                searchData = await _SearchService.GetListPremisDetails();
+
                 ////premisItem = premisData.Select((item, index) => (item, index));
 
                 DataLoadedTcs.TrySetResult(true);
@@ -432,10 +447,16 @@ namespace PBTPro.Pages
                 if (_labelText.Length > 0)
                 {
                     premisInfo = await _PremisService.GetPremisInfo(codeid);
+
+                    if (premisInfo.premis_license_tax != null)
+                    {
+                        var taxInfo = premisInfo.premis_license_tax.First();
+                    }
                 }
 
                 IJSObjectReference serverSideScripts4 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
                 await serverSideScripts4.InvokeVoidAsync("openRightBar");
+
             }
             catch (Exception ex)
             {
@@ -545,8 +566,11 @@ namespace PBTPro.Pages
             }
             //====================================
 
-            var item = (NoticeProp)itemData;
-            await PremiseLocation(item.Position);
+            var item = (general_search_premis_detail)itemData;
+            double premisLat = item.premis_latitude ?? 0;
+            double premisLong = item.premis_longitude ?? 0;
+            //LatLngLiteral LatLng = new LatLngLiteral { Lat = item.premis_latitude, Lng = item.premis_longitude };
+            await PremiseLocation(new LatLngLiteral { Lat = premisLat, Lng = premisLong });
             //NavigationManager.NavigateTo("/reportnotis?nolesen=" + item.NoLesen, false);
         }
 
@@ -578,7 +602,7 @@ namespace PBTPro.Pages
 
             markerSearch.Push(marker);
             await this.map1.InteropObject.SetCenter(premisePos);
-            await this.map1.InteropObject.SetZoom(21);
+            await this.map1.InteropObject.SetZoom(17);
 
             //Set the animation
             if (!markerSearch.Any())
@@ -590,6 +614,19 @@ namespace PBTPro.Pages
 
         }
 
+        //async Task TogglePopupVisibilityAsync()
+        //{
+        //    if (windowVisible)
+        //        await windowRef.CloseAsync();
+        //    else
+        //        await windowRef.ShowAtAsync(popupTarget);
+        //}
+
+        void Grid_CustomizeSummaryDisplayText(GridCustomizeSummaryDisplayTextEventArgs e)
+        {
+            if (e.Item.Name == "Custom")
+                e.DisplayText = string.Format("Bil. : {0}", e.Value);
+        }
 
         public void Dispose()
         {

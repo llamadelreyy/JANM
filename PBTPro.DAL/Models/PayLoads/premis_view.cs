@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PBTPro.DAL.Models.PayLoads
@@ -165,5 +166,90 @@ namespace PBTPro.DAL.Models.PayLoads
         public string status_cukai { get; set; }
         public string no_acc_lesen { get; set; }
         public DateTime? tarikh_daftar { get; set; }
+    }
+
+
+    public class premis_notice
+    {
+        public int trn_notice_id { get; set; }
+        public string notice_ref_no { get; set; }
+        public string section_code { get; set; }
+        public string act_code { get; set; }
+        public string created_at { get; set; }
+        public string modified_at { get; set; }
+        public int trnstatus_id { get; set; }
+        public string doc_pathurl { get; set; }
+        public string doc_name { get; set; }
+        public string trnstatus_view { get; set; }
+
+    }
+
+    public class NoticeRoot
+    {
+        public int total_records { get; set; }
+        public List<premis_notice> notice_lists { get; set; }
+    }
+
+    public class premis_compound
+    {
+        public int trn_cmpd_id { get; set; }
+        public string cmpd_ref_no { get; set; }
+        public string section_code { get; set; }
+        public string act_code { get; set; }
+        public string created_at { get; set; }
+        public string modified_at { get; set; }
+        public int trnstatus_id { get; set; }
+        public string doc_pathurl { get; set; }
+        public string doc_name { get; set; }
+        public string trnstatus_view { get; set; }
+
+    }
+
+    public class CompoundRoot
+    {
+        public int total_records { get; set; }
+        public List<premis_compound> compound_lists { get; set; }
+    }
+
+    public class premis_confiscation
+    {
+        public int trn_cfsc_id { get; set; }
+        public string cfsc_ref_no { get; set; }
+        public string section_code { get; set; }
+        public string act_code { get; set; }
+        public string created_at { get; set; }
+        public string modified_at { get; set; }
+        public int trnstatus_id { get; set; }
+        public string doc_pathurl { get; set; }
+        public string doc_name { get; set; }
+        public string trnstatus_view { get; set; }
+
+    }
+
+    public class ConfiscationRoot
+    {
+        public int total_records { get; set; }
+        public List<premis_confiscation> confiscation_lists { get; set; }
+    }
+
+    public class premis_inspection
+    {
+        public int trn_inspect_id { get; set; }
+        public string inspect_ref_no { get; set; }
+        public string section_code { get; set; }
+        public string act_code { get; set; }
+        public string created_at { get; set; }
+        public string modified_at { get; set; }
+        public int trnstatus_id { get; set; }
+        public string doc_pathurl { get; set; }
+        public string doc_name { get; set; }
+        public string trnstatus_view { get; set; }
+
+    }
+
+    public class InspectionRoot
+    {
+        public int total_records { get; set; }
+        public List<premis_inspection> inspection_lists { get; set; }
     }
 }

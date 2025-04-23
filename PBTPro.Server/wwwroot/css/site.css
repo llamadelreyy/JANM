@@ -1171,7 +1171,7 @@ img.dxbl-image {
 .chart-title {
     font-weight: bold;
     color: #666;
-    font-size: 1rem;
+    font-size: 0.85rem;
     letter-spacing: 0.08rem;
     text-transform: uppercase;
     position: relative;
@@ -1345,7 +1345,7 @@ label {
     font-weight: bold;
     letter-spacing: 0.08rem;
     text-transform: uppercase;
-    padding: 10px 30px 10px 15px;
+    padding: 10px 20px 10px 15px;
     color: #666;
     border: 0px solid #000;
     border-radius: 3px;
@@ -1390,6 +1390,44 @@ label {
         width: 100px;
         height: 100px;
     }
+}
+
+.text-priority {
+    font-size: 0.65rem;
+    font-weight: bold;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+    color:#fff;
+}
+
+.e-priority-new {
+    border-radius: 3px 4px;
+    background-color: #1D90F5;
+}
+
+.e-priority-action {
+    border-radius: 3px 4px;
+    background-color: #ED9609;
+}
+
+.e-priority-close {
+    border-radius: 3px 4px;
+    background-color: #048F53;
+}
+
+.e-priority-check {
+    border-radius: 3px 4px;
+    background-color: #BDE607;
+}
+
+.e-priority-transfer {
+    border-radius: 3px 4px;
+    background-color: #0760E6;
+}
+
+.e-priority-cancel {
+    border-radius: 3px 4px;
+    background-color: #DB6239;
 }
 
 .e-priority-info {
@@ -1516,6 +1554,18 @@ label {
     font-size: 0.8rem !important;
     letter-spacing: 0.02rem !important;
 }
+
+.layout_search td {
+
+    letter-spacing: 0.02rem;
+    font-size: 0.8rem !important;
+    text-transform: uppercase;
+}
+
+.layout_search tr {
+    padding: 10px 0;
+}
+
 
 .text-container, .dxbl-accordion-item-text, .dxbl-text {
     font-size: 0.85rem !important;
@@ -1792,4 +1842,48 @@ label {
     width: 10px;
     height: 10px;
     cursor: pointer;
+}
+
+/* List Box */
+
+.listbox-item-template {
+    display: flex;
+    align-items: center;
+}
+
+.listbox-item-template > img {
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+}
+
+    img + .listbox-item-template-text {
+        margin-left: 0.5rem;
+    }
+
+.dxbl-sm img + .listbox-item-template-text {
+    margin-left: 0.375rem;
+}
+
+.dxbl-lg img + .listbox-item-template-text {
+    margin-left: 0.625rem;
+}
+
+.listbox-item-template-text {
+    display: flex;
+    flex-flow: column;
+    width:100%;
+    padding:15px 20px;
+}
+
+.listbox-item-template-text-phone {
+    opacity: 0.85;
+}
+
+.edit_title {
+    font-weight: normal;
+    color: #000;
+    font-size: 1rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
 }
