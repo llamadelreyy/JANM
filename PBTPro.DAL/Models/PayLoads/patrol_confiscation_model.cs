@@ -26,6 +26,14 @@ namespace PBTPro.DAL.Models.PayLoads
         public List<patrol_cfsc_witness>? witnesses { get; set; }
         public List<patrol_cfsc_item_model>? items { get; set; }
         public List<IFormFile>? proofs { get; set; }
+
+        //2025-04-08 - added new field
+        public string? recipient_name { get; set; }
+        public string? recipient_icno { get; set; }
+        public string? recipient_telno { get; set; }
+        public string? recipient_addr { get; set; }
+        public int? recipient_relation_id { get; set; }
+        public IFormFile? recipient_sign { get; set; }
     }
 
     public class patrol_cfsc_witness

@@ -33,4 +33,8 @@ public partial class mst_premis
     public virtual ICollection<mst_license_premis_tax> mst_license_premis_taxes { get; set; } = new List<mst_license_premis_tax>();
 
     public virtual ICollection<mst_licensee> mst_licensees { get; set; } = new List<mst_licensee>();
+
+    public virtual ICollection<mst_pic_licensee> mst_pic_licensees { get; set; } = new List<mst_pic_licensee>();
+
+    public virtual ICollection<trn_premis_visit> trn_premis_visits { get; set; } = new List<trn_premis_visit>();
 }

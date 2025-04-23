@@ -31,7 +31,7 @@ else
     IsContentBlocked="true"
     ApplyBackgroundShading="true"
     IndicatorAreaVisible="false"
-    Text="Capaian Data...">
+    Text="@strTextLoading">
 
         <div class="d-lg-flex border-bottom">
             <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -255,7 +255,7 @@ else
 
 @code {
     bool PanelVisible { get; set; }
-    // bool PanelTree { get; set; }
+    string strTextLoading { get; set; } = "Capaian Data...";
 
     IEnumerable<role_menu> dataSource;
     IEnumerable<ApplicationRole> dataRole;
@@ -908,6 +908,8 @@ else
 
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
+        strTextLoading = "Kemaskini Akses...";
+        PanelVisible = true;
 
         bool blnSuccess = false;
         List<permission> MenuAccess = new List<permission>();
@@ -1024,6 +1026,8 @@ else
                 Title = "Ralat telah berlaku! Sila hubungi pentadbir sistem."
             });
         }
+
+        PanelVisible = false;
     }
 
     async Task UpdateDataAsync()

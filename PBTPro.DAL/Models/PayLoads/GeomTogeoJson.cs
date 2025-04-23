@@ -26,4 +26,12 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? license_status_view { get; set; }
         public int? license_status_id { get; set; }
     }
+
+    public class PremisLicenseFilterModel
+    {
+        public string types_code { get; set; }
+        public DateOnly? start_date { get; set; }
+        public DateOnly? end_date { get; set; }
+        public List<int>? category_ids { get; set; }
+    }
 }

@@ -107,6 +107,18 @@ public partial class trn_cfsc
 
     public int? user_id { get; set; }
 
+    public string? recipient_name { get; set; }
+
+    public string? recipient_icno { get; set; }
+
+    public string? recipient_telno { get; set; }
+
+    public string? recipient_addr { get; set; }
+
+    public string? recipient_sign { get; set; }
+
+    public int? recipient_relation_id { get; set; }
+
     public virtual ref_cfsc_inventory? inv { get; set; }
 
     public virtual ref_cfsc_invtype? inv_type { get; set; }
