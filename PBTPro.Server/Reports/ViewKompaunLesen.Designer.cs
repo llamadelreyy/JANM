@@ -1046,7 +1046,7 @@
             this.xrLabel3.StylePriority.UseFont = false;
             this.xrLabel3.StylePriority.UsePadding = false;
             this.xrLabel3.StylePriority.UseTextAlignment = false;
-            this.xrLabel3.Text = "MAKLUMAT PENERIMA";
+            this.xrLabel3.Text = "MAKLUMAT PEMILIK";
             this.xrLabel3.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleLeft;
             this.xrLabel3.WordWrap = false;
             // 

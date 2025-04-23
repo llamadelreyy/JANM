@@ -14,6 +14,7 @@
 @inject PBTAuthPermissionService PermissionService
 @inject RefTrnStatusService _RefTrnStatus
 @inject RefNoticeDurationService _RefNoticeDuration
+@* @inject IJSRuntime JSRuntime *@
 
 <style>
     .dxbl-grid {
@@ -422,6 +423,7 @@ else
     {
         var item = (trn_notices_view)itemData;
         NavigationManager.NavigateTo("/reportnotis?norujukan=" + item.no_rujukan, false);
+        // await JSRuntime.InvokeVoidAsync("open", "/reportnotis?norujukan=" + item.no_rujukan, "_blank");
     }
 
     protected async Task OnHistoryRow(object itemData)
