@@ -29,21 +29,43 @@
                     <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
                     <td style="width:100%;">@($"{(_dtTax.tax.tax_start_date == null ? "" : _dtTax.tax.tax_start_date)} - {(_dtTax.tax.tax_end_date == null ? "" : _dtTax.tax.tax_end_date)}")</td>
                 </tr>
-                <tr>
-                    <td nowrap>Nama Pemilik</td>
-                    <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                    <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_name) ? "" : _dtTax.tax_owner.owner_name)} - ({(string.IsNullOrEmpty(_dtTax.tax_owner.owner_icno) ? "" : _dtTax.tax_owner.owner_icno)})")</td>
-                </tr>
-                <tr>
-                    <td nowrap>Alamat Pemilik</td>
-                    <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                    <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_addr) ? "" : _dtTax.tax_owner.owner_addr)})")</td>
-                </tr>
-                <tr>
-                    <td nowrap>Telefon No</td>
-                    <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                    <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_telno) ? "" : _dtTax.tax_owner.owner_telno)}")</td>
-                </tr>
+                @if (_dtTax.tax_owner != null)
+                {
+                    <tr>
+                        <td nowrap>Nama Pemilik</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_name) ? "" : _dtTax.tax_owner.owner_name)} - ({(string.IsNullOrEmpty(_dtTax.tax_owner.owner_icno) ? "" : _dtTax.tax_owner.owner_icno)})")</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Alamat Pemilik</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_addr) ? "" : _dtTax.tax_owner.owner_addr)})")</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Telefon No</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(_dtTax.tax_owner.owner_telno) ? "" : _dtTax.tax_owner.owner_telno)}")</td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td nowrap>Nama Pemilik</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">-</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Alamat Pemilik</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">-</td>
+                    </tr>
+                    <tr>
+                        <td nowrap>Telefon No</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">-</td>
+                    </tr>
+                }
+
                 <tr>
                     <td nowrap>Alamat Premis &nbsp;&nbsp; <img src="/images/icons-small/marker.png" alt="" /></td>
                     <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
