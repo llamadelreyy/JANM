@@ -1450,6 +1450,31 @@ label {
     background-color: red;
 }
 
+.e-priority-new {
+    border-radius: 3px 4px;
+    background-color: cornflowerblue;
+}
+
+.e-priority-action {
+    border-radius: 3px 4px;
+    background-color: yellow;
+}
+
+.e-priority-check {
+    border-radius: 3px 4px;
+    background-color: darkgray;
+}
+
+.e-priority-transfer {
+    border-radius: 3px 4px;
+    background-color: violet;
+}
+
+.e-priority-close {
+    border-radius: 3px 4px;
+    background-color: darkgrey;
+}
+
 /*================ FOR PREMISE CARD ========================*/
 
 .ProfileBox {

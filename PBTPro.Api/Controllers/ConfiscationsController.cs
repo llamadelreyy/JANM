@@ -1047,6 +1047,259 @@ namespace PBTPro.Api.Controllers
         }
         #endregion
 
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<trn_cfsc_view>>> ListReport()
+        {
+            try
+            {
+                bool isTax = false;
+
+                var tenantCfsc = await _tenantDBContext.trn_cfscs
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                var tenantBusiness = (await _tenantDBContext.mst_owner_licensees
+                       .Where(mol => !string.IsNullOrEmpty(mol.owner_icno))
+                       .Select(mol => new { mol.owner_icno, mol.owner_name })
+                       .AsNoTracking()
+                       .ToListAsync())
+                       .ToDictionary(mol => mol.owner_icno, mol => mol);
+
+                var tenantPremis = (await _tenantDBContext.mst_owner_premis
+                   .Where(mop => !string.IsNullOrEmpty(mop.owner_icno))
+                   .Select(mop => new { mop.owner_icno, mop.owner_name })
+                   .AsNoTracking()
+                   .ToListAsync())
+                   .ToDictionary(mop => mop.owner_icno, mop => mop);
+
+                var tenantLicensees = (await _tenantDBContext.mst_licensees
+                    .Where(ml => !string.IsNullOrEmpty(ml.license_accno))
+                    .Select(ml => new { ml.licensee_id, ml.license_accno, ml.business_name, ml.ssm_no, ml.business_addr })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .ToDictionary(ml => ml.licensee_id, ml => ml);
+
+                var tenantStatuses = await _tenantDBContext.ref_trn_statuses
+                                   .Select(rts => new { rts.status_id, rts.status_name })
+                                   .AsNoTracking()
+                                   .ToListAsync();
+
+                var lawOffenses = (await _dbContext.ref_law_offenses
+                    .Select(lo => new { lo.offense_code, lo.offense_name })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .ToDictionary(lo => lo.offense_code, lo => lo.offense_name);
+
+                var lawActs = (await _dbContext.ref_law_acts
+                    .Where(rla => rla.act_code != null)
+                    .Select(rla => new { rla.act_code, rla.act_name })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .ToDictionary(rla => rla.act_code, rla => rla.act_name);
+
+                var lawSections = (await _dbContext.ref_law_sections
+                    .Where(rls => rls.section_code != null)
+                    .Select(rls => new { rls.section_code, rls.section_name })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .ToDictionary(rls => rls.section_code, rls => rls.section_name);
+
+                var lawUuks = (await _dbContext.ref_law_uuks
+                    .Where(rlu => rlu.uuk_code != null)
+                    .Select(rlu => new { rlu.uuk_code, rlu.uuk_name })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .ToDictionary(rlu => rlu.uuk_code, rlu => rlu.uuk_name);
+
+                var tenantInv = await _tenantDBContext.ref_cfsc_inventories
+                                   .Select(rci => new { rci.inv_id, rci.inv_name, rci.item_type })
+                                   .AsNoTracking()
+                                   .ToListAsync();
+
+                var tenantInvtype = await _tenantDBContext.ref_cfsc_invtypes
+                                   .Select(rcit => new { rcit.inv_type_id, rcit.inv_type_desc })
+                                   .AsNoTracking()
+                                   .ToListAsync();
+
+                var tenantInvScenario = await _tenantDBContext.ref_cfsc_scenarios
+                                   .Select(rcs => new { rcs.scen_id, rcs.scen_name })
+                                   .AsNoTracking()
+                                   .ToListAsync();
+
+                var tenantPatrolSchedules = (await _tenantDBContext.mst_patrol_schedules
+                     .Select(mps => new { mps.schedule_id, mps.idno })
+                     .AsNoTracking()
+                     .ToListAsync())
+                     .ToDictionary(mps => mps.schedule_id, mps => mps.idno);
+
+                var users = (await _dbContext.Users
+                    .Select(u => new { u.IdNo, u.full_name })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .ToDictionary(u => u.IdNo, u => u.full_name);
+
+                var tenantCfscImgs = (await _tenantDBContext.trn_cfsc_imgs
+                    .Select(img => new { img.trn_cfsc_id, img.pathurl })
+                    .AsNoTracking()
+                    .ToListAsync())
+                    .GroupBy(img => img.trn_cfsc_id)
+                    .ToDictionary(g => g.Key, g => g.Select(img => img.pathurl).Distinct().ToList());
+              
+
+                var results = tenantCfsc.Select(tc =>
+                {
+                    tenantBusiness.TryGetValue(tc.owner_icno, out var ownerlicense);
+                    tenantPremis.TryGetValue(tc.owner_icno, out var ownerPremis);
+                    lawOffenses.TryGetValue(tc?.offense_code, out var offense);
+                    tenantPatrolSchedules.TryGetValue((int)tc.schedule_id, out var officerId);
+                    users.TryGetValue(officerId, out var officer);
+                    tenantCfscImgs.TryGetValue(tc.trn_cfsc_id, out var images);                   
+
+                    var licensee = tc?.license_id.HasValue == true
+                   ? tenantLicensees.GetValueOrDefault(tc.license_id.Value)
+                   : null;
+
+                    var law = !string.IsNullOrEmpty(tc?.act_code)
+                    ? lawActs.GetValueOrDefault(tc.act_code, "")
+                    : "";
+
+                    var section = !string.IsNullOrEmpty(tc?.section_code)
+                        ? lawSections.GetValueOrDefault(tc.section_code, "")
+                        : "";
+
+                    var uuk = !string.IsNullOrEmpty(tc?.uuk_code)
+                        ? lawUuks.GetValueOrDefault(tc.uuk_code, "")
+                        : "";
+
+                    var owner_name = "";
+                    isTax = (bool)tc.is_tax;
+                    if (!isTax)
+                        owner_name = ownerlicense?.owner_name;
+                    else
+                        owner_name = ownerPremis?.owner_name;
+
+                    return new trn_cfsc_view
+                    {
+                        id_sita = tc.trn_cfsc_id,
+                        no_lesen = licensee?.license_accno,
+                        nama_perniagaan = licensee?.business_name,
+                        nama_pemilik = owner_name,
+                        no_rujukan = tc.cfsc_ref_no,
+                        status_sita_id = (int)tc.trnstatus_id,
+                        status_sita = tenantStatuses.FirstOrDefault(s => s.status_id == tc.trnstatus_id)?.status_name,
+                        kod_kesalahan = offense,
+                        akta_kesalahan = law ?? "",
+                        kod_seksyen = section ?? "",
+                        kod_uuk = uuk ?? "",
+                        arahan = tc.instruction,
+                        lokasi_kesalahan = tc.offs_location,
+                        TarikhData = tc.created_at,
+                        nama_pegawai = officer,
+                        ssm_no = licensee?.ssm_no,
+                        alamat_perniagaan = licensee?.business_addr,
+                        nama_dokumen = tc.doc_name,
+                        pautan_dokumen = tc.doc_pathurl,
+                        imej_sita = images ?? new List<string>(),
+                        lesen_id = tc?.license_id ?? null,
+                        no_cukai = tc?.tax_accno,
+                        is_cukai = (bool)tc.is_tax,
+                        inv_id = tc.inv_id ?? null,
+                        inv_type_id = tc.inv_type_id ?? null,
+                        scenario_id = tc.scen_id ?? null,
+                        nama_inventori = tenantInv.FirstOrDefault(s => s.inv_id == tc.inv_id)?.inv_name,
+                        jenis_inventori = tenantInv.FirstOrDefault(s => s.inv_id == tc.inv_id)?.item_type,
+                        nama_inv_type = tenantInvtype.FirstOrDefault(s => s.inv_type_id == tc.inv_type_id)?.inv_type_desc,
+                        nama_scenario = tenantInvScenario.FirstOrDefault(s => s.scen_id == tc.scen_id)?.scen_name,
+                        inspect_latitude = tc.cfsc_latitude,
+                        inspect_longitude = tc.cfsc_longitude,
+                    };
+                }).ToList();
+
+                return Ok(results, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, "Senarai rekod berjaya dijana"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{_feature} Message: {ex.Message}, Inner Exception: {ex.InnerException}");
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, "Maaf berlaku ralat yang tidak dijangka. Sila hubungi pentadbir sistem atau cuba semula kemudian."));
+            }
+        }
+
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> UpdateReport(int Id, [FromBody] trn_cfsc_view InputModel)
+        {
+            try
+            {
+                int runUserID = await getDefRunUserId();
+                string runUser = await getDefRunUser();
+
+                #region Validation
+                var formField = await _tenantDBContext.trn_cfscs.FirstOrDefaultAsync(x => x.trn_cfsc_id == Id);
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+
+                #endregion
+
+                formField.trnstatus_id = InputModel.status_sita_id;
+                formField.modifier_id = runUserID;
+                formField.modified_at = DateTime.Now;
+
+                _tenantDBContext.trn_cfscs.Update(formField);
+                await _tenantDBContext.SaveChangesAsync();
+
+                return Ok(formField, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Berjaya mengubahsuai medan")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpDelete("{Id}")]
+        public async Task<IActionResult> DeleteReport(int Id)
+        {
+            try
+            {
+                string runUser = await getDefRunUser();
+                int runUserID = await getDefRunUserId();
+
+                #region Validation
+                var formField = await _tenantDBContext.trn_cfscs.FirstOrDefaultAsync(x => x.trn_cfsc_id == Id);
+                if (formField == null)
+                {
+                    return Error("", SystemMesg(_feature, "INVALID_RECID", MessageTypeEnum.Error, string.Format("Rekod tidak sah")));
+                }
+                #endregion
+
+                try
+                {
+                    _tenantDBContext.trn_cfscs.Remove(formField);
+                    await _tenantDBContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    formField.is_deleted = true;
+                    formField.modifier_id = runUserID;
+                    formField.modified_at = DateTime.Now;
+
+                    _tenantDBContext.trn_cfscs.Update(formField);
+                    await _tenantDBContext.SaveChangesAsync();
+
+                    _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                }
+
+                return Ok(formField, SystemMesg(_feature, "REMOVE", MessageTypeEnum.Success, string.Format("Berjaya membuang medan")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
         #region Testing API
         // For Testing Purpose ONLY WIll be removed after finalization
         [AllowAnonymous]
