@@ -27,6 +27,7 @@ using DevExpress.XtraRichEdit.API.Layout;
 using DevExpress.XtraRichEdit.Import.Html;
 using DevExpress.DataAccess.Native.Web;
 using NetTopologySuite.Index.HPRtree;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace PBTPro.Pages
@@ -308,33 +309,53 @@ namespace PBTPro.Pages
 
         private async Task InvokeClustering(int initStart)
         {
-            _clusteringMarkers = await populateMarker(initStart);
-
-            _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+            try
             {
-                //RendererObjectName = "customRendererLib.interpolatedRenderer",
-                ZoomOnClick = true,
-            });
+                _clusteringMarkers = await populateMarker(initStart);
 
-
-            foreach (var _premis in premisData)
-            {
-                var geometry = _premis.geom;
-                if (geometry.type == "Point")
+                _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
                 {
-                    var coords = geometry.coordinates;
-                    //var latLng = new LatLngLiteral(coords[1], coords[0]);
-                    var latLng = new LatLngLiteral()
-                    {
-                        Lat = coords[1],
-                        Lng = coords[0]
-                    };
-                    await _bounds.Extend(latLng);
-                }
-            }
+                    //RendererObjectName = "customRendererLib.interpolatedRenderer",
+                    ZoomOnClick = true,
+                });
 
-            var boundsLiteral = await _bounds.ToJson();
-            await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
+                mintAktif = 0;
+                mintTamatTempoh = 0;
+                mintTiadaData = 0;
+                foreach (var _premis in premisData)
+                {
+                    var geometry = _premis.geom;
+                    if (geometry.type == "Point")
+                    {
+                        var coords = geometry.coordinates;
+                        //var latLng = new LatLngLiteral(coords[1], coords[0]);
+                        var latLng = new LatLngLiteral()
+                        {
+                            Lat = coords[1],
+                            Lng = coords[0]
+                        };
+                        await _bounds.Extend(latLng);
+
+                        //Count all the license status on startup
+                        string lesen_status = _premis.license_status_view;
+                        if (lesen_status == "Tidak Berlesen")
+                            mintTamatTempoh += 1;
+                        else if (lesen_status == "Aktif")
+                            //Count total visible point based on boundries
+                            mintAktif += 1;
+                        else if (lesen_status == "Tiada Data")
+                            //Count total visible point based on boundries
+                            mintTiadaData += 1;
+
+                    }
+                }
+
+                var boundsLiteral = await _bounds.ToJson();
+                await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
+            }
+            catch (Exception ex)
+            {
+            }
         }
 
         private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart)
