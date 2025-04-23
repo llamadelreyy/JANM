@@ -230,19 +230,19 @@ namespace PBTPro.Api.Controllers
 
                 foreach (var schedule in existingSchedules)
                 {
-                    bool ischange = true;
-                    if (schedule.start_time == InputModel.StartTime && schedule.end_time == InputModel.EndTime)
+                    bool ischange = false;
+                    if (schedule.start_time == InputModel.StartTime)
                     {
-                        ischange = false;
+                        ischange = true;
                     }
                     if (ischange)
                     {
-                        if (InputModel.StartTime >= schedule.start_time )//&& InputModel.EndTime <= schedule.end_time)
+                        if (InputModel.StartTime >= schedule.start_time)
                         {
-                            return Error("", SystemMesg(_feature, "PATROL_TIME_WITHIN_EXISTING", MessageTypeEnum.Error, string.Format("Tarikh rondaan pegawai telah wujud dalam jadual pada hari ini.")));
+                            return Error("", SystemMesg(_feature, "", MessageTypeEnum.Error, string.Format("Tarikh rondaan pegawai telah wujud dalam jadual pada hari ini.")));
                         }
 
-                        if (InputModel.StartTime < schedule.end_time )//&& InputModel.EndTime > schedule.start_time)
+                        if (InputModel.StartTime < schedule.end_time)
                         {
                             return Error("", SystemMesg(_feature, "PATROL_OVERLAP_TIME", MessageTypeEnum.Error, string.Format("Tarikh rondaan bertindih dengan jadual lain.")));
                         }

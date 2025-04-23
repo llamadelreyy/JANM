@@ -927,6 +927,7 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                bool isTax = false;
                 var tenantInspects = await _tenantDBContext.trn_inspects
                    .AsNoTracking()
                    .ToListAsync();
@@ -994,7 +995,6 @@ namespace PBTPro.Api.Controllers
                 {
                     tenantBusiness.TryGetValue(tI.owner_icno, out var ownerlicense);
                     tenantPremis.TryGetValue(tI.owner_icno, out var ownerPremis);
-                    //tenantLicensees.TryGetValue((int)tI?.license_id, out var licensee);
                     tenantDepartments.TryGetValue((int)tI?.dept_id, out var department);
                     tenantPatrolSchedules.TryGetValue((int)tI.schedule_id, out var officerId);
                     users.TryGetValue(officerId, out var officer);
@@ -1005,12 +1005,19 @@ namespace PBTPro.Api.Controllers
                     ? tenantLicensees.GetValueOrDefault(tI.license_id.Value)
                     : null;
 
+                    var owner_name = "";
+                    isTax = (bool)tI.is_tax;
+                    if (!isTax)
+                         owner_name = ownerlicense?.owner_name;
+                        else
+                        owner_name = ownerPremis?.owner_name;
+
                     return new trn_inspect_view
                     {
                         id_nota = tI.trn_inspect_id,
                         no_lesen = licensee?.license_accno,
                         nama_perniagaan = licensee?.business_name,
-                        nama_pemilik = ownerlicense?.owner_name,
+                        nama_pemilik = owner_name,                        
                         no_rujukan = tI.inspect_ref_no,
                         arahan = tI.notes,
                         lokasi_kesalahan = tI.offs_location,
@@ -1030,6 +1037,7 @@ namespace PBTPro.Api.Controllers
                         lesen_id = tI?.license_id ?? null,
                         inspect_latitude = tI.inspect_latitude,
                         inspect_longitude = tI.inspect_longitude,
+                        is_cukai = (bool)tI.is_tax,
                     };
 
                 }).ToList();

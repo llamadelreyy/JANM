@@ -10,6 +10,7 @@ Changes Logs:
 27/02/2025 - revamp table & logic
 */
 
+using DevExpress.Blazor.Tabs.Internal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -962,16 +963,24 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
+                bool isTax = false;
                 var tenantNotices = await _tenantDBContext.trn_notices
                    .AsNoTracking()
                    .ToListAsync();
 
-                var tenantOwners = (await _tenantDBContext.mst_owner_licensees
-                    .Where(mol => !string.IsNullOrEmpty(mol.owner_icno))
-                    .Select(mol => new { mol.owner_icno, mol.owner_name })
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .ToDictionary(mol => mol.owner_icno, mol => mol);
+                var tenantBusiness = (await _tenantDBContext.mst_owner_licensees
+                        .Where(mol => !string.IsNullOrEmpty(mol.owner_icno))
+                        .Select(mol => new { mol.owner_icno, mol.owner_name })
+                        .AsNoTracking()
+                        .ToListAsync())
+                        .ToDictionary(mol => mol.owner_icno, mol => mol);
+
+                var tenantPremis = (await _tenantDBContext.mst_owner_premis
+                   .Where(mop => !string.IsNullOrEmpty(mop.owner_icno))
+                   .Select(mop => new { mop.owner_icno, mop.owner_name })
+                   .AsNoTracking()
+                   .ToListAsync())
+                   .ToDictionary(mop => mop.owner_icno, mop => mop);
 
                 var tenantLicensees = (await _tenantDBContext.mst_licensees
                     .Where(ml => !string.IsNullOrEmpty(ml.license_accno))
@@ -1044,12 +1053,6 @@ namespace PBTPro.Api.Controllers
                     .GroupBy(img => img.trn_notice_id)
                     .ToDictionary(g => g.Key, g => g.Select(img => img.pathurl).Distinct().ToList());
 
-                //var tenantNoticeDurations = (await _tenantDBContext.ref_notice_durations
-                //  .Select(nd => new { nd.duration_id, nd.duration_value })
-                //  .AsNoTracking()
-                //  .ToListAsync())
-                //  .ToDictionary(nd => nd.duration_id, nd => nd.duration_value);
-
                 var tenantNoticeDurations = await _tenantDBContext.ref_notice_durations
                    .Select(nd => new { nd.duration_id, nd.duration_value })
                    .AsNoTracking()
@@ -1057,15 +1060,14 @@ namespace PBTPro.Api.Controllers
 
                 var results = tenantNotices.Select(tn =>
                 {
-                    tenantOwners.TryGetValue(tn.owner_icno, out var owner);
-                    //tenantLicensees.TryGetValue((int)tn?.license_id, out var licensee);
+                    tenantBusiness.TryGetValue(tn.owner_icno, out var ownerlicense);
+                    tenantPremis.TryGetValue(tn.owner_icno, out var ownerPremis);
                     lawOffenses.TryGetValue(tn?.offense_code, out var offense);
                     tenantPatrolSchedules.TryGetValue((int)tn.schedule_id, out var officerId);
                     users.TryGetValue(officerId, out var officer);
                     tenantNoticeImgs.TryGetValue(tn.trn_notice_id, out var images);
                     tenantDelivers.TryGetValue((int)tn.deliver_id, out var deliver);
                     tenantWitness.TryGetValue(tn.trn_notice_id, out var witnesses);
-                    //tenantNoticeDurations.TryGetValue((int)tn?.duration_id, out var duration);
 
                     var licensee = tn?.license_id.HasValue == true
                     ? tenantLicensees.GetValueOrDefault(tn.license_id.Value)
@@ -1083,12 +1085,21 @@ namespace PBTPro.Api.Controllers
                         ? lawUuks.GetValueOrDefault(tn.uuk_code, "")
                         : "";
 
+
+                    var owner_name = "";
+                    isTax = (bool)tn.is_tax;
+                    if (!isTax)
+                        owner_name = ownerlicense?.owner_name;
+                    else
+                        owner_name = ownerPremis?.owner_name;
+
+
                     return new trn_notices_view
                     {
                         id_notis = tn.trn_notice_id,
                         no_lesen = licensee?.license_accno,
                         nama_perniagaan = licensee?.business_name,
-                        nama_pemilik = owner?.owner_name,
+                        nama_pemilik = owner_name,
                         no_rujukan = tn?.notice_ref_no,
                         status_notis_id = tn?.trnstatus_id,
                         status_notis = tenantStatuses.FirstOrDefault(s => s.status_id == tn.trnstatus_id)?.status_name,
@@ -1111,7 +1122,8 @@ namespace PBTPro.Api.Controllers
                         no_cukai = tn?.tax_accno ?? "",
                         tempoh_notis_id = tn?.duration_id,
                         tempoh_notis = tenantNoticeDurations.FirstOrDefault(s => s.duration_id == tn.duration_id)?.duration_value,
-                        lesen_id = tn?.license_id ?? null
+                        lesen_id = tn?.license_id ?? null,
+                        is_cukai = (bool)tn.is_tax,
                     };
                 }).ToList();
 
