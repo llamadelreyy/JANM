@@ -226,15 +226,24 @@ namespace PBTPro.Api.Controllers
                 if (!string.IsNullOrEmpty(filterType))
                 {
                     statusFilters = filterType.Split(',')
-                                                .Select(f => f.Trim())
+                                                .Select(f => f.Trim().ToLower())
                                                 .ToList();
 
                     if (statusFilters.Count > 0)
                     {
+                        //queryWithJoin = queryWithJoin
+                        //.Where(x => statusFilters.Any(filter =>
+                        //x.licStatus.status_name.ToLower().Contains(filter.ToLower()) ||
+                        //x.taxStatus.status_name.ToLower().Contains(filter.ToLower())
+                        //));
                         queryWithJoin = queryWithJoin
                         .Where(x => statusFilters.Any(filter =>
-                            x.licStatus.status_name.ToLower().Contains(filter.ToLower()) ||
-                            x.taxStatus.status_name.ToLower().Contains(filter.ToLower())
+                            filter == "ltd"
+                                ? x.licStatus.status_name.ToLower().Contains("tiada data")
+                                : filter == "ctd"
+                                    ? x.taxStatus.status_name.ToLower().Contains("tiada data")
+                                    : x.licStatus.status_name.ToLower().Contains(filter) ||
+                                      x.taxStatus.status_name.ToLower().Contains(filter)
                         ));
                     }
                 }
