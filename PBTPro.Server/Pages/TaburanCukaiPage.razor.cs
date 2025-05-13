@@ -46,6 +46,7 @@ namespace PBTPro.Pages
         //For check box ===========
         public List<FilterData> FilterList { get; set; }
         protected List<string> SelectedIds = new List<string>();
+        protected List<string> SelectedLots = new List<string>();
         public List<FilterData> ObjectList { get; set; }
         public string OutPutValue { get; set; }
 
@@ -60,7 +61,7 @@ namespace PBTPro.Pages
         ////IEnumerable<(NoticeProp, int)> Items;
 
         //Premis data
-        IEnumerable<dynamic> premisData;
+        //////IEnumerable<dynamic> premisData;
         IEnumerable<general_search_premis_detail> searchData;
         //IEnumerable<(general_search_premis_detail, int)> Items;
         IEnumerable<(premis_license_tax_view, int)> premisItem;
@@ -131,6 +132,36 @@ namespace PBTPro.Pages
             }
         }
 
+        int GetIdColor(string color)
+        {
+            switch (color.Trim().ToUpper())
+            {
+                case "GREEN":
+                    return 1;
+                case "RED":
+                    return 2;
+                case "GREY":
+                    return 3;
+                default:
+                    return 0;
+            }
+        }
+
+        int GetIdStatusColor(string status)
+        {
+            switch (status.Trim().ToUpper())
+            {
+                case "CUKAI TERTUNGGAK":
+                    return 2;
+                case "CUKAI DIBAYAR":
+                    return 1;
+                case "TIADA DATA":
+                    return 3;
+                default:
+                    return 0;
+            }
+        }
+
         string GetIcon(string color)
         {
             string svgTemplate =
@@ -154,7 +185,7 @@ namespace PBTPro.Pages
             else if (status_id == 2)
             {
                 priorytyClass = "danger";
-                title = " CUKAI BELUM DIBAYAR ";
+                title = " CUKAI TERTUNGGAK ";
             }
 
             string html = string.Format("<span class='e-badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
@@ -181,7 +212,7 @@ namespace PBTPro.Pages
             //Map
             _mapOptions = new MapOptions
             {
-                Zoom = 15,
+                Zoom = 16,
                 ZoomControlOptions = new ZoomControlOptions
                 {
                     Position = ControlPosition.RightBottom
@@ -275,15 +306,15 @@ namespace PBTPro.Pages
                 // Add listener for map api polygon data -- ismail
                 await ProcessMapAPIData(1);
 
-                //Get record
-                premisData = await _PremisService.GetList();
+                ////Get record
+                //premisData = await _PremisService.GetList();
                 //Get search record
                 searchData = await _SearchService.GetListPremisDetails();
 
                 ////premisItem = premisData.Select((item, index) => (item, index));
 
                 DataLoadedTcs.TrySetResult(true);
-                await InvokeClustering(1);
+                //////await InvokeClustering(1);
 
                 await this.map1.InteropObject.AddListener("dragend", async () =>
                 {
@@ -305,124 +336,182 @@ namespace PBTPro.Pages
 
         }
 
-        private async Task InvokeClustering(int initStart)
+        private async Task InvokeClustering(int initStart, double southLat, double westLng, double northLat, double eastLng)
         {
             try
             {
-                _clusteringMarkers = await populateMarker(initStart);
+                //_clusteringMarkers = await populateMarker(initStart, southLat, westLng, northLat, eastLng);
+
+                // Populate the markers list
+                var newMarkers = await populateMarker(initStart, southLat, westLng, northLat, eastLng);
+
+                // Append the new markers to the existing list
+                if (_clusteringMarkers == null)
+                {
+                    _clusteringMarkers = newMarkers;
+                }
+                else
+                {
+                    if (_clusteringMarkers.Count == 0)
+                    {
+                        _clusteringMarkers = newMarkers;
+                    }
+                    else
+                    {
+                        _clusteringMarkers.AddRange(newMarkers);
+                    }
+                }
+
+                if (_markerClustering != null && _clusteringMarkers != null)
+                {
+                    await _markerClustering.RemoveMarkers(_clusteringMarkers);
+                }
 
                 _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
                 {
                     //RendererObjectName = "customRendererLib.interpolatedRenderer",
+                    BatchSize = 40,
                     ZoomOnClick = true,
                 });
 
-                mintAktif = 0;
-                mintTamatTempoh = 0;
-                mintTiadaData = 0;
-                foreach (var _premis in premisData)
-                {
-                    var geometry = _premis.geom;
-                    if (geometry.type == "Point")
-                    {
-                        var coords = geometry.coordinates;
-                        //var latLng = new LatLngLiteral(coords[1], coords[0]);
-                        var latLng = new LatLngLiteral()
-                        {
-                            Lat = coords[1],
-                            Lng = coords[0]
-                        };
-                        await _bounds.Extend(latLng);
+                //////_markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+                //////{
+                //////    //RendererObjectName = "customRendererLib.interpolatedRenderer",
+                //////    ZoomOnClick = true,
+                //////});
 
-                        //Count all the license status on startup
-                        string cukai_status = _premis.tax_status_view;
-                        if (cukai_status.ToUpper() == "CUKAI TERTUNGGAK")
-                            mintTamatTempoh += 1;
-                        else if (cukai_status.ToUpper() == "CUKAI DIBAYAR")
-                            //Count total visible point based on boundries
-                            mintAktif += 1;
-                        else if (cukai_status.ToUpper() == "TIADA DATA")
-                            //Count total visible point based on boundries
-                            mintTiadaData += 1;
-                    }
-                }
-
-                var boundsLiteral = await _bounds.ToJson();
-                await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
             }
             catch (Exception ex)
             {
             }
         }
 
-        private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart)
+        private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart, double southLat, double westLng, double northLat, double eastLng)
         {
-            var result = new List<AdvancedMarkerElement>(premisData.Count());
+            //var result = new List<AdvancedMarkerElement>(premisData.Count()); //AZMEE
+            var result = new List<AdvancedMarkerElement>();
             try
             {
-                bool blnValidFilter = true;
-                foreach (var _premis in premisData)
+                //=========== ADD HERE =========
+                mintAktif = 0;
+                mintTamatTempoh = 0;
+                mintTiadaData = 0;
+                //==============================
+
+                string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
                 {
-                    string premisId = _premis.codeid_premis;
-                    string tax_status = _premis.tax_status_view;
-                    int tax_status_id = _premis.tax_status_id;
-
-                    blnValidFilter = true;
-                    if (initStart != 1)
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        blnValidFilter = false;
-                        if (SelectedIds.Contains(tax_status_id.ToString()))
+                        var tasks = new List<Task>();
+                        dynamic datas = JsonConvert.DeserializeObject(dataString);
+
+                        List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+
+                        bool blnValidFilter = true;
+                        string premisId = string.Empty;
+                        string cukai_status = string.Empty;
+                        string marker_color = string.Empty;
+                        string no_lot = string.Empty;
+                        int cukai_status_id = 0;
+
+                        foreach (var _premis in dataList)
                         {
+                            premisId = _premis.codeid_premis;
+                            cukai_status = _premis.marker_cukai_status;
+                            //marker_color = _premis.marker_color;
+                            no_lot = _premis.lot.ToString();
+                            cukai_status_id = GetIdStatusColor(cukai_status);
+                            marker_color = GetColorLot(cukai_status_id);
+
                             blnValidFilter = true;
+                            if (initStart != 1)
+                            {
+                                blnValidFilter = false;
+                                if (SelectedIds.Contains(cukai_status_id.ToString()))
+                                {
+                                    blnValidFilter = true;
+                                }
+                            }
+
+                            //Count all the cukai status on startup
+                            if (cukai_status.ToUpper() == "CUKAI TERTUNGGAK")
+                                mintTamatTempoh += 1;
+                            else if (cukai_status.ToUpper() == "CUKAI DIBAYAR")
+                                //Count total visible point based on boundries
+                                mintAktif += 1;
+                            else if (cukai_status.ToUpper() == "TIADA DATA")
+                                //Count total visible point based on boundries
+                                mintTiadaData += 1;
+
+                            //===============================
+
+                            //Start filtering based on selected tapisan
+                            if (blnValidFilter)
+                            {
+                                if (!SelectedLots.Contains(no_lot))
+                                {
+
+                                    var geometry = _premis.geom;
+                                    var coords = geometry.coordinates;
+                                    //var latLng = new LatLngLiteral(coords[1], coords[0]);
+                                    var latLng = new LatLngLiteral()
+                                    {
+                                        Lat = coords[1],
+                                        Lng = coords[0]
+                                    };
+
+                                    //=========== ADD HERE ==========
+                                    await _bounds.Extend(latLng);
+
+                                    //Add the lots
+                                    SelectedLots.Add(no_lot);
+
+                                    var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
+                                    {
+                                        Position = latLng,
+                                        Map = map1.InteropObject,
+                                        //Title = _premis.lot,  //comment the tooltip for faster loading
+                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label'>" + $"{no_lot}" + "</lable></div>",
+                                    });
+
+                                    markers.Push(_marker);
+
+                                    await _marker.AddListener<MouseEvent>("click", async e =>
+                                    {
+                                        //string markerLabelText = await marker.GetLabelText();
+                                        //string _title = await _marker.GetTitle();
+                                        // _events.Add("click on " + _title);
+                                        await OpenSideBar(premisId);
+                                        StateHasChanged();
+                                        ///await e.Stop();
+                                    });
+
+                                    result.Add(_marker);
+                                }
+                            }
+
+                            //Add all selected filter
+                            if (initStart == 1) // first init
+                            {
+                                if (!SelectedIds.Contains(cukai_status_id.ToString()))
+                                {
+                                    SelectedIds.Add(cukai_status_id.ToString());
+                                }
+                            }
+
                         }
                     }
-
-                    var geometry = _premis.geom;
-                    var coords = geometry.coordinates;
-                    //var latLng = new LatLngLiteral(coords[1], coords[0]);
-                    var latLng = new LatLngLiteral()
-                    {
-                        Lat = coords[1],
-                        Lng = coords[0]
-                    };
-
-                    //Start filtering based on selected tapisan
-                    if (blnValidFilter)
-                    {
-                        var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-                        {
-                            Position = latLng,
-                            Map = map1.InteropObject,
-                            Title = _premis.lot,
-                            // Content = index.ToString()
-                            Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(tax_status_id) + "'/></svg><lable class='map-marker-label'>" + $"{_premis.lot}" + "</lable></div>",
-                        });
-
-                        markers.Push(_marker);
-
-                        await _marker.AddListener<MouseEvent>("click", async e =>
-                        {
-                            //string markerLabelText = await marker.GetLabelText();
-                            //string _title = await _marker.GetTitle();
-                            // _events.Add("click on " + _title);
-                            await OpenSideBar(premisId);
-                            StateHasChanged();
-                            ///await e.Stop();
-                        });
-
-                        result.Add(_marker);
-                    }
-
-                    //Add all selected filter
-                    if (initStart == 1) // first init
-                    {
-                        if (!SelectedIds.Contains(tax_status_id.ToString()))
-                        {
-                            SelectedIds.Add(tax_status_id.ToString());
-                        }
-                    }
-
                 }
+
+
+                //====== ADD HERE =======
+                //////////var boundsLiteral = await _bounds.ToJson();
+                //////////await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
+                //=======================
             }
             catch (Exception ex)
             {
@@ -430,6 +519,132 @@ namespace PBTPro.Pages
 
             return result;
         }
+
+        //////private async Task InvokeClustering(int initStart)
+        //////{
+        //////    try
+        //////    {
+        //////        _clusteringMarkers = await populateMarker(initStart);
+
+        //////        _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+        //////        {
+        //////            //RendererObjectName = "customRendererLib.interpolatedRenderer",
+        //////            ZoomOnClick = true,
+        //////        });
+
+        //////        mintAktif = 0;
+        //////        mintTamatTempoh = 0;
+        //////        mintTiadaData = 0;
+        //////        foreach (var _premis in premisData)
+        //////        {
+        //////            var geometry = _premis.geom;
+        //////            if (geometry.type == "Point")
+        //////            {
+        //////                var coords = geometry.coordinates;
+        //////                //var latLng = new LatLngLiteral(coords[1], coords[0]);
+        //////                var latLng = new LatLngLiteral()
+        //////                {
+        //////                    Lat = coords[1],
+        //////                    Lng = coords[0]
+        //////                };
+        //////                await _bounds.Extend(latLng);
+
+        //////                //Count all the license status on startup
+        //////                string cukai_status = _premis.tax_status_view;
+        //////                if (cukai_status.ToUpper() == "CUKAI TERTUNGGAK")
+        //////                    mintTamatTempoh += 1;
+        //////                else if (cukai_status.ToUpper() == "CUKAI DIBAYAR")
+        //////                    //Count total visible point based on boundries
+        //////                    mintAktif += 1;
+        //////                else if (cukai_status.ToUpper() == "TIADA DATA")
+        //////                    //Count total visible point based on boundries
+        //////                    mintTiadaData += 1;
+        //////            }
+        //////        }
+
+        //////        var boundsLiteral = await _bounds.ToJson();
+        //////        await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
+        //////    }
+        //////    catch (Exception ex)
+        //////    {
+        //////    }
+        //////}
+
+        //////private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart)
+        //////{
+        //////    var result = new List<AdvancedMarkerElement>(premisData.Count());
+        //////    try
+        //////    {
+        //////        bool blnValidFilter = true;
+        //////        foreach (var _premis in premisData)
+        //////        {
+        //////            string premisId = _premis.codeid_premis;
+        //////            string tax_status = _premis.tax_status_view;
+        //////            int tax_status_id = _premis.tax_status_id;
+
+        //////            blnValidFilter = true;
+        //////            if (initStart != 1)
+        //////            {
+        //////                blnValidFilter = false;
+        //////                if (SelectedIds.Contains(tax_status_id.ToString()))
+        //////                {
+        //////                    blnValidFilter = true;
+        //////                }
+        //////            }
+
+        //////            var geometry = _premis.geom;
+        //////            var coords = geometry.coordinates;
+        //////            //var latLng = new LatLngLiteral(coords[1], coords[0]);
+        //////            var latLng = new LatLngLiteral()
+        //////            {
+        //////                Lat = coords[1],
+        //////                Lng = coords[0]
+        //////            };
+
+        //////            //Start filtering based on selected tapisan
+        //////            if (blnValidFilter)
+        //////            {
+        //////                var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
+        //////                {
+        //////                    Position = latLng,
+        //////                    Map = map1.InteropObject,
+        //////                    Title = _premis.lot,
+        //////                    // Content = index.ToString()
+        //////                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(tax_status_id) + "'/></svg><lable class='map-marker-label'>" + $"{_premis.lot}" + "</lable></div>",
+        //////                });
+
+        //////                markers.Push(_marker);
+
+        //////                await _marker.AddListener<MouseEvent>("click", async e =>
+        //////                {
+        //////                    //string markerLabelText = await marker.GetLabelText();
+        //////                    //string _title = await _marker.GetTitle();
+        //////                    // _events.Add("click on " + _title);
+        //////                    await OpenSideBar(premisId);
+        //////                    StateHasChanged();
+        //////                    ///await e.Stop();
+        //////                });
+
+        //////                result.Add(_marker);
+        //////            }
+
+        //////            //Add all selected filter
+        //////            if (initStart == 1) // first init
+        //////            {
+        //////                if (!SelectedIds.Contains(tax_status_id.ToString()))
+        //////                {
+        //////                    SelectedIds.Add(tax_status_id.ToString());
+        //////                }
+        //////            }
+
+        //////        }
+        //////    }
+        //////    catch (Exception ex)
+        //////    {
+        //////    }
+
+        //////    return result;
+        //////}
 
         private async Task ClearClustering()
         {
@@ -439,6 +654,13 @@ namespace PBTPro.Pages
             }
 
             await _markerClustering.RemoveMarkers(_clusteringMarkers);
+
+            //Empty the list
+            // Clear all markers
+            _clusteringMarkers?.Clear();
+            // Reset the clustering instance
+            _markerClustering?.Dispose();
+            _markerClustering = null;
         }
 
         private async Task AddLegend()
@@ -503,12 +725,22 @@ namespace PBTPro.Pages
         //Check Box
         protected async Task ShowSelectedValues()
         {
+            PanelVisible = true;
             await ClearClustering();
-            //Populate back the filtering
-            if (SelectedIds != null)
-                await InvokeClustering(2);
+            //Clear the populate lots
+            SelectedLots.Clear();
 
-            OutPutValue = string.Join(",", SelectedIds.ToArray());
+            var bounds = await this.map1.InteropObject.GetBounds();
+            if (bounds != null)
+            {
+                //Populate back the filtering
+                if (SelectedIds.Count > 0)
+                    await InvokeClustering(2, bounds.South, bounds.West, bounds.North, bounds.East);
+
+                OutPutValue = string.Join(",", SelectedIds.ToArray());
+            }
+
+            PanelVisible = false;
             StateHasChanged();
         }
         private List<FilterData> GetMockFilter()
@@ -721,7 +953,8 @@ namespace PBTPro.Pages
                     {
                         await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
                     }
-                    await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    //////await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    await InvokeClustering(intStart, bounds.South, bounds.West, bounds.North, bounds.East);
                     _isProcessing = false;
 
                 }
@@ -852,282 +1085,149 @@ namespace PBTPro.Pages
             }
         }
 
-        private async Task GeneratePremisData(double southLat, double westLng, double northLat, double eastLng)
-        {
-            try
-            {
-                string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
-                var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+        //////private async Task GeneratePremisData(double southLat, double westLng, double northLat, double eastLng)
+        //////{
+        //////    try
+        //////    {
+        //////        string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+        //////        var response = await _ApiConnector.ProcessLocalApi(requestUrl);
 
-                if (response.ReturnCode == 200)
-                {
-                    string? dataString = response?.Data?.ToString();
-                    if (!string.IsNullOrWhiteSpace(dataString))
-                    {
-                        var tasks = new List<Task>();
-                        dynamic datas = JsonConvert.DeserializeObject(dataString);
+        //////        if (response.ReturnCode == 200)
+        //////        {
+        //////            string? dataString = response?.Data?.ToString();
+        //////            if (!string.IsNullOrWhiteSpace(dataString))
+        //////            {
+        //////                var tasks = new List<Task>();
+        //////                dynamic datas = JsonConvert.DeserializeObject(dataString);
 
-                        List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+        //////                List<dynamic> dataList = datas.ToObject<List<dynamic>>();
 
-                        ////var filteredDatas = dataList.Where(d =>
-                        ////{
-                        ////    string dataId = d.codeid_premis;  // Convert gid to int (ensure it's valid)
-                        ////    return !_processedPremisGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
-                        ////}).ToList();
+        //////                ////var filteredDatas = dataList.Where(d =>
+        //////                ////{
+        //////                ////    string dataId = d.codeid_premis;  // Convert gid to int (ensure it's valid)
+        //////                ////    return !_processedPremisGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
+        //////                ////}).ToList();
 
-                        ////var semaphore = new SemaphoreSlim(1000);
-
-
-                        //////Count and mark the premise
-                        ////foreach (var data in dataList)
-                        ////{
-                        ////    string dataId = data.codeid_premis.ToObject(typeof(string));
-
-                        ////    if (dataId == null)
-                        ////    {
-                        ////        continue;
-                        ////    }
-
-                        ////    //bool skipProcessing = false;
-
-                        ////    if (_processedPremisGids.ContainsKey(dataId))
-                        ////    {
-                        ////        continue;
-                        ////    }
-
-                        ////    var geometry = data.geom;
-                        ////    tasks.Add(Task.Run(async () =>
-                        ////    {
-                        ////        await semaphore.WaitAsync();
-                        ////        try
-                        ////        {
-                        ////            if (_processedPremisGids.ContainsKey(dataId))
-                        ////            {
-                        ////                return; // Skip if already processed
-                        ////            }
-
-                        ////            if (geometry.type == "Point")
-                        ////            {
-                        ////                var coords = geometry.coordinates;
-                        ////                double x = coords[1];
-                        ////                double y = coords[0];
-                        ////                var latLng = new LatLngLiteral(x, y);
-                        ////                await CreateMarker(latLng, data); // Assuming CreateMarker is async
-                        ////            }
-                        ////            else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
-                        ////            {
-                        ////                IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
-
-                        ////                if (geometry.type == "Polygon")
-                        ////                {
-                        ////                    var polygonCoords = geometry.coordinates[0];
-                        ////                    latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
-                        ////                }
-                        ////                else if (geometry.type == "MultiPolygon")
-                        ////                {
-                        ////                    List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
-
-                        ////                    foreach (var polygon in geometry.coordinates)
-                        ////                    {
-                        ////                        multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
-                        ////                    }
-
-                        ////                    latLngs = multiPolygonCoords;
-                        ////                }
-
-                        ////                await CreatePolygon(latLngs, data);
-                        ////            }
-
-                        ////            _processedPremisGids[dataId] = true;
-                        ////        }
-                        ////        catch (Exception geometryEx)
-                        ////        {
-                        ////            Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
-                        ////        }
-                        ////        finally
-                        ////        {
-                        ////            semaphore.Release();
-                        ////        }
-                        ////    }));
-
-                        ////}
-
-                        //Count display premis - AZMEE
-                        mintAktif = 0;
-                        mintTamatTempoh = 0;
-                        mintTiadaData = 0;
-                        foreach (var data in dataList)
-                        {
-                            var geometry = data.geom;
-                            //string lesen_status = data.license_status_view;
+        //////                ////var semaphore = new SemaphoreSlim(1000);
 
 
-                            if (geometry.type == "Point")
-                            {
-                                if (data.marker_cukai_status.ToString().ToUpper() == "CUKAI TERTUNGGAK")
-                                    mintTamatTempoh += 1;
-                                else if (data.marker_cukai_status.ToString().ToUpper() == "CUKAI DIBAYAR")
-                                    //Count total visible point based on boundries
-                                    mintAktif += 1;
-                                else if (data.marker_cukai_status.ToString().ToUpper() == "TIADA DATA")
-                                    //Count total visible point based on boundries
-                                    mintTiadaData += 1;
+        //////                //////Count and mark the premise
+        //////                ////foreach (var data in dataList)
+        //////                ////{
+        //////                ////    string dataId = data.codeid_premis.ToObject(typeof(string));
 
-                            }
-                        }
+        //////                ////    if (dataId == null)
+        //////                ////    {
+        //////                ////        continue;
+        //////                ////    }
 
-                        ////if (tasks.Count > 0)
-                        ////{
-                        ////    await Task.WhenAll(tasks);
+        //////                ////    //bool skipProcessing = false;
 
-                        ////    _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
-                        ////    {
-                        ////        ZoomOnClick = true,
-                        ////    });
-                        ////}
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"API request error: {ex.Message}");
-            }
-        }
-        //private async Task GeneratePremisData(double southLat, double westLng, double northLat, double eastLng)
-        //{
-        //    try
-        //    {
-        //        string requestUrl = $"/api/Premis/GetListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
-        //        var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+        //////                ////    if (_processedPremisGids.ContainsKey(dataId))
+        //////                ////    {
+        //////                ////        continue;
+        //////                ////    }
 
-        //        if (response.ReturnCode == 200)
-        //        {
-        //            string? dataString = response?.Data?.ToString();
-        //            if (!string.IsNullOrWhiteSpace(dataString))
-        //            {
-        //                var tasks = new List<Task>();
-        //                dynamic datas = JsonConvert.DeserializeObject(dataString);
+        //////                ////    var geometry = data.geom;
+        //////                ////    tasks.Add(Task.Run(async () =>
+        //////                ////    {
+        //////                ////        await semaphore.WaitAsync();
+        //////                ////        try
+        //////                ////        {
+        //////                ////            if (_processedPremisGids.ContainsKey(dataId))
+        //////                ////            {
+        //////                ////                return; // Skip if already processed
+        //////                ////            }
 
-        //                List<dynamic> dataList = datas.ToObject<List<dynamic>>();
-        //                var filteredDatas = dataList.Where(d =>
-        //                {
-        //                    int dataId = (int)d.gid;  // Convert gid to int (ensure it's valid)
-        //                    return !_processedPremisGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
-        //                }).ToList();
+        //////                ////            if (geometry.type == "Point")
+        //////                ////            {
+        //////                ////                var coords = geometry.coordinates;
+        //////                ////                double x = coords[1];
+        //////                ////                double y = coords[0];
+        //////                ////                var latLng = new LatLngLiteral(x, y);
+        //////                ////                await CreateMarker(latLng, data); // Assuming CreateMarker is async
+        //////                ////            }
+        //////                ////            else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+        //////                ////            {
+        //////                ////                IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
 
-        //                var semaphore = new SemaphoreSlim(1000);
+        //////                ////                if (geometry.type == "Polygon")
+        //////                ////                {
+        //////                ////                    var polygonCoords = geometry.coordinates[0];
+        //////                ////                    latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+        //////                ////                }
+        //////                ////                else if (geometry.type == "MultiPolygon")
+        //////                ////                {
+        //////                ////                    List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
 
+        //////                ////                    foreach (var polygon in geometry.coordinates)
+        //////                ////                    {
+        //////                ////                        multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+        //////                ////                    }
 
-        //                //Count and mark the premise
-        //                foreach (var data in filteredDatas)
-        //                {
-        //                    int dataId = data.gid.ToObject(typeof(int));
+        //////                ////                    latLngs = multiPolygonCoords;
+        //////                ////                }
 
-        //                    if (dataId == null)
-        //                    {
-        //                        continue;
-        //                    }
+        //////                ////                await CreatePolygon(latLngs, data);
+        //////                ////            }
 
-        //                    //bool skipProcessing = false;
+        //////                ////            _processedPremisGids[dataId] = true;
+        //////                ////        }
+        //////                ////        catch (Exception geometryEx)
+        //////                ////        {
+        //////                ////            Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+        //////                ////        }
+        //////                ////        finally
+        //////                ////        {
+        //////                ////            semaphore.Release();
+        //////                ////        }
+        //////                ////    }));
 
-        //                    if (_processedPremisGids.ContainsKey(dataId))
-        //                    {
-        //                        continue;
-        //                    }
+        //////                ////}
 
-        //                    var geometry = data.geom;
-        //                    tasks.Add(Task.Run(async () =>
-        //                    {
-        //                        await semaphore.WaitAsync();
-        //                        try
-        //                        {
-        //                            if (_processedPremisGids.ContainsKey(dataId))
-        //                            {
-        //                                return; // Skip if already processed
-        //                            }
-
-        //                            if (geometry.type == "Point")
-        //                            {
-        //                                var coords = geometry.coordinates;
-        //                                double x = coords[1];
-        //                                double y = coords[0];
-        //                                var latLng = new LatLngLiteral(x, y);
-        //                                await CreateMarker(latLng, data); // Assuming CreateMarker is async
-        //                            }
-        //                            else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
-        //                            {
-        //                                IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
-
-        //                                if (geometry.type == "Polygon")
-        //                                {
-        //                                    var polygonCoords = geometry.coordinates[0];
-        //                                    latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
-        //                                }
-        //                                else if (geometry.type == "MultiPolygon")
-        //                                {
-        //                                    List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
-
-        //                                    foreach (var polygon in geometry.coordinates)
-        //                                    {
-        //                                        multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
-        //                                    }
-
-        //                                    latLngs = multiPolygonCoords;
-        //                                }
-
-        //                                await CreatePolygon(latLngs, data);
-        //                            }
-
-        //                            _processedPremisGids[dataId] = true;
-        //                        }
-        //                        catch (Exception geometryEx)
-        //                        {
-        //                            Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
-        //                        }
-        //                        finally
-        //                        {
-        //                            semaphore.Release();
-        //                        }
-        //                    }));
-
-        //                }
-
-        //                //Count display premis - AZMEE
-        //                mintAktif = 0;
-        //                mintTamatTempoh = 0;
-        //                foreach (var data in dataList)
-        //                {
-        //                    var geometry = data.geom;
-        //                    if (geometry.type == "Point")
-        //                    {
-        //                        //Count total visible point based on boundries
-        //                        mintAktif += 1;
-
-        //                        if (data.status_lesen == "Expired")
-        //                            mintTamatTempoh += 1;
-        //                    }
-
-        //                }
+        //////                //Count display premis - AZMEE
+        //////                mintAktif = 0;
+        //////                mintTamatTempoh = 0;
+        //////                mintTiadaData = 0;
+        //////                foreach (var data in dataList)
+        //////                {
+        //////                    var geometry = data.geom;
+        //////                    //string lesen_status = data.license_status_view;
 
 
-        //                if (tasks.Count > 0)
-        //                {
-        //                    await Task.WhenAll(tasks);
+        //////                    if (geometry.type == "Point")
+        //////                    {
+        //////                        if (data.marker_cukai_status.ToString().ToUpper() == "CUKAI TERTUNGGAK")
+        //////                            mintTamatTempoh += 1;
+        //////                        else if (data.marker_cukai_status.ToString().ToUpper() == "CUKAI DIBAYAR")
+        //////                            //Count total visible point based on boundries
+        //////                            mintAktif += 1;
+        //////                        else if (data.marker_cukai_status.ToString().ToUpper() == "TIADA DATA")
+        //////                            //Count total visible point based on boundries
+        //////                            mintTiadaData += 1;
 
-        //                    _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
-        //                    {
-        //                        ZoomOnClick = true,
-        //                    });
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"API request error: {ex.Message}");
-        //    }
-        //}
+        //////                    }
+        //////                }
 
+        //////                ////if (tasks.Count > 0)
+        //////                ////{
+        //////                ////    await Task.WhenAll(tasks);
+
+        //////                ////    _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+        //////                ////    {
+        //////                ////        ZoomOnClick = true,
+        //////                ////    });
+        //////                ////}
+        //////            }
+        //////        }
+        //////    }
+        //////    catch (Exception ex)
+        //////    {
+        //////        Console.WriteLine($"API request error: {ex.Message}");
+        //////    }
+        //////}
+        ///
+        
         public IEnumerable<LatLngLiteral> ConvertGeoJsonToLatLng(JArray geoJsonCoords)
         {
             List<List<double>> coords = geoJsonCoords.ToObject<List<List<double>>>();

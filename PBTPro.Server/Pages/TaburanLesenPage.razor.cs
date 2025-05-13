@@ -46,6 +46,8 @@ namespace PBTPro.Pages
         //For check box ===========
         public List<FilterData> FilterList { get; set; }
         protected List<string> SelectedIds = new List<string>();
+        protected List<string> SelectedLots = new List<string>();
+
         public List<FilterData> ObjectList { get; set; }
         public string OutPutValue { get; set; }
 
@@ -60,7 +62,7 @@ namespace PBTPro.Pages
         ////IEnumerable<(NoticeProp, int)> Items;
 
         //Premis data
-        IEnumerable<dynamic> premisData;
+        //////IEnumerable<dynamic> premisData;
         IEnumerable<general_search_premis_detail> searchData;
         //IEnumerable<(general_search_premis_detail, int)> Items;
         IEnumerable<(premis_license_tax_view, int)> premisItem;
@@ -133,6 +135,24 @@ namespace PBTPro.Pages
             }
         }
 
+        int GetIdColor(string color)
+        {
+            switch (color.Trim().ToUpper())
+            {
+                case "GREEN":
+                    return 1;
+                case "RED":
+                    return 5;
+                case "YELLOW":
+                    return 3;
+                case "GREY":
+                    return 4;
+                default:
+                    return 0;
+            }
+        }
+
+
         string GetIcon(string color)
         {
             string svgTemplate =
@@ -183,7 +203,7 @@ namespace PBTPro.Pages
             //Map
             _mapOptions = new MapOptions
             {
-                Zoom = 15,
+                Zoom = 16,
                 ZoomControlOptions = new ZoomControlOptions
                 {
                     Position = ControlPosition.RightBottom
@@ -278,14 +298,14 @@ namespace PBTPro.Pages
                 await ProcessMapAPIData(1);
 
                 //Get record
-                premisData = await _PremisService.GetList();
+                //////////premisData = await _PremisService.GetList(); //AZMEE
                 //Get search record
                 searchData = await _SearchService.GetListPremisDetails();
 
                 ////premisItem = premisData.Select((item, index) => (item, index));
 
                 DataLoadedTcs.TrySetResult(true);
-                await InvokeClustering(1);
+                //////////await InvokeClustering(1); //AZMEE
 
                 await this.map1.InteropObject.AddListener("dragend", async () =>
                 {
@@ -307,60 +327,60 @@ namespace PBTPro.Pages
 
         }
 
-        private async Task InvokeClustering(int initStart)
+        private async Task InvokeClustering(int initStart, double southLat, double westLng, double northLat, double eastLng)
         {
             try
             {
-                _clusteringMarkers = await populateMarker(initStart);
+                //_clusteringMarkers = await populateMarker(initStart, southLat, westLng, northLat, eastLng);
+
+                // Populate the markers list
+                var newMarkers = await populateMarker(initStart, southLat, westLng, northLat, eastLng);
+
+                // Append the new markers to the existing list
+                if (_clusteringMarkers == null)
+                {
+                    _clusteringMarkers = newMarkers;
+                }
+                else
+                {
+                    if (_clusteringMarkers.Count == 0)
+                    {
+                        _clusteringMarkers = newMarkers;
+                    }
+                    else
+                    {
+                        _clusteringMarkers.AddRange(newMarkers);
+                    }
+                }
+
+                if (_markerClustering != null && _clusteringMarkers != null)
+                {
+                    await _markerClustering.RemoveMarkers(_clusteringMarkers);
+                }
 
                 _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
                 {
                     //RendererObjectName = "customRendererLib.interpolatedRenderer",
+                    BatchSize = 40,                   
                     ZoomOnClick = true,
                 });
 
-                //mintAktif = 0;
-                //mintTamatTempoh = 0;
-                //mintTiadaData = 0;
-                //foreach (var _premis in premisData)
-                //{
-                //    var geometry = _premis.geom;
-                //    if (geometry.type == "Point")
-                //    {
-                //        var coords = geometry.coordinates;
-                //        //var latLng = new LatLngLiteral(coords[1], coords[0]);
-                //        var latLng = new LatLngLiteral()
-                //        {
-                //            Lat = coords[1],
-                //            Lng = coords[0]
-                //        };
-                //        await _bounds.Extend(latLng);
+                //////_markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+                //////{
+                //////    //RendererObjectName = "customRendererLib.interpolatedRenderer",
+                //////    ZoomOnClick = true,
+                //////});
 
-                //        //Count all the license status on startup
-                //        string lesen_status = _premis.license_status_view;
-                //        if (lesen_status == "Tidak Berlesen")
-                //            mintTamatTempoh += 1;
-                //        else if (lesen_status == "Aktif")
-                //            //Count total visible point based on boundries
-                //            mintAktif += 1;
-                //        else if (lesen_status == "Tiada Data")
-                //            //Count total visible point based on boundries
-                //            mintTiadaData += 1;
-
-                //    }
-                //}
-
-                //var boundsLiteral = await _bounds.ToJson();
-                //await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
             }
             catch (Exception ex)
             {
             }
         }
 
-        private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart)
+        private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart, double southLat, double westLng, double northLat, double eastLng)
         {
-            var result = new List<AdvancedMarkerElement>(premisData.Count());
+            //var result = new List<AdvancedMarkerElement>(premisData.Count()); //AZMEE
+            var result = new List<AdvancedMarkerElement>();
             try
             {
                 //=========== ADD HERE =========
@@ -369,89 +389,120 @@ namespace PBTPro.Pages
                 mintTiadaData = 0;
                 //==============================
 
-                bool blnValidFilter = true;
-                foreach (var _premis in premisData)
+                string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
                 {
-                    string premisId = _premis.codeid_premis;
-                    string lesen_status = _premis.license_status_view;
-                    int lesen_status_id = _premis.license_status_id;
-
-                    blnValidFilter = true;
-                    if (initStart != 1)
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
                     {
-                        blnValidFilter = false;
-                        if (SelectedIds.Contains(lesen_status_id.ToString()))
+                        var tasks = new List<Task>();
+                        dynamic datas = JsonConvert.DeserializeObject(dataString);
+
+                        List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+
+                        bool blnValidFilter = true;
+                        string premisId = string.Empty;
+                        string lesen_status = string.Empty;
+                        string marker_color = string.Empty;
+                        string no_lot = string.Empty;
+                        int lesen_status_id = 0;
+
+                        foreach (var _premis in dataList)
                         {
+                            premisId = _premis.codeid_premis;
+                            lesen_status = _premis.marker_lesen_status;
+                            marker_color = _premis.marker_color;
+                            no_lot = _premis.lot.ToString();
+                            lesen_status_id = GetIdColor(marker_color);
+
                             blnValidFilter = true;
+                            if (initStart != 1)
+                            {
+                                blnValidFilter = false;
+                                if (SelectedIds.Contains(lesen_status_id.ToString()))
+                                {
+                                    blnValidFilter = true;
+                                }
+                            }
+
+
+                            //Count all the license status on startup
+                            //string lesen_status = _premis.license_status_view;
+                            if (lesen_status == "Tidak Berlesen")
+                                mintTamatTempoh += 1;
+                            else if (lesen_status == "Aktif")
+                                //Count total visible point based on boundries
+                                mintAktif += 1;
+                            else if (lesen_status == "Tiada Data")
+                                //Count total visible point based on boundries
+                                mintTiadaData += 1;
+
+                            //===============================
+
+                            //Start filtering based on selected tapisan
+                            if (blnValidFilter)
+                            {
+                                if (!SelectedLots.Contains(no_lot))
+                                {
+
+                                    var geometry = _premis.geom;
+                                    var coords = geometry.coordinates;
+                                    //var latLng = new LatLngLiteral(coords[1], coords[0]);
+                                    var latLng = new LatLngLiteral()
+                                    {
+                                        Lat = coords[1],
+                                        Lng = coords[0]
+                                    };
+
+                                    //=========== ADD HERE ==========
+                                    await _bounds.Extend(latLng);
+
+                                    //Add the lots
+                                    SelectedLots.Add(no_lot);
+
+                                    var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
+                                    {
+                                        Position = latLng,
+                                        Map = map1.InteropObject,
+                                        //Title = _premis.lot,  //comment the tooltip for faster loading
+                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label'>" + $"{no_lot}" + "</lable></div>",
+                                    });
+
+                                    markers.Push(_marker);
+
+                                    await _marker.AddListener<MouseEvent>("click", async e =>
+                                    {
+                                        //string markerLabelText = await marker.GetLabelText();
+                                        //string _title = await _marker.GetTitle();
+                                        // _events.Add("click on " + _title);
+                                        await OpenSideBar(premisId);
+                                        StateHasChanged();
+                                        ///await e.Stop();
+                                    });
+
+                                    result.Add(_marker);
+                                }
+                            }
+
+                            //Add all selected filter
+                            if (initStart == 1) // first init
+                            {
+                                if (!SelectedIds.Contains(lesen_status_id.ToString()))
+                                {
+                                    SelectedIds.Add(lesen_status_id.ToString());
+                                }
+                            }
+
                         }
                     }
-
-                    var geometry = _premis.geom;
-                    var coords = geometry.coordinates;
-                    //var latLng = new LatLngLiteral(coords[1], coords[0]);
-                    var latLng = new LatLngLiteral()
-                    {
-                        Lat = coords[1],
-                        Lng = coords[0]
-                    };
-
-                    //=========== ADD HERE ==========
-                    await _bounds.Extend(latLng);
-
-                    //Count all the license status on startup
-                    //string lesen_status = _premis.license_status_view;
-                    if (lesen_status == "Tidak Berlesen")
-                        mintTamatTempoh += 1;
-                    else if (lesen_status == "Aktif")
-                        //Count total visible point based on boundries
-                        mintAktif += 1;
-                    else if (lesen_status == "Tiada Data")
-                        //Count total visible point based on boundries
-                        mintTiadaData += 1;
-
-                    //===============================
-
-                    //Start filtering based on selected tapisan
-                    if (blnValidFilter)
-                    {
-                        var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-                        {
-                            Position = latLng,
-                            Map = map1.InteropObject,
-                            Title = _premis.lot,
-                            // Content = index.ToString()
-                            Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(lesen_status_id) + "'/></svg><lable class='map-marker-label'>" + $"{_premis.lot}" + "</lable></div>",
-                        });
-
-                        markers.Push(_marker);
-
-                        await _marker.AddListener<MouseEvent>("click", async e =>
-                        {
-                            //string markerLabelText = await marker.GetLabelText();
-                            //string _title = await _marker.GetTitle();
-                            // _events.Add("click on " + _title);
-                            await OpenSideBar(premisId);
-                            StateHasChanged();
-                            ///await e.Stop();
-                        });
-
-                        result.Add(_marker);
-                    }
-
-                    //Add all selected filter
-                    if (initStart == 1) // first init
-                    {
-                        if (!SelectedIds.Contains(lesen_status_id.ToString()))
-                        {
-                            SelectedIds.Add(lesen_status_id.ToString());
-                        }
-                    }
-
                 }
 
+
                 //====== ADD HERE =======
-                var boundsLiteral = await _bounds.ToJson();
-                await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
+                //////////var boundsLiteral = await _bounds.ToJson();
+                //////////await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
                 //=======================
             }
             catch (Exception ex)
@@ -461,6 +512,160 @@ namespace PBTPro.Pages
             return result;
         }
 
+        //////////private async Task InvokeClustering(int initStart)
+        //////////{
+        //////////    try
+        //////////    {
+        //////////        _clusteringMarkers = await populateMarker(initStart);
+
+        //////////        _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+        //////////        {
+        //////////            //RendererObjectName = "customRendererLib.interpolatedRenderer",
+        //////////            ZoomOnClick = true,
+        //////////        });
+
+        //////////        //mintAktif = 0;
+        //////////        //mintTamatTempoh = 0;
+        //////////        //mintTiadaData = 0;
+        //////////        //foreach (var _premis in premisData)
+        //////////        //{
+        //////////        //    var geometry = _premis.geom;
+        //////////        //    if (geometry.type == "Point")
+        //////////        //    {
+        //////////        //        var coords = geometry.coordinates;
+        //////////        //        //var latLng = new LatLngLiteral(coords[1], coords[0]);
+        //////////        //        var latLng = new LatLngLiteral()
+        //////////        //        {
+        //////////        //            Lat = coords[1],
+        //////////        //            Lng = coords[0]
+        //////////        //        };
+        //////////        //        await _bounds.Extend(latLng);
+
+        //////////        //        //Count all the license status on startup
+        //////////        //        string lesen_status = _premis.license_status_view;
+        //////////        //        if (lesen_status == "Tidak Berlesen")
+        //////////        //            mintTamatTempoh += 1;
+        //////////        //        else if (lesen_status == "Aktif")
+        //////////        //            //Count total visible point based on boundries
+        //////////        //            mintAktif += 1;
+        //////////        //        else if (lesen_status == "Tiada Data")
+        //////////        //            //Count total visible point based on boundries
+        //////////        //            mintTiadaData += 1;
+
+        //////////        //    }
+        //////////        //}
+
+        //////////        //var boundsLiteral = await _bounds.ToJson();
+        //////////        //await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
+        //////////    }
+        //////////    catch (Exception ex)
+        //////////    {
+        //////////    }
+        //////////}
+
+        //////////private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart)
+        //////////{
+        //////////    var result = new List<AdvancedMarkerElement>(premisData.Count());
+        //////////    try
+        //////////    {
+        //////////        //=========== ADD HERE =========
+        //////////        mintAktif = 0;
+        //////////        mintTamatTempoh = 0;
+        //////////        mintTiadaData = 0;
+        //////////        //==============================
+
+        //////////        bool blnValidFilter = true;
+        //////////        foreach (var _premis in premisData)
+        //////////        {
+        //////////            string premisId = _premis.codeid_premis;
+        //////////            string lesen_status = _premis.license_status_view;
+        //////////            int lesen_status_id = _premis.license_status_id;
+
+        //////////            blnValidFilter = true;
+        //////////            if (initStart != 1)
+        //////////            {
+        //////////                blnValidFilter = false;
+        //////////                if (SelectedIds.Contains(lesen_status_id.ToString()))
+        //////////                {
+        //////////                    blnValidFilter = true;
+        //////////                }
+        //////////            }
+
+        //////////            var geometry = _premis.geom;
+        //////////            var coords = geometry.coordinates;
+        //////////            //var latLng = new LatLngLiteral(coords[1], coords[0]);
+        //////////            var latLng = new LatLngLiteral()
+        //////////            {
+        //////////                Lat = coords[1],
+        //////////                Lng = coords[0]
+        //////////            };
+
+        //////////            //=========== ADD HERE ==========
+        //////////            await _bounds.Extend(latLng);
+
+        //////////            //Count all the license status on startup
+        //////////            //string lesen_status = _premis.license_status_view;
+        //////////            if (lesen_status == "Tidak Berlesen")
+        //////////                mintTamatTempoh += 1;
+        //////////            else if (lesen_status == "Aktif")
+        //////////                //Count total visible point based on boundries
+        //////////                mintAktif += 1;
+        //////////            else if (lesen_status == "Tiada Data")
+        //////////                //Count total visible point based on boundries
+        //////////                mintTiadaData += 1;
+
+        //////////            //===============================
+
+        //////////            //Start filtering based on selected tapisan
+        //////////            if (blnValidFilter)
+        //////////            {
+        //////////                var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
+        //////////                {
+        //////////                    Position = latLng,
+        //////////                    Map = map1.InteropObject,
+        //////////                    Title = _premis.lot,
+        //////////                    // Content = index.ToString()
+        //////////                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(lesen_status_id) + "'/></svg><lable class='map-marker-label'>" + $"{_premis.lot}" + "</lable></div>",
+        //////////                });
+
+        //////////                markers.Push(_marker);
+
+        //////////                await _marker.AddListener<MouseEvent>("click", async e =>
+        //////////                {
+        //////////                    //string markerLabelText = await marker.GetLabelText();
+        //////////                    //string _title = await _marker.GetTitle();
+        //////////                    // _events.Add("click on " + _title);
+        //////////                    await OpenSideBar(premisId);
+        //////////                    StateHasChanged();
+        //////////                    ///await e.Stop();
+        //////////                });
+
+        //////////                result.Add(_marker);
+        //////////            }
+
+        //////////            //Add all selected filter
+        //////////            if (initStart == 1) // first init
+        //////////            {
+        //////////                if (!SelectedIds.Contains(lesen_status_id.ToString()))
+        //////////                {
+        //////////                    SelectedIds.Add(lesen_status_id.ToString());
+        //////////                }
+        //////////            }
+
+        //////////        }
+
+        //////////        //====== ADD HERE =======
+        //////////        //////////var boundsLiteral = await _bounds.ToJson();
+        //////////        //////////await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
+        //////////        //=======================
+        //////////    }
+        //////////    catch (Exception ex)    
+        //////////    {
+        //////////    }
+
+        //////////    return result;
+        //////////}
+
         private async Task ClearClustering()
         {
             if (_markerClustering == null || _clusteringMarkers == null)
@@ -469,6 +674,15 @@ namespace PBTPro.Pages
             }
 
             await _markerClustering.RemoveMarkers(_clusteringMarkers);
+
+            //Empty the list
+            // Clear all markers
+            _clusteringMarkers?.Clear();
+            // Reset the clustering instance
+            _markerClustering?.Dispose();
+            _markerClustering = null;
+
+            //StateHasChanged();
         }
 
         private async Task AddLegend()
@@ -533,14 +747,26 @@ namespace PBTPro.Pages
         //Check Box
         protected async Task ShowSelectedValues()
         {
+            PanelVisible = true;
             await ClearClustering();
-            //Populate back the filtering
-            if (SelectedIds != null)
-                await InvokeClustering(2);
+            //Clear the populate lots
+            SelectedLots.Clear();
 
-            OutPutValue = string.Join(",", SelectedIds.ToArray());
+            var bounds = await this.map1.InteropObject.GetBounds();
+            if (bounds != null)
+            {
+                //Populate back the filtering
+                if (SelectedIds.Count > 0)
+                    await InvokeClustering(2, bounds.South, bounds.West, bounds.North, bounds.East);
+
+                OutPutValue = string.Join(",", SelectedIds.ToArray());
+            }
+
+            PanelVisible = false;
             StateHasChanged();
+
         }
+
         private List<FilterData> GetMockFilter()
         {
 
@@ -757,11 +983,10 @@ namespace PBTPro.Pages
                     {
                         await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
                     }
-                    else
-                    {
-                        //Count the total premis
-                        await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
-                    }
+
+                    //Count the total premis
+                    //await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    await InvokeClustering(intStart, bounds.South, bounds.West, bounds.North, bounds.East);
 
                     _isProcessing = false;
 
@@ -893,64 +1118,64 @@ namespace PBTPro.Pages
             }
         }
 
-        private async Task GeneratePremisData(double southLat, double westLng, double northLat, double eastLng)
-        {
-            try
-            {
-                string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
-                var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+        //////private async Task GeneratePremisData(double southLat, double westLng, double northLat, double eastLng)
+        //////{
+        //////    try
+        //////    {
+        //////        string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+        //////        var response = await _ApiConnector.ProcessLocalApi(requestUrl);
 
-                if (response.ReturnCode == 200)
-                {
-                    string? dataString = response?.Data?.ToString();
-                    if (!string.IsNullOrWhiteSpace(dataString))
-                    {
-                        var tasks = new List<Task>();
-                        dynamic datas = JsonConvert.DeserializeObject(dataString);
+        //////        if (response.ReturnCode == 200)
+        //////        {
+        //////            string? dataString = response?.Data?.ToString();
+        //////            if (!string.IsNullOrWhiteSpace(dataString))
+        //////            {
+        //////                var tasks = new List<Task>();
+        //////                dynamic datas = JsonConvert.DeserializeObject(dataString);
 
-                        List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+        //////                List<dynamic> dataList = datas.ToObject<List<dynamic>>();
 
 
-                        //Count display premis - AZMEE
-                        mintAktif = 0;
-                        mintTamatTempoh = 0;
-                        mintTiadaData = 0;
-                        foreach (var data in dataList)
-                        {
-                            //var geometry = data.geom;
-                            string lesen_status = data.marker_lesen_status;
+        //////                //Count display premis - AZMEE
+        //////                mintAktif = 0;
+        //////                mintTamatTempoh = 0;
+        //////                mintTiadaData = 0;
+        //////                foreach (var data in dataList)
+        //////                {
+        //////                    //var geometry = data.geom;
+        //////                    string lesen_status = data.marker_lesen_status;
 
-                            if (lesen_status.ToUpper() == "TIDAK BERLESEN")
-                                mintTamatTempoh += 1;
-                            else if (lesen_status.ToUpper() == "AKTIF")
-                                //Count total visible point based on boundries
-                                mintAktif += 1;
-                            else if (lesen_status.ToUpper() == "TIADA DATA")
-                                //Count total visible point based on boundries
-                                mintTiadaData += 1;
+        //////                    if (lesen_status.ToUpper() == "TIDAK BERLESEN")
+        //////                        mintTamatTempoh += 1;
+        //////                    else if (lesen_status.ToUpper() == "AKTIF")
+        //////                        //Count total visible point based on boundries
+        //////                        mintAktif += 1;
+        //////                    else if (lesen_status.ToUpper() == "TIADA DATA")
+        //////                        //Count total visible point based on boundries
+        //////                        mintTiadaData += 1;
 
-                            //if (geometry.type == "Point")
-                            //{
-                            //    if (data.marker_lesen_status == "Tidak Berlesen")
-                            //        mintTamatTempoh += 1;
-                            //    else if(data.marker_lesen_status == "Aktif")
-                            //        //Count total visible point based on boundries
-                            //        mintAktif += 1;
-                            //    else if (data.marker_lesen_status == "Tiada Data")
-                            //        //Count total visible point based on boundries
-                            //        mintTiadaData += 1;
+        //////                    //if (geometry.type == "Point")
+        //////                    //{
+        //////                    //    if (data.marker_lesen_status == "Tidak Berlesen")
+        //////                    //        mintTamatTempoh += 1;
+        //////                    //    else if(data.marker_lesen_status == "Aktif")
+        //////                    //        //Count total visible point based on boundries
+        //////                    //        mintAktif += 1;
+        //////                    //    else if (data.marker_lesen_status == "Tiada Data")
+        //////                    //        //Count total visible point based on boundries
+        //////                    //        mintTiadaData += 1;
 
-                            //}
-                        }
+        //////                    //}
+        //////                }
 
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"API request error: {ex.Message}");
-            }
-        }
+        //////            }
+        //////        }
+        //////    }
+        //////    catch (Exception ex)
+        //////    {
+        //////        Console.WriteLine($"API request error: {ex.Message}");
+        //////    }
+        //////}
  
         public IEnumerable<LatLngLiteral> ConvertGeoJsonToLatLng(JArray geoJsonCoords)
         {
