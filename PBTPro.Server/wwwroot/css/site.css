@@ -208,11 +208,11 @@ a:not([href]):not([class]), a:not([href]):not([class]):hover {
 .leftHeader {
     float: left;
     /*    font-family: 'Roboto-Regular';*/
-    font-size: 16px;
+    font-size: 0.85rem;
     width: 50%;
-    letter-spacing: 2px;
+    letter-spacing: 0.15rem;
     font-weight: bold;
-    /*    text-transform: uppercase;*/
+    text-transform: uppercase;
     padding: 0 5px;
 }
 

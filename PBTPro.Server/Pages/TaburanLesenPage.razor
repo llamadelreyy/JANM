@@ -52,7 +52,7 @@
             <h1>Carian Premis</h1>
             <a style="cursor:pointer" href="javascript:void(0)" class="closebtnpremis" @onclick="CloseFilter">&times;</a>
         </header>
-        
+
 
         <DxGrid @ref="Grid"
                 Data="searchData"
@@ -231,6 +231,7 @@
                     int? valueType = 0;
                     double dblLat = 0;
                     double dblLng = 0;
+                    bool boolValidData = false;
                     string strImagePremis = "";
                     List<string> _floorPremis = new List<string>();
                     List<ImageFile> AssetImages = new List<ImageFile>();
@@ -239,8 +240,9 @@
                     {
                         dblLat = premisInfo._latitude ?? 0;
                         dblLng = premisInfo._longitude ?? 0; //coords[0];
-                                                             //Get the premis image
+                        //Get the premis image
                         strImagePremis = premisInfo.gkeseluruh ?? "";
+                        boolValidData = true;  //Valid to open side bar
 
                         if (premisInfo != null)
                         {
@@ -277,7 +279,7 @@
                         </div>
                     }
                 
-                if (valueType == 0)
+                if (valueType == 0 && boolValidData)
                 {
                     <div class="tbRightPane-tab" style="align-content:center;">
                         <table style="height:100%;padding: 0px 10px;">
@@ -305,23 +307,6 @@
 
                                         @foreach (var lesenItem in premisInfo.premis_license_tax)
                                         {
-
-                                            @*<DxAccordionItem Expanded="true">
-                                                <HeaderTextTemplate>
-                                                    <div>
-                                                        <div class="text-center flex-grow-1 dxbl-accordion-item-text">
-                                                                @($"{lesenItem.license.business_name}")
-
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30">
-                                                                    <circle cx="15" cy="15" r="5" fill="@GetColorLot(lesenItem.status_lesen_id ?? 0)" />
-                                                            </svg>
-                                                        </div>
-                                                    </div>
-                                                </HeaderTextTemplate>
-                                                <ContentTemplate>
-                                                        <PremisCard PremisInfo="@lesenItem" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" Dtfloor="@_floorPremis" />
-                                                </ContentTemplate>
-                                            </DxAccordionItem>*@
 
                                                 if (lesenItem.license != null)
                                                 {

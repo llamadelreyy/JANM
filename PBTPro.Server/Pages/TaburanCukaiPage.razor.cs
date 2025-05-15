@@ -36,10 +36,6 @@ namespace PBTPro.Pages
     {
         bool PanelVisible { get; set; }
 
-        //DxWindow windowRef;
-        //ElementReference popupTarget;
-        //bool windowVisible;
-
         List<taburan_view> _dtDataTaburan { get; set; }
         taburan_view _valueTaburan { get; set; }
 
@@ -396,6 +392,7 @@ namespace PBTPro.Pages
                 mintAktif = 0;
                 mintTamatTempoh = 0;
                 mintTiadaData = 0;
+                List<string> Lots = new List<string>();
                 //==============================
 
                 string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
@@ -408,68 +405,60 @@ namespace PBTPro.Pages
                     {
                         var tasks = new List<Task>();
                         dynamic datas = JsonConvert.DeserializeObject(dataString);
-
                         List<dynamic> dataList = datas.ToObject<List<dynamic>>();
-
-                        bool blnValidFilter = true;
-                        string premisId = string.Empty;
-                        string cukai_status = string.Empty;
-                        string marker_color = string.Empty;
-                        string no_lot = string.Empty;
-                        int cukai_status_id = 0;
 
                         foreach (var _premis in dataList)
                         {
-                            premisId = _premis.codeid_premis;
-                            cukai_status = _premis.marker_cukai_status;
+                            string premisId = _premis.codeid_premis;
+                            string cukai_status = _premis.marker_cukai_status;
                             //marker_color = _premis.marker_color;
-                            no_lot = _premis.lot.ToString();
-                            cukai_status_id = GetIdStatusColor(cukai_status);
-                            marker_color = GetColorLot(cukai_status_id);
+                            string no_lot = _premis.lot.ToString();
+                            int cukai_status_id = GetIdStatusColor(cukai_status);
+                            string marker_color = GetColorLot(cukai_status_id);
 
-                            blnValidFilter = true;
-                            if (initStart != 1)
+                            //Go multiply premis with the same lot no
+                            if (!Lots.Contains(no_lot))
                             {
-                                blnValidFilter = false;
-                                if (SelectedIds.Contains(cukai_status_id.ToString()))
+                                if (initStart == 1)
                                 {
-                                    blnValidFilter = true;
+                                    //Count lesen based on status
+                                    CountPremisStatus(cukai_status_id);
+                                    //Add all the selected id status on first populate
+                                    if (!SelectedIds.Contains(cukai_status_id.ToString()))
+                                    {
+                                        SelectedIds.Add(cukai_status_id.ToString());
+                                    }
                                 }
+                                else
+                                {
+                                    if (SelectedIds.Contains(cukai_status_id.ToString()))
+                                    {
+                                        //Count lesen based on status
+                                        CountPremisStatus(cukai_status_id);
+                                    }
+                                }
+
+                                Lots.Add(no_lot);
                             }
-
-                            //Count all the cukai status on startup
-                            if (cukai_status.ToUpper() == "CUKAI TERTUNGGAK")
-                                mintTamatTempoh += 1;
-                            else if (cukai_status.ToUpper() == "CUKAI DIBAYAR")
-                                //Count total visible point based on boundries
-                                mintAktif += 1;
-                            else if (cukai_status.ToUpper() == "TIADA DATA")
-                                //Count total visible point based on boundries
-                                mintTiadaData += 1;
-
                             //===============================
 
-                            //Start filtering based on selected tapisan
-                            if (blnValidFilter)
+                            if (!SelectedLots.Contains(no_lot))
                             {
-                                if (!SelectedLots.Contains(no_lot))
+                                var geometry = _premis.geom;
+                                var coords = geometry.coordinates;
+                                var latLng = new LatLngLiteral()
                                 {
+                                    Lat = coords[1],
+                                    Lng = coords[0]
+                                };
 
-                                    var geometry = _premis.geom;
-                                    var coords = geometry.coordinates;
-                                    //var latLng = new LatLngLiteral(coords[1], coords[0]);
-                                    var latLng = new LatLngLiteral()
-                                    {
-                                        Lat = coords[1],
-                                        Lng = coords[0]
-                                    };
+                                await _bounds.Extend(latLng);
 
-                                    //=========== ADD HERE ==========
-                                    await _bounds.Extend(latLng);
+                                //Add the lots
+                                SelectedLots.Add(no_lot);
 
-                                    //Add the lots
-                                    SelectedLots.Add(no_lot);
-
+                                if (initStart == 1)
+                                {
                                     var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
                                     {
                                         Position = latLng,
@@ -482,24 +471,34 @@ namespace PBTPro.Pages
 
                                     await _marker.AddListener<MouseEvent>("click", async e =>
                                     {
-                                        //string markerLabelText = await marker.GetLabelText();
-                                        //string _title = await _marker.GetTitle();
-                                        // _events.Add("click on " + _title);
                                         await OpenSideBar(premisId);
                                         StateHasChanged();
-                                        ///await e.Stop();
                                     });
 
                                     result.Add(_marker);
                                 }
-                            }
-
-                            //Add all selected filter
-                            if (initStart == 1) // first init
-                            {
-                                if (!SelectedIds.Contains(cukai_status_id.ToString()))
+                                else
                                 {
-                                    SelectedIds.Add(cukai_status_id.ToString());
+                                    if (SelectedIds.Contains(cukai_status_id.ToString()))
+                                    {
+                                        var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
+                                        {
+                                            Position = latLng,
+                                            Map = map1.InteropObject,
+                                            //Title = _premis.lot,  //comment the tooltip for faster loading
+                                            Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label'>" + $"{no_lot}" + "</lable></div>",
+                                        });
+
+                                        markers.Push(_marker);
+
+                                        await _marker.AddListener<MouseEvent>("click", async e =>
+                                        {
+                                            await OpenSideBar(premisId);
+                                            StateHasChanged();
+                                        });
+
+                                        result.Add(_marker);
+                                    }
                                 }
                             }
 
@@ -518,6 +517,16 @@ namespace PBTPro.Pages
             }
 
             return result;
+        }
+
+        private void CountPremisStatus(int statusID)
+        {
+            if (statusID == 1) //CUKAI DIBAYAR
+                mintAktif += 1;
+            else if (statusID == 2) //CUKAI TERTUNGGAK
+                mintTamatTempoh += 1;
+            else if (statusID == 3) //TIADA DATA
+                mintTiadaData += 1;
         }
 
         //////private async Task InvokeClustering(int initStart)
