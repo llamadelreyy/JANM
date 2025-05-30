@@ -5,6 +5,7 @@
 @using PBTPro.Data
 @using PBTPro.DAL.Models
 @using PBTPro.DAL.Models.PayLoads
+@* @using Microsoft.JSInterop; *@
 
 @inject NoticeService _NoticeService
 
@@ -30,10 +31,10 @@
 else
 {
     <DxLoadingPanel @bind-Visible="PanelVisible"
-                    IsContentBlocked="true"
-                    ApplyBackgroundShading="true"
-                    IndicatorAreaVisible="false"
-                    Text="Capaian Data...">
+    IsContentBlocked="true"
+    ApplyBackgroundShading="true"
+    IndicatorAreaVisible="false"
+    Text="Capaian Data...">
 
         <div class="d-lg-flex border-bottom">
             <div class="col-md-12 py-1 dx-helptitle pageTitle">
@@ -43,7 +44,7 @@ else
         </div>
 
         <div class="item-container-x">
-           @*  <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
+            @*  <DxTabs ActiveTabIndex="@ActiveTabIndex" ActiveTabIndexChanged=@OnActiveTabIndexChanged TabsPosition="TabsPosition.Top" RenderMode="TabsRenderMode.Default">
                 <DxTab Text="Notis Lesen (8)"></DxTab>
                 <DxTab Text="Notis Pelbagai (5)"></DxTab>
             </DxTabs>
@@ -51,31 +52,31 @@ else
         <hr style="background-color:transparent; padding:0.5em 0;margin:auto;" />*@
 
             <DxGrid @ref="Grid"
-                    Data="dtSource"
-                    KeyFieldName="id_notis"
-                    ShowGroupPanel="true"
-                    ShowFilterRow="false"
-                    CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-                    EditorRenderMode="GridEditorRenderMode.Integrated"
-                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                    ShowSearchBox="true"
-                    AllowSelectRowByClick="true"
-                    @bind-SearchText="@GridSearchText"
-                    SearchBoxNullText="Masukkan kata carian..."
-                    PageSize="25"
-                    @bind-PageIndex="@GridPageIndex"
-                    PagerPosition="GridPagerPosition.Bottom"
-                    PagerNavigationMode="PagerNavigationMode.InputBox"
-                    EditModelSaving="Grid_EditModelSaving"
-                    EditFormButtonsVisible="false"
-                    PageSizeSelectorVisible="true"
-                    PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-                    PageSizeSelectorAllRowsItemVisible="true"
-                    PagerAutoHideNavButtons="false"
-                    ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-                    CustomizeElement="Grid_CustomizeElement"
-                    HighlightRowOnHover="true"
-                    CssClass="mv-1000">
+            Data="dtSource"
+            KeyFieldName="id_notis"
+            ShowGroupPanel="true"
+            ShowFilterRow="false"
+            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+            EditorRenderMode="GridEditorRenderMode.Integrated"
+            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+            ShowSearchBox="true"
+            AllowSelectRowByClick="true"
+            @bind-SearchText="@GridSearchText"
+            SearchBoxNullText="Masukkan kata carian..."
+            PageSize="25"
+            @bind-PageIndex="@GridPageIndex"
+            PagerPosition="GridPagerPosition.Bottom"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            EditModelSaving="Grid_EditModelSaving"
+            EditFormButtonsVisible="false"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PagerAutoHideNavButtons="false"
+            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+            CustomizeElement="Grid_CustomizeElement"
+            HighlightRowOnHover="true"
+            CssClass="mv-1000">
 
                 <Columns>
                     <DxGridCommandColumn Width="120px">
@@ -91,7 +92,7 @@ else
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
                     <DxGridDataColumn Caption="No Rujukan" MinWidth="130" Width="13%" FieldName="no_rujukan" />
-@*                     <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="no_lesen">
+                    @*                     <DxGridDataColumn Caption="No Lesen & Nama Perniagaan" MinWidth="200" Width="20%" FieldName="no_lesen">
                         <CellDisplayTemplate>
                             <div>
                                 @CombineText(((trn_notices_view)context.DataItem).no_lesen, ((trn_notices_view)context.DataItem).nama_perniagaan)
@@ -111,7 +112,7 @@ else
                             @GetStatusNoticeIconHtml(((trn_notices_view)context.DataItem).status_notis, ((trn_notices_view)context.DataItem).status_notis_id)
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
-                   @*  <DxGridDataColumn Caption="Tempoh Notis" MinWidth="200" Width="20%" FieldName="tempoh_notis">
+                    @*  <DxGridDataColumn Caption="Tempoh Notis" MinWidth="200" Width="20%" FieldName="tempoh_notis">
                         <CellDisplayTemplate>
                             <div>
                                 @CombineTempohText(((trn_notices_view)context.DataItem).TarikhData, ((trn_notices_view)context.DataItem).tempoh_notis)
@@ -128,13 +129,13 @@ else
                     <DxGridDataColumn Caption="Nama Saksi" MinWidth="200" Width="20%" FieldName="nama_saksi" />
                     <DxGridDataColumn Caption="Cara Serahan" MinWidth="150" Width="15%" FieldName="cara_serahan" />
                     <DxGridDataColumn FieldName="TarikhData"
-                                      DisplayFormat="dd/MM/yyyy"
-                                      Caption="Tarikh Data"
-                                      MinWidth="120"
-                                      Width="12%"
-                                      TextAlignment="GridTextAlignment.Center"
-                                      SortOrder="GridColumnSortOrder.Ascending"
-                                      SortIndex="0" />
+                    DisplayFormat="dd/MM/yyyy"
+                    Caption="Tarikh Data"
+                    MinWidth="120"
+                    Width="12%"
+                    TextAlignment="GridTextAlignment.Center"
+                    SortOrder="GridColumnSortOrder.Ascending"
+                    SortIndex="0" />
                 </Columns>
 
                 <EditFormTemplate Context="EditFormContext">
@@ -271,7 +272,7 @@ else
                                 @{
                                     var status = dtSource.Where(c => c.status_notis_id == dtData.status_notis_id).FirstOrDefault()?.status_notis_id;
                                     bool boolEnable = status != null && status != 3 && status != 5 && status != 8; //non-editable for : ditutup(3) , telah dibayar(5), dibatalkan(8)
-                                    
+
                                     if (Grid.IsEditingNewRow())
                                         boolEnable = true;
                                 }
@@ -280,15 +281,15 @@ else
                                     <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
                                     <td width="50%" valign="top" colspan="5">
                                         <DxComboBox Data="@dtTrnStatus"
-                                                    NullText="Pilih Status Bayaran..."
-                                                    ShowValidationIcon="true"
-                                                    FilteringMode="DataGridFilteringMode.Contains"
-                                                    @bind-Value="@dtData.status_notis_id"
-                                                    TextFieldName="status_name"
-                                                    ValueFieldName="status_id"
-                                                    Enabled="@boolEnable"
-                                                    CssClass="cw-320"
-                                                    style="width:250px;">
+                                        NullText="Pilih Status Bayaran..."
+                                        ShowValidationIcon="true"
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        @bind-Value="@dtData.status_notis_id"
+                                        TextFieldName="status_name"
+                                        ValueFieldName="status_id"
+                                        Enabled="@boolEnable"
+                                        CssClass="cw-320"
+                                        style="width:250px;">
                                         </DxComboBox>
                                     </td>
                                 </tr>
@@ -297,18 +298,18 @@ else
                                     <td nowrap>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;</td>
                                     <td width="50%" valign="top">
                                         <DxComboBox Data="@dtDuration"
-                                                    NullText="Pilih Tempoh Notis..."
-                                                    ShowValidationIcon="true"
-                                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                    FilteringMode="DataGridFilteringMode.Contains"
-                                                    TextFieldName="duration_value"
-                                                    ValueFieldName="duration_id"
-                                                    CssClass="cw-320"
-                                                    Enabled="@boolEnable"
-                                                    style="width:250px;"
-                                                    SelectedItemChanged="@((ref_notice_duration x) => SelectedItemChanged(x))"
-                                                    DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
-                                                    @bind-Value="@dtData.tempoh_notis_id">
+                                        NullText="Pilih Tempoh Notis..."
+                                        ShowValidationIcon="true"
+                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        TextFieldName="duration_value"
+                                        ValueFieldName="duration_id"
+                                        CssClass="cw-320"
+                                        Enabled="@boolEnable"
+                                        style="width:250px;"
+                                        SelectedItemChanged="@((ref_notice_duration x) => SelectedItemChanged(x))"
+                                        DropDownWidthMode="DropDownWidthMode.ContentOrEditorWidth"
+                                        @bind-Value="@dtData.tempoh_notis_id">
                                         </DxComboBox>
                                     </td>
                                     <td width="100px" nowrap>&nbsp;&nbsp;&nbsp;</td>
@@ -322,14 +323,14 @@ else
                                     }
                                     <td width="50%">
                                         <DxTextBox @bind-Text="@str_tarikh_tamat_notis"
-                                                   ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                                                   BindValueMode="BindValueMode.OnInput"
-                                                   NullText="Tarikh Tamat Notis..."
-                                                   Maxlength="120"
-                                                   ShowValidationIcon="true"
-                                                   Enabled="false"
-                                                   style="width:150px;"
-                                                   CssClass="cw-320" />
+                                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                        BindValueMode="BindValueMode.OnInput"
+                                        NullText="Tarikh Tamat Notis..."
+                                        Maxlength="120"
+                                        ShowValidationIcon="true"
+                                        Enabled="false"
+                                        style="width:150px;"
+                                        CssClass="cw-320" />
                                     </td>
                                 </tr>
                             </table>
@@ -348,8 +349,8 @@ else
                 @*This is to count the summary*@
                 <TotalSummary>
                     <DxGridSummaryItem FooterColumnName="id_notis"
-                                       Name="Custom"
-                                       SummaryType=GridSummaryItemType.Count />
+                    Name="Custom"
+                    SummaryType=GridSummaryItemType.Count />
                 </TotalSummary>
 
             </DxGrid>
@@ -423,7 +424,7 @@ else
     {
         var item = (trn_notices_view)itemData;
         NavigationManager.NavigateTo("/reportnotis?norujukan=" + item.no_rujukan, false);
-        // await JSRuntime.InvokeVoidAsync("open", "/reportnotis?norujukan=" + item.no_rujukan, "_blank");
+        //await JSRuntime.InvokeVoidAsync("open", "/reportnotis?norujukan=" + item.no_rujukan, "_blank");
     }
 
     protected async Task OnHistoryRow(object itemData)
