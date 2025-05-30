@@ -7,16 +7,18 @@
     <!-- Sidebar Header-->
     <AuthorizeView>
         <Authorized>
-            <div class="sidebar-header d-flex align-items-center pt-3 px-3 pb-3" style="border-bottom:solid 1px #ccc;">
+            <div class="sidebar-header d-flex align-items-center pt-2 px-3 pb-2" style="border-bottom:solid 1px #ccc;">
 
 
                 @*<img class="avatar shadow-0 img-fluid rounded-circle" src="https://d19m59y37dris4.cloudfront.net/admin/2-2-0/img/avatar-1.ce912d90.jpg" alt="...">*@
                 <a href="" class="avatar-text online"><span class="avatar-text-initial">@GetInitial(PBTAuthStateProvider.CurrentUser.Fullname)</span></a>
                 <div class="ms-3 title">
-                    <span class="loginuser mb-2">@PBTAuthStateProvider.CurrentUser.Fullname </span> [ <a href="user_profile" alt="ubah profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="user_password" alt="ubah profail"><i class="ri-lock-password-line ri-1x"></i></a> ]
-                    <p class="text-sm text-gray-500 fw-light mb-0 lh-1">
-                        <span class="loginusername">@PBTAuthStateProvider.CurrentUser.Role</span> [ <a alt="logout" href="/logout"><i class="ri-logout-box-r-line ri-1x"></i></a> ]
-                    </p>
+                    <span class="loginuser">@PBTAuthStateProvider.CurrentUser.Fullname </span> 
+                    <span class="loginusername" style="display:block;margin-top:-8px;">@PBTAuthStateProvider.CurrentUser.Role</span>
+@*                     <p class="text-sm text-gray-500 fw-light mb-0 lh-1">
+                        <span class="loginusername">@PBTAuthStateProvider.CurrentUser.Role</span>
+                    </p> *@
+                    [ <a href="user_profile" alt="Profail" title="Profail"><i class="ri-edit-2-line ri-1x"></i></a> | <a href="user_password" alt="Katalaluan" Title="Katalaluan"><i class="ri-lock-password-line ri-1x"></i></a> | <a alt="logout" title="Log Keluar" href="/logout"><i class="ri-logout-box-r-line ri-1x"></i></a> ]
                 </div>
 
                 @*             <NotAuthorized>

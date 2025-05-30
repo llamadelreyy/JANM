@@ -9,6 +9,10 @@
 @using GoogleMapsComponents.Maps
 @using Newtonsoft.Json
 @using DevExpress.Blazor
+@* @using DevExpress.Blazor.Reporting
+@using DevExpress.XtraReports.UI;
+@using DevExpress.XtraReports.Parameters;
+@using Parameter = DevExpress.XtraReports.Parameters.Parameter; *@
 
 @inject IJSRuntime JSRuntime
 @inject ApiConnector _ApiConnector // 07/11/2024 - API Fetcher - ismail
@@ -28,6 +32,14 @@
                     <td nowrap>Tarikh Cukai</td>
                     <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
                     <td style="width:100%;">@($"{(_dtTax.tax.tax_start_date == null ? "" : _dtTax.tax.tax_start_date)} - {(_dtTax.tax.tax_end_date == null ? "" : _dtTax.tax.tax_end_date)}")</td>
+                </tr>
+                <tr>
+                    <td nowrap>Cukai Taksiran (RM)</td>
+                    <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                    <td style="width:100%;">0.00</td>
+                </tr>
+                <tr>
+                    <td colspan="3"><div class="e-divider my-3"></div></td>
                 </tr>
                 @if (_dtTax.tax_owner != null)
                 {
@@ -65,7 +77,9 @@
                         <td style="width:100%;">-</td>
                     </tr>
                 }
-
+                <tr>
+                    <td colspan="3"><div class="e-divider my-3"></div></td>
+                </tr>
                 <tr>
                     <td nowrap>Alamat Premis &nbsp;&nbsp; <img src="/images/icons-small/marker.png" alt="" /></td>
                     <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
@@ -104,14 +118,14 @@
                     <span class="@(_taxInspection == 0 ? "badge-button-green" : "badge-button-red")">@_taxInspection</span>
                 </a>
             </div>
-            <div class="e-divider my-3"></div>
+@*             <div class="e-divider my-3"></div>
             <div class="e-email">
-                <button class="btn-panel" type="button">Maklumat Cukai</button>
-                @*<button class="btn-panel">
+                <button class="btn-panel" type="button" onclick=@(() => ShowReportCukai())>Maklumat Cukai</button>
+                <button class="btn-panel">
                 Nota Pemeriksaan
                 <span class="badge-button-green">0</span>
-                </button>*@
-            </div>
+                </button>
+            </div> *@
         </div>
     </div>
 </div>
@@ -142,81 +156,101 @@
 </DxPopup> *@
 
 <DxWindow @ref=windowRef
-          AllowResize="true"
-          ShowCloseButton="true"
-          CloseOnEscape="true"
-          HeaderText=@HeaderText
-          FooterText="Footer"
-          ShowFooter="true"
-          Width="max(80vw, 800px)"
-          MinWidth="800"
-          MinHeight="500"
-          MaxWidth="800"
-          MaxHeight="500"
-          @bind-Visible=PopupVisible>
+AllowResize="true"
+ShowCloseButton="true"
+CloseOnEscape="true"
+HeaderText=@HeaderText
+FooterText="Footer"
+ShowFooter="true"
+Width="max(80vw, 800px)"
+MinWidth="800"
+MinHeight="500"
+MaxWidth="800"
+MaxHeight="500"
+@bind-Visible=PopupVisible>
     <BodyContentTemplate>
         <DxGrid @ref="Grid"
-            Data="_dtDataTaburan"
-            KeyFieldName="trn_id"
-            ShowGroupPanel="false"
-            ShowFilterRow="false"
-            TextWrapEnabled="true"
-            CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-            EditorRenderMode="GridEditorRenderMode.Integrated"
-            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Never"
-            ShowSearchBox="true"
-            SearchBoxNullText="Masukkan kata carian..."
-            AllowSelectRowByClick="true"
-            @bind-SearchText="@GridSearchText"
-            PageSize="25"
-            @bind-PageIndex="@GridPageIndex"
-            PagerPosition="GridPagerPosition.Bottom"
-            PagerNavigationMode="PagerNavigationMode.InputBox"
-            EditFormButtonsVisible="false"
-            PageSizeSelectorVisible="true"
-            PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
-            PageSizeSelectorAllRowsItemVisible="true"
-            PagerAutoHideNavButtons="false"
-            ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-                CustomizeElement="Grid_CustomizeElement"
-            GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-            HighlightRowOnHover="true"
-            CssClass="mv-600">
+        Data="_dtDataTaburan"
+        KeyFieldName="trn_id"
+        ShowGroupPanel="false"
+        ShowFilterRow="false"
+        TextWrapEnabled="true"
+        CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+        EditorRenderMode="GridEditorRenderMode.Integrated"
+        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Never"
+        ShowSearchBox="true"
+        SearchBoxNullText="Masukkan kata carian..."
+        AllowSelectRowByClick="true"
+        @bind-SearchText="@GridSearchText"
+        PageSize="25"
+        @bind-PageIndex="@GridPageIndex"
+        PagerPosition="GridPagerPosition.Bottom"
+        PagerNavigationMode="PagerNavigationMode.InputBox"
+        EditFormButtonsVisible="false"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+        PageSizeSelectorAllRowsItemVisible="true"
+        PagerAutoHideNavButtons="false"
+        ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+        CustomizeElement="Grid_CustomizeElement"
+        GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+        HighlightRowOnHover="true"
+        CssClass="mv-600">
 
-                <Columns>
-                    <DxGridDataColumn Caption="Ref. No" MinWidth="120" Width="20%" FieldName="ref_no" />
-                    <DxGridDataColumn Caption="Status" MinWidth="180" Width="25%" FieldName="trnstatus_view" />
-                    <DxGridDataColumn FieldName="doc_name" AllowSort="false" Width="40%" MinWidth="250" TextAlignment="GridTextAlignment.Left">
+            <Columns>
+                <DxGridDataColumn Caption="Ref. No" MinWidth="120" Width="20%" FieldName="ref_no" />
+                <DxGridDataColumn Caption="Status" MinWidth="180" Width="25%" FieldName="trnstatus_view" />
+                <DxGridDataColumn FieldName="doc_name" AllowSort="false" Width="40%" MinWidth="250" TextAlignment="GridTextAlignment.Left">
                     <CellDisplayTemplate Context="displayContext">
-                       @*  <a class="d-block text-left" href="javascript:;" @onclick="() => ShowDetails(displayContext)">@(((taburan_view)displayContext.DataItem).doc_name)</a> *@
+                        @*  <a class="d-block text-left" href="javascript:;" @onclick="() => ShowDetails(displayContext)">@(((taburan_view)displayContext.DataItem).doc_name)</a> *@
                         <a href="@(((taburan_view)displayContext.DataItem).doc_pathurl)" target="_blank">@(((taburan_view)displayContext.DataItem).doc_name)</a>
                     </CellDisplayTemplate>
-                        <HeaderCaptionTemplate Context="header_name"><span title="Klik pada nama dokumen untuk paparan dokumen">Dokumen</span></HeaderCaptionTemplate>
-                    </DxGridDataColumn>
-                    <DxGridDataColumn FieldName="created_at"
-                                      DisplayFormat="dd/MM/yyyy"
-                                      Caption="Tarikh Data"
-                                      MinWidth="100"
-                                      Width="15%"
-                                      TextAlignment="GridTextAlignment.Center"
-                                      SortOrder="GridColumnSortOrder.Ascending"
-                                      SortIndex="0"/>
-                </Columns>
-                @*This is to count the summary*@
-                <TotalSummary>
-                    <DxGridSummaryItem FooterColumnName="ref_no"
-                                       Name="Custom"
-                                       SummaryType=GridSummaryItemType.Count />
-                </TotalSummary>
+                    <HeaderCaptionTemplate Context="header_name"><span title="Klik pada nama dokumen untuk paparan dokumen">Dokumen</span></HeaderCaptionTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn FieldName="created_at"
+                DisplayFormat="dd/MM/yyyy"
+                Caption="Tarikh Data"
+                MinWidth="100"
+                Width="15%"
+                TextAlignment="GridTextAlignment.Center"
+                SortOrder="GridColumnSortOrder.Ascending"
+                SortIndex="0"/>
+            </Columns>
+            @*This is to count the summary*@
+            <TotalSummary>
+                <DxGridSummaryItem FooterColumnName="ref_no"
+                Name="Custom"
+                SummaryType=GridSummaryItemType.Count />
+            </TotalSummary>
 
         </DxGrid>
     </BodyContentTemplate>
     <FooterContentTemplate>
-@*         <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@context.CloseCallback" />
+        @*         <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@context.CloseCallback" />
         <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Secondary" Text="Cancel" Click="@context.CloseCallback" /> *@
         <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Secondary" Text="Tutup" Click="@context.CloseCallback" />
     </FooterContentTemplate>
 </DxWindow>
+
+@* <DxWindow @ref=windowPrint
+Style="position: absolute; left: 0; top: 0; width: 100vw; height: 100vh;"
+AllowResize="true"
+ShowCloseButton="true"
+CloseOnEscape="true"
+HeaderText=@HeaderText
+FooterText="Footer"
+ShowFooter="true"
+@bind-Visible=PopupPrintVisible>
+    <BodyContentTemplate>
+        <div style="width: 100%; height: calc(100% - 4rem);">
+            <DxReportViewer @ref="reportViewer" Report="@Report" SizeMode="SizeMode.Small" CssClass="Width:100%">
+            </DxReportViewer>
+        </div>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Secondary" Text="Tutup" Click="@context.CloseCallback" />
+    </FooterContentTemplate>
+</DxWindow> *@
 
 @code {
     [Parameter] public premis_license_tax_view _dtTax { get; set; }
@@ -230,9 +264,14 @@
     string GridSearchText = "";
 
     DxWindow windowRef;
+    // DxWindow windowPrint;
     ElementReference popupTarget;
 
+    // DxReportViewer? reportViewer { get; set; }
+    // XtraReport? Report { get; set; }
+
     bool PopupVisible { get; set; } = false;
+    // bool PopupPrintVisible { get; set; } = false;
     string HeaderText = string.Empty;
     int _totalRec = 0;
     int _taxInspection = 0;
@@ -246,6 +285,13 @@
     //         await windowRef.CloseAsync();
     //     else
     //         await windowRef.ShowAtAsync(popupTarget);
+    // }
+
+    // async Task ShowReportCukai()
+    // {
+    //     Report = new Reports.ViewNotis();
+    //     await windowPrint.ShowAsync();
+    //     PopupPrintVisible = true;
     // }
 
     async Task ShowNotis(string headerdtl, string _accNo)
@@ -434,6 +480,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+
         _ApiConnector.accessToken = _PBTAuthStateProvider.accessToken;
         string requestUrl = $"/api/Taxholder/GetTicketCountByTaxAccNo/{_dtTax.tax.tax_accno}";
         var _returnData = await _ApiConnector.ProcessLocalApi(requestUrl);

@@ -1,7 +1,7 @@
 .sidebar {
     min-width: 300px;
     max-width: 300px;
-    box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.16);
+    box-shadow: 0px 20px 20px 0px rgba(0, 0, 0, 0.16);
     transition: transform 0.1s ease-out;
     height: 100%;
     max-height: 100%;
