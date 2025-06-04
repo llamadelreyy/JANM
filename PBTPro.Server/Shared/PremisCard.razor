@@ -41,7 +41,12 @@
                     <tr>
                         <td nowrap>Jumlah (RM)</td>
                         <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                        <td style="width:100%;">@(PremisInfo.license.total_amount != null ? PremisInfo.license.total_amount : "0.00")</td>
+                        <td style="width:100%;">@(PremisInfo.license.total_amount != null ? String.Format("{0:C}", PremisInfo.license.total_amount) : "0.00")</td>
+                    </tr>
+                    <tr>
+                        <td nowrap valign="top">Jenis Lesen</td>
+                        <td nowrap valign="top">&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                        <td style="width:100%;">@($"{(string.IsNullOrEmpty(PremisInfo.license.license_type) ? "" : PremisInfo.license.license_type)}")</td>
                     </tr>
                     <tr>
                         <td nowrap>Nama Perniagaan</td>

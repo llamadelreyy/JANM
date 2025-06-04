@@ -409,11 +409,11 @@ namespace PBTPro.Pages
                             string premisId = _premis.codeid_premis;
                             string lesen_status = _premis.marker_lesen_status;
                             string marker_color = _premis.marker_color;
-                            string no_lot = string.IsNullOrEmpty(_premis.lot.ToString()) ? "" : _premis.lot.ToString();
+                            string no_lot = string.IsNullOrEmpty(_premis.lot.ToString()) ? "?" : _premis.lot.ToString();
                             int lesen_status_id = GetIdColor(marker_color);
 
-                            //Got multiply premis with the same lot no
-                            if (!Lots.Contains(no_lot))
+                            ////This is to count all lesen status with or without lot no
+                            if (!Lots.Contains(premisId))
                             {
                                 if (initStart == 1)
                                 {
@@ -434,11 +434,11 @@ namespace PBTPro.Pages
                                     }
                                 }
 
-                                Lots.Add(no_lot);
+                                Lots.Add(premisId);
                             }
                             //===============================
 
-                            if (!SelectedLots.Contains(no_lot))
+                            if (!SelectedLots.Contains(premisId))
                             {
                                 var geometry = _premis.geom;
                                 var coords = geometry.coordinates;
@@ -453,7 +453,7 @@ namespace PBTPro.Pages
                                 await _bounds.Extend(latLng);
 
                                 //Add the lots
-                                SelectedLots.Add(no_lot);
+                                SelectedLots.Add(premisId);
 
                                 if (initStart == 1)
                                 {
@@ -791,25 +791,25 @@ namespace PBTPro.Pages
             var vSubOne = new FilterData()
             {
                 TypeId = 1,
-                Description = "Lesen Aktif",
+                Description = "Premis Aktif",
                 Color = "Green"
             };
             var vSubTwo = new FilterData()
             {
                 TypeId = 5,
-                Description = "Tidak Berlesen",
+                Description = "Premis Tidak Berlesen",
                 Color = "Red"
             };
             var vSubThree = new FilterData()
             {
                 TypeId = 3,
-                Description = "Lesen Gantung",
+                Description = "Premis Lesen Gantung",
                 Color = "Yellow"
             };
             var vSubFour = new FilterData()
             {
                 TypeId = 4,
-                Description = "Tiada Data",
+                Description = "Premis Tiada Data",
                 Color = "Grey"
             };
 
