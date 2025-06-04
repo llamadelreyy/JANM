@@ -14,6 +14,7 @@
 @using PBTPro.DAL.Models.PayLoads
 
 @inject DashboardService _DashboardService
+@inject SearchService _SearchService
 @inject NavigationManager NavigationManager
 @inject PBTAuthPermissionService PermissionService
 @inject IToastNotificationService ToastService
@@ -130,7 +131,7 @@
 
             <hr style="padding:0;margin:0;" />
 
-@*             <div class="table-container">
+            @*             <div class="table-container">
                 <h3 class="table-title">Maklumat Premis & Lesen</h3>
                 <div class="table-border">
                     <table class="default-table">
@@ -169,13 +170,19 @@
                                 <div class="dashboard-wrap" style="z-index:10;width:80%;height:200px">
                                     <div class="dashboard-center-text">
                                         <span class="totalinword">Bilangan Premis Perniagaan</span>
-                                        <span class="totalinnumber">@dtFinancial.total_premis_perniagaan</span>
+                                        <span class="totalinnumber">
+                                            @(dtFinancial.total_premis_perniagaan + dtFinancial.total_premis_tanpa_pautan) </span>
                                         <hr style="padding:0;margin:0;color:#fff" />
                                         <br />
-                                        @*@<span class="totalallbig">Bilangan Premis Diperiksa <i class="ri-arrow-right-fill"></i> @dtSource.premis_diperiksa</span>*@
-                                        <span class="totalallbig">Bilangan Premis Dikenakan Tindakan <i class="ri-arrow-right-fill"></i> @dtSource.premis_dikenakan_tindakan</span>
+                                        <span class="totalallbig">Bilangan Premis Dengan Data Lesen <i class="ri-arrow-right-fill"></i> @dtFinancial.total_premis_perniagaan</span>
+                                        <span class="totalallbig">Bilangan Premis Tanpa Data Lesen <i class="ri-arrow-right-fill"></i> @dtFinancial.total_premis_tanpa_pautan</span>
+                                        <span class="totalallbig">Bilangan Premis Diperiksa <i class="ri-arrow-right-fill"></i> @dtSource.premis_diperiksa</span>
+                                        @*                                         <span class="totalallbig">Bilangan Premis Berlesen <i class="ri-arrow-right-fill"></i> @dtFinancial.premis_berlesen</span>
+                                        <span class="totalallbig">Bilangan Premis Tidak Berlesen <i class="ri-arrow-right-fill"></i> @dtFinancial.premis_tiada_lesen</span>
+                                        <span class="totalallbig">Bilangan Premis Tamat Tempoh Lesen <i class="ri-arrow-right-line"></i> @dtFinancial.premis_tamat_tempoh_lesen</span> *@
                                         <span class="totalallbig">Bilangan Premis Dilawati <i class="ri-arrow-right-fill"></i> @dtSource.total_premis_dilawat</span>
-                                        <span class="totalallbig">Bilangan Rondaan Dibuat <i class="ri-arrow-right-fill"></i> @dtSource.total_rondaan_dibuat</span>
+                                        @* <span class="totalallbig">Bilangan Rondaan Dibuat <i class="ri-arrow-right-fill"></i> @dtSource.total_rondaan_dibuat</span> *@
+                                        <span class="totalallbig">Bilangan Lokasi Baru <i class="ri-arrow-right-fill"></i> @dtSource.total_lokasi_baru</span>
                                     </div>
 
                                 </div>
@@ -188,7 +195,7 @@
                 </div>
             </div>
 
-@*             <div class="d-lg-flex" style="padding:0 0 0 0;">
+            @*             <div class="d-lg-flex" style="padding:0 0 0 0;">
                 <div class="d-lg-flex col-12">
 
                     <div class="col-6 dashboard-box">
@@ -235,14 +242,16 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M3 6H21V18H3V6ZM2 4C1.44772 4 1 4.44772 1 5V19C1 19.5523 1.44772 20 2 20H22C22.5523 20 23 19.5523 23 19V5C23 4.44772 22.5523 4 22 4H2ZM13 8H19V10H13V8ZM18 12H13V14H18V12ZM10.5 10C10.5 11.3807 9.38071 12.5 8 12.5C6.61929 12.5 5.5 11.3807 5.5 10C5.5 8.61929 6.61929 7.5 8 7.5C9.38071 7.5 10.5 8.61929 10.5 10ZM8 13.5C6.067 13.5 4.5 15.067 4.5 17H11.5C11.5 15.067 9.933 13.5 8 13.5Z"></path></svg>
                                     </div>
                                 </div>
-                                <div class="dashboard-wrap" style="z-index: 10;width:80%;height:200px">
+                                <div class="dashboard-wrap" style="z-index: 10;width:80%;height:230px">
                                     <div class="dashboard-center-text">
-                                        <span class="totalinword">Bilangan Lesen Aktif</span>
-                                        <span class="totalinnumber">@dtFinancial.total_lesen_aktif</span>
+                                        <span class="totalinword">Bilangan Data Lesen</span>
+                                        <span class="totalinnumber">@mintAktif</span>
                                         <hr style="padding:0;margin:0;color:#fff" />
                                         <br />
-                                        <span class="totalallbig">Bilangan Lesen Tamat Tempoh <i class="ri-arrow-right-line"></i> @dtSource.premis_tamat_tempoh_lesen</span>
-                                        <span class="totalallbig">Bilangan Premis Tidak Berlesen <i class="ri-arrow-right-fill"></i> @dtSource.premis_tiada_lesen</span>
+                                        <span class="totalallbig">Bilangan Lesen Aktif <i class="ri-arrow-right-line"></i> @dtFinancial.total_lesen_aktif</span>
+                                        <span class="totalallbig">Bilangan Tidak Berlesen <i class="ri-arrow-right-line"></i> @mintTidakBerlesen</span>
+                                        <span class="totalallbig">Bilangan Tiada Data <i class="ri-arrow-right-line"></i> @mintTiadaData</span>
+                                        <span class="totalallbig">Bilangan Lesen Dikenakan Tindakan <i class="ri-arrow-right-fill"></i> @dtSource.lesen_dikenakan_tindakan</span>
                                         <span class="totalallbig">Pertambahan Lesen Tahun Semasa <i class="ri-arrow-right-line"></i> @dtFinancial.ptmbahan_lesen_thn_semasa</span>
                                         <span class="totalallbig">Bilangan Lesen Bulan Semasa <i class="ri-arrow-right-line"></i> @dtFinancial.ptmbahan_lesen_semasa</span>
                                     </div>
@@ -258,7 +267,7 @@
             </div>
 
 
- @*            <div class="d-lg-flex" style="padding:0 0 0 0;">
+            @*            <div class="d-lg-flex" style="padding:0 0 0 0;">
                 <div class="d-lg-flex col-12">
 
                     <div class="col-6 dashboard-box">
@@ -338,12 +347,22 @@
     bool PanelVisible { get; set; }
     dashboard_view dtSource = new dashboard_view();
     dashboard_view dtFinancial = new dashboard_view();
+    IEnumerable<general_search_premis_detail> searchData;
+
+    int mintAktif = 0;
+    int mintTidakBerlesen = 0;
+    int mintTiadaData = 0;
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     protected override async Task OnInitializedAsync()
     {
         PanelVisible = true;
+
+        searchData = await _SearchService.GetListPremisDetails();
+        mintAktif = searchData.Count();
+        mintTidakBerlesen = searchData.Where(x => x.license_status_view.ToUpper() == "TIDAK BERLESEN").Count();
+        mintTiadaData = searchData.Where(x => x.license_status_view.ToUpper() == "TIADA DATA").Count();
 
         dtSource = await _DashboardService.GetDashboardData();
         dtFinancial = await _DashboardService.GetFinancialDashboard();
