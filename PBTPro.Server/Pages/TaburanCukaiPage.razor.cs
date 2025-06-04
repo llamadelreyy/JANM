@@ -412,12 +412,12 @@ namespace PBTPro.Pages
                             string premisId = _premis.codeid_premis;
                             string cukai_status = _premis.marker_cukai_status;
                             //marker_color = _premis.marker_color;
-                            string no_lot = _premis.lot.ToString();
+                            string no_lot = string.IsNullOrEmpty(_premis.lot.ToString()) ? "?" : _premis.lot.ToString(); //_premis.lot.ToString();
                             int cukai_status_id = GetIdStatusColor(cukai_status);
                             string marker_color = GetColorLot(cukai_status_id);
 
                             //Go multiply premis with the same lot no
-                            if (!Lots.Contains(no_lot))
+                            if (!Lots.Contains(premisId))
                             {
                                 if (initStart == 1)
                                 {
@@ -438,11 +438,11 @@ namespace PBTPro.Pages
                                     }
                                 }
 
-                                Lots.Add(no_lot);
+                                Lots.Add(premisId);
                             }
                             //===============================
 
-                            if (!SelectedLots.Contains(no_lot))
+                            if (!SelectedLots.Contains(premisId))
                             {
                                 var geometry = _premis.geom;
                                 var coords = geometry.coordinates;
@@ -455,7 +455,7 @@ namespace PBTPro.Pages
                                 await _bounds.Extend(latLng);
 
                                 //Add the lots
-                                SelectedLots.Add(no_lot);
+                                SelectedLots.Add(premisId);
 
                                 if (initStart == 1)
                                 {

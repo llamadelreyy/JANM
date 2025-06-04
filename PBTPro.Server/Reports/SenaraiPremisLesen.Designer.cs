@@ -83,6 +83,7 @@
             this.GrandTotalData1 = new DevExpress.XtraReports.UI.XRControlStyle();
             this.GrandTotalBackground1 = new DevExpress.XtraReports.UI.XRControlStyle();
             this.PageInfo = new DevExpress.XtraReports.UI.XRControlStyle();
+            this.xrLine1 = new DevExpress.XtraReports.UI.XRLine();
             ((System.ComponentModel.ISupportInitialize)(this.table1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.table2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.objectDataSource1)).BeginInit();
@@ -103,7 +104,7 @@
             // 
             // pageInfo1
             // 
-            this.pageInfo1.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.pageInfo1.Font = new DevExpress.Drawing.DXFont("Calibri", 10F, DevExpress.Drawing.DXFontStyle.Bold);
             this.pageInfo1.LocationFloat = new DevExpress.Utils.PointFloat(0F, 0F);
             this.pageInfo1.Name = "pageInfo1";
             this.pageInfo1.PageInfo = DevExpress.XtraPrinting.PageInfo.DateTime;
@@ -114,7 +115,7 @@
             // 
             // pageInfo2
             // 
-            this.pageInfo2.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.pageInfo2.Font = new DevExpress.Drawing.DXFont("Calibri", 10F, DevExpress.Drawing.DXFontStyle.Bold);
             this.pageInfo2.LocationFloat = new DevExpress.Utils.PointFloat(542.8333F, 0F);
             this.pageInfo2.Name = "pageInfo2";
             this.pageInfo2.SizeF = new System.Drawing.SizeF(518.1669F, 23F);
@@ -126,10 +127,11 @@
             // ReportHeader
             // 
             this.ReportHeader.Controls.AddRange(new DevExpress.XtraReports.UI.XRControl[] {
+            this.xrLine1,
             this.xrPictureBox1,
             this.label1,
             this.xrLabel1});
-            this.ReportHeader.HeightF = 79.17F;
+            this.ReportHeader.HeightF = 80.99999F;
             this.ReportHeader.Name = "ReportHeader";
             // 
             // xrPictureBox1
@@ -142,21 +144,21 @@
             // 
             // label1
             // 
-            this.label1.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 12F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.label1.Font = new DevExpress.Drawing.DXFont("Calibri", 11F, DevExpress.Drawing.DXFontStyle.Bold);
             this.label1.LocationFloat = new DevExpress.Utils.PointFloat(0F, 29.83332F);
             this.label1.Name = "label1";
             this.label1.SizeF = new System.Drawing.SizeF(1061F, 24.19433F);
             this.label1.StyleName = "Title";
             this.label1.StylePriority.UseFont = false;
             this.label1.StylePriority.UseTextAlignment = false;
-            this.label1.Text = "SENARAI LESEN MENGIKUT DUN";
+            this.label1.Text = "SENARAI LESEN MENGIKUT JENIS LESEN";
             this.label1.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopCenter;
             // 
             // xrLabel1
             // 
             this.xrLabel1.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "TextAlignment", "[ReportItems.label1].[Text]=\'TopCenter\'")});
-            this.xrLabel1.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.xrLabel1.Font = new DevExpress.Drawing.DXFont("Calibri", 10F, DevExpress.Drawing.DXFontStyle.Bold);
             this.xrLabel1.LocationFloat = new DevExpress.Utils.PointFloat(0F, 13.49996F);
             this.xrLabel1.Name = "xrLabel1";
             this.xrLabel1.SizeF = new System.Drawing.SizeF(1061F, 20.91671F);
@@ -200,7 +202,8 @@
             // tableCell1
             // 
             this.tableCell1.Borders = DevExpress.XtraPrinting.BorderSide.None;
-            this.tableCell1.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell1.Font = new DevExpress.Drawing.DXFont("Calibri", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell1.Multiline = true;
             this.tableCell1.Name = "tableCell1";
             this.tableCell1.StyleName = "DetailCaption1";
             this.tableCell1.StylePriority.UseBorders = false;
@@ -210,7 +213,7 @@
             // 
             // tableCell3
             // 
-            this.tableCell3.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell3.Font = new DevExpress.Drawing.DXFont("Calibri", 9F, DevExpress.Drawing.DXFontStyle.Bold);
             this.tableCell3.Multiline = true;
             this.tableCell3.Name = "tableCell3";
             this.tableCell3.StyleName = "DetailCaption1";
@@ -220,19 +223,20 @@
             // 
             // tableCell8
             // 
-            this.tableCell8.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell8.Font = new DevExpress.Drawing.DXFont("Calibri", 9F, DevExpress.Drawing.DXFontStyle.Bold);
             this.tableCell8.Multiline = true;
             this.tableCell8.Name = "tableCell8";
             this.tableCell8.Padding = new DevExpress.XtraPrinting.PaddingInfo(6, 6, 0, 0, 100F);
             this.tableCell8.StyleName = "DetailCaption1";
             this.tableCell8.StylePriority.UseFont = false;
             this.tableCell8.StylePriority.UsePadding = false;
-            this.tableCell8.Text = "STATUS LESEN / TARIKH MULA - TAMAT";
+            this.tableCell8.Text = "STATUS LESEN / \r\nTARIKH MULA - TAMAT";
             this.tableCell8.Weight = 0.15601183720904641D;
             // 
             // tableCell9
             // 
-            this.tableCell9.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell9.Font = new DevExpress.Drawing.DXFont("Calibri", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell9.Multiline = true;
             this.tableCell9.Name = "tableCell9";
             this.tableCell9.StyleName = "DetailCaption1";
             this.tableCell9.StylePriority.UseFont = false;
@@ -241,27 +245,28 @@
             // 
             // tableCell10
             // 
-            this.tableCell10.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell10.Font = new DevExpress.Drawing.DXFont("Calibri", 9F, DevExpress.Drawing.DXFontStyle.Bold);
             this.tableCell10.Multiline = true;
             this.tableCell10.Name = "tableCell10";
             this.tableCell10.StyleName = "DetailCaption1";
             this.tableCell10.StylePriority.UseFont = false;
-            this.tableCell10.Text = "NAMA & ALAMAT\r\nPERNIAGAAN";
+            this.tableCell10.Text = "NAMA & \r\nALAMAT PERNIAGAAN";
             this.tableCell10.Weight = 0.19714251442144182D;
             // 
             // tableCell14
             // 
-            this.tableCell14.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell14.Font = new DevExpress.Drawing.DXFont("Calibri", 9F, DevExpress.Drawing.DXFontStyle.Bold);
             this.tableCell14.Multiline = true;
             this.tableCell14.Name = "tableCell14";
             this.tableCell14.StyleName = "DetailCaption1";
             this.tableCell14.StylePriority.UseFont = false;
-            this.tableCell14.Text = "JENIS\r\nLESEN";
+            this.tableCell14.Text = "JENIS LESEN";
             this.tableCell14.Weight = 0.17717157079409146D;
             // 
             // tableCell15
             // 
-            this.tableCell15.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell15.Font = new DevExpress.Drawing.DXFont("Calibri", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell15.Multiline = true;
             this.tableCell15.Name = "tableCell15";
             this.tableCell15.StyleName = "DetailCaption1";
             this.tableCell15.StylePriority.UseFont = false;
@@ -272,12 +277,12 @@
             // 
             // tableCell19
             // 
-            this.tableCell19.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 9F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.tableCell19.Font = new DevExpress.Drawing.DXFont("Calibri", 9F, DevExpress.Drawing.DXFontStyle.Bold);
             this.tableCell19.Multiline = true;
             this.tableCell19.Name = "tableCell19";
             this.tableCell19.StyleName = "DetailCaption1";
             this.tableCell19.StylePriority.UseFont = false;
-            this.tableCell19.Text = "NAMA & ALAMAT \r\nPEMEGANG LESEN";
+            this.tableCell19.Text = "NAMA & \r\nALAMAT PEMEGANG LESEN";
             this.tableCell19.Weight = 0.20766698624153532D;
             // 
             // Detail
@@ -318,7 +323,7 @@
             this.tableCell23.Borders = DevExpress.XtraPrinting.BorderSide.None;
             this.tableCell23.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "([DataSource.CurrentRowIndex]+1) + \'.\'\n")});
-            this.tableCell23.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.tableCell23.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.tableCell23.Name = "tableCell23";
             this.tableCell23.RowSpan = 2;
             this.tableCell23.StyleName = "DetailData1";
@@ -330,7 +335,7 @@
             // 
             this.tableCell25.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[license_accno]")});
-            this.tableCell25.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.tableCell25.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.tableCell25.Name = "tableCell25";
             this.tableCell25.StyleName = "DetailData1";
             this.tableCell25.StylePriority.UseFont = false;
@@ -340,7 +345,7 @@
             // 
             this.tableCell30.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "Upper([license_status_view]) ")});
-            this.tableCell30.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.tableCell30.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.tableCell30.Name = "tableCell30";
             this.tableCell30.StyleName = "DetailData1";
             this.tableCell30.StylePriority.UseFont = false;
@@ -350,7 +355,7 @@
             // 
             this.tableCell31.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[license_ssmno]")});
-            this.tableCell31.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.tableCell31.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.tableCell31.Name = "tableCell31";
             this.tableCell31.RowSpan = 2;
             this.tableCell31.StyleName = "DetailData1";
@@ -361,7 +366,7 @@
             // 
             this.tableCell32.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[license_business_name]")});
-            this.tableCell32.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.tableCell32.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.tableCell32.Name = "tableCell32";
             this.tableCell32.StyleName = "DetailData1";
             this.tableCell32.StylePriority.UseFont = false;
@@ -371,7 +376,7 @@
             // 
             this.tableCell36.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[license_type]")});
-            this.tableCell36.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.tableCell36.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.tableCell36.Name = "tableCell36";
             this.tableCell36.RowSpan = 2;
             this.tableCell36.StyleName = "DetailData1";
@@ -381,8 +386,9 @@
             // tableCell37
             // 
             this.tableCell37.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
-            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[license_total_amount]")});
-            this.tableCell37.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "iif ([license_total_amount] == \'\', \'0.00\' , FormatString([license_total_amount],\'" +
+                    "#,###.00\'))")});
+            this.tableCell37.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.tableCell37.Name = "tableCell37";
             this.tableCell37.RowSpan = 2;
             this.tableCell37.StyleName = "DetailData1";
@@ -396,7 +402,7 @@
             // 
             this.tableCell41.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[license_owner_name]")});
-            this.tableCell41.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.tableCell41.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.tableCell41.Name = "tableCell41";
             this.tableCell41.StyleName = "DetailData1";
             this.tableCell41.StylePriority.UseFont = false;
@@ -429,7 +435,7 @@
             // 
             this.xrTableCell2.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[premis_lot] + \' (\' + [premis_floor] + \')\'\n")});
-            this.xrTableCell2.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.xrTableCell2.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.xrTableCell2.Multiline = true;
             this.xrTableCell2.Name = "xrTableCell2";
             this.xrTableCell2.StyleName = "DetailData1";
@@ -440,7 +446,7 @@
             // 
             this.xrTableCell5.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[license_start_date] + \' - \' + [license_end_date]")});
-            this.xrTableCell5.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.xrTableCell5.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.xrTableCell5.Multiline = true;
             this.xrTableCell5.Name = "xrTableCell5";
             this.xrTableCell5.StyleName = "DetailData1";
@@ -460,7 +466,7 @@
             // 
             this.xrTableCell7.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[license_business_address]")});
-            this.xrTableCell7.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.xrTableCell7.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.xrTableCell7.Multiline = true;
             this.xrTableCell7.Name = "xrTableCell7";
             this.xrTableCell7.StyleName = "DetailData1";
@@ -488,7 +494,7 @@
             // 
             this.xrTableCell14.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "[license_owner_addess]")});
-            this.xrTableCell14.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F);
+            this.xrTableCell14.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.xrTableCell14.Multiline = true;
             this.xrTableCell14.Name = "xrTableCell14";
             this.xrTableCell14.StyleName = "DetailData1";
@@ -515,7 +521,7 @@
             // 
             // label2
             // 
-            this.label2.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.label2.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.label2.LocationFloat = new DevExpress.Utils.PointFloat(677.0573F, 11.50004F);
             this.label2.Name = "label2";
             this.label2.SizeF = new System.Drawing.SizeF(70.8219F, 14.88444F);
@@ -528,7 +534,7 @@
             this.label3.CanGrow = false;
             this.label3.ExpressionBindings.AddRange(new DevExpress.XtraReports.UI.ExpressionBinding[] {
             new DevExpress.XtraReports.UI.ExpressionBinding("BeforePrint", "Text", "sumSum([license_total_amount])")});
-            this.label3.Font = new DevExpress.Drawing.DXFont("Arial Narrow", 10F, DevExpress.Drawing.DXFontStyle.Bold);
+            this.label3.Font = new DevExpress.Drawing.DXFont("Calibri", 9F);
             this.label3.LocationFloat = new DevExpress.Utils.PointFloat(747.8792F, 11.50004F);
             this.label3.Name = "label3";
             this.label3.SizeF = new System.Drawing.SizeF(111.6789F, 14.88444F);
@@ -626,6 +632,12 @@
             this.PageInfo.Name = "PageInfo";
             this.PageInfo.Padding = new DevExpress.XtraPrinting.PaddingInfo(6, 6, 0, 0, 100F);
             // 
+            // xrLine1
+            // 
+            this.xrLine1.LocationFloat = new DevExpress.Utils.PointFloat(0F, 78.99999F);
+            this.xrLine1.Name = "xrLine1";
+            this.xrLine1.SizeF = new System.Drawing.SizeF(1061F, 2F);
+            // 
             // SenaraiPremisLesen
             // 
             this.Bands.AddRange(new DevExpress.XtraReports.UI.Band[] {
@@ -715,5 +727,6 @@
         private DevExpress.XtraReports.UI.XRPictureBox xrPictureBox1;
         private DevExpress.XtraReports.UI.XRLabel label1;
         private DevExpress.XtraReports.UI.XRLabel xrLabel1;
+        private DevExpress.XtraReports.UI.XRLine xrLine1;
     }
 }
