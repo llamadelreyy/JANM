@@ -300,7 +300,7 @@ namespace PBTPro.Pages
                 await ProcessMapAPIData(1);
 
                 //Get record
-                //////////premisData = await _PremisService.GetList(); //AZMEE
+                //////premisData = await _PremisService.GetList(); //AZMEE
                 //Get search record
                 searchData = await _SearchService.GetListPremisDetails();
 
