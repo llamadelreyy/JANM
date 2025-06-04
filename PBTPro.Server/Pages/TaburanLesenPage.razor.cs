@@ -107,6 +107,7 @@ namespace PBTPro.Pages
         private ConcurrentDictionary<string, bool> _processedPremisGids = new ConcurrentDictionary<string, bool>(); // Thread-safe GID tracking
         private readonly object _lockLot = new object(); 
         private bool _isProcessing = false;  // Flag to track if tasks are processing
+        private bool _isLoadSearch = false;  // Flag to track if data for search is already loading
         private Queue<Task> _pendingTasks = new Queue<Task>();
 
         //Legend
@@ -301,8 +302,8 @@ namespace PBTPro.Pages
 
                 //Get record
                 //////premisData = await _PremisService.GetList(); //AZMEE
-                //Get search record
-                searchData = await _SearchService.GetListPremisDetails();
+                ////Get search record
+                //searchData = await _SearchService.GetListPremisDetails();
 
                 ////premisItem = premisData.Select((item, index) => (item, index));
 
@@ -752,6 +753,14 @@ namespace PBTPro.Pages
             }
             else
             {
+                //Load the search data on the 1st call only
+                if (!_isLoadSearch)
+                {
+                    _isLoadSearch = true;
+                    //Get search record
+                    searchData = await _SearchService.GetListPremisDetails();
+                }
+
                 await serverSideScripts1.InvokeVoidAsync("openNavSearch");
             }
         }
