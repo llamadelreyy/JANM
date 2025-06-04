@@ -145,9 +145,10 @@ namespace PBTPro.Api.Controllers
         {
             try
             {
-                var totalLesenAktif = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 1).CountAsync();
-                var totalLesenTamatTempoh = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 2).CountAsync();
-                var totalPremisPerniagaan = await _tenantDBContext.mst_premis.CountAsync();//await _tenantDBContext.mst_licensees.GroupBy(x => x.owner_icno).CountAsync();
+                var totalLesenAktif = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 1 && _tenantDBContext.mst_license_premis_taxes.Any(t => t.licensee_id == l.licensee_id)).CountAsync();
+                var totalLesenTamatTempoh = await _tenantDBContext.mst_licensees.Where(l => l.status_id == 2 && _tenantDBContext.mst_license_premis_taxes.Any(t => t.licensee_id == l.licensee_id)).CountAsync();
+                var totalPremisPerniagaan = await _tenantDBContext.mst_premis.Where(l => _tenantDBContext.mst_license_premis_taxes.Any(t => t.codeid_premis == l.codeid_premis)).CountAsync();//await _tenantDBContext.mst_licensees.GroupBy(x => x.owner_icno).CountAsync();
+                var totalPremisTiadaPautan = await _tenantDBContext.mst_premis.Where(l => !_tenantDBContext.mst_license_premis_taxes.Any(t => t.codeid_premis == l.codeid_premis)).CountAsync();//await _tenantDBContext.mst_licensees.GroupBy(x => x.owner_icno).CountAsync();
                 var pertambahanLsnThnSemasa = 10;// await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue && t.reg_date.Value.Year == DateTime.Now.Year).CountAsync();
                 var pertambahanLsnSemasa = 20;// await _tenantDBContext.mst_licensees.Where(t => t.reg_date.HasValue&& t.reg_date.Value.Year == DateTime.Now.Year && t.reg_date.Value.Month == DateTime.Now.Month).CountAsync();
 
@@ -159,6 +160,7 @@ namespace PBTPro.Api.Controllers
                     hsl_tahunan_semasa = 0,//202543.00M,
                     ptmbahan_lesen_thn_semasa = pertambahanLsnThnSemasa,
                     ptmbahan_lesen_semasa = pertambahanLsnSemasa,
+                    total_premis_tanpa_pautan = totalPremisTiadaPautan
                 };
 
                 if (result == null)
@@ -185,8 +187,8 @@ namespace PBTPro.Api.Controllers
             {
                 var allMonths = Enumerable.Range(1, 12).ToList();
                 var noticesByMonth = await _tenantDBContext.trn_notices
-                    .Where(l => l.created_at.HasValue && l.created_at.Value.Year == DateTime.Now.Year)  
-                    .GroupBy(l => l.created_at.Value.Month) 
+                    .Where(l => l.created_at.HasValue && l.created_at.Value.Year == DateTime.Now.Year)
+                    .GroupBy(l => l.created_at.Value.Month)
                     .Select(g => new
                     {
                         Month = g.Key,
@@ -638,7 +640,7 @@ namespace PBTPro.Api.Controllers
                         NoticeCount = _tenantDBContext.trn_notices.Count(notis => notis.owner_icno == license.owner_icno),
                         CompoundCount = _tenantDBContext.trn_cmpds.Count(kompaun => kompaun.owner_icno == license.owner_icno),
                         ConfiscationCount = _tenantDBContext.trn_cfscs.Count(sita => sita.owner_icno == license.owner_icno),
-                        created_at = license.created_at 
+                        created_at = license.created_at
                     })
                     .ToListAsync();
 

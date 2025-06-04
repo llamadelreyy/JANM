@@ -28,6 +28,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public int total_lesen_aktif { get; set; }
         public int lesen_tamat_tempoh { get; set; }
         public int total_premis_perniagaan { get; set; }
+        public int total_premis_tanpa_pautan { get; set; }
         public decimal? hsl_tahunan_semasa { get; set; }
         public decimal? ptmbahan_lesen_thn_semasa { get; set; }
         public decimal? ptmbahan_lesen_semasa { get; set; }
