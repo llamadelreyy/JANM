@@ -21,7 +21,7 @@
 @*<InfoPanel @bind-Visible="@InfoPanelVisible"></InfoPanel>*@
 
 @code {
-   
+
     [Parameter] public bool ToggleOn { get; set; }
 
     int intJob { get; set; } = 0;
@@ -29,9 +29,11 @@
 
     async Task OnToggleClick() => await Toggle();
 
-    async Task Toggle(bool? value = null) {
+    async Task Toggle(bool? value = null)
+    {
         var newValue = value ?? !ToggleOn;
-        if(ToggleOn != newValue) {
+        if (ToggleOn != newValue)
+        {
             ToggleOn = newValue;
             await ToggleOnChanged.InvokeAsync(ToggleOn);
         }
@@ -40,6 +42,6 @@
 
     public async Task LogoutAsync()
     {
-        
+
     }
 }
