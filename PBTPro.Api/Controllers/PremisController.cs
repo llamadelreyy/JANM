@@ -318,6 +318,157 @@ namespace PBTPro.Api.Controllers
         }
 
         [HttpGet]
+        [Route("GetFilteredListByBoundWeb")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetFilteredListByBoundWeb(double minLng, double minLat, double maxLng, double maxLat, string? filterType, int? crs = null)
+        {
+            try
+            {
+                // Retrieve initial list of mst_premis
+                IQueryable<mst_premis> initQuery = _tenantDBContext.mst_premis.Where(x => PostGISFunctions.ST_IsValid(x.geom));
+
+                if (crs == null || crs == _defCRS)
+                {
+                    crs = _defCRS;
+                    initQuery = initQuery
+                        .Where(x => PostGISFunctions.ST_Within(x.geom, PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value)));
+                }
+                else
+                {
+                    initQuery = initQuery
+                        .Where(x => PostGISFunctions.ST_Within(x.geom, PostGISFunctions.ST_Transform(PostGISFunctions.ST_MakeEnvelope(minLng, minLat, maxLng, maxLat, crs.Value), _defCRS)))
+                        .Select(x => new mst_premis { codeid_premis = x.codeid_premis, geom = (NetTopologySuite.Geometries.Point)PostGISFunctions.ST_Transform(x.geom, crs.Value) });
+                }
+
+                var queryWithJoin = from premis in initQuery
+                                    join tax in _tenantDBContext.mst_license_premis_taxes
+                                    on premis.codeid_premis equals tax.codeid_premis into taxGroup
+                                    from tax in taxGroup.DefaultIfEmpty()
+                                    join licStatus in _tenantDBContext.ref_license_statuses
+                                    on (tax != null ? tax.status_lesen_id : (int?)null) equals licStatus.status_id into licStatusGroup
+                                    from licStatus in licStatusGroup.DefaultIfEmpty()
+                                    join taxStatus in _tenantDBContext.ref_tax_statuses
+                                    on (tax != null ? tax.status_tax_id : (int?)null) equals taxStatus.status_id into taxStatusGroup
+                                    from taxStatus in taxStatusGroup.DefaultIfEmpty()
+                                    select new
+                                    {
+                                        Premis = premis,
+                                        jnLicTax = tax,
+                                        licStatus = licStatus,
+                                        taxStatus = taxStatus
+                                    };
+                List<string> statusFilters = new List<string>();
+                if (!string.IsNullOrEmpty(filterType))
+                {
+                    statusFilters = filterType.Split(',')
+                                                .Select(f => f.Trim().ToLower())
+                                                .ToList();
+
+                    if (statusFilters.Count > 0)
+                    {
+                        //queryWithJoin = queryWithJoin
+                        //.Where(x => statusFilters.Any(filter =>
+                        //x.licStatus.status_name.ToLower().Contains(filter.ToLower()) ||
+                        //x.taxStatus.status_name.ToLower().Contains(filter.ToLower())
+                        //));
+                        queryWithJoin = queryWithJoin
+                        .Where(x => statusFilters.Any(filter =>
+                            filter == "ltd"
+                                ? x.licStatus.status_name.ToLower().Contains("tiada data")
+                                : filter == "ctd"
+                                    ? x.taxStatus.status_name.ToLower().Contains("tiada data")
+                                    : x.licStatus.status_name.ToLower().Contains(filter) ||
+                                      x.taxStatus.status_name.ToLower().Contains(filter)
+                        ));
+                    }
+                }
+                else
+                {
+                    queryWithJoin = queryWithJoin
+                    .OrderBy(x => x.licStatus.priority == x.taxStatus.priority ? x.licStatus.priority : Math.Min(x.licStatus.priority, x.taxStatus.priority))
+                    .ThenBy(x => x.licStatus.priority == x.taxStatus.priority ? 0 : (x.licStatus.priority < x.taxStatus.priority ? 0 : 1));
+                }
+
+                var mst_premisList = await queryWithJoin.Where(x => x.jnLicTax != null)
+                .Select(x => new
+                {
+                    codeid_premis = x.Premis.codeid_premis,
+                    lot = x.Premis.lot,
+                    geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.Premis.geom)),
+                    license_status_id = x.jnLicTax.status_lesen_id,
+                    license_status_view = x.licStatus.status_name,
+                    license_status_color = x.licStatus.color,
+                    license_status_priority = x.licStatus.priority,
+                    tax_status_id = x.jnLicTax.status_tax_id,
+                    tax_status_view = x.taxStatus.status_name,
+                    tax_status_color = x.taxStatus.color,
+                    tax_status_priority = x.taxStatus.priority
+                })
+                .ToListAsync();
+
+                // Check if any records were found
+                if (!mst_premisList.Any())
+                {
+                    return NoContent(SystemMesg("COMMON", "EMPTY_DATA", MessageTypeEnum.Error, string.Format("Tiada rekod untuk dipaparkan")));
+                }
+
+                var resultData = new List<premis_marker_web>();
+                int total_lesen_aktif = mst_premisList?.Count(x => x.license_status_id == 1) ?? 0;
+                int total_lesen_tamat_tempoh = mst_premisList?.Count(x => x.license_status_id == 2) ?? 0;
+                int total_lesen_gantung = mst_premisList?.Count(x => x.license_status_id == 3) ?? 0;
+                int total_lesen_tiada_data = mst_premisList?.Count(x => x.license_status_id == 4) ?? 0;
+                int total_lesen_tidak_berlesen = mst_premisList?.Count(x => x.license_status_id == 5) ?? 0;
+                int total_cukai_dibayar = mst_premisList?.Count(x => x.tax_status_id == 1) ?? 0;
+                int total_cukai_tertungak = mst_premisList?.Count(x => x.tax_status_id == 2) ?? 0;
+                int total_cukai_tiada_data = mst_premisList?.Count(x => x.tax_status_id == 3) ?? 0;
+                foreach (var premis in mst_premisList.DistinctBy(premis => premis.codeid_premis).ToList())
+                {
+                    String marker_cukai_status = premis.tax_status_view;
+                    String marker_lesen_status = premis.license_status_view;
+                    String marker_color = premis.license_status_priority <= premis.tax_status_priority ? premis.license_status_color : premis.tax_status_color;
+
+                    if (statusFilters.Count > 0)
+                    {
+                        if (statusFilters.Any(filter => premis.tax_status_view.ToLower().Contains(filter.ToLower())))
+                        {
+                            marker_color = premis.tax_status_color;
+                        }
+                        if (statusFilters.Any(filter => premis.license_status_view.ToLower().Contains(filter.ToLower())))
+                        {
+                            marker_color = premis.license_status_color;
+                        }
+                    }
+
+                    resultData.Add(new premis_marker_web
+                    {
+                        codeid_premis = premis.codeid_premis,
+                        lot = premis.lot,
+                        marker_cukai_status = marker_cukai_status,
+                        marker_lesen_status = marker_lesen_status,
+                        marker_color = marker_color,
+                        geom = premis.geom,
+                        total_lesen_aktif = total_lesen_aktif,
+                        total_lesen_tamat_tempoh = total_lesen_tamat_tempoh,
+                        total_lesen_gantung = total_lesen_gantung,
+                        total_lesen_tiada_data = total_lesen_tiada_data,
+                        total_lesen_tidak_berlesen = total_lesen_tidak_berlesen,
+                        total_cukai_dibayar = total_cukai_dibayar,
+                        total_cukai_tertungak = total_cukai_tertungak,
+                        total_cukai_tiada_data = total_cukai_tiada_data
+                    });
+                }
+
+                return Ok(resultData, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Data lot berjaya dijana")));
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(string.Format("{0} Message : {1}, Inner Exception {2}", _feature, ex.Message, ex.InnerException));
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
+        [HttpGet]
         [Route("GetPremisInfo")]
         public async Task<IActionResult> GetPremisInfo(string codeid)
         {
@@ -416,7 +567,7 @@ namespace PBTPro.Api.Controllers
                     initQuery = initQuery.Where(x => x.license_end_date <= filterModel.end_date);
                 }
 
-                if(filterModel.category_ids?.Count > 0)
+                if (filterModel.category_ids?.Count > 0)
                 {
                     initQuery = initQuery.Where(x => filterModel.category_ids.Contains(x.license_cat_id.Value));
                 }
