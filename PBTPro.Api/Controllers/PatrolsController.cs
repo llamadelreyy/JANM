@@ -96,6 +96,63 @@ namespace PBTPro.Api.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetHistoryList(string? crs = null, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            try
+            {
+                IQueryable<mst_patrol_schedule> initQuery = _tenantDBContext.mst_patrol_schedules.AsNoTracking();
+
+                if (startDate.HasValue)
+                {
+                    if (!endDate.HasValue)
+                    {
+                        endDate = startDate;
+                    }
+                    initQuery = initQuery.Where(x => x.start_time.Value.Date == startDate.Value.Date || x.end_time.Value.Date == endDate.Value.Date);
+                }
+
+                var data = await initQuery.Where(x => x.is_deleted == false).Select(x => new
+                {
+                    schedule_id = x.schedule_id,
+                    idno = x.idno,
+                    start_time = x.start_time,
+                    end_time = x.end_time,
+                    status_id = x.status_id,
+                    is_scheduled = false,
+                    loc_name = x.loc_name,
+                    type_id = x.type_id,
+                    dept_id = x.dept_id,
+                    cnt_cmpd = x.cnt_cmpd,
+                    cnt_notice = x.cnt_notice,
+                    cnt_notes = x.cnt_notes,
+                    cnt_seizure = x.cnt_seizure,
+                    creator_id = x.creator_id,
+                    created_at = x.created_at,
+                    modifier_id = x.modifier_id,
+                    modified_at = x.modified_at,
+                    is_deleted = false,
+                    start_location = x.start_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.start_location))
+                                    : null,
+
+                    end_location = x.end_location != null
+                                    ? PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.end_location))
+                                    : null,
+                    district_code = x.district_code,
+                    town_code = x.town_code,
+                    user_id = x.user_id,
+
+                }).AsNoTracking().ToListAsync();
+                return Ok(data, SystemMesg(_feature, "LOAD_DATA", MessageTypeEnum.Success, string.Format("Senarai rekod berjaya dijana")));
+            }
+            catch (Exception ex)
+            {
+                return Error("", SystemMesg("COMMON", "UNEXPECTED_ERROR", MessageTypeEnum.Error, string.Format("Maaf berlaku ralat yang tidak dijangka. sila hubungi pentadbir sistem atau cuba semula kemudian.")));
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetDetail(int Id)
         {
@@ -740,15 +797,15 @@ namespace PBTPro.Api.Controllers
                 var resultData = new List<dynamic>();
 
                 var lists = await (from n in _tenantDBContext.trn_premis_visits
-                                          where n.schedule_id == ScheduleId
-                                          select new
-                                          {
-                                              n.visit_id,
-                                              n.codeid_premis,
-                                              n.status_visit,
-                                              n.created_at,
-                                              n.creator_id,
-                                          }).ToListAsync();
+                                   where n.schedule_id == ScheduleId
+                                   select new
+                                   {
+                                       n.visit_id,
+                                       n.codeid_premis,
+                                       n.status_visit,
+                                       n.created_at,
+                                       n.creator_id,
+                                   }).ToListAsync();
 
                 if (lists.Count == 0)
                 {
