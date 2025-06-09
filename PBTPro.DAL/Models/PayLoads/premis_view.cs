@@ -139,6 +139,24 @@ namespace PBTPro.DAL.Models.PayLoads
         public JsonDocument? geom { get; set; }
     }
 
+    public class premis_marker_web
+    {
+        public string? codeid_premis { get; set; }
+        public string? lot { get; set; }
+        public string marker_cukai_status { get; set; }
+        public string marker_lesen_status { get; set; }
+        public string marker_color { get; set; }
+        public JsonDocument? geom { get; set; }
+        public int total_lesen_aktif { get; set; }
+        public int total_lesen_tamat_tempoh { get; set; }
+        public int total_lesen_gantung { get; set; }
+        public int total_lesen_tiada_data { get; set; }
+        public int total_lesen_tidak_berlesen { get; set; }
+        public int total_cukai_dibayar { get; set; }
+        public int total_cukai_tertungak { get; set; }
+        public int total_cukai_tiada_data { get; set; }
+    }
+
     public class premis_search_license_view
     {
         public int gid { get; set; }
