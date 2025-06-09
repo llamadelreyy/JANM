@@ -242,7 +242,7 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M3 6H21V18H3V6ZM2 4C1.44772 4 1 4.44772 1 5V19C1 19.5523 1.44772 20 2 20H22C22.5523 20 23 19.5523 23 19V5C23 4.44772 22.5523 4 22 4H2ZM13 8H19V10H13V8ZM18 12H13V14H18V12ZM10.5 10C10.5 11.3807 9.38071 12.5 8 12.5C6.61929 12.5 5.5 11.3807 5.5 10C5.5 8.61929 6.61929 7.5 8 7.5C9.38071 7.5 10.5 8.61929 10.5 10ZM8 13.5C6.067 13.5 4.5 15.067 4.5 17H11.5C11.5 15.067 9.933 13.5 8 13.5Z"></path></svg>
                                     </div>
                                 </div>
-                                <div class="dashboard-wrap" style="z-index: 10;width:80%;height:230px">
+                                <div class="dashboard-wrap" style="z-index: 10;width:80%;height:250px">
                                     <div class="dashboard-center-text">
                                         <span class="totalinword">Bilangan Data Lesen</span>
                                         <span class="totalinnumber">@mintAktif</span>
@@ -250,7 +250,11 @@
                                         <br />
                                         <span class="totalallbig">Bilangan Lesen Aktif <i class="ri-arrow-right-line"></i> @dtFinancial.total_lesen_aktif</span>
                                         <span class="totalallbig">Bilangan Tidak Berlesen <i class="ri-arrow-right-line"></i> @mintTidakBerlesen</span>
-                                        <span class="totalallbig">Bilangan Tiada Data <i class="ri-arrow-right-line"></i> @mintTiadaData</span>
+                                        @* <span class="totalallbig">Bilangan Tiada Data <i class="ri-arrow-right-line"></i> @mintTiadaData</span> *@
+                                        @* <hr style="padding:0;margin-top:5px;margin-bottom:5px;color:#fff" /> *@
+                                        <span class="totalallbig">Jumlah Lesen Aktif (RM) <i class="ri-arrow-right-fill"></i> @(totalLesenAktif?.ToString("##,##0.00"))</span>
+                                        <span class="totalallbig">Jumlah Tidak Berlesen (RM) <i class="ri-arrow-right-fill"></i> @(totalLesenTidakAktif?.ToString("##,##0.00"))</span>
+                                        <hr style="padding:0;margin-top:5px;margin-bottom:5px;color:#fff" />
                                         <span class="totalallbig">Bilangan Lesen Dikenakan Tindakan <i class="ri-arrow-right-fill"></i> @dtSource.lesen_dikenakan_tindakan</span>
                                         <span class="totalallbig">Pertambahan Lesen Tahun Semasa <i class="ri-arrow-right-line"></i> @dtFinancial.ptmbahan_lesen_thn_semasa</span>
                                         <span class="totalallbig">Bilangan Lesen Bulan Semasa <i class="ri-arrow-right-line"></i> @dtFinancial.ptmbahan_lesen_semasa</span>
@@ -348,10 +352,14 @@
     dashboard_view dtSource = new dashboard_view();
     dashboard_view dtFinancial = new dashboard_view();
     IEnumerable<general_search_premis_detail> searchData;
+    IEnumerable<general_search_premis_detail> licenseData;
 
     int mintAktif = 0;
     int mintTidakBerlesen = 0;
     int mintTiadaData = 0;
+    double? totalLesenTidakAktif = 0;
+    double? totalLesenTiadaData = 0;
+    double? totalLesenAktif = 0;
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -363,6 +371,24 @@
         mintAktif = searchData.Count();
         mintTidakBerlesen = searchData.Where(x => x.license_status_view.ToUpper() == "TIDAK BERLESEN").Count();
         mintTiadaData = searchData.Where(x => x.license_status_view.ToUpper() == "TIADA DATA").Count();
+
+        licenseData = searchData.Where(x => x.license_status_view.ToUpper() == "TIDAK BERLESEN");
+        foreach (var _premis in licenseData)
+        {
+            totalLesenTidakAktif += string.IsNullOrEmpty(_premis.license_total_amount.ToString()) ? 0 : _premis.license_total_amount;
+        }
+
+        // licenseData = searchData.Where(x => x.license_status_view.ToUpper() == "TIADA DATA");
+        // foreach (var _premis in licenseData)
+        // {
+        //     totalLesenTiadaData += string.IsNullOrEmpty(_premis.license_total_amount.ToString()) ? 0 : _premis.license_total_amount;
+        // }
+
+        licenseData = searchData.Where(x => x.license_status_view.ToUpper() == "AKTIF");
+        foreach (var _premis in licenseData)
+        {
+            totalLesenAktif += string.IsNullOrEmpty(_premis.license_total_amount.ToString()) ? 0 : _premis.license_total_amount;
+        }
 
         dtSource = await _DashboardService.GetDashboardData();
         dtFinancial = await _DashboardService.GetFinancialDashboard();

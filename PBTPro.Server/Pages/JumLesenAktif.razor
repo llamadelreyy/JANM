@@ -13,6 +13,7 @@
 @using PBTPro.DAL.Models.PayLoads
 
 @inject DashboardService _DashboardService
+@inject SearchService _SearchService
 
 <div class="d-lg-flex border-bottom">
     <div class="textTitle p-2"><a onclick="history.back();" class="nav-title">Ringkasan Eksekutif</a><span class="nav-subPage">/Perincian Lesen</span></div>
@@ -20,7 +21,7 @@
 
 <div class="item-container-y">
     <div class="w-100 row borderGraph">
-        <span class="chart-title">Jumlah Premis Mengikut Status Lesen Terkini</span>
+        <span class="chart-title">Jumlah Lesen Mengikut Status Lesen Terkini</span>
         <div class="col-9" style="justify-items:center;">
 
             <DxPieChart Data="@GetData()"
@@ -148,6 +149,11 @@
 
     dashboard_view dtSource = new dashboard_view();
     dashboard_view dtFinancial = new dashboard_view();
+    IEnumerable<general_search_premis_detail> searchData;
+
+    int mintAktif = 0;
+    int mintTidakBerlesen = 0;
+    int mintTiadaData = 0;
 
     string[] Colors = new string[] { "green", "red", "orange", "chartreuse", "blue", "grey", "purple", "chocolate", "saddlebrown", "burlywood" };
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -158,6 +164,10 @@
             dtSource = await _DashboardService.GetDashboardData();
 
         dtFinancial = await _DashboardService.GetFinancialDashboard();
+        searchData = await _SearchService.GetListPremisDetails();
+        // mintAktif = searchData.Count();
+        mintTidakBerlesen = searchData.Where(x => x.license_status_view.ToUpper() == "TIDAK BERLESEN").Count();
+        mintTiadaData = searchData.Where(x => x.license_status_view.ToUpper() == "TIADA DATA").Count();
 
         DataLoadedTcs.TrySetResult(true);
     }
@@ -166,9 +176,9 @@
     List<DataPoint> GetData()
     {
         List<DataPoint> result = new List<DataPoint>();
-        result.Add(new DataPoint("Premis Berlesen", dtSource.premis_berlesen, 0));
-        result.Add(new DataPoint("Premis Lesen Tamat Tempoh", dtSource.premis_tamat_tempoh_lesen, 1));
-        result.Add(new DataPoint("Premis Tidak Berlesen", dtSource.premis_tiada_lesen, 2));
+        result.Add(new DataPoint("Lesen Aktif", dtSource.premis_berlesen, 0));
+        result.Add(new DataPoint("Tidak Berlesen", mintTidakBerlesen, 1));
+        result.Add(new DataPoint("Tiada Data", mintTiadaData, 2));
 
         return result;
     }
@@ -193,7 +203,7 @@
 
         result.Add(new DataArea("Premis Dikenakan Tindakan", dtSource.premis_dikenakan_tindakan, DateTime.Now.Year));
 
-        result.Add(new DataArea(" Premis Dilawati", dtSource.total_premis_dilawat ?? 0, DateTime.Now.Year));
+        result.Add(new DataArea("Premis Dilawati", dtSource.total_premis_dilawat ?? 0, DateTime.Now.Year));
 
         return result;
     }
