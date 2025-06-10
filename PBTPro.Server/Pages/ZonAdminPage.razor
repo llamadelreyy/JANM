@@ -53,7 +53,7 @@
                                 <div class="dashboard-wrap-small" style="width:70%;">
                                     <p class="dashboard-center-text">
                                         <span class="totalinword">Notis</span>
-                                        <span class="totalinnumber">@dtSource.total_notis</span>
+                                        <span class="totalinnumber">0 @* @dtSource.total_notis *@</span>
                                         <span class="totalall">Tahun @DateTime.Now.Year <i class="ri-arrow-right-fill"></i> -</span>
                                     </p>
                                 </div>
@@ -74,7 +74,7 @@
                                 <div class="dashboard-wrap-small" style="width:70%;">
                                     <p class="dashboard-center-text">
                                         <span class="totalinword">Kompaun</span>
-                                        <span class="totalinnumber">@dtSource.total_kompaun</span>
+                                        <span class="totalinnumber">0 @* @dtSource.total_kompaun *@</span>
                                         <span class="totalall">Tahun @DateTime.Now.Year <i class="ri-arrow-right-fill"></i> -</span>
                                     </p>
                                 </div>
@@ -95,7 +95,7 @@
                                 <div class="dashboard-wrap-small" style="width:70%;">
                                     <p class="dashboard-center-text">
                                         <span class="totalinword">Nota Pemeriksaan</span>
-                                        <span class="totalinnumber">@dtSource.total_inspection</span>
+                                        <span class="totalinnumber">0 @* @dtSource.total_inspection *@</span>
                                         <span class="totalall">Tahun @DateTime.Now.Year <i class="ri-arrow-right-fill"></i> -</span>
                                     </p>
                                 </div>
@@ -117,7 +117,7 @@
                                 <div class="dashboard-wrap-small" style="width:70%;">
                                     <p class="dashboard-center-text">
                                         <span class="totalinword">Sitaan</span>
-                                        <span class="totalinnumber">@dtSource.total_confiscation</span>
+                                        <span class="totalinnumber">0 @* @dtSource.total_confiscation *@</span>
                                         <span class="totalall">Tahun @DateTime.Now.Year <i class="ri-arrow-right-fill"></i> -</span>
                                     </p>
                                 </div>
@@ -145,20 +145,19 @@
                                 </div>
                                 <div class="dashboard-wrap" style="z-index:10;width:80%;height:280px">
                                     <div class="dashboard-center-text">
-                                        <span class="totalinword">Bilangan Premis Perniagaan</span>
-                                        <span class="totalinnumber">@(dtFinancial.total_premis_perniagaan + dtFinancial.total_premis_tanpa_pautan) </span>
+                                        <span class="totalinword">Bilangan Data Lesen</span>
+                                        <span class="totalinnumber">@mintAktif</span>
                                         <hr style="padding:0;margin:0;color:#fff" />
                                         <br />
-                                        <span class="totalallbig">Bilangan Premis Dengan Data Lesen <i class="ri-arrow-right-fill"></i> @dtFinancial.total_premis_perniagaan</span>
-                                        <span class="totalallbig">Bilangan Premis Tanpa Data Lesen <i class="ri-arrow-right-fill"></i> @dtFinancial.total_premis_tanpa_pautan</span>
+                                        <span class="totalallbig">Bilangan Premis Perniagaan <i class="ri-arrow-right-fill"></i> @(dtFinancial.total_premis_perniagaan + dtFinancial.total_premis_tanpa_pautan)</span>
                                         <hr style="padding:0;margin-top:5px;margin-bottom:5px;color:#fff" />
                                         <span class="totalallbig">Bilangan Lesen Aktif <i class="ri-arrow-right-line"></i> @dtFinancial.total_lesen_aktif</span>
                                         <span class="totalallbig">Bilangan Tidak Berlesen <i class="ri-arrow-right-line"></i> @mintTidakBerlesen</span>
                                         <span class="totalallbig">Bilangan Tiada Data <i class="ri-arrow-right-line"></i> @mintTiadaData</span>
                                         <hr style="padding:0;margin-top:5px;margin-bottom:5px;color:#fff" />
-                                        <span class="totalallbig">Bilangan Premis Diperiksa <i class="ri-arrow-right-fill"></i> @dtSource.premis_diperiksa</span>
-                                        <span class="totalallbig">Bilangan Premis Dilawati <i class="ri-arrow-right-fill"></i> @dtSource.total_premis_dilawat</span>
-                                        <span class="totalallbig">Bilangan Premis Dikenakan Tindakan <i class="ri-arrow-right-fill"></i> @dtSource.lesen_dikenakan_tindakan</span>
+                                        <span class="totalallbig">Bilangan Premis Diperiksa <i class="ri-arrow-right-fill"></i>0 @* @dtSource.premis_diperiksa *@</span>
+                                        <span class="totalallbig">Bilangan Premis Dilawati <i class="ri-arrow-right-fill"></i>0 @* @dtSource.total_premis_dilawat *@</span>
+                                        <span class="totalallbig">Bilangan Premis Dikenakan Tindakan <i class="ri-arrow-right-fill"></i>0 @* @dtSource.lesen_dikenakan_tindakan *@</span>
                                     </div>
 
                                 </div>
@@ -224,12 +223,19 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M4 2H20C20.5523 2 21 2.44772 21 3V21C21 21.5523 20.5523 22 20 22H4C3.44772 22 3 21.5523 3 21V3C3 2.44772 3.44772 2 4 2ZM5 4V20H19V4H5ZM7 6H17V10H7V6ZM7 12H9V14H7V12ZM7 16H9V18H7V16ZM11 12H13V14H11V12ZM11 16H13V18H11V16ZM15 12H17V18H15V12Z"></path></svg>
                                     </div>
                                 </div>
-                                <div class="dashboard-wrap" style="z-index:10;width:80%;height:200px">
+                                <div class="dashboard-wrap" style="z-index:10;width:80%;height:270px">
                                     <div class="dashboard-center-text">
                                         <span class="totalinword">Jumlah Kutipan Cukai (RM)</span>
                                         <span class="totalinnumber">@(dtFinancial.amaun_kutipan_cukai == null ? "0.00" : dtFinancial.amaun_kutipan_cukai?.ToString("##,###,##0.00"))</span>
                                         <hr style="padding:0;margin:0;color:#fff" />
                                         <br />
+                                        <span class="totalallbig">Bilangan Premis Perniagaan <i class="ri-arrow-right-fill"></i> @(dtFinancial.total_premis_perniagaan + dtFinancial.total_premis_tanpa_pautan)</span>
+                                        <span class="totalallbig">Jumlah Cukai Perlu Dibayar (RM) <i class="ri-arrow-right-fill"></i> 0.00</span>
+                                        <span class="totalallbig">Jumlah Cukai Dibayar (RM) <i class="ri-arrow-right-fill"></i> @(dtSource.cukai_taksiran_dibyr == null ? "0.00" : dtSource.cukai_taksiran_dibyr?.ToString("##,##0.00"))</span>
+                                        <span class="totalallbig">Jumlah Cukai Belum Bayar (RM) <i class="ri-arrow-right-fill"></i> @(dtSource.cukai_taksiran_blm_dibyr == null ? "0.00" : dtSource.cukai_taksiran_blm_dibyr?.ToString("##,##0.00"))</span>
+                                        <hr style="padding:0;margin-top:5px;margin-bottom:5px;color:#fff" />
+                                        <span class="totalallbig">Bilangan Rumah Kediaman <i class="ri-arrow-right-fill"></i> 0</span>
+                                        <span class="totalallbig">Jumlah Cukai Perlu Dibayar (RM) <i class="ri-arrow-right-fill"></i> 0.00</span>
                                         <span class="totalallbig">Jumlah Cukai Dibayar (RM) <i class="ri-arrow-right-fill"></i> @(dtSource.cukai_taksiran_dibyr == null ? "0.00" : dtSource.cukai_taksiran_dibyr?.ToString("##,##0.00"))</span>
                                         <span class="totalallbig">Jumlah Cukai Belum Bayar (RM) <i class="ri-arrow-right-fill"></i> @(dtSource.cukai_taksiran_blm_dibyr == null ? "0.00" : dtSource.cukai_taksiran_blm_dibyr?.ToString("##,##0.00"))</span>
                                     </div>

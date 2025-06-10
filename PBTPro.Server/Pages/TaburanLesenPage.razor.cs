@@ -84,6 +84,10 @@ namespace PBTPro.Pages
         private int mintTamatTempoh { get; set; } = 0;
         private int mintGantung { get; set; } = 0;
         private int mintTiadaData { get; set; } = 0;
+        private int _mintTotalLesenAktif { get; set; } = 0;
+        private int _mintTotalTidakBerlesen { get; set; } = 0;
+        private int _mintTotalLesenGantung { get; set; } = 0;
+        private int _mintTotalTiadaData { get; set; } = 0;
 
         //Map
         private GoogleMap map1;
@@ -390,10 +394,14 @@ namespace PBTPro.Pages
                 mintAktif = 0;
                 mintTamatTempoh = 0;
                 mintTiadaData = 0;
+                _mintTotalLesenAktif = 0;
+                _mintTotalTidakBerlesen = 0;
+                _mintTotalLesenGantung = 0;
+                _mintTotalTiadaData = 0;
                 List<string> Lots = new List<string>();
                 //==============================
 
-                string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                string requestUrl = $"/api/Premis/GetFilteredListByBoundWeb?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
                 var response = await _ApiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -404,6 +412,7 @@ namespace PBTPro.Pages
                         var tasks = new List<Task>();
                         dynamic datas = JsonConvert.DeserializeObject(dataString);
                         List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+                        bool blnEnter = false;
 
                         foreach (var _premis in dataList)
                         {
@@ -413,13 +422,33 @@ namespace PBTPro.Pages
                             string no_lot = string.IsNullOrEmpty(_premis.lot.ToString()) ? "?" : _premis.lot.ToString();
                             int lesen_status_id = GetIdColor(marker_color);
 
+                            int TotalLesenAktif = _premis.total_lesen_aktif;
+                            int TotalTidakBerlesen = _premis.total_lesen_tidak_berlesen;
+                            int TotalLesenGantung = _premis.total_lesen_gantung;
+                            int TotalTiadaData = _premis.total_lesen_tiada_data;
+
+                            ////Get only once
+                            //if (!blnEnter)
+                            //{
+                            //    _mintTotalLesenAktif = _premis.total_lesen_aktif;
+                            //    _mintTotalTidakBerlesen = _premis.total_lesen_tidak_berlesen;
+                            //    _mintTotalLesenGantung = _premis.total_lesen_gantung;
+                            //    _mintTotalTiadaData = _premis.total_lesen_tiada_data;
+                            //    blnEnter=true;
+                            //}
+
                             ////This is to count all lesen status with or without lot no
                             if (!Lots.Contains(premisId))
                             {
                                 if (initStart == 1)
                                 {
+                                    //_mintTotalLesenAktif = TotalLesenAktif;
+                                    //_mintTotalTidakBerlesen = TotalTidakBerlesen;
+                                    //_mintTotalLesenGantung = TotalLesenGantung;
+                                    //_mintTotalTiadaData = TotalTiadaData;
+
                                     //Count lesen based on status
-                                    CountPremisStatus(lesen_status_id);
+                                    CountPremisStatus(lesen_status_id, TotalLesenAktif, TotalTidakBerlesen, TotalTiadaData);
                                     //Add all the selected id status on first populate
                                     if (!SelectedIds.Contains(lesen_status_id.ToString()))
                                     {
@@ -431,7 +460,7 @@ namespace PBTPro.Pages
                                     if (SelectedIds.Contains(lesen_status_id.ToString()))
                                     {
                                         //Count lesen based on status
-                                        CountPremisStatus(lesen_status_id);
+                                        CountPremisStatus(lesen_status_id, TotalTidakBerlesen, TotalTidakBerlesen, TotalTiadaData);
                                     }
                                 }
 
@@ -519,14 +548,23 @@ namespace PBTPro.Pages
             return result;
         }
 
-        private void CountPremisStatus(int statusID)
+        private void CountPremisStatus(int statusID, int TotalLesenAktif, int TotalTidakBerlesen, int TotalTiadaData)
         {
             if (statusID == 1) //Aktif
+            {
                 mintAktif += 1;
+                _mintTotalLesenAktif = TotalLesenAktif;
+            }
             else if (statusID == 5) //Tidak Berlesen
+            {
                 mintTamatTempoh += 1;
+                _mintTotalTidakBerlesen = TotalTidakBerlesen;
+            }
             else if (statusID == 4) //Tiada Data
+            {
                 mintTiadaData += 1;
+                _mintTotalTiadaData = TotalTiadaData;
+            }
         }
 
 
