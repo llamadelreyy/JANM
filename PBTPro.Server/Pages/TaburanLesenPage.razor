@@ -172,18 +172,26 @@
             <th colspan="3">Legend</th>
         </tr>
         <tr>
-            <td>
+            <td rowspan="2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Green" /></svg>
             </td>
-            <td>Bil. Premis Aktif</td>
+            <td style="width:100%;border-left:1px solid #ccc;">Bil. Premis</td>
             <td class="text-right">@mintAktif</td>
         </tr>
         <tr>
-            <td>
+            <td style="width:100%;border-left:1px solid #ccc;">Bil. Lesen Aktif</td>
+            <td class="text-right">@_mintTotalLesenAktif</td>
+        </tr>
+        <tr>
+            <td rowspan="2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Red" /></svg>
             </td>
-                <td>Bil. Premis Tidak Berlesen</td>
-                <td class="text-right">@mintTamatTempoh</td>
+            <td style="width:100%;border-left:1px solid #ccc;">Bil. Premis</td>
+            <td class="text-right">@mintTamatTempoh</td>
+        </tr>
+        <tr>
+            <td style="width:100%;border-left:1px solid #ccc;">Bil. Tidak Berlesen</td>
+            <td class="text-right">@_mintTotalTidakBerlesen</td>
         </tr>
 @*         <tr>
             <td>
@@ -193,16 +201,25 @@
                 <td class="text-right">@mintGantung</td>
         </tr> *@
         <tr>
-            <td>
+            <td rowspan="2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Grey" /></svg>
             </td>
-                <td>Bil. Premis Tiada Data</td>
-                <td class="text-right">@mintTiadaData</td>
+            <td style="width:100%;border-left:1px solid #ccc;">Bil. Premis</td>
+            <td class="text-right">@mintTiadaData</td>
+        </tr>
+        <tr>
+            <td style="width:100%;border-left:1px solid #ccc;">Bil. Lesen Tiada Data</td>
+            <td class="text-right">@_mintTotalTiadaData</td>
         </tr>
         <tr style="height:26px">
             <td></td>
             <td><b>Jumlah Premis</b></td>
-                <td class="text-right"><b>@(mintAktif + mintTamatTempoh + mintTiadaData)</b></td>
+            <td class="text-right"><b>@(mintAktif + mintTamatTempoh + mintTiadaData)</b></td>
+        </tr>
+        <tr style="height:26px">
+            <td></td>
+            <td><b>Jumlah Lesen</b></td>
+            <td class="text-right"><b>@(_mintTotalLesenAktif + _mintTotalTidakBerlesen + _mintTotalTiadaData)</b></td>
         </tr>
 @*         <tr>
             <td class="noMarker" colspan="2">Bil. Notis</td>
