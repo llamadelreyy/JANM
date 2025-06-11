@@ -111,7 +111,7 @@ namespace PBTPro.Pages
         private ConcurrentDictionary<string, bool> _processedPremisGids = new ConcurrentDictionary<string, bool>(); // Thread-safe GID tracking
         private readonly object _lockLot = new object(); 
         private bool _isProcessing = false;  // Flag to track if tasks are processing
-        private bool _isLoadSearch = false;  // Flag to track if data for search is already loading
+        //private bool _isLoadSearch = false;  // Flag to track if data for search is already loading
         private Queue<Task> _pendingTasks = new Queue<Task>();
 
         //Legend
@@ -296,7 +296,8 @@ namespace PBTPro.Pages
                 //////NoticeData = await _NoticeService.GetNoticeAsync();
                 //Items = NoticeData.Select((item, index) => (item, index));
 
-
+                //Get search record
+                searchData = await _SearchService.GetListPremisDetails();
                 //////DataLoadedTcs.TrySetResult(true);
                 //////Start populate the map
                 ////await InvokeClustering(1);
@@ -306,8 +307,7 @@ namespace PBTPro.Pages
 
                 //Get record
                 //////premisData = await _PremisService.GetList(); //AZMEE
-                ////Get search record
-                //searchData = await _SearchService.GetListPremisDetails();
+
 
                 ////premisItem = premisData.Select((item, index) => (item, index));
 
@@ -484,6 +484,8 @@ namespace PBTPro.Pages
 
                                 //Add the lots
                                 SelectedLots.Add(premisId);
+                                //Count the lesen for each point
+                                int intPointLesen = searchData.Where(x => x.codeid_premis == premisId).Count();
 
                                 if (initStart == 1)
                                 {
@@ -492,7 +494,7 @@ namespace PBTPro.Pages
                                         Position = latLng,
                                         Map = map1.InteropObject,
                                         //Title = no_lot,  //comment the tooltip for faster loading
-                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label'>" + $"{no_lot}" + "</lable></div>",
+                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
                                     });
 
                                     markers.Push(_marker);
@@ -515,7 +517,7 @@ namespace PBTPro.Pages
                                             Position = latLng,
                                             Map = map1.InteropObject,
                                             //Title = no_lot,  //comment the tooltip for faster loading
-                                            Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label'>" + $"{no_lot}" + "</lable></div>",
+                                            Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
                                         });
 
                                         markers.Push(_marker);
@@ -791,13 +793,13 @@ namespace PBTPro.Pages
             }
             else
             {
-                //Load the search data on the 1st call only
-                if (!_isLoadSearch)
-                {
-                    _isLoadSearch = true;
-                    //Get search record
-                    searchData = await _SearchService.GetListPremisDetails();
-                }
+                ////Load the search data on the 1st call only
+                //if (!_isLoadSearch)
+                //{
+                //    _isLoadSearch = true;
+                //    //Get search record
+                //    searchData = await _SearchService.GetListPremisDetails();
+                //}
 
                 await serverSideScripts1.InvokeVoidAsync("openNavSearch");
             }
