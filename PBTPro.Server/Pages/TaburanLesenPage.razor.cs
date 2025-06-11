@@ -460,7 +460,7 @@ namespace PBTPro.Pages
                                     if (SelectedIds.Contains(lesen_status_id.ToString()))
                                     {
                                         //Count lesen based on status
-                                        CountPremisStatus(lesen_status_id, TotalTidakBerlesen, TotalTidakBerlesen, TotalTiadaData);
+                                        CountPremisStatus(lesen_status_id, TotalLesenAktif, TotalTidakBerlesen, TotalTiadaData);
                                     }
                                 }
 
