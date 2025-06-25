@@ -67,6 +67,52 @@
         </div>
     </div>
 
+    <div class="w-100 row borderGraph">
+        <span class="chart-title">Jumlah Cukai Mengikut Status Cukai Terkini</span>
+        <div class="col-9" style="justify-items:center;">
+
+            <DxPieChart Data="@GetDataCukai()"
+                        Width="400"
+                        InnerDiameter="0"
+                        StartAngle="0"
+                        SegmentDirection="PieChartSegmentDirection.Clockwise"
+                        Palette="@Colors">
+                <DxChartLegend Visible="false" />
+                <DxPieChartSeries ArgumentField="@((DataPoint s) => s.Argument)"
+                                  ValueField="@((DataPoint s) => s.Value)">
+
+                    <DxChartSeriesLabel Visible="true"
+                                        Position="RelativePosition.Outside">
+                        <DxChartSeriesLabelConnector Visible="true" />
+                    </DxChartSeriesLabel>
+                </DxPieChartSeries>
+                <DxChartTooltip Enabled="true"
+                                Position="RelativePosition.Outside">
+                    <div style="margin: 0.75rem">
+                        <div class="chart-tooltip">@context.Point.Argument</div>
+                        <div class="dashboard-center-text chart-tooltip">@($"{context.Point.Value:#,0.}")</div>
+                    </div>
+                </DxChartTooltip>
+            </DxPieChart>
+        </div>
+        <div class="col" style="border-left:1px solid #ccc;">
+            <div class="card border-0 w-100 mt-lg-3">
+                <div class="card-body p-1">
+                    <div class="palette-container">
+                        @* @for (int i = 0; i < Colors.Length; i++) *@
+                        @foreach (var data in GetData())
+                        {
+                            var color = Colors[data.Index];
+                            <div class="p-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><rect width="15" height="15" x="5" y="7" rx="1" ry="1" fill="@color" /></svg>
+                                <span class="chart-legend">@data.Argument</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="w-100 row borderGraph">
         <span class="chart-title">Jumlah Status Rondaan Premis @DateTime.Now.Year.ToString()</span>
@@ -150,10 +196,12 @@
     dashboard_view dtSource = new dashboard_view();
     dashboard_view dtFinancial = new dashboard_view();
     IEnumerable<general_search_premis_detail> searchData;
+    IEnumerable<general_search_premis_detail> licenseData;
 
     int mintAktif = 0;
     int mintTidakBerlesen = 0;
     int mintTiadaData = 0;
+    int mintTotalBercukai = 0;
 
     string[] Colors = new string[] { "green", "red", "orange", "chartreuse", "blue", "grey", "purple", "chocolate", "saddlebrown", "burlywood" };
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -167,8 +215,21 @@
         searchData = await _SearchService.GetListPremisDetails();
         // mintAktif = searchData.Count();
         mintTidakBerlesen = searchData.Where(x => x.license_status_view.ToUpper() == "TIDAK BERLESEN").Count();
-        mintTiadaData = searchData.Where(x => x.license_status_view.ToUpper() == "TIADA DATA").Count();
+        // mintTiadaData = searchData.Where(x => x.license_status_view.ToUpper() == "TIADA DATA").Count();
 
+        List<string> Lots = new List<string>();
+        licenseData = searchData.Where(x => x.tax_status_id == 7);
+        foreach (var _premis in licenseData)
+        {
+            string premisId = _premis.codeid_premis;
+
+            if (!Lots.Contains(premisId))
+            {
+                mintTotalBercukai += 1;
+                Lots.Add(premisId);
+            }
+        }
+        //@(dtFinancial.total_premis_perniagaan - mintTotalBercukai)
         DataLoadedTcs.TrySetResult(true);
     }
 
@@ -176,9 +237,17 @@
     List<DataPoint> GetData()
     {
         List<DataPoint> result = new List<DataPoint>();
-        result.Add(new DataPoint("Lesen Aktif", dtSource.premis_berlesen, 0));
+        result.Add(new DataPoint("Berlesen", dtSource.premis_berlesen, 0));
         result.Add(new DataPoint("Tidak Berlesen", mintTidakBerlesen, 1));
-        result.Add(new DataPoint("Tiada Data", mintTiadaData, 2));
+
+        return result;
+    }
+
+    List<DataPoint> GetDataCukai()
+    {
+        List<DataPoint> result = new List<DataPoint>();
+        result.Add(new DataPoint("Bercukai", mintTotalBercukai, 0));
+        result.Add(new DataPoint("Tidak Bercukai", dtFinancial.total_premis_perniagaan - mintTotalBercukai, 1));
 
         return result;
     }

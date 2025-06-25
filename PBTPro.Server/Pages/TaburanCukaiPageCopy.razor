@@ -1,4 +1,4 @@
-﻿@page "/taburan_lesen"
+﻿@page "/taburan_cukai_copy"
 @attribute [Authorize]
 
 @implements IDisposable
@@ -44,52 +44,52 @@
                 IndicatorAreaVisible="false"
                 Text="Capaian Data...">
 
-<!-- Filter & Search Premise panel -->
-<div id="mySidenav" class="sidenav">
+    <!-- Filter & Search Premise panel -->
+    <div id="mySidenav" class="sidenav">
 
-    <div id="SearchPremisePanel">
-        <header class="searchPremis">
-            <h1>Carian Premis</h1>
-            <a style="cursor:pointer" href="javascript:void(0)" class="closebtnpremis" @onclick="CloseFilter">&times;</a>
-        </header>
+        <div id="SearchPremisePanel">
+            <header class="searchPremis">
+                <h1>Carian Premis</h1>
+                <a style="cursor:pointer" href="javascript:void(0)" class="closebtnpremis" @onclick="CloseFilter">&times;</a>
+            </header>
 
 
-        <DxGrid @ref="Grid"
-                Data="searchData"
-                KeyFieldName="license_id"
-                ShowGroupPanel="false"
-                VirtualScrollingEnabled=true
-                ShowFilterRow="false"
-                TextWrapEnabled="true"
-                ShowSearchBox="true"
-                EditorRenderMode="GridEditorRenderMode.Integrated"
-                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                PageSize="100000"
-                SearchBoxNullText="Masukkan kata carian..."
-                SearchTextParseMode="GridSearchTextParseMode.GroupWordsByAnd"
-                CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
-                PageSizeSelectorVisible="false"
-                PageSizeSelectorAllRowsItemVisible="true"
-                PagerAutoHideNavButtons="true"
-                EditFormButtonsVisible="false"
-                AutoExpandAllGroupRows="false"
-                GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
-                ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
-                CustomizeElement="Grid_CustomizeElement"
-                KeyboardNavigationEnabled="true"
-                CssClass="mw-1000, grid-size">
+            <DxGrid @ref="Grid"
+                    Data="searchData"
+                    KeyFieldName="license_id"
+                    ShowGroupPanel="false"
+                    VirtualScrollingEnabled=true
+                    ShowFilterRow="false"
+                    TextWrapEnabled="true"
+                    ShowSearchBox="true"
+                    EditorRenderMode="GridEditorRenderMode.Integrated"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    PageSize="100000"
+                    SearchBoxNullText="Masukkan kata carian..."
+                    SearchTextParseMode="GridSearchTextParseMode.GroupWordsByAnd"
+                    CustomizeSummaryDisplayText="Grid_CustomizeSummaryDisplayText"
+                    PageSizeSelectorVisible="false"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PagerAutoHideNavButtons="true"
+                    EditFormButtonsVisible="false"
+                    AutoExpandAllGroupRows="false"
+                    GroupFooterDisplayMode="GridGroupFooterDisplayMode.Auto"
+                    ColumnResizeMode="GridColumnResizeMode.ColumnsContainer"
+                    CustomizeElement="Grid_CustomizeElement"
+                    KeyboardNavigationEnabled="true"
+                    CssClass="mw-1000, grid-size">
 
-            <Columns>
-                <DxGridCommandColumn Width="40px">
-                    <HeaderTemplate>
-                        <img src="images/icons/marker.png" />
-                    </HeaderTemplate>
-                    <CellDisplayTemplate>
-                        <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Pin pada peta"><img src="images/icons-small/marker.png" /></a>
-                    </CellDisplayTemplate>
-                </DxGridCommandColumn>
+                <Columns>
+                    <DxGridCommandColumn Width="40px">
+                        <HeaderTemplate>
+                            <img src="images/icons/marker.png" />
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            <a @onclick="@(() => OnSelectedRow(context.DataItem))" style="text-decoration: none;" href="javascript:void(0);" title="Pin pada peta"><img src="images/icons-small/marker.png" /></a>
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
                     <DxGridDataColumn Caption="No Lot" MinWidth="120" Width="12%" FieldName="premis_lot" SortIndex="0" />
-                    <DxGridDataColumn Caption="Tingkat" MinWidth="100" Width="10%" FieldName="premis_floor" TextAlignment="GridTextAlignment.Center"  />
+                    <DxGridDataColumn Caption="Tingkat" MinWidth="100" Width="10%" FieldName="premis_floor" TextAlignment="GridTextAlignment.Center" />
                     <DxGridDataColumn Caption="No SSM" MinWidth="130" Width="13%" FieldName="license_ssmno" />
                     <DxGridDataColumn Caption="No Akaun Lesen" MinWidth="150" Width="15%" FieldName="license_accno" />
                     <DxGridDataColumn Caption="Status Lesen" MinWidth="150" Width="15%" FieldName="license_status_view" />
@@ -110,145 +110,122 @@
                     <DxGridDataColumn Caption="Alamat Pemilik" MinWidth="230" Width="23%" FieldName="tax_owner_addess" />
                     <DxGridDataColumn Caption="Alamat Cukai" MinWidth="230" Width="23%" FieldName="tax_address" />
 
-@*                 <DxGridDataColumn FieldName="DateCreated" MinWidth="110" DisplayFormat="dd/MM/yyyy" Caption="Tarikh Masuk" Width="10%"
-                TextAlignment="GridTextAlignment.Center" SortOrder="GridColumnSortOrder.Descending" SortIndex="0" /> *@
-            </Columns>
+                    @*                 <DxGridDataColumn FieldName="DateCreated" MinWidth="110" DisplayFormat="dd/MM/yyyy" Caption="Tarikh Masuk" Width="10%"
+                    TextAlignment="GridTextAlignment.Center" SortOrder="GridColumnSortOrder.Descending" SortIndex="0" /> *@
+                </Columns>
 
-            @*This is to count the summary*@
-            <TotalSummary>
+                @*This is to count the summary*@
+                <TotalSummary>
                     <DxGridSummaryItem FooterColumnName="premis_lot"
-                                   Name="Custom"
-                                   SummaryType=GridSummaryItemType.Count />
-            </TotalSummary>
-        </DxGrid>
+                                       Name="Custom"
+                                       SummaryType=GridSummaryItemType.Count />
+                </TotalSummary>
+            </DxGrid>
+        </div>
+
+        <table class="tableTapis" id="tableTapis">
+            <tr>
+                <th colspan=3>Tapisan <a href="javascript:void(0)" class="closebtn" @onclick="CloseFilter">&times;</a></th>
+            </tr>
+            <tr class="titleTapis">
+                <td colspan="3" class="headTapis">Cukai</td>
+            </tr>
+
+            <CheckBoxList Data="@FilterList"
+                          TextField="@((item)=>item.ColorDesc)"
+                          ValueField="@((item)=>item.TypeId)"
+                          SelectedValues="@SelectedIds" />
+
+            @*         <tr class="titleTapis">
+            <td colspan="3" class="headTapis">Nota Pemeriksaan</td>
+            </tr>
+
+            <CheckBoxList Data="@NotaList"
+            TextField="@((item)=>item.ColorDesc)"
+            ValueField="@((item)=>item.TypeId)"
+            SelectedValues="@SelectedIds" /> *@
+
+            <tr style="height:35px;">
+                <td colspan="3">
+                    @*                 <b>@OutPutValue</b> *@
+                </td>
+            </tr>
+            <tr class="buttonTapis">
+                <td colspan="3">
+                    <button class="btnTapis" @onclick="CloseFilter">Batal</button>
+                    <button class="btnTapis" @onclick="ShowSelectedValues">Simpan</button>
+                </td>
+            </tr>
+        </table>
+
     </div>
 
-    <table class="tableTapis" id="tableTapis">
-        <tr>
-            <th colspan=3>Tapisan <a href="javascript:void(0)" class="closebtn" @onclick="CloseFilter">&times;</a></th>
-        </tr>
-        <tr class="titleTapis">
-            <td colspan="3" class="headTapis">Lesen</td>
-        </tr>
+    <!-- Map panel -->
+    <div id="map1" class="map-container">
+        <GoogleMap @ref="@map1" Id="map1" Options="@_mapOptions" OnAfterInit="async () => await OnAfterMapInit()" CssClass="mapPBTPro"></GoogleMap>
+    </div>
 
-        <CheckBoxList Data="@FilterList"
-                      TextField="@((item)=>item.ColorDesc)"
-                      ValueField="@((item)=>item.TypeId)"
-                      SelectedValues="@SelectedIds" />
-
-        <tr class="titleTapis">
-            <td colspan="3" class="headTapis">Cukai</td>
-        </tr>
-
-        <CheckBoxList Data="@NotaList"
-                      TextField="@((item)=>item.ColorDesc)"
-                      ValueField="@((item)=>item.TypeId)"
-                      SelectedValues="@SelectedIds" />
-
-@*         <tr style="height:35px;">
-            <td colspan="3">
-                <b>@OutPutValue</b> 
-            </td>
-        </tr> *@
-        <tr class="buttonTapis">
-            <td colspan="3">
-                <button class="btnTapis" @onclick="CloseFilter">Batal</button>
-                <button class="btnTapis" @onclick="ShowSelectedValues">Simpan</button>
-            </td>
-        </tr>
-    </table>
-
-</div>
-
-<!-- Map panel -->
-<div id="map1" class="map-container">
-    <GoogleMap @ref="@map1" Id="map1" Options="@_mapOptions" OnAfterInit="async () => await OnAfterMapInit()" CssClass="mapPBTPro"></GoogleMap>
-</div>
-
-<!-- Legend panel -->
-<div id="legend" @ref="@LegendReference" style="display: none">
-    <table class="tableMap" id="tableLegend">
-        <tr>
-            <th colspan="3">Legend</th>
-        </tr>
-        <tr style="height:26px">
-            <td colspan="3" style="padding-left:15px;font-weight:bold;">Lesen</td>
-        </tr>
-        <tr>
-            <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Green" /></svg>
-            </td>
-            <td style="width:100%;border-left:1px solid #ccc;">Bil. Berlesen</td>
-            <td class="text-right">@_mintTotalLesenAktif</td>
-        </tr>
-        <tr>
-            <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Red" /></svg>
-            </td>
-            <td style="width:100%;border-left:1px solid #ccc;">Bil. Tidak Berlesen</td>
-            <td class="text-right">@_mintTotalTidakBerlesen</td>
-        </tr>
-@*         <tr>
-            <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Grey" /></svg>
-            </td>
-            <td style="width:100%;border-left:1px solid #ccc;">Bil. Tiada Data</td>
-            <td class="text-right">@_mintTotalTiadaData</td>
-        </tr> *@
-        <tr style="height:26px">
-            <td colspan="3" style="padding-left:15px;font-weight:bold;">Cukai</td>
-        </tr>
-        <tr>
-            <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Yellow" /></svg>
-            </td>
-            <td style="width:100%;border-left:1px solid #ccc;">Bil. Bercukai</td>
-            <td class="text-right">@mintAktif</td>
-        </tr>
-        <tr>
-            <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Black" /></svg>
-            </td>
-            <td style="width:100%;border-left:1px solid #ccc;">Bil. Tidak Bercukai</td>
-            <td class="text-right">@mintTamatTempoh</td>
-        </tr>
-        <tr style="height:26px">
-            <td colspan="2" style="padding-left:15px;font-weight:bold;">Jumlah Cukai</td>
-            <td class="text-right"><b>@(mintAktif + mintTamatTempoh)</b></td>
-        </tr>
-        <tr style="height:26px">
-            <td colspan="2" style="padding-left:15px;font-weight:bold;">Jumlah Lesen</td>
-            <td class="text-right"><b>@(_mintTotalLesenAktif + _mintTotalTidakBerlesen + _mintTotalTiadaData)</b></td>
-        </tr>
-@*         <tr>
-            <td class="noMarker" colspan="2">Bil. Notis</td>
-            <td class="text-right">0</td>
-        </tr>
-        <tr>
-            <td colspan="2" class="noMarker">Jumlah Notis</td>
-            <td class="text-right">RM 0.00</td>
-        </tr>
-        <tr>
-            <td colspan="2" class="noMarker">Bil. Kompaun</td>
-            <td class="text-right">0</td>
-        </tr>
-        <tr>
-            <td colspan="2" class="noMarker">Jumlah Kompaun (RM)</td>
-            <td class="text-right">RM 0.00</td>
-        </tr> *@
-    </table>
-</div>
+    <!-- Legend panel -->
+    <div id="legend" @ref="@LegendReference" style="display: none">
+        <table class="tableMap" id="tableLegend">
+            <tr>
+                <th colspan="3">Legend</th>
+            </tr>
+            <tr>
+                <td>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Green" /></svg>
+                </td>
+                <td>Bil. Cukai Dibayar</td>
+                <td class="text-right">@mintAktif</td>
+            </tr>
+            <tr>
+                <td>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Red" /></svg>
+                </td>
+                <td>Bil. Cukai Tertunggak</td>
+                <td class="text-right">@mintTamatTempoh</td>
+            </tr>
+            <tr>
+                <td>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Grey" /></svg>
+                </td>
+                <td>Bil. Tiada Data</td>
+                <td class="text-right">@mintTiadaData</td>
+            </tr>
+            <tr style="height:26px">
+                <td></td>
+                <td><b>Jumlah Premis</b></td>
+                    <td class="text-right"><b>@(mintAktif + mintTamatTempoh + mintTiadaData)</b></td>
+            </tr>
+@*             <tr>
+                <td class="noMarker" colspan="2">Bil. Notis</td>
+                <td class="text-right">0</td>
+            </tr>
+            <tr>
+                <td colspan="2" class="noMarker">Jumlah Notis</td>
+                <td class="text-right">RM 0.00</td>
+            </tr>
+            <tr>
+                <td colspan="2" class="noMarker">Bil. Kompaun</td>
+                <td class="text-right">0</td>
+            </tr>
+            <tr>
+                <td colspan="2" class="noMarker">Jumlah Kompaun (RM)</td>
+                <td class="text-right">RM 0.00</td>
+            </tr> *@
+        </table>
+    </div>
 
 
-<div id="panel-right" class="cd-panel cd-panel--from-right js-cd-panel-main">
-    <header class="cd-panel__header">
-        <h1>Paparan Maklumat Premis</h1>
-        <a style="text-underline-position:below; cursor:pointer" onclick=@(() => OpenSideBar("")) class="cd-panel__close js-cd-close">Close</a>
-    </header>
+    <div id="panel-right" class="cd-panel cd-panel--from-right js-cd-panel-main">
+        <header class="cd-panel__header">
+            <h1>Paparan Maklumat Premis</h1>
+            <a style="text-underline-position:below; cursor:pointer" onclick=@(() => OpenSideBar("")) class="cd-panel__close js-cd-close">Close</a>
+        </header>
 
-    <div class="cd-panel__container">
-        <div class="cd-panel__content">
-            @{
+        <div class="cd-panel__container">
+            <div class="cd-panel__content">
+                @{
                     int? valueType = 0;
                     double dblLat = 0;
                     double dblLng = 0;
@@ -261,7 +238,7 @@
                     {
                         dblLat = premisInfo._latitude ?? 0;
                         dblLng = premisInfo._longitude ?? 0; //coords[0];
-                        //Get the premis image
+                                                             //Get the premis image
                         strImagePremis = premisInfo.gkeseluruh ?? "";
                         boolValidData = true;  //Valid to open side bar
 
@@ -299,35 +276,35 @@
                             <Carousel imageset="@AssetImages" CssClass="col-12"></Carousel>
                         </div>
                     }
-                
-                if (valueType == 0 && boolValidData)
-                {
-                    <div class="tbRightPane-tab" style="align-content:center;">
-                        <table style="height:100%;padding: 0px 10px;">
-                            <tr style="height:50px;"><td colspan="2"></td></tr>
-                            <tr>
-                                <td><img src="/images/icons/information.png"/></td>
-                                <td style="padding:4px 5px 0px 5px;"><span style="font-size: 1rem;letter-spacing: 0.08rem;text-transform: uppercase;font-weight: bold;">Maaf! Tiada Rekod Untuk Dipaparkan.</span></td>
-                            </tr>
-                        </table>
-                    </div>
-                }
-                else if (valueType == 1)
-                {
 
-                    <div class="tbRightPane-tab">
-                        <DxTabs>
-                            <DxTabPage Text="Maklumat Lesen">
-                                <!-- ContentTemplate Context dont give name that has this "-"". ex:Level1-Lot1 -->
-                                <DxAccordion ShowFilterPanel="true"
-                                             ExpandMode=AccordionExpandMode.MultipleOrNone
-                                             ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                                             RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
-                                             AnimationType="LayoutAnimationType.Slide">
-                                    <Items>
+                    if (valueType == 0 && boolValidData)
+                    {
+                        <div class="tbRightPane-tab" style="align-content:center;">
+                            <table style="height:100%;padding: 0px 10px;">
+                                <tr style="height:50px;"><td colspan="2"></td></tr>
+                                <tr>
+                                    <td><img src="/images/icons/information.png" /></td>
+                                    <td style="padding:4px 5px 0px 5px;"><span style="font-size: 1rem;letter-spacing: 0.08rem;text-transform: uppercase;font-weight: bold;">Maaf! Tiada Rekod Untuk Dipaparkan.</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    }
+                    else if (valueType == 1)
+                    {
 
-                                        @foreach (var lesenItem in premisInfo.premis_license_tax)
-                                        {
+                        <div class="tbRightPane-tab">
+                            <DxTabs>
+                                <DxTabPage Text="Maklumat Lesen">
+                                    <!-- ContentTemplate Context dont give name that has this "-"". ex:Level1-Lot1 -->
+                                    <DxAccordion ShowFilterPanel="true"
+                                                 ExpandMode=AccordionExpandMode.MultipleOrNone
+                                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
+                                                 AnimationType="LayoutAnimationType.Slide">
+                                        <Items>
+
+                                            @foreach (var lesenItem in premisInfo.premis_license_tax)
+                                            {
 
                                                 if (lesenItem.license != null)
                                                 {
@@ -362,98 +339,98 @@
                                                     </DxAccordionItem>
                                                 }
 
-                                        }
+                                            }
 
 
-                                    </Items>
-                                </DxAccordion>
-                            </DxTabPage>
-                            <!-- 2nd Tab -->
-                            <DxTabPage Text="Maklumat Cukai">
-                                <!-- ContentTemplate Context dont give name that has this "-"". ex:Level1-Lot1 -->
-                                <DxAccordion ShowFilterPanel="true"
-                                             ExpandMode=AccordionExpandMode.MultipleOrNone
-                                             ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                                             RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
-                                             AnimationType="LayoutAnimationType.Slide">
-                                    <Items>
+                                        </Items>
+                                    </DxAccordion>
+                                </DxTabPage>
+                                <!-- 2nd Tab -->
+                                <DxTabPage Text="Maklumat Cukai">
+                                    <!-- ContentTemplate Context dont give name that has this "-"". ex:Level1-Lot1 -->
+                                    <DxAccordion ShowFilterPanel="true"
+                                                 ExpandMode=AccordionExpandMode.MultipleOrNone
+                                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
+                                                 AnimationType="LayoutAnimationType.Slide">
+                                        <Items>
 
-                                        @{
-                                            var _dtTax = premisInfo.premis_license_tax.First();
-                                        }
+                                            @{
+                                                var _dtTax = premisInfo.premis_license_tax.First();
+                                            }
 
-                                        @if (_dtTax.tax != null)
-                                        {
+                                            @if (_dtTax.tax != null)
+                                            {
 
-                                            <DxAccordionItem Expanded="true">
-                                                <HeaderTextTemplate>
-                                                    <div>
-                                                        <div class="text-center flex-grow-1 dxbl-accordion-item-text">
+                                                <DxAccordionItem Expanded="true">
+                                                    <HeaderTextTemplate>
+                                                        <div>
+                                                            <div class="text-center flex-grow-1 dxbl-accordion-item-text">
                                                                 @($"NO CUKAI : {(string.IsNullOrEmpty(_dtTax.tax.tax_accno) ? "TIADA DATA" : _dtTax.tax.tax_accno)}")
-                                                            &nbsp;&nbsp;&nbsp;&nbsp;
-                                                            <span class="e-status">@GetStatusIconHtml(_dtTax.status_tax_id ?? 0)</span>
-                                                        </div>
-                                                    </div>
-                                                </HeaderTextTemplate>
-                                                <ContentTemplate>
-                                                        <PremisTax _dtTax="@_dtTax" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" />
-                                                </ContentTemplate>
-                                            </DxAccordionItem>
-                                        } 
-                                        else 
-                                        {
-
-                                            <DxAccordionItem Text="TIADA DATA" Expanded="true">
-                                                <ContentTemplate>
-                                                    <div class="e-card">
-                                                        <div class="e-main d-flex align-items-center">
-                                                            <div class="e-info flex-grow-1 ms-3 py-3">
-                                                                <div class="e-name">Tarikh Cukai :-</div>
-                                                                <div class="e-name">Nama Pemilik : -</div>
-                                                                <div class="e-name">Alamat Pemilik : -</div>
-                                                                <div class="e-name">Telefon No : -</div>
-                                                                <div class="e-address">Alamat Premis : -</div>
+                                                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                                                <span class="e-status">@GetStatusIconHtml(_dtTax.status_tax_id ?? 0)</span>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </ContentTemplate>
-                                            </DxAccordionItem>
-                                        }
-                                    </Items>
-                                </DxAccordion>
-                            </DxTabPage>
-                        </DxTabs>
-                    </div>
+                                                    </HeaderTextTemplate>
+                                                    <ContentTemplate>
+                                                        <PremisTax _dtTax="@_dtTax" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" />
+                                                    </ContentTemplate>
+                                                </DxAccordionItem>
+                                            }
+                                            else
+                                            {
 
-                }
-                else if (valueType == 2)
-                {
+                                                <DxAccordionItem Text="TIADA DATA" Expanded="true">
+                                                    <ContentTemplate>
+                                                        <div class="e-card">
+                                                            <div class="e-main d-flex align-items-center">
+                                                                <div class="e-info flex-grow-1 ms-3 py-3">
+                                                                    <div class="e-name">Tarikh Cukai :-</div>
+                                                                    <div class="e-name">Nama Pemilik : -</div>
+                                                                    <div class="e-name">Alamat Pemilik : -</div>
+                                                                    <div class="e-name">Telefon No : -</div>
+                                                                    <div class="e-address">Alamat Premis : -</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </ContentTemplate>
+                                                </DxAccordionItem>
+                                            }
+                                        </Items>
+                                    </DxAccordion>
+                                </DxTabPage>
+                            </DxTabs>
+                        </div>
 
-                    <div class="tbRightPane-tab">
-                        <DxTabs>
-                            <DxTabPage Text="Maklumat Lesen">
+                    }
+                    else if (valueType == 2)
+                    {
 
-                                <DxAccordion ExpandMode=AccordionExpandMode.SingleOrNone
-                                                ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                                                RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.End
-                                                AnimationType="LayoutAnimationType.Slide">
-                                    <Items>
+                        <div class="tbRightPane-tab">
+                            <DxTabs>
+                                <DxTabPage Text="Maklumat Lesen">
 
-                                    @foreach (var _floor in _floorPremis)
-                                    {
-                                        
-                                        <DxAccordionItem Text="@($"Aras {_floor}")">
-                                            <ContentTemplate Context="currentFloor">
-                                                @{
-                                                    var currentFloor = _floor; // Use 'floor' inside the template
-                                                }
-                                                <div class="py-3 px-3">
+                                    <DxAccordion ExpandMode=AccordionExpandMode.SingleOrNone
+                                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.End
+                                                 AnimationType="LayoutAnimationType.Slide">
+                                        <Items>
 
-                                                    <DxAccordion ExpandMode=AccordionExpandMode.MultipleOrNone
-                                                                    ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                                                                    RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
-                                                                    AnimationType="LayoutAnimationType.Slide">
-                                                        <Items>
+                                            @foreach (var _floor in _floorPremis)
+                                            {
+
+                                                <DxAccordionItem Text="@($"Aras {_floor}")">
+                                                    <ContentTemplate Context="currentFloor">
+                                                        @{
+                                                            var currentFloor = _floor; // Use 'floor' inside the template
+                                                        }
+                                                        <div class="py-3 px-3">
+
+                                                            <DxAccordion ExpandMode=AccordionExpandMode.MultipleOrNone
+                                                                         ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                                                         RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
+                                                                         AnimationType="LayoutAnimationType.Slide">
+                                                                <Items>
 
                                                                     @foreach (var lesenItem in premisInfo.premis_license_tax)
                                                                     {
@@ -477,7 +454,7 @@
                                                                                         <PremisCard PremisInfo="@lesenItem" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" Dtfloor="@_floorPremis" />
                                                                                     </ContentTemplate>
                                                                                 </DxAccordionItem>
-                                                                            } 
+                                                                            }
                                                                             else
                                                                             {
                                                                                 <DxAccordionItem Expanded="true">
@@ -495,76 +472,76 @@
                                                                         }
                                                                     }
 
-                                                        </Items>
-                                                    </DxAccordion>
+                                                                </Items>
+                                                            </DxAccordion>
 
 
 
-                                                </div>
-                                            </ContentTemplate>
-                                        </DxAccordionItem>
+                                                        </div>
+                                                    </ContentTemplate>
+                                                </DxAccordionItem>
 
-                                    }
+                                            }
 
-                                    </Items>
-                                </DxAccordion>
-                            </DxTabPage>
-                            <!-- 2nd Tab -->
-                            <DxTabPage Text="Maklumat Cukai">
+                                        </Items>
+                                    </DxAccordion>
+                                </DxTabPage>
+                                <!-- 2nd Tab -->
+                                <DxTabPage Text="Maklumat Cukai">
 
 
-                                <DxAccordion ExpandMode=AccordionExpandMode.SingleOrNone
-                                                ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                                                RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.End
-                                                AnimationType="LayoutAnimationType.Slide">
-                                    <Items>
+                                    <DxAccordion ExpandMode=AccordionExpandMode.SingleOrNone
+                                                 ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                                 RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.End
+                                                 AnimationType="LayoutAnimationType.Slide">
+                                        <Items>
 
-                                        @foreach (var _floor in _floorPremis)
-                                        {
+                                            @foreach (var _floor in _floorPremis)
+                                            {
 
-                                            <DxAccordionItem Text="@($"Aras {_floor}")">
-                                                <ContentTemplate Context="currentFloor">
-                                                    @{
-                                                        var currentFloor = _floor; // Use 'floor' inside the template
-                                                        List<string> _noCukai = new List<string>();
-                                                    }
-                                                    <div class="py-3 px-3">
+                                                <DxAccordionItem Text="@($"Aras {_floor}")">
+                                                    <ContentTemplate Context="currentFloor">
+                                                        @{
+                                                            var currentFloor = _floor; // Use 'floor' inside the template
+                                                            List<string> _noCukai = new List<string>();
+                                                        }
+                                                        <div class="py-3 px-3">
 
-                                                        <DxAccordion ExpandMode=AccordionExpandMode.MultipleOrNone
-                                                                        ExpandCollapseAction=AccordionExpandCollapseAction.Auto
-                                                                        RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
-                                                                        AnimationType="LayoutAnimationType.Slide">
-                                                            <Items>
+                                                            <DxAccordion ExpandMode=AccordionExpandMode.MultipleOrNone
+                                                                         ExpandCollapseAction=AccordionExpandCollapseAction.Auto
+                                                                         RootItemExpandButtonDisplayMode=AccordionExpandButtonDisplayMode.Start
+                                                                         AnimationType="LayoutAnimationType.Slide">
+                                                                <Items>
 
-                                                                @foreach (var _dtTax in premisInfo.premis_license_tax)
-                                                                {
-                                                                    if (_dtTax.floor_building == _floor)
+                                                                    @foreach (var _dtTax in premisInfo.premis_license_tax)
                                                                     {
-                                                                        if (_dtTax.tax != null)
+                                                                        if (_dtTax.floor_building == _floor)
                                                                         {
-                                                                            if (!_noCukai.Contains(_dtTax.tax.tax_accno.ToString()))
+                                                                            if (_dtTax.tax != null)
                                                                             {
-                                                                                _noCukai.Add(_dtTax.tax.tax_accno.ToString());
-                                                                            
+                                                                                if (!_noCukai.Contains(_dtTax.tax.tax_accno.ToString()))
+                                                                                {
+                                                                                    _noCukai.Add(_dtTax.tax.tax_accno.ToString());
 
-                                                                                <DxAccordionItem Expanded="false">
-                                                                                    <HeaderTextTemplate>
-                                                                                        <div>
-                                                                                            <div class="text-center flex-grow-1 dxbl-accordion-item-text">
-                                                                                                @($"NO CUKAI : {_dtTax.tax.tax_accno}")
-                                                                                                &nbsp;&nbsp;&nbsp;&nbsp;
-                                                                                                <span class="e-status">@GetStatusIconHtml(_dtTax.status_tax_id ?? 0)</span>
+
+                                                                                    <DxAccordionItem Expanded="false">
+                                                                                        <HeaderTextTemplate>
+                                                                                            <div>
+                                                                                                <div class="text-center flex-grow-1 dxbl-accordion-item-text">
+                                                                                                    @($"NO CUKAI : {_dtTax.tax.tax_accno}")
+                                                                                                    &nbsp;&nbsp;&nbsp;&nbsp;
+                                                                                                    <span class="e-status">@GetStatusIconHtml(_dtTax.status_tax_id ?? 0)</span>
+                                                                                                </div>
                                                                                             </div>
-                                                                                        </div>
-                                                                                    </HeaderTextTemplate>
-                                                                                    <ContentTemplate>
+                                                                                        </HeaderTextTemplate>
+                                                                                        <ContentTemplate>
                                                                                             <PremisTax _dtTax="@_dtTax" LatLng="@(new LatLngLiteral { Lat=dblLat, Lng=dblLng })" />
-                                                                                    </ContentTemplate>
-                                                                                </DxAccordionItem>
+                                                                                        </ContentTemplate>
+                                                                                    </DxAccordionItem>
+                                                                                }
                                                                             }
-                                                                        }
-                                                                        else
-                                                                        {
+                                                                            else
+                                                                            {
                                                                                 <DxAccordionItem Text="TIADA DATA" Expanded="true">
                                                                                     <ContentTemplate>
                                                                                         <div class="e-card">
@@ -575,32 +552,32 @@
                                                                                                     <div class="e-name">Nama Pemilik : -</div>
                                                                                                     <div class="e-name">Alamat Pemilik : -</div>
                                                                                                     <div class="e-name">Telefon No : -</div>
-                                                                                                    <div class="e-address">Alamat Premis : -</div>                 
+                                                                                                    <div class="e-address">Alamat Premis : -</div>
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
                                                                                     </ContentTemplate>
                                                                                 </DxAccordionItem>
+                                                                            }
+
                                                                         }
-
                                                                     }
-                                                                }
 
-                                                            </Items>
-                                                        </DxAccordion>
+                                                                </Items>
+                                                            </DxAccordion>
 
-                                                    </div>
-                                                </ContentTemplate>
-                                            </DxAccordionItem>
+                                                        </div>
+                                                    </ContentTemplate>
+                                                </DxAccordionItem>
 
-                                        }
+                                            }
 
-                                    </Items>
-                                </DxAccordion>
+                                        </Items>
+                                    </DxAccordion>
 
-                            </DxTabPage>
-                        </DxTabs>
-                    </div>
+                                </DxTabPage>
+                            </DxTabs>
+                        </div>
 
                         // <DxAccordionItem Text="Aras G">
                         //     <ContentTemplate Context="ArasG">
@@ -685,12 +662,12 @@
                         // </DxAccordionItem>
 
 
+                    }
                 }
-            }
 
+            </div>
         </div>
     </div>
-</div>
 
 </DxLoadingPanel>
 

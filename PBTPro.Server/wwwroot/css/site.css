@@ -1028,11 +1028,19 @@ img.dxbl-image {
 .dashboard-wrap span.totalinword {
     font-weight: bold;
     color: #fff;
-    font-size: 1rem;
+    font-size: 1.3rem;
     letter-spacing: 0.2rem;
     text-transform: uppercase;
     align-self: center;
     line-height: 0.9rem;
+}
+
+.dashboard-wrap span.totalinnumber {
+    font-weight: bold;
+    font-size: 2rem;
+    letter-spacing: 0.2rem;
+    align-self: center;
+    color: #fff;
 }
 
 .dashboard-wrap span.totalall {
@@ -1047,7 +1055,7 @@ img.dxbl-image {
 .dashboard-wrap span.totalallbig {
     font-weight: bold;
     color: #fff;
-    font-size: 0.8rem;
+    font-size: 1.2rem;
     letter-spacing: 0.15rem;
     text-transform: uppercase;
     align-self: center;

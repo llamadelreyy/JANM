@@ -28,19 +28,13 @@ using DevExpress.XtraRichEdit.Import.Html;
 using DevExpress.DataAccess.Native.Web;
 using NetTopologySuite.Index.HPRtree;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using DevExpress.CodeParser;
-using DevExpress.CodeParser.VB;
 
 
 namespace PBTPro.Pages
 {
-    public partial class TaburanLesenPage
+    public partial class TaburanCukaiPageCopy
     {
         bool PanelVisible { get; set; }
-
-        //DxWindow windowRef;
-        //ElementReference popupTarget;
-        //bool windowVisible;
 
         List<taburan_view> _dtDataTaburan { get; set; }
         taburan_view _valueTaburan { get; set; }
@@ -49,11 +43,10 @@ namespace PBTPro.Pages
         public List<FilterData> FilterList { get; set; }
         protected List<string> SelectedIds = new List<string>();
         protected List<string> SelectedLots = new List<string>();
-
         public List<FilterData> ObjectList { get; set; }
         public string OutPutValue { get; set; }
 
-        public List<FilterData> NotaList { get; set; }
+        //////public List<FilterData> NotaList { get; set; }
         //=======================
 
         private string LesenID { get; set; } = string.Empty;
@@ -84,10 +77,6 @@ namespace PBTPro.Pages
         private int mintTamatTempoh { get; set; } = 0;
         private int mintGantung { get; set; } = 0;
         private int mintTiadaData { get; set; } = 0;
-        private int _mintTotalLesenAktif { get; set; } = 0;
-        private int _mintTotalTidakBerlesen { get; set; } = 0;
-        private int _mintTotalLesenGantung { get; set; } = 0;
-        private int _mintTotalTiadaData { get; set; } = 0;
 
         //Map
         private GoogleMap map1;
@@ -106,12 +95,12 @@ namespace PBTPro.Pages
 
         // 07/11/2024 - to reduce API request frequency - ismail
         private DateTime _lastMoveTime;
-        private readonly TimeSpan _throttleTime = TimeSpan.FromMilliseconds(300); 
+        private readonly TimeSpan _throttleTime = TimeSpan.FromMilliseconds(300);
         private ConcurrentDictionary<int, bool> _processedLotGids = new ConcurrentDictionary<int, bool>(); // Thread-safe GID tracking
         private ConcurrentDictionary<string, bool> _processedPremisGids = new ConcurrentDictionary<string, bool>(); // Thread-safe GID tracking
-        private readonly object _lockLot = new object(); 
+        private readonly object _lockLot = new object();
         private bool _isProcessing = false;  // Flag to track if tasks are processing
-        //private bool _isLoadSearch = false;  // Flag to track if data for search is already loading
+        private bool _isLoadSearch = false;  // Flag to track if data for search is already loading
         private Queue<Task> _pendingTasks = new Queue<Task>();
 
         //Legend
@@ -131,11 +120,9 @@ namespace PBTPro.Pages
             {
                 case 1:
                     return "Green";
-                case 5:
+                case 2:
                     return "Red";
                 case 3:
-                    return "Yellow";
-                case 4:
                     return "Grey";
                 default:
                     return "Black";
@@ -149,16 +136,28 @@ namespace PBTPro.Pages
                 case "GREEN":
                     return 1;
                 case "RED":
-                    return 5;
-                case "YELLOW":
-                    return 3;
+                    return 2;
                 case "GREY":
-                    return 4;
+                    return 3;
                 default:
                     return 0;
             }
         }
 
+        int GetIdStatusColor(string status)
+        {
+            switch (status.Trim().ToUpper())
+            {
+                case "CUKAI TERTUNGGAK":
+                    return 2;
+                case "CUKAI DIBAYAR":
+                    return 1;
+                case "TIADA DATA":
+                    return 3;
+                default:
+                    return 0;
+            }
+        }
 
         string GetIcon(string color)
         {
@@ -183,7 +182,7 @@ namespace PBTPro.Pages
             else if (status_id == 2)
             {
                 priorytyClass = "danger";
-                title = " CUKAI BELUM DIBAYAR ";
+                title = " CUKAI TERTUNGGAK ";
             }
 
             string html = string.Format("<span class='e-badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
@@ -216,7 +215,7 @@ namespace PBTPro.Pages
                     Position = ControlPosition.RightBottom
                 },
                 Center = new LatLngLiteral
-                { 
+                {
                     Lat = 2.9441900567880896,
                     Lng = 101.37866540001413
                 },
@@ -242,13 +241,7 @@ namespace PBTPro.Pages
 
             //For check box
             FilterList = GetMockFilter();
-            NotaList = GetNotaFilter();
-            //Check all the id
-            SelectedIds.Add("1");
-            SelectedIds.Add("4");
-            SelectedIds.Add("5");
-            SelectedIds.Add("7");
-            SelectedIds.Add("8");
+            //NotaList = GetNotaFilter();
         }
 
         private async Task OnAfterMapInit()
@@ -302,8 +295,7 @@ namespace PBTPro.Pages
                 //////NoticeData = await _NoticeService.GetNoticeAsync();
                 //Items = NoticeData.Select((item, index) => (item, index));
 
-                //Get search record
-                searchData = await _SearchService.GetListPremisDetails();
+
                 //////DataLoadedTcs.TrySetResult(true);
                 //////Start populate the map
                 ////await InvokeClustering(1);
@@ -311,14 +303,15 @@ namespace PBTPro.Pages
                 // Add listener for map api polygon data -- ismail
                 await ProcessMapAPIData(1);
 
-                //Get record
-                //////premisData = await _PremisService.GetList(); //AZMEE
-
+                ////Get record
+                //premisData = await _PremisService.GetList();
+                //Get search record
+                //searchData = await _SearchService.GetListPremisDetails();
 
                 ////premisItem = premisData.Select((item, index) => (item, index));
 
                 DataLoadedTcs.TrySetResult(true);
-                //////////await InvokeClustering(1); //AZMEE
+                //////await InvokeClustering(1);
 
                 await this.map1.InteropObject.AddListener("dragend", async () =>
                 {
@@ -374,7 +367,7 @@ namespace PBTPro.Pages
                 _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
                 {
                     //RendererObjectName = "customRendererLib.interpolatedRenderer",
-                    BatchSize = 40,                   
+                    BatchSize = 40,
                     ZoomOnClick = true,
                 });
 
@@ -400,14 +393,10 @@ namespace PBTPro.Pages
                 mintAktif = 0;
                 mintTamatTempoh = 0;
                 mintTiadaData = 0;
-                _mintTotalLesenAktif = 0;
-                _mintTotalTidakBerlesen = 0;
-                _mintTotalLesenGantung = 0;
-                _mintTotalTiadaData = 0;
                 List<string> Lots = new List<string>();
                 //==============================
 
-                string requestUrl = $"/api/Premis/GetFilteredListByBoundWeb?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                string requestUrl = $"/api/Premis/GetFilteredListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
                 var response = await _ApiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -418,79 +407,35 @@ namespace PBTPro.Pages
                         var tasks = new List<Task>();
                         dynamic datas = JsonConvert.DeserializeObject(dataString);
                         List<dynamic> dataList = datas.ToObject<List<dynamic>>();
-                        //bool blnEnter = false;
 
                         foreach (var _premis in dataList)
                         {
                             string premisId = _premis.codeid_premis;
-                            string lesen_status = _premis.marker_lesen_status;
                             string cukai_status = _premis.marker_cukai_status;
-                            string marker_color = _premis.marker_color;
-                            string no_lot = string.IsNullOrEmpty(_premis.lot.ToString()) ? "?" : _premis.lot.ToString();
-                            int lesen_status_id = GetIdColor(marker_color);
+                            //marker_color = _premis.marker_color;
+                            string no_lot = string.IsNullOrEmpty(_premis.lot.ToString()) ? "?" : _premis.lot.ToString(); //_premis.lot.ToString();
+                            int cukai_status_id = GetIdStatusColor(cukai_status);
+                            string marker_color = GetColorLot(cukai_status_id);
 
-                            int TotalLesenAktif = _premis.total_lesen_aktif;
-                            int TotalTidakBerlesen = _premis.total_lesen_tidak_berlesen;
-                            int TotalLesenGantung = _premis.total_lesen_gantung;
-                            int TotalTiadaData = _premis.total_lesen_tiada_data;
-
-                            //For temp DEMO
-                            int cukai_status_id = 7;
-                            string cukai_marker_color = "yellow";
-                            if ((cukai_status.ToUpper() == "CUKAI TERTUNGGAK") || (cukai_status.ToUpper() == "TIDAK BERCUKAI"))
-                            {
-                                cukai_status_id = 8;
-                                cukai_marker_color = "black";
-                            }
-
-                            ////Get only once
-                            //if (!blnEnter)
-                            //{
-                            //    _mintTotalLesenAktif = _premis.total_lesen_aktif;
-                            //    _mintTotalTidakBerlesen = _premis.total_lesen_tidak_berlesen;
-                            //    _mintTotalLesenGantung = _premis.total_lesen_gantung;
-                            //    _mintTotalTiadaData = _premis.total_lesen_tiada_data;
-                            //    blnEnter=true;
-                            //}
-
-                            ////This is to count all lesen status with or without lot no
+                            //Go multiply premis with the same lot no
                             if (!Lots.Contains(premisId))
                             {
                                 if (initStart == 1)
                                 {
                                     //Count lesen based on status
-                                    CountPremisStatus(lesen_status_id, TotalLesenAktif, TotalTidakBerlesen, TotalTiadaData);
-                                    CountCukaiStatus(cukai_status_id);
+                                    CountPremisStatus(cukai_status_id);
+                                    //Add all the selected id status on first populate
+                                    if (!SelectedIds.Contains(cukai_status_id.ToString()))
+                                    {
+                                        SelectedIds.Add(cukai_status_id.ToString());
+                                    }
                                 }
                                 else
                                 {
-                                    if (SelectedIds.Contains(lesen_status_id.ToString()))
-                                    {
-                                        //Count lesen based on status
-                                        CountPremisStatus(lesen_status_id, TotalLesenAktif, TotalTidakBerlesen, TotalTiadaData);
-                                    }
-
                                     if (SelectedIds.Contains(cukai_status_id.ToString()))
                                     {
-                                        //Populate cukai & lesen
-                                        if (SelectedIds.Contains(lesen_status_id.ToString()))
-                                        {
-                                            CountCukaiStatus(cukai_status_id);
-                                        }
-                                        else //Populate only cukai
-                                        {
-                                            if (!FilterList.Any(item => item.TypeId == lesen_status_id))
-                                            {
-                                                CountCukaiStatus(cukai_status_id);
-                                            }
-                                            else
-                                            {
-                                                if (!FilterList.Any(fil => SelectedIds.Contains(fil.TypeId.ToString())))
-                                                {
-                                                    CountCukaiStatus(cukai_status_id);
-                                                }
-                                            }
-                                        }
+                                        //Count lesen based on status
+                                        CountPremisStatus(cukai_status_id);
                                     }
                                 }
 
@@ -502,30 +447,25 @@ namespace PBTPro.Pages
                             {
                                 var geometry = _premis.geom;
                                 var coords = geometry.coordinates;
-                                //var latLng = new LatLngLiteral(coords[1], coords[0]);
                                 var latLng = new LatLngLiteral()
                                 {
                                     Lat = coords[1],
                                     Lng = coords[0]
                                 };
 
-                                //=========== ADD HERE ==========
                                 await _bounds.Extend(latLng);
 
                                 //Add the lots
                                 SelectedLots.Add(premisId);
-                                //Count the lesen for each point
-                                int intPointLesen = searchData.Where(x => x.codeid_premis == premisId).Count();
 
                                 if (initStart == 1)
                                 {
-
                                     var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
                                     {
                                         Position = latLng,
                                         Map = map1.InteropObject,
-                                        //Title = no_lot,  //comment the tooltip for faster loading
-                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='1.3' fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                        //Title = _premis.lot,  //comment the tooltip for faster loading
+                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label'>" + $"{no_lot}" + "</lable></div>",
                                     });
 
                                     markers.Push(_marker);
@@ -537,122 +477,37 @@ namespace PBTPro.Pages
                                     });
 
                                     result.Add(_marker);
-
                                 }
                                 else
                                 {
                                     if (SelectedIds.Contains(cukai_status_id.ToString()))
                                     {
-                                        //Populate cukai & lesen
-                                        if (SelectedIds.Contains(lesen_status_id.ToString()))
+                                        var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
                                         {
+                                            Position = latLng,
+                                            Map = map1.InteropObject,
+                                            //Title = _premis.lot,  //comment the tooltip for faster loading
+                                            Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label'>" + $"{no_lot}" + "</lable></div>",
+                                        });
 
-                                            var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-                                            {
-                                                Position = latLng,
-                                                Map = map1.InteropObject,
-                                                //Title = no_lot,  //comment the tooltip for faster loading
-                                                //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='1.3' fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                            });
+                                        markers.Push(_marker);
 
-                                            markers.Push(_marker);
-
-                                            await _marker.AddListener<MouseEvent>("click", async e =>
-                                            {
-                                                await OpenSideBar(premisId);
-                                                StateHasChanged();
-                                            });
-
-                                            result.Add(_marker);
-                                        }
-                                        else //Populate only cukai
+                                        await _marker.AddListener<MouseEvent>("click", async e =>
                                         {
-                                            if (!FilterList.Any(item => item.TypeId == lesen_status_id))
-                                            {
+                                            await OpenSideBar(premisId);
+                                            StateHasChanged();
+                                        });
 
-                                                var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-                                                {
-                                                    Position = latLng,
-                                                    Map = map1.InteropObject,
-                                                    //Title = no_lot,  //comment the tooltip for faster loading
-                                                    //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + cukai_marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                });
-
-                                                markers.Push(_marker);
-
-                                                await _marker.AddListener<MouseEvent>("click", async e =>
-                                                {
-                                                    await OpenSideBar(premisId);
-                                                    StateHasChanged();
-                                                });
-
-                                                result.Add(_marker);
-                                            }
-                                            else
-                                            {
-                                                if (!FilterList.Any(fil => SelectedIds.Contains(fil.TypeId.ToString())))
-                                                {
-
-                                                    var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-                                                    {
-                                                        Position = latLng,
-                                                        Map = map1.InteropObject,
-                                                        //Title = no_lot,  //comment the tooltip for faster loading
-                                                        //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + cukai_marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                    });
-
-                                                    markers.Push(_marker);
-
-                                                    await _marker.AddListener<MouseEvent>("click", async e =>
-                                                    {
-                                                        await OpenSideBar(premisId);
-                                                        StateHasChanged();
-                                                    });
-
-                                                    result.Add(_marker);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    else //only populate lesen
-                                    {
-                                        if (!NotaList.Any(fil => SelectedIds.Contains(fil.TypeId.ToString())))
-                                        {
-                                            if (SelectedIds.Contains(lesen_status_id.ToString()))
-                                            {
-                                                var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-                                                {
-                                                    Position = latLng,
-                                                    Map = map1.InteropObject,
-                                                    //Title = no_lot,  //comment the tooltip for faster loading
-                                                    //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                });
-
-                                                markers.Push(_marker);
-
-                                                await _marker.AddListener<MouseEvent>("click", async e =>
-                                                {
-                                                    await OpenSideBar(premisId);
-                                                    StateHasChanged();
-                                                });
-
-                                                result.Add(_marker);
-                                            }
-                                        }
-
+                                        result.Add(_marker);
                                     }
                                 }
-
                             }
+
                         }
                     }
                 }
 
-                
+
                 //====== ADD HERE =======
                 //////////var boundsLiteral = await _bounds.ToJson();
                 //////////await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
@@ -665,191 +520,141 @@ namespace PBTPro.Pages
             return result;
         }
 
-        private void CountPremisStatus(int statusID, int TotalLesenAktif, int TotalTidakBerlesen, int TotalTiadaData)
+        private void CountPremisStatus(int statusID)
         {
-            if (statusID == 1) //Aktif
-            {
-                //mintAktif += 1;
-                _mintTotalLesenAktif = TotalLesenAktif;
-            }
-            else if (statusID == 5) //Tidak Berlesen
-            {
-                //mintTamatTempoh += 1;
-                _mintTotalTidakBerlesen = TotalTidakBerlesen;
-            }
-            else if (statusID == 4) //Tiada Data
-            {
-                //mintTiadaData += 1;
-                _mintTotalTiadaData = TotalTiadaData;
-            }
-        }
-
-        private void CountCukaiStatus(int statusID)
-        {
-            if (statusID == 7) //Bercukai
-            {
+            if (statusID == 1) //CUKAI DIBAYAR
                 mintAktif += 1;
-            }
-            else if (statusID == 8) //Tidak Bercukai
-            {
+            else if (statusID == 2) //CUKAI TERTUNGGAK
                 mintTamatTempoh += 1;
-            }
+            else if (statusID == 3) //TIADA DATA
+                mintTiadaData += 1;
         }
 
+        //////private async Task InvokeClustering(int initStart)
+        //////{
+        //////    try
+        //////    {
+        //////        _clusteringMarkers = await populateMarker(initStart);
 
-        //////////private async Task InvokeClustering(int initStart)
-        //////////{
-        //////////    try
-        //////////    {
-        //////////        _clusteringMarkers = await populateMarker(initStart);
+        //////        _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+        //////        {
+        //////            //RendererObjectName = "customRendererLib.interpolatedRenderer",
+        //////            ZoomOnClick = true,
+        //////        });
 
-        //////////        _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
-        //////////        {
-        //////////            //RendererObjectName = "customRendererLib.interpolatedRenderer",
-        //////////            ZoomOnClick = true,
-        //////////        });
+        //////        mintAktif = 0;
+        //////        mintTamatTempoh = 0;
+        //////        mintTiadaData = 0;
+        //////        foreach (var _premis in premisData)
+        //////        {
+        //////            var geometry = _premis.geom;
+        //////            if (geometry.type == "Point")
+        //////            {
+        //////                var coords = geometry.coordinates;
+        //////                //var latLng = new LatLngLiteral(coords[1], coords[0]);
+        //////                var latLng = new LatLngLiteral()
+        //////                {
+        //////                    Lat = coords[1],
+        //////                    Lng = coords[0]
+        //////                };
+        //////                await _bounds.Extend(latLng);
 
-        //////////        //mintAktif = 0;
-        //////////        //mintTamatTempoh = 0;
-        //////////        //mintTiadaData = 0;
-        //////////        //foreach (var _premis in premisData)
-        //////////        //{
-        //////////        //    var geometry = _premis.geom;
-        //////////        //    if (geometry.type == "Point")
-        //////////        //    {
-        //////////        //        var coords = geometry.coordinates;
-        //////////        //        //var latLng = new LatLngLiteral(coords[1], coords[0]);
-        //////////        //        var latLng = new LatLngLiteral()
-        //////////        //        {
-        //////////        //            Lat = coords[1],
-        //////////        //            Lng = coords[0]
-        //////////        //        };
-        //////////        //        await _bounds.Extend(latLng);
+        //////                //Count all the license status on startup
+        //////                string cukai_status = _premis.tax_status_view;
+        //////                if (cukai_status.ToUpper() == "CUKAI TERTUNGGAK")
+        //////                    mintTamatTempoh += 1;
+        //////                else if (cukai_status.ToUpper() == "CUKAI DIBAYAR")
+        //////                    //Count total visible point based on boundries
+        //////                    mintAktif += 1;
+        //////                else if (cukai_status.ToUpper() == "TIADA DATA")
+        //////                    //Count total visible point based on boundries
+        //////                    mintTiadaData += 1;
+        //////            }
+        //////        }
 
-        //////////        //        //Count all the license status on startup
-        //////////        //        string lesen_status = _premis.license_status_view;
-        //////////        //        if (lesen_status == "Tidak Berlesen")
-        //////////        //            mintTamatTempoh += 1;
-        //////////        //        else if (lesen_status == "Aktif")
-        //////////        //            //Count total visible point based on boundries
-        //////////        //            mintAktif += 1;
-        //////////        //        else if (lesen_status == "Tiada Data")
-        //////////        //            //Count total visible point based on boundries
-        //////////        //            mintTiadaData += 1;
+        //////        var boundsLiteral = await _bounds.ToJson();
+        //////        await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
+        //////    }
+        //////    catch (Exception ex)
+        //////    {
+        //////    }
+        //////}
 
-        //////////        //    }
-        //////////        //}
+        //////private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart)
+        //////{
+        //////    var result = new List<AdvancedMarkerElement>(premisData.Count());
+        //////    try
+        //////    {
+        //////        bool blnValidFilter = true;
+        //////        foreach (var _premis in premisData)
+        //////        {
+        //////            string premisId = _premis.codeid_premis;
+        //////            string tax_status = _premis.tax_status_view;
+        //////            int tax_status_id = _premis.tax_status_id;
 
-        //////////        //var boundsLiteral = await _bounds.ToJson();
-        //////////        //await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
-        //////////    }
-        //////////    catch (Exception ex)
-        //////////    {
-        //////////    }
-        //////////}
+        //////            blnValidFilter = true;
+        //////            if (initStart != 1)
+        //////            {
+        //////                blnValidFilter = false;
+        //////                if (SelectedIds.Contains(tax_status_id.ToString()))
+        //////                {
+        //////                    blnValidFilter = true;
+        //////                }
+        //////            }
 
-        //////////private async Task<List<AdvancedMarkerElement>> populateMarker(int initStart)
-        //////////{
-        //////////    var result = new List<AdvancedMarkerElement>(premisData.Count());
-        //////////    try
-        //////////    {
-        //////////        //=========== ADD HERE =========
-        //////////        mintAktif = 0;
-        //////////        mintTamatTempoh = 0;
-        //////////        mintTiadaData = 0;
-        //////////        //==============================
+        //////            var geometry = _premis.geom;
+        //////            var coords = geometry.coordinates;
+        //////            //var latLng = new LatLngLiteral(coords[1], coords[0]);
+        //////            var latLng = new LatLngLiteral()
+        //////            {
+        //////                Lat = coords[1],
+        //////                Lng = coords[0]
+        //////            };
 
-        //////////        bool blnValidFilter = true;
-        //////////        foreach (var _premis in premisData)
-        //////////        {
-        //////////            string premisId = _premis.codeid_premis;
-        //////////            string lesen_status = _premis.license_status_view;
-        //////////            int lesen_status_id = _premis.license_status_id;
+        //////            //Start filtering based on selected tapisan
+        //////            if (blnValidFilter)
+        //////            {
+        //////                var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
+        //////                {
+        //////                    Position = latLng,
+        //////                    Map = map1.InteropObject,
+        //////                    Title = _premis.lot,
+        //////                    // Content = index.ToString()
+        //////                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(tax_status_id) + "'/></svg><lable class='map-marker-label'>" + $"{_premis.lot}" + "</lable></div>",
+        //////                });
 
-        //////////            blnValidFilter = true;
-        //////////            if (initStart != 1)
-        //////////            {
-        //////////                blnValidFilter = false;
-        //////////                if (SelectedIds.Contains(lesen_status_id.ToString()))
-        //////////                {
-        //////////                    blnValidFilter = true;
-        //////////                }
-        //////////            }
+        //////                markers.Push(_marker);
 
-        //////////            var geometry = _premis.geom;
-        //////////            var coords = geometry.coordinates;
-        //////////            //var latLng = new LatLngLiteral(coords[1], coords[0]);
-        //////////            var latLng = new LatLngLiteral()
-        //////////            {
-        //////////                Lat = coords[1],
-        //////////                Lng = coords[0]
-        //////////            };
+        //////                await _marker.AddListener<MouseEvent>("click", async e =>
+        //////                {
+        //////                    //string markerLabelText = await marker.GetLabelText();
+        //////                    //string _title = await _marker.GetTitle();
+        //////                    // _events.Add("click on " + _title);
+        //////                    await OpenSideBar(premisId);
+        //////                    StateHasChanged();
+        //////                    ///await e.Stop();
+        //////                });
 
-        //////////            //=========== ADD HERE ==========
-        //////////            await _bounds.Extend(latLng);
+        //////                result.Add(_marker);
+        //////            }
 
-        //////////            //Count all the license status on startup
-        //////////            //string lesen_status = _premis.license_status_view;
-        //////////            if (lesen_status == "Tidak Berlesen")
-        //////////                mintTamatTempoh += 1;
-        //////////            else if (lesen_status == "Aktif")
-        //////////                //Count total visible point based on boundries
-        //////////                mintAktif += 1;
-        //////////            else if (lesen_status == "Tiada Data")
-        //////////                //Count total visible point based on boundries
-        //////////                mintTiadaData += 1;
+        //////            //Add all selected filter
+        //////            if (initStart == 1) // first init
+        //////            {
+        //////                if (!SelectedIds.Contains(tax_status_id.ToString()))
+        //////                {
+        //////                    SelectedIds.Add(tax_status_id.ToString());
+        //////                }
+        //////            }
 
-        //////////            //===============================
+        //////        }
+        //////    }
+        //////    catch (Exception ex)
+        //////    {
+        //////    }
 
-        //////////            //Start filtering based on selected tapisan
-        //////////            if (blnValidFilter)
-        //////////            {
-        //////////                var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-        //////////                {
-        //////////                    Position = latLng,
-        //////////                    Map = map1.InteropObject,
-        //////////                    Title = _premis.lot,
-        //////////                    // Content = index.ToString()
-        //////////                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + GetColorLot(lesen_status_id) + "'/></svg><lable class='map-marker-label'>" + $"{_premis.lot}" + "</lable></div>",
-        //////////                });
-
-        //////////                markers.Push(_marker);
-
-        //////////                await _marker.AddListener<MouseEvent>("click", async e =>
-        //////////                {
-        //////////                    //string markerLabelText = await marker.GetLabelText();
-        //////////                    //string _title = await _marker.GetTitle();
-        //////////                    // _events.Add("click on " + _title);
-        //////////                    await OpenSideBar(premisId);
-        //////////                    StateHasChanged();
-        //////////                    ///await e.Stop();
-        //////////                });
-
-        //////////                result.Add(_marker);
-        //////////            }
-
-        //////////            //Add all selected filter
-        //////////            if (initStart == 1) // first init
-        //////////            {
-        //////////                if (!SelectedIds.Contains(lesen_status_id.ToString()))
-        //////////                {
-        //////////                    SelectedIds.Add(lesen_status_id.ToString());
-        //////////                }
-        //////////            }
-
-        //////////        }
-
-        //////////        //====== ADD HERE =======
-        //////////        //////////var boundsLiteral = await _bounds.ToJson();
-        //////////        //////////await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
-        //////////        //=======================
-        //////////    }
-        //////////    catch (Exception ex)    
-        //////////    {
-        //////////    }
-
-        //////////    return result;
-        //////////}
+        //////    return result;
+        //////}
 
         private async Task ClearClustering()
         {
@@ -866,8 +671,6 @@ namespace PBTPro.Pages
             // Reset the clustering instance
             _markerClustering?.Dispose();
             _markerClustering = null;
-            markers.Clear();
-            //StateHasChanged();
         }
 
         private async Task AddLegend()
@@ -885,11 +688,10 @@ namespace PBTPro.Pages
 
         private async Task OpenSideBar(string codeid)
         {
-            try 
+            try
             {
                 //Populate all the value from parameter. ex:LesenID
                 // await JsRuntime.InvokeVoidAsync("alert", msg);
-
                 _labelText = codeid;
 
                 if (_labelText.Length > 0)
@@ -920,14 +722,13 @@ namespace PBTPro.Pages
             }
             else
             {
-                ////Load the search data on the 1st call only
-                //if (!_isLoadSearch)
-                //{
-                //    _isLoadSearch = true;
-                //    //Get search record
-                //    searchData = await _SearchService.GetListPremisDetails();
-                //}
-
+                //Load the search data on the 1st call only
+                if (!_isLoadSearch)
+                {
+                    _isLoadSearch = true;
+                    //Get search record
+                    searchData = await _SearchService.GetListPremisDetails();
+                }
                 await serverSideScripts1.InvokeVoidAsync("openNavSearch");
             }
         }
@@ -958,73 +759,54 @@ namespace PBTPro.Pages
 
             PanelVisible = false;
             StateHasChanged();
-
         }
-
         private List<FilterData> GetMockFilter()
         {
 
             var vSubOne = new FilterData()
             {
                 TypeId = 1,
-                Description = "Berlesen",
+                Description = "Cukai DiBayar",
                 Color = "Green"
             };
             var vSubTwo = new FilterData()
             {
-                TypeId = 5,
-                Description = "Tidak Berlesen",
+                TypeId = 2,
+                Description = "Cukai Tertunggak",
                 Color = "Red"
             };
-            //var vSubThree = new FilterData()
-            //{
-            //    TypeId = 3,
-            //    Description = "Premis Lesen Gantung",
-            //    Color = "Yellow"
-            //};
-            //var vSubFour = new FilterData()
-            //{
-            //    TypeId = 4,
-            //    Description = "Tiada Data",
-            //    Color = "Grey"
-            //};
 
-            //var vSubList = new List<FilterData>
-            //{
-            //    vSubOne, vSubTwo,
-            //    vSubThree, vSubFour
-            //};
+            var vSubThree = new FilterData()
+            {
+                TypeId = 3,
+                Description = "Tiada Data",
+                Color = "Grey"
+            };
 
             var vSubList = new List<FilterData>
             {
-                vSubOne, vSubTwo
+                vSubOne, vSubTwo, vSubThree
             };
 
             return vSubList;
         }
 
-        private List<FilterData> GetNotaFilter()
-        {
-            var vSubOne = new FilterData()
-            {
-                TypeId = 7,
-                Description = "Bercukai",
-                Color = "yellow"
-            };
-            var vSubTwo = new FilterData()
-            {
-                TypeId = 8,
-                Description = "Tidak Bercukai",
-                Color = "black"
-            };
+        //private List<FilterData> GetNotaFilter()
+        //{
+        //    var vSubSeven = new FilterData()
+        //    {
+        //        TypeId = 7,
+        //        Description = "Nota Pemeriksaan",
+        //        Color = "Purple"
+        //    };
 
-            var vSubList = new List<FilterData>
-            {
-                vSubOne, vSubTwo
-            };
+        //    var vSubList = new List<FilterData>
+        //    {
+        //        vSubSeven
+        //    };
 
-            return vSubList;
-        }
+        //    return vSubList;
+        //}
 
         void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
         {
@@ -1055,7 +837,7 @@ namespace PBTPro.Pages
 
         private async Task PremiseLocation(LatLngLiteral? pos)
         {
-            if (pos==null)
+            if (pos == null)
             {
                 return;
             }
@@ -1167,10 +949,10 @@ namespace PBTPro.Pages
             return Task.Run(() => ProcessMapAPIData());
         }
 
-        private async Task ProcessMapAPIData(int intStart=2)
+        private async Task ProcessMapAPIData(int intStart = 2)
         {
-            try 
-            { 
+            try
+            {
                 if (DateTime.Now - _lastMoveTime < _throttleTime) return;
                 _lastMoveTime = DateTime.Now;
 
@@ -1188,11 +970,8 @@ namespace PBTPro.Pages
                     {
                         await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
                     }
-
-                    //Count the total premis
-                    //await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    //////await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
                     await InvokeClustering(intStart, bounds.South, bounds.West, bounds.North, bounds.East);
-
                     _isProcessing = false;
 
                 }
@@ -1340,6 +1119,88 @@ namespace PBTPro.Pages
 
         //////                List<dynamic> dataList = datas.ToObject<List<dynamic>>();
 
+        //////                ////var filteredDatas = dataList.Where(d =>
+        //////                ////{
+        //////                ////    string dataId = d.codeid_premis;  // Convert gid to int (ensure it's valid)
+        //////                ////    return !_processedPremisGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
+        //////                ////}).ToList();
+
+        //////                ////var semaphore = new SemaphoreSlim(1000);
+
+
+        //////                //////Count and mark the premise
+        //////                ////foreach (var data in dataList)
+        //////                ////{
+        //////                ////    string dataId = data.codeid_premis.ToObject(typeof(string));
+
+        //////                ////    if (dataId == null)
+        //////                ////    {
+        //////                ////        continue;
+        //////                ////    }
+
+        //////                ////    //bool skipProcessing = false;
+
+        //////                ////    if (_processedPremisGids.ContainsKey(dataId))
+        //////                ////    {
+        //////                ////        continue;
+        //////                ////    }
+
+        //////                ////    var geometry = data.geom;
+        //////                ////    tasks.Add(Task.Run(async () =>
+        //////                ////    {
+        //////                ////        await semaphore.WaitAsync();
+        //////                ////        try
+        //////                ////        {
+        //////                ////            if (_processedPremisGids.ContainsKey(dataId))
+        //////                ////            {
+        //////                ////                return; // Skip if already processed
+        //////                ////            }
+
+        //////                ////            if (geometry.type == "Point")
+        //////                ////            {
+        //////                ////                var coords = geometry.coordinates;
+        //////                ////                double x = coords[1];
+        //////                ////                double y = coords[0];
+        //////                ////                var latLng = new LatLngLiteral(x, y);
+        //////                ////                await CreateMarker(latLng, data); // Assuming CreateMarker is async
+        //////                ////            }
+        //////                ////            else if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+        //////                ////            {
+        //////                ////                IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
+
+        //////                ////                if (geometry.type == "Polygon")
+        //////                ////                {
+        //////                ////                    var polygonCoords = geometry.coordinates[0];
+        //////                ////                    latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+        //////                ////                }
+        //////                ////                else if (geometry.type == "MultiPolygon")
+        //////                ////                {
+        //////                ////                    List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+        //////                ////                    foreach (var polygon in geometry.coordinates)
+        //////                ////                    {
+        //////                ////                        multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+        //////                ////                    }
+
+        //////                ////                    latLngs = multiPolygonCoords;
+        //////                ////                }
+
+        //////                ////                await CreatePolygon(latLngs, data);
+        //////                ////            }
+
+        //////                ////            _processedPremisGids[dataId] = true;
+        //////                ////        }
+        //////                ////        catch (Exception geometryEx)
+        //////                ////        {
+        //////                ////            Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+        //////                ////        }
+        //////                ////        finally
+        //////                ////        {
+        //////                ////            semaphore.Release();
+        //////                ////        }
+        //////                ////    }));
+
+        //////                ////}
 
         //////                //Count display premis - AZMEE
         //////                mintAktif = 0;
@@ -1347,32 +1208,33 @@ namespace PBTPro.Pages
         //////                mintTiadaData = 0;
         //////                foreach (var data in dataList)
         //////                {
-        //////                    //var geometry = data.geom;
-        //////                    string lesen_status = data.marker_lesen_status;
+        //////                    var geometry = data.geom;
+        //////                    //string lesen_status = data.license_status_view;
 
-        //////                    if (lesen_status.ToUpper() == "TIDAK BERLESEN")
-        //////                        mintTamatTempoh += 1;
-        //////                    else if (lesen_status.ToUpper() == "AKTIF")
-        //////                        //Count total visible point based on boundries
-        //////                        mintAktif += 1;
-        //////                    else if (lesen_status.ToUpper() == "TIADA DATA")
-        //////                        //Count total visible point based on boundries
-        //////                        mintTiadaData += 1;
 
-        //////                    //if (geometry.type == "Point")
-        //////                    //{
-        //////                    //    if (data.marker_lesen_status == "Tidak Berlesen")
-        //////                    //        mintTamatTempoh += 1;
-        //////                    //    else if(data.marker_lesen_status == "Aktif")
-        //////                    //        //Count total visible point based on boundries
-        //////                    //        mintAktif += 1;
-        //////                    //    else if (data.marker_lesen_status == "Tiada Data")
-        //////                    //        //Count total visible point based on boundries
-        //////                    //        mintTiadaData += 1;
+        //////                    if (geometry.type == "Point")
+        //////                    {
+        //////                        if (data.marker_cukai_status.ToString().ToUpper() == "CUKAI TERTUNGGAK")
+        //////                            mintTamatTempoh += 1;
+        //////                        else if (data.marker_cukai_status.ToString().ToUpper() == "CUKAI DIBAYAR")
+        //////                            //Count total visible point based on boundries
+        //////                            mintAktif += 1;
+        //////                        else if (data.marker_cukai_status.ToString().ToUpper() == "TIADA DATA")
+        //////                            //Count total visible point based on boundries
+        //////                            mintTiadaData += 1;
 
-        //////                    //}
+        //////                    }
         //////                }
 
+        //////                ////if (tasks.Count > 0)
+        //////                ////{
+        //////                ////    await Task.WhenAll(tasks);
+
+        //////                ////    _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
+        //////                ////    {
+        //////                ////        ZoomOnClick = true,
+        //////                ////    });
+        //////                ////}
         //////            }
         //////        }
         //////    }
@@ -1381,7 +1243,8 @@ namespace PBTPro.Pages
         //////        Console.WriteLine($"API request error: {ex.Message}");
         //////    }
         //////}
- 
+        ///
+        
         public IEnumerable<LatLngLiteral> ConvertGeoJsonToLatLng(JArray geoJsonCoords)
         {
             List<List<double>> coords = geoJsonCoords.ToObject<List<List<double>>>();
@@ -1416,7 +1279,7 @@ namespace PBTPro.Pages
         //    await marker.AddListener<MouseEvent>("click", async (e) =>
         //    {
         //        //////await OpenSideBar(title); // Replace with actual function to handle click
-                
+
         //        //Passing the gId - to get the click premise info
         //        await OpenSideBar(dataId.ToString()); // Replace with actual function to handle click
         //        StateHasChanged();
