@@ -34,7 +34,7 @@ using DevExpress.CodeParser.VB;
 
 namespace PBTPro.Pages
 {
-    public partial class TaburanLesenPage
+    public partial class TaburanLesenPageCopy
     {
         bool PanelVisible { get; set; }
 
@@ -243,12 +243,6 @@ namespace PBTPro.Pages
             //For check box
             FilterList = GetMockFilter();
             NotaList = GetNotaFilter();
-            //Check all the id
-            SelectedIds.Add("1");
-            SelectedIds.Add("4");
-            SelectedIds.Add("5");
-            SelectedIds.Add("7");
-            SelectedIds.Add("8");
         }
 
         private async Task OnAfterMapInit()
@@ -418,7 +412,7 @@ namespace PBTPro.Pages
                         var tasks = new List<Task>();
                         dynamic datas = JsonConvert.DeserializeObject(dataString);
                         List<dynamic> dataList = datas.ToObject<List<dynamic>>();
-                        //bool blnEnter = false;
+                        bool blnEnter = false;
 
                         foreach (var _premis in dataList)
                         {
@@ -433,15 +427,6 @@ namespace PBTPro.Pages
                             int TotalTidakBerlesen = _premis.total_lesen_tidak_berlesen;
                             int TotalLesenGantung = _premis.total_lesen_gantung;
                             int TotalTiadaData = _premis.total_lesen_tiada_data;
-
-                            //For temp DEMO
-                            int cukai_status_id = 7;
-                            string cukai_marker_color = "yellow";
-                            if ((cukai_status.ToUpper() == "CUKAI TERTUNGGAK") || (cukai_status.ToUpper() == "TIDAK BERCUKAI"))
-                            {
-                                cukai_status_id = 8;
-                                cukai_marker_color = "black";
-                            }
 
                             ////Get only once
                             //if (!blnEnter)
@@ -458,9 +443,18 @@ namespace PBTPro.Pages
                             {
                                 if (initStart == 1)
                                 {
+                                    //_mintTotalLesenAktif = TotalLesenAktif;
+                                    //_mintTotalTidakBerlesen = TotalTidakBerlesen;
+                                    //_mintTotalLesenGantung = TotalLesenGantung;
+                                    //_mintTotalTiadaData = TotalTiadaData;
+
                                     //Count lesen based on status
                                     CountPremisStatus(lesen_status_id, TotalLesenAktif, TotalTidakBerlesen, TotalTiadaData);
-                                    CountCukaiStatus(cukai_status_id);
+                                    //Add all the selected id status on first populate
+                                    if (!SelectedIds.Contains(lesen_status_id.ToString()))
+                                    {
+                                        SelectedIds.Add(lesen_status_id.ToString());
+                                    }
                                 }
                                 else
                                 {
@@ -468,29 +462,6 @@ namespace PBTPro.Pages
                                     {
                                         //Count lesen based on status
                                         CountPremisStatus(lesen_status_id, TotalLesenAktif, TotalTidakBerlesen, TotalTiadaData);
-                                    }
-
-                                    if (SelectedIds.Contains(cukai_status_id.ToString()))
-                                    {
-                                        //Populate cukai & lesen
-                                        if (SelectedIds.Contains(lesen_status_id.ToString()))
-                                        {
-                                            CountCukaiStatus(cukai_status_id);
-                                        }
-                                        else //Populate only cukai
-                                        {
-                                            if (!FilterList.Any(item => item.TypeId == lesen_status_id))
-                                            {
-                                                CountCukaiStatus(cukai_status_id);
-                                            }
-                                            else
-                                            {
-                                                if (!FilterList.Any(fil => SelectedIds.Contains(fil.TypeId.ToString())))
-                                                {
-                                                    CountCukaiStatus(cukai_status_id);
-                                                }
-                                            }
-                                        }
                                     }
                                 }
 
@@ -525,7 +496,7 @@ namespace PBTPro.Pages
                                         Position = latLng,
                                         Map = map1.InteropObject,
                                         //Title = no_lot,  //comment the tooltip for faster loading
-                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='1.3' fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke=""#0F592E"" stroke-width=""3"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
                                     });
 
                                     markers.Push(_marker);
@@ -541,109 +512,26 @@ namespace PBTPro.Pages
                                 }
                                 else
                                 {
-                                    if (SelectedIds.Contains(cukai_status_id.ToString()))
+                                    if (SelectedIds.Contains(lesen_status_id.ToString()))
                                     {
-                                        //Populate cukai & lesen
-                                        if (SelectedIds.Contains(lesen_status_id.ToString()))
+                                        var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
                                         {
+                                            Position = latLng,
+                                            Map = map1.InteropObject,
+                                            //Title = no_lot,  //comment the tooltip for faster loading
+                                            //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                            Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""18"" height=""18"" viewBox=""0 0 23 23""><circle cx=""17"" cy=""12"" r=""4"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                        });
 
-                                            var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-                                            {
-                                                Position = latLng,
-                                                Map = map1.InteropObject,
-                                                //Title = no_lot,  //comment the tooltip for faster loading
-                                                //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='1.3' fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                            });
+                                        markers.Push(_marker);
 
-                                            markers.Push(_marker);
-
-                                            await _marker.AddListener<MouseEvent>("click", async e =>
-                                            {
-                                                await OpenSideBar(premisId);
-                                                StateHasChanged();
-                                            });
-
-                                            result.Add(_marker);
-                                        }
-                                        else //Populate only cukai
+                                        await _marker.AddListener<MouseEvent>("click", async e =>
                                         {
-                                            if (!FilterList.Any(item => item.TypeId == lesen_status_id))
-                                            {
+                                            await OpenSideBar(premisId);
+                                            StateHasChanged();
+                                        });
 
-                                                var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-                                                {
-                                                    Position = latLng,
-                                                    Map = map1.InteropObject,
-                                                    //Title = no_lot,  //comment the tooltip for faster loading
-                                                    //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + cukai_marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                });
-
-                                                markers.Push(_marker);
-
-                                                await _marker.AddListener<MouseEvent>("click", async e =>
-                                                {
-                                                    await OpenSideBar(premisId);
-                                                    StateHasChanged();
-                                                });
-
-                                                result.Add(_marker);
-                                            }
-                                            else
-                                            {
-                                                if (!FilterList.Any(fil => SelectedIds.Contains(fil.TypeId.ToString())))
-                                                {
-
-                                                    var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-                                                    {
-                                                        Position = latLng,
-                                                        Map = map1.InteropObject,
-                                                        //Title = no_lot,  //comment the tooltip for faster loading
-                                                        //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + cukai_marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                    });
-
-                                                    markers.Push(_marker);
-
-                                                    await _marker.AddListener<MouseEvent>("click", async e =>
-                                                    {
-                                                        await OpenSideBar(premisId);
-                                                        StateHasChanged();
-                                                    });
-
-                                                    result.Add(_marker);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    else //only populate lesen
-                                    {
-                                        if (!NotaList.Any(fil => SelectedIds.Contains(fil.TypeId.ToString())))
-                                        {
-                                            if (SelectedIds.Contains(lesen_status_id.ToString()))
-                                            {
-                                                var _marker = await AdvancedMarkerElement.CreateAsync(map1.JsRuntime, new AdvancedMarkerElementOptions()
-                                                {
-                                                    Position = latLng,
-                                                    Map = map1.InteropObject,
-                                                    //Title = no_lot,  //comment the tooltip for faster loading
-                                                    //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                });
-
-                                                markers.Push(_marker);
-
-                                                await _marker.AddListener<MouseEvent>("click", async e =>
-                                                {
-                                                    await OpenSideBar(premisId);
-                                                    StateHasChanged();
-                                                });
-
-                                                result.Add(_marker);
-                                            }
-                                        }
-
+                                        result.Add(_marker);
                                     }
                                 }
 
@@ -669,30 +557,18 @@ namespace PBTPro.Pages
         {
             if (statusID == 1) //Aktif
             {
-                //mintAktif += 1;
+                mintAktif += 1;
                 _mintTotalLesenAktif = TotalLesenAktif;
             }
             else if (statusID == 5) //Tidak Berlesen
             {
-                //mintTamatTempoh += 1;
+                mintTamatTempoh += 1;
                 _mintTotalTidakBerlesen = TotalTidakBerlesen;
             }
             else if (statusID == 4) //Tiada Data
             {
-                //mintTiadaData += 1;
+                mintTiadaData += 1;
                 _mintTotalTiadaData = TotalTiadaData;
-            }
-        }
-
-        private void CountCukaiStatus(int statusID)
-        {
-            if (statusID == 7) //Bercukai
-            {
-                mintAktif += 1;
-            }
-            else if (statusID == 8) //Tidak Bercukai
-            {
-                mintTamatTempoh += 1;
             }
         }
 
@@ -967,7 +843,7 @@ namespace PBTPro.Pages
             var vSubOne = new FilterData()
             {
                 TypeId = 1,
-                Description = "Berlesen",
+                Description = "Lesen Aktif",
                 Color = "Green"
             };
             var vSubTwo = new FilterData()
@@ -985,7 +861,7 @@ namespace PBTPro.Pages
             //var vSubFour = new FilterData()
             //{
             //    TypeId = 4,
-            //    Description = "Tiada Data",
+            //    Description = "Premis Tiada Data",
             //    Color = "Grey"
             //};
 
@@ -1009,13 +885,13 @@ namespace PBTPro.Pages
             {
                 TypeId = 7,
                 Description = "Bercukai",
-                Color = "yellow"
+                Color = "Green"
             };
             var vSubTwo = new FilterData()
             {
                 TypeId = 8,
                 Description = "Tidak Bercukai",
-                Color = "black"
+                Color = "Red"
             };
 
             var vSubList = new List<FilterData>

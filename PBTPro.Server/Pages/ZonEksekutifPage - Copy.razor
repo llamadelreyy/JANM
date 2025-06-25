@@ -1,4 +1,4 @@
-﻿@page "/zon_Admin" 
+﻿@page "/zon_Eksekutif_copy"
 @attribute [Authorize]
 
 @implements IDisposable
@@ -131,10 +131,34 @@
 
             <hr style="padding:0;margin:0;" />
 
+            @*             <div class="table-container">
+                <h3 class="table-title">Maklumat Premis & Lesen</h3>
+                <div class="table-border">
+                    <table class="default-table">
+                        <thead>
+                            <tr>
+                                <th style="width:70%">Keterangan</th>
+                                <th style="width:30%;text-align:center">Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Jumlah Premis Perniagaan</td>
+                                <td style="text-align:right">54</td>
+                            </tr>
+                            <tr>
+                                <td>Jumlah Premis Berlesen</td>
+                                <td style="text-align:right">18</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> *@
+
             <div class="d-lg-flex" style="padding:0 0 0 0;">
                 <div class="d-lg-flex col-12">
 
-                    <div class="col-12 dashboard-box">
+                    <div class="col-sm-12 col-lg-12 col-md-12 dashboard-box">
                         <div class="dashboard-style-big big-color">
 
                             <div style="width:100%;display: flex;">
@@ -145,14 +169,21 @@
                                 </div>
                                 <div class="dashboard-wrap" style="z-index:10;width:80%;height:200px">
                                     <div class="dashboard-center-text">
-                                        <span class="totalinword">Bilangan Cukai</span>
+                                        <span class="totalinword">Bilangan Premis Perniagaan</span>
                                         <span class="totalinnumber">
-                                            @(dtFinancial.total_premis_perniagaan)
-                                        </span>
+                                            @(dtFinancial.total_premis_perniagaan + dtFinancial.total_premis_tanpa_pautan) </span>
                                         <hr style="padding:0;margin:0;color:#fff" />
                                         <br />
-                                        <span class="totalallbig">Bercukai <i class="ri-arrow-right-fill"></i> @mintTotalBercukai</span>
-                                        <span class="totalallbig">Tidak Bercukai <i class="ri-arrow-right-fill"></i> @(dtFinancial.total_premis_perniagaan - mintTotalBercukai)</span>
+                                        @* <span class="totalallbig">Bilangan Premis Dengan Data Lesen <i class="ri-arrow-right-fill"></i> @dtFinancial.total_premis_perniagaan</span> *@
+                                        @* <span class="totalallbig">Bilangan Premis Tanpa Data Lesen <i class="ri-arrow-right-fill"></i> @dtFinancial.total_premis_tanpa_pautan</span> *@
+                                        <span class="totalallbig">Bilangan Premis Diperiksa <i class="ri-arrow-right-fill"></i>0 @* @dtSource.premis_diperiksa *@</span>
+                                        @*                                         <span class="totalallbig">Bilangan Premis Berlesen <i class="ri-arrow-right-fill"></i> @dtFinancial.premis_berlesen</span>
+                                        <span class="totalallbig">Bilangan Premis Tidak Berlesen <i class="ri-arrow-right-fill"></i> @dtFinancial.premis_tiada_lesen</span>
+                                        <span class="totalallbig">Bilangan Premis Tamat Tempoh Lesen <i class="ri-arrow-right-line"></i> @dtFinancial.premis_tamat_tempoh_lesen</span> *@
+                                        <span class="totalallbig">Bilangan Premis Dilawati <i class="ri-arrow-right-fill"></i>0 @* @dtSource.total_premis_dilawat *@</span>
+                                        <span class="totalallbig">Bilangan Lesen Dikenakan Tindakan <i class="ri-arrow-right-fill"></i>0 @* @dtSource.lesen_dikenakan_tindakan *@</span>
+                                        <span class="totalallbig">Bilangan Rondaan Dibuat <i class="ri-arrow-right-fill"></i>0 @* @dtSource.total_rondaan_dibuat *@</span>
+                                        <span class="totalallbig">Bilangan Lokasi Baru <i class="ri-arrow-right-fill"></i>0 @* @dtSource.total_lokasi_baru *@</span>
                                     </div>
 
                                 </div>
@@ -164,6 +195,41 @@
 
                 </div>
             </div>
+
+            @*             <div class="d-lg-flex" style="padding:0 0 0 0;">
+                <div class="d-lg-flex col-12">
+
+                    <div class="col-6 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+                            <div class="dashboard-wrap">
+                                <p /><p /><p />
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtSource.premis_berlesen</span>
+                                    <span class="totalinword">Jumlah Premis Berlesen</span>
+                                </p>
+                                <p /><p /><p />
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-6 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+                            <div class="dashboard-wrap">
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtSource.premis_tamat_tempoh_lesen</span>
+                                    <span class="totalinword">Jumlah Premis Tidak Berlesen</span>
+                                </p>
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> *@
 
             <div class="d-lg-flex" style="padding:0 0 0 0;">
                 <div class="d-lg-flex col-12">
@@ -177,17 +243,23 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M3 6H21V18H3V6ZM2 4C1.44772 4 1 4.44772 1 5V19C1 19.5523 1.44772 20 2 20H22C22.5523 20 23 19.5523 23 19V5C23 4.44772 22.5523 4 22 4H2ZM13 8H19V10H13V8ZM18 12H13V14H18V12ZM10.5 10C10.5 11.3807 9.38071 12.5 8 12.5C6.61929 12.5 5.5 11.3807 5.5 10C5.5 8.61929 6.61929 7.5 8 7.5C9.38071 7.5 10.5 8.61929 10.5 10ZM8 13.5C6.067 13.5 4.5 15.067 4.5 17H11.5C11.5 15.067 9.933 13.5 8 13.5Z"></path></svg>
                                     </div>
                                 </div>
-                                <div class="dashboard-wrap" style="z-index:10;width:80%;height:200px">
+                                <div class="dashboard-wrap" style="z-index: 10;width:80%;height:260px">
                                     <div class="dashboard-center-text">
-                                        <span class="totalinword">Bilangan Lesen</span>
-                                        <span class="totalinnumber">
-                                            @mintAktif
-                                        </span>
+                                        <span class="totalinword">Bilangan Data Lesen</span>
+                                        <span class="totalinnumber">@mintAktif</span>
                                         <hr style="padding:0;margin:0;color:#fff" />
                                         <br />
-                                        <span class="totalallbig">Berlesen <i class="ri-arrow-right-fill"></i> @dtFinancial.total_lesen_aktif</span>
-                                        <span class="totalallbig">Tidak Berlesen <i class="ri-arrow-right-fill"></i> @mintTidakBerlesen</span>
+                                        <span class="totalallbig">Bilangan Lesen Aktif <i class="ri-arrow-right-line"></i> @dtFinancial.total_lesen_aktif</span>
+                                        <span class="totalallbig">Bilangan Tidak Berlesen <i class="ri-arrow-right-line"></i> @mintTidakBerlesen</span>
+                                        <span class="totalallbig">Bilangan Tiada Data <i class="ri-arrow-right-line"></i> @mintTiadaData</span>
+                                        <hr style="padding:0;margin-top:5px;margin-bottom:5px;color:#fff" />
+                                        <span class="totalallbig">Jumlah Lesen Aktif (RM) <i class="ri-arrow-right-fill"></i> @(totalLesenAktif?.ToString("##,##0.00"))</span>
+                                        <span class="totalallbig">Jumlah Tidak Berlesen (RM) <i class="ri-arrow-right-fill"></i> @(totalLesenTidakAktif?.ToString("##,##0.00"))</span>
+                                        <hr style="padding:0;margin-top:5px;margin-bottom:5px;color:#fff" />
+                                        <span class="totalallbig">Pertambahan Lesen Tahun Semasa <i class="ri-arrow-right-line"></i> @dtFinancial.ptmbahan_lesen_thn_semasa</span>
+                                        <span class="totalallbig">Bilangan Lesen Bulan Semasa <i class="ri-arrow-right-line"></i> @dtFinancial.ptmbahan_lesen_semasa</span>
                                     </div>
+
                                 </div>
                             </div>
                             <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Lesen Perniagaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
@@ -198,71 +270,78 @@
                 </div>
             </div>
 
-            <hr style="padding:0;margin:0;" />
 
-            <div class="d-lg-flex" style="padding:0 0 0 0;">
+            @*            <div class="d-lg-flex" style="padding:0 0 0 0;">
                 <div class="d-lg-flex col-12">
 
-                    <div class="col-12 dashboard-box">
+                    <div class="col-6 dashboard-box">
                         <div class="dashboard-style-big big-color">
-
-                            <div style="width:100%;display: flex;">
-                                <div style="position:relative;width:20%;height:200px;padding:10px;">
-                                    <div class="circle">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M9 1V3H15V1H17V3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H7V1H9ZM20 11H4V19H20V11ZM8 13V15H6V13H8ZM13 13V15H11V13H13ZM18 13V15H16V13H18ZM7 5H4V9H20V5H17V7H15V5H9V7H7V5Z"></path></svg>
-                                    </div>
-                                </div>
-                                <div class="dashboard-wrap" style="z-index:10;width:80%;height:200px">
-                                    <div class="dashboard-center-text">
-                                        <span class="totalinword">Hasil Tahun Semasa (RM)</span>
-                                        <span class="totalinnumber">@(dtFinancial.hsl_tahunan_semasa == null ? "0.00" : dtFinancial.hsl_tahunan_semasa?.ToString("##,##0.00"))</span>
-                                        <hr style="padding:0;margin:0;color:#fff" />
-                                        <br />
-                                        <span class="totalallbig">Jumlah Berlesen (RM) <i class="ri-arrow-right-fill"></i> @(totalLesenAktif?.ToString("##,##0.00"))</span>
-                                        <span class="totalallbig">Jumlah Tidak Berlesen (RM) <i class="ri-arrow-right-fill"></i> @(totalLesenTidakAktif?.ToString("##,##0.00"))</span>
-                                    </div>
-                                </div>
+                            <div class="dashboard-wrap">
+                                <p /><p /><p />
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtFinancial.total_lesen_aktif</span>
+                                    <span class="totalinword">Jumlah Lesen Aktif</span>
+                                </p>
+                                <p /><p /><p />
                             </div>
-                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Maklumat Lesen</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
-
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
                         </div>
                     </div>
 
+                    <div class="col-6 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+                            <div class="dashboard-wrap">
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtFinancial.lesen_tamat_tempoh</span>
+                                    <span class="totalinword">Jumlah Lesen Tamat Tempoh</span>
+                                </p>
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="d-lg-flex" style="padding:0 0 0 0;">
                 <div class="d-lg-flex col-12">
 
-                    <div class="col-12 dashboard-box">
+                    <div class="col-6 dashboard-box">
                         <div class="dashboard-style-big big-color">
-
-                            <div style="width:100%;display: flex;">
-                                <div style="position:relative;width:20%;height:200px;padding:10px;">
-                                    <div class="circle">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M4 2H20C20.5523 2 21 2.44772 21 3V21C21 21.5523 20.5523 22 20 22H4C3.44772 22 3 21.5523 3 21V3C3 2.44772 3.44772 2 4 2ZM5 4V20H19V4H5ZM7 6H17V10H7V6ZM7 12H9V14H7V12ZM7 16H9V18H7V16ZM11 12H13V14H11V12ZM11 16H13V18H11V16ZM15 12H17V18H15V12Z"></path></svg>
-                                    </div>
-                                </div>
-                                <div class="dashboard-wrap" style="z-index:10;width:80%;height:230px">
-                                    <div class="dashboard-center-text">
-                                        <span class="totalinword">Jumlah Kutipan Cukai (RM)</span>
-                                        <span class="totalinnumber">@(dtFinancial.amaun_kutipan_cukai == null ? "0.00" : dtFinancial.amaun_kutipan_cukai?.ToString("##,###,##0.00"))</span>
-                                        <hr style="padding:0;margin:0;color:#fff" />
-                                        <br />
-                                        <span class="totalallbig">Jumlah Cukai Perlu Dibayar (RM) <i class="ri-arrow-right-fill"></i> 0.00</span>
-                                        <span class="totalallbig">Jumlah Cukai Dibayar (RM) <i class="ri-arrow-right-fill"></i> @(dtSource.cukai_taksiran_dibyr == null ? "0.00" : dtSource.cukai_taksiran_dibyr?.ToString("##,##0.00"))</span>
-                                        <span class="totalallbig">Jumlah Cukai Belum Bayar (RM) <i class="ri-arrow-right-fill"></i> @(dtSource.cukai_taksiran_blm_dibyr == null ? "0.00" : dtSource.cukai_taksiran_blm_dibyr?.ToString("##,##0.00"))</span>
-                                    </div>
-
-                                </div>
+                            <div class="dashboard-wrap">
+                                <p /><p /><p />
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtFinancial.ptmbahan_lesen_thn_semasa</span>
+                                    <span class="totalinword">Pertambahan Lesen Tahun Semasa</span>
+                                </p>
+                                <p /><p /><p />
                             </div>
-                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Maklumat Cukai</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
-
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
                         </div>
                     </div>
 
+                    <div class="col-6 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+                            <div class="dashboard-wrap">
+                                <p class="dashboard-center-text">
+                                    <span class="totalinnumber">@dtFinancial.ptmbahan_lesen_semasa</span>
+                                    <span class="totalinword">Jumlah Lesen Bulan Semasa</span>
+                                </p>
+                            </div>
+                            <div class="dashboard-button">
+                                <a href="jumlesenaktif" class="round-button">...</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </div> *@
+
+            <br/>
 
         </div>
     }
@@ -278,7 +357,6 @@
     int mintAktif = 0;
     int mintTidakBerlesen = 0;
     int mintTiadaData = 0;
-    int mintTotalBercukai = 0;
     double? totalLesenTidakAktif = 0;
     double? totalLesenTiadaData = 0;
     double? totalLesenAktif = 0;
@@ -288,10 +366,6 @@
     protected override async Task OnInitializedAsync()
     {
         PanelVisible = true;
-        if (dtSource != null)
-            dtSource = await _DashboardService.GetDashboardData();
-
-        dtFinancial = await _DashboardService.GetFinancialDashboard();
 
         searchData = await _SearchService.GetListPremisDetails();
         mintAktif = searchData.Count();
@@ -316,18 +390,8 @@
             totalLesenAktif += string.IsNullOrEmpty(_premis.license_total_amount.ToString()) ? 0 : _premis.license_total_amount;
         }
 
-        List<string> Lots = new List<string>();
-        licenseData = searchData.Where(x => x.tax_status_id == 7);
-        foreach (var _premis in licenseData)
-        {
-            string premisId = _premis.codeid_premis;
-
-            if (!Lots.Contains(premisId))
-            {
-                mintTotalBercukai += 1;
-                Lots.Add(premisId);
-            }
-        }
+        dtSource = await _DashboardService.GetDashboardData();
+        dtFinancial = await _DashboardService.GetFinancialDashboard();
 
         DataLoadedTcs.TrySetResult(true);
         PanelVisible = false;
