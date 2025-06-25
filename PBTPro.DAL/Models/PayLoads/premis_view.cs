@@ -18,6 +18,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public double? _latitude { get; set; }
         public double? _longitude { get; set; }
         public string codeid_premis { get; set; } = null!;
+        public string? category { get; set; }
         //public int? creator_id { get; set; }
         //public int? modifier_id { get; set; }
         //public DateTime? created_at { get; set; }
@@ -133,6 +134,7 @@ namespace PBTPro.DAL.Models.PayLoads
     {
         public string? codeid_premis { get; set; }
         public string? lot { get; set; }
+        public string? category { get; set; }
         public string marker_cukai_status { get; set; }
         public string marker_lesen_status { get; set; }
         public string marker_color { get; set; }
@@ -143,6 +145,7 @@ namespace PBTPro.DAL.Models.PayLoads
     {
         public string? codeid_premis { get; set; }
         public string? lot { get; set; }
+        public string? category { get; set; }
         public string marker_cukai_status { get; set; }
         public string marker_lesen_status { get; set; }
         public string marker_color { get; set; }

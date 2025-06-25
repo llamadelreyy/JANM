@@ -33,6 +33,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? premis_floor { get; set; }
         public string? premis_lot { get; set; }
         public string? premis_gkeseluruh { get; set; }
+        public string? premis_category { get; set; }
         public double? premis_longitude { get; set; }
         public double? premis_latitude { get; set; }
         public int? tax_status_id { get; set; }
@@ -46,6 +47,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? tax_address { get; set; }
         public DateOnly? tax_start_date { get; set; }
         public DateOnly? tax_end_date { get; set; }
+        public double? tax_total_amount { get; set; }
         public string? tax_owner_icno { get; set; }
         public string? tax_owner_name { get; set; }
         public string? tax_owner_email { get; set; }
