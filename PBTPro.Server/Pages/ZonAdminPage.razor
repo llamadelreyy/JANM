@@ -249,7 +249,7 @@
                                         <span class="totalinnumber">@(dtFinancial.amaun_kutipan_cukai == null ? "0.00" : dtFinancial.amaun_kutipan_cukai?.ToString("##,###,##0.00"))</span>
                                         <hr style="padding:0;margin:0;color:#fff" />
                                         <br />
-                                        <span class="totalallbig">Jumlah Cukai Perlu Dibayar (RM) <i class="ri-arrow-right-fill"></i> 0.00</span>
+                                        <span class="totalallbig">Jumlah Cukai Perlu Dibayar (RM) <i class="ri-arrow-right-fill"></i> @totalBercukai?.ToString("##,###,##0.00")</span>
                                         <span class="totalallbig">Jumlah Cukai Dibayar (RM) <i class="ri-arrow-right-fill"></i> @(dtSource.cukai_taksiran_dibyr == null ? "0.00" : dtSource.cukai_taksiran_dibyr?.ToString("##,##0.00"))</span>
                                         <span class="totalallbig">Jumlah Cukai Belum Bayar (RM) <i class="ri-arrow-right-fill"></i> @(dtSource.cukai_taksiran_blm_dibyr == null ? "0.00" : dtSource.cukai_taksiran_blm_dibyr?.ToString("##,##0.00"))</span>
                                     </div>
@@ -282,6 +282,7 @@
     double? totalLesenTidakAktif = 0;
     double? totalLesenTiadaData = 0;
     double? totalLesenAktif = 0;
+    double? totalBercukai = 0;
 
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -325,6 +326,7 @@
             if (!Lots.Contains(premisId))
             {
                 mintTotalBercukai += 1;
+                totalBercukai += _premis.tax_total_amount;
                 Lots.Add(premisId);
             }
         }
