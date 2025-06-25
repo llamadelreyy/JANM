@@ -33,6 +33,7 @@ namespace PBTPro.DAL.Models.PayLoads
         public string? premis_floor { get; set; }
         public string? premis_lot { get; set; }
         public string? premis_gkeseluruh { get; set; }
+        public string? premis_category { get; set; }
         public double? premis_longitude { get; set; }
         public double? premis_latitude { get; set; }
         public int? tax_status_id { get; set; }

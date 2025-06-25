@@ -23,6 +23,7 @@ public partial class view_premis_detail
     public string? premis_gkeseluruh { get; set; }
 
     public Point? premis_geom { get; set; }
+    public string? premis_category { get; set; }
     //public double premis_longitude { get; set; }
     //public double premis_latitude { get; set; }
 

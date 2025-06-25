@@ -393,6 +393,7 @@ namespace PBTPro.Api.Controllers
                                 {
                                     mp.codeid_premis,
                                     mp.geom,
+                                    mp.category,
                                     mt.tax_accno,
                                     ml.license_accno,
                                     ml.ssm_no,
@@ -459,6 +460,7 @@ namespace PBTPro.Api.Controllers
                     {
                         x.codeid_premis,
                         geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.geom)),
+                        premis_category = x.category,
                         x.business_name,
                         x.business_addr,
                         x.status_id,
@@ -528,6 +530,7 @@ namespace PBTPro.Api.Controllers
                     premis_gkeseluruh = x.premis_gkeseluruh,
                     premis_longitude = PostGISFunctions.ST_X(x.premis_geom),
                     premis_latitude = PostGISFunctions.ST_Y(x.premis_geom),
+                    premis_category = x.premis_category,
                     //tax data
                     tax_status_id = x.tax_status_id,
                     tax_status_view = x.tax_status_view,
