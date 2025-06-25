@@ -77,6 +77,7 @@ namespace PBTPro.Api.Controllers
                 {
                     codeid_premis = x.Premis.codeid_premis,
                     lot = x.Premis.lot,
+                    category = x.Premis.category,
                     geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.Premis.geom)),
                     license_status_id = x.jnLicTax.status_lesen_id,
                     license_status_view = x.licStatus.status_name,
@@ -259,6 +260,7 @@ namespace PBTPro.Api.Controllers
                 {
                     codeid_premis = x.Premis.codeid_premis,
                     lot = x.Premis.lot,
+                    category = x.Premis.category,
                     geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.Premis.geom)),
                     license_status_id = x.jnLicTax.status_lesen_id,
                     license_status_view = x.licStatus.status_name,
@@ -299,6 +301,7 @@ namespace PBTPro.Api.Controllers
                     resultData.Add(new premis_marker
                     {
                         codeid_premis = premis.codeid_premis,
+                        category = premis.category,
                         lot = premis.lot,
                         marker_cukai_status = marker_cukai_status,
                         marker_lesen_status = marker_lesen_status,
@@ -394,6 +397,7 @@ namespace PBTPro.Api.Controllers
                 {
                     codeid_premis = x.Premis.codeid_premis,
                     lot = x.Premis.lot,
+                    category = x.Premis.category,
                     geom = PostGISFunctions.ParseGeoJsonSafely(PostGISFunctions.ST_AsGeoJSON(x.Premis.geom)),
                     license_status_id = x.jnLicTax.status_lesen_id,
                     license_status_view = x.licStatus.status_name,
@@ -443,6 +447,7 @@ namespace PBTPro.Api.Controllers
                     {
                         codeid_premis = premis.codeid_premis,
                         lot = premis.lot,
+                        category = premis.category,
                         marker_cukai_status = marker_cukai_status,
                         marker_lesen_status = marker_lesen_status,
                         marker_color = marker_color,
@@ -610,6 +615,7 @@ namespace PBTPro.Api.Controllers
                     premis_gkeseluruh = x.premis_gkeseluruh,
                     premis_longitude = PostGISFunctions.ST_X(x.premis_geom),
                     premis_latitude = PostGISFunctions.ST_Y(x.premis_geom),
+                    premis_category = x.premis_category,
                     //tax data
                     tax_status_id = x.tax_status_id,
                     tax_status_view = x.tax_status_view,
@@ -721,6 +727,7 @@ namespace PBTPro.Api.Controllers
                     premis_gkeseluruh = x.premis_gkeseluruh,
                     premis_longitude = PostGISFunctions.ST_X(x.premis_geom),
                     premis_latitude = PostGISFunctions.ST_Y(x.premis_geom),
+                    premis_category = x.premis_category,
                     //tax data
                     tax_status_id = x.tax_status_id,
                     tax_status_view = x.tax_status_view,
@@ -832,6 +839,7 @@ namespace PBTPro.Api.Controllers
                     premis_gkeseluruh = x.premis_gkeseluruh,
                     premis_longitude = PostGISFunctions.ST_X(x.premis_geom),
                     premis_latitude = PostGISFunctions.ST_Y(x.premis_geom),
+                    premis_category = x.premis_category,
                     //tax data
                     tax_status_id = x.tax_status_id,
                     tax_status_view = x.tax_status_view,

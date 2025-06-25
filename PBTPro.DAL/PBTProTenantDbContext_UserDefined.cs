@@ -151,6 +151,7 @@ namespace PBTPro.DAL
                 entity.Property(e => e.premis_geom).HasColumnType("geometry(PointZM,4326)");
                 entity.Property(e => e.premis_gkeseluruh).HasMaxLength(255);
                 entity.Property(e => e.premis_lot).HasColumnType("character varying");
+                entity.Property(e => e.premis_category).HasMaxLength(50);
                 entity.Property(e => e.tax_accno).HasColumnType("character varying");
                 entity.Property(e => e.tax_address).HasColumnType("character varying");
                 entity.Property(e => e.tax_district_code).HasMaxLength(10);

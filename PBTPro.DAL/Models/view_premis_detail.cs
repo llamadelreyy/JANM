@@ -23,6 +23,7 @@ public partial class view_premis_detail
     public string? premis_gkeseluruh { get; set; }
 
     public Point? premis_geom { get; set; }
+    public string? premis_category { get; set; }
     //public double premis_longitude { get; set; }
     //public double premis_latitude { get; set; }
 
@@ -47,6 +48,7 @@ public partial class view_premis_detail
     public DateOnly? tax_start_date { get; set; }
 
     public DateOnly? tax_end_date { get; set; }
+    public double? tax_total_amount { get; set; }
 
     public string? tax_owner_icno { get; set; }
 
