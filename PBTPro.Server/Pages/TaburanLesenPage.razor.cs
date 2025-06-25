@@ -456,25 +456,30 @@ namespace PBTPro.Pages
                             ////This is to count all lesen status with or without lot no
                             if (!Lots.Contains(premisId))
                             {
+                                //Count the lesen for each point
+                                int intPointLesen = searchData.Where(x => x.codeid_premis == premisId).Count();
+
                                 if (initStart == 1)
                                 {
                                     //Count lesen based on status
-                                    CountPremisStatus(lesen_status_id, TotalLesenAktif, TotalTidakBerlesen, TotalTiadaData);
+                                    CountPremisStatus(lesen_status_id, intPointLesen);
                                     CountCukaiStatus(cukai_status_id);
                                 }
                                 else
                                 {
-                                    if (SelectedIds.Contains(lesen_status_id.ToString()))
-                                    {
-                                        //Count lesen based on status
-                                        CountPremisStatus(lesen_status_id, TotalLesenAktif, TotalTidakBerlesen, TotalTiadaData);
-                                    }
+                                    //if (SelectedIds.Contains(lesen_status_id.ToString()))
+                                    //{
+                                    //    //Count lesen based on status
+                                    //    CountPremisStatus(lesen_status_id, TotalLesenAktif, TotalTidakBerlesen, TotalTiadaData);
+                                    //}
+
 
                                     if (SelectedIds.Contains(cukai_status_id.ToString()))
                                     {
                                         //Populate cukai & lesen
                                         if (SelectedIds.Contains(lesen_status_id.ToString()))
                                         {
+                                            CountPremisStatus(lesen_status_id, intPointLesen);
                                             CountCukaiStatus(cukai_status_id);
                                         }
                                         else //Populate only cukai
@@ -491,6 +496,17 @@ namespace PBTPro.Pages
                                                 }
                                             }
                                         }
+                                    }
+                                    else //only populate lesen
+                                    {
+                                        if (!NotaList.Any(fil => SelectedIds.Contains(fil.TypeId.ToString())))
+                                        {
+                                            if (SelectedIds.Contains(lesen_status_id.ToString()))
+                                            {
+                                                CountPremisStatus(lesen_status_id, intPointLesen);
+                                            }
+                                        }
+
                                     }
                                 }
 
@@ -665,22 +681,22 @@ namespace PBTPro.Pages
             return result;
         }
 
-        private void CountPremisStatus(int statusID, int TotalLesenAktif, int TotalTidakBerlesen, int TotalTiadaData)
+        private void CountPremisStatus(int statusID, int TotalLesen)
         {
             if (statusID == 1) //Aktif
             {
                 //mintAktif += 1;
-                _mintTotalLesenAktif = TotalLesenAktif;
+                _mintTotalLesenAktif += TotalLesen;
             }
             else if (statusID == 5) //Tidak Berlesen
             {
                 //mintTamatTempoh += 1;
-                _mintTotalTidakBerlesen = TotalTidakBerlesen;
+                _mintTotalTidakBerlesen += TotalLesen;
             }
             else if (statusID == 4) //Tiada Data
             {
                 //mintTiadaData += 1;
-                _mintTotalTiadaData = TotalTiadaData;
+                _mintTotalTiadaData += TotalLesen;
             }
         }
 
