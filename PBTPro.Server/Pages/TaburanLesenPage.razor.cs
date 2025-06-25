@@ -175,15 +175,15 @@ namespace PBTPro.Pages
         {
             string priorytyClass = "none";
             string title = " TIADA DATA ";
-            if (status_id == 1)
+            if (status_id == 7)
             {
                 priorytyClass = "info";
-                title = " CUKAI DIBAYAR ";
+                title = " BERCUKAI ";
             }
-            else if (status_id == 2)
+            else if (status_id == 8)
             {
                 priorytyClass = "danger";
-                title = " CUKAI BELUM DIBAYAR ";
+                title = " TIDAK BERCUKAI ";
             }
 
             string html = string.Format("<span class='e-badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
