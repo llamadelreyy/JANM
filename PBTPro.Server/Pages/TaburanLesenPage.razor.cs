@@ -146,16 +146,14 @@ namespace PBTPro.Pages
         {
             switch (color.Trim().ToUpper())
             {
-                case "GREEN":
+                case "AKTIF":
                     return 1;
-                case "RED":
+                case "TIDAK BERLESEN":
                     return 5;
-                case "YELLOW":
-                    return 3;
-                case "GREY":
+                case "TIADA DATA":
                     return 4;
                 default:
-                    return 0;
+                    return 4;
             }
         }
 
@@ -425,9 +423,10 @@ namespace PBTPro.Pages
                             string premisId = _premis.codeid_premis;
                             string lesen_status = _premis.marker_lesen_status;
                             string cukai_status = _premis.marker_cukai_status;
-                            string marker_color = _premis.marker_color;
+                            
                             string no_lot = string.IsNullOrEmpty(_premis.lot.ToString()) ? "?" : _premis.lot.ToString();
-                            int lesen_status_id = GetIdColor(marker_color);
+                            int lesen_status_id = GetIdColor(lesen_status); //GetIdColor(marker_color);
+                            string marker_color = GetColorLot(lesen_status_id); // _premis.marker_color;
 
                             int TotalLesenAktif = _premis.total_lesen_aktif;
                             int TotalTidakBerlesen = _premis.total_lesen_tidak_berlesen;

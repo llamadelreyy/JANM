@@ -118,9 +118,9 @@ namespace PBTPro.Pages
         {
             switch (typeLot)
             {
-                case 1:
+                case 7:
                     return "Green";
-                case 2:
+                case 8:
                     return "Red";
                 case 3:
                     return "Grey";
@@ -134,9 +134,9 @@ namespace PBTPro.Pages
             switch (color.Trim().ToUpper())
             {
                 case "GREEN":
-                    return 1;
+                    return 7;
                 case "RED":
-                    return 2;
+                    return 8;
                 case "GREY":
                     return 3;
                 default:
@@ -148,10 +148,10 @@ namespace PBTPro.Pages
         {
             switch (status.Trim().ToUpper())
             {
-                case "CUKAI TERTUNGGAK":
-                    return 2;
-                case "CUKAI DIBAYAR":
-                    return 1;
+                case "TIDAK BERCUKAI":
+                    return 8;
+                case "BERCUKAI":
+                    return 7;
                 case "TIADA DATA":
                     return 3;
                 default:
@@ -174,15 +174,15 @@ namespace PBTPro.Pages
         {
             string priorytyClass = "none";
             string title = " TIADA DATA ";
-            if (status_id == 1)
+            if (status_id == 7)
             {
                 priorytyClass = "info";
-                title = " CUKAI DIBAYAR ";
+                title = " BERCUKAI ";
             }
-            else if (status_id == 2)
+            else if (status_id == 8)
             {
                 priorytyClass = "danger";
-                title = " CUKAI TERTUNGGAK ";
+                title = " TIDAK BERCUKAI ";
             }
 
             string html = string.Format("<span class='e-badge e-priority-{0} py-1 px-2' title='{1}'>{1}</span>", priorytyClass, title);
@@ -522,9 +522,9 @@ namespace PBTPro.Pages
 
         private void CountPremisStatus(int statusID)
         {
-            if (statusID == 1) //CUKAI DIBAYAR
+            if (statusID == 7) //CUKAI DIBAYAR
                 mintAktif += 1;
-            else if (statusID == 2) //CUKAI TERTUNGGAK
+            else if (statusID == 8) //CUKAI TERTUNGGAK
                 mintTamatTempoh += 1;
             else if (statusID == 3) //TIADA DATA
                 mintTiadaData += 1;
@@ -765,14 +765,14 @@ namespace PBTPro.Pages
 
             var vSubOne = new FilterData()
             {
-                TypeId = 1,
-                Description = "Cukai DiBayar",
+                TypeId = 7,
+                Description = "Bercukai",
                 Color = "Green"
             };
             var vSubTwo = new FilterData()
             {
-                TypeId = 2,
-                Description = "Cukai Tertunggak",
+                TypeId = 8,
+                Description = "Tidak Bercukai",
                 Color = "Red"
             };
 
