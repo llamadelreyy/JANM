@@ -107,10 +107,10 @@ namespace PBTPro.Pages
 
         // 07/11/2024 - to reduce API request frequency - ismail
         private DateTime _lastMoveTime;
-        private readonly TimeSpan _throttleTime = TimeSpan.FromMilliseconds(300); 
+        private readonly TimeSpan _throttleTime = TimeSpan.FromMilliseconds(300);
         private ConcurrentDictionary<int, bool> _processedLotGids = new ConcurrentDictionary<int, bool>(); // Thread-safe GID tracking
         private ConcurrentDictionary<string, bool> _processedPremisGids = new ConcurrentDictionary<string, bool>(); // Thread-safe GID tracking
-        private readonly object _lockLot = new object(); 
+        private readonly object _lockLot = new object();
         private bool _isProcessing = false;  // Flag to track if tasks are processing
         //private bool _isLoadSearch = false;  // Flag to track if data for search is already loading
         private Queue<Task> _pendingTasks = new Queue<Task>();
@@ -215,7 +215,7 @@ namespace PBTPro.Pages
                     Position = ControlPosition.RightBottom
                 },
                 Center = new LatLngLiteral
-                { 
+                {
                     Lat = 2.9441900567880896,
                     Lng = 101.37866540001413
                 },
@@ -373,7 +373,7 @@ namespace PBTPro.Pages
                 _markerClustering = await MarkerClustering.CreateAsync(map1.JsRuntime, map1.InteropObject, _clusteringMarkers, new()
                 {
                     //RendererObjectName = "customRendererLib.interpolatedRenderer",
-                    BatchSize = 40,                   
+                    BatchSize = 40,
                     ZoomOnClick = true,
                 });
 
@@ -406,7 +406,7 @@ namespace PBTPro.Pages
                 List<string> Lots = new List<string>();
                 //==============================
 
-                string requestUrl = $"/api/Premis/GetFilteredListByBoundWeb?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                string requestUrl = $"/api/Premis/GetFilteredListByBoundWeb?viewType=license&crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
                 var response = await _ApiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
@@ -424,7 +424,7 @@ namespace PBTPro.Pages
                             string premisId = _premis.codeid_premis;
                             string lesen_status = _premis.marker_lesen_status;
                             string cukai_status = _premis.marker_cukai_status;
-                            
+
                             string no_lot = string.IsNullOrEmpty(_premis.lot.ToString()) ? "?" : _premis.lot.ToString();
                             int lesen_status_id = GetIdColor(lesen_status); //GetIdColor(marker_color);
                             string marker_color = GetColorLot(lesen_status_id); // _premis.marker_color;
@@ -685,7 +685,7 @@ namespace PBTPro.Pages
                     }
                 }
 
-                
+
                 //====== ADD HERE =======
                 //////////var boundsLiteral = await _bounds.ToJson();
                 //////////await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
@@ -921,7 +921,7 @@ namespace PBTPro.Pages
 
         private async Task OpenSideBar(string codeid)
         {
-            try 
+            try
             {
                 //Populate all the value from parameter. ex:LesenID
                 // await JsRuntime.InvokeVoidAsync("alert", msg);
@@ -1091,7 +1091,7 @@ namespace PBTPro.Pages
 
         private async Task PremiseLocation(LatLngLiteral? pos)
         {
-            if (pos==null)
+            if (pos == null)
             {
                 return;
             }
@@ -1203,10 +1203,10 @@ namespace PBTPro.Pages
             return Task.Run(() => ProcessMapAPIData());
         }
 
-        private async Task ProcessMapAPIData(int intStart=2)
+        private async Task ProcessMapAPIData(int intStart = 2)
         {
-            try 
-            { 
+            try
+            {
                 if (DateTime.Now - _lastMoveTime < _throttleTime) return;
                 _lastMoveTime = DateTime.Now;
 
@@ -1417,7 +1417,7 @@ namespace PBTPro.Pages
         //////        Console.WriteLine($"API request error: {ex.Message}");
         //////    }
         //////}
- 
+
         public IEnumerable<LatLngLiteral> ConvertGeoJsonToLatLng(JArray geoJsonCoords)
         {
             List<List<double>> coords = geoJsonCoords.ToObject<List<List<double>>>();
@@ -1452,7 +1452,7 @@ namespace PBTPro.Pages
         //    await marker.AddListener<MouseEvent>("click", async (e) =>
         //    {
         //        //////await OpenSideBar(title); // Replace with actual function to handle click
-                
+
         //        //Passing the gId - to get the click premise info
         //        await OpenSideBar(dataId.ToString()); // Replace with actual function to handle click
         //        StateHasChanged();

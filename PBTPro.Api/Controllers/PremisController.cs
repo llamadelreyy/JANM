@@ -323,7 +323,7 @@ namespace PBTPro.Api.Controllers
         [HttpGet]
         [Route("GetFilteredListByBoundWeb")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetFilteredListByBoundWeb(double minLng, double minLat, double maxLng, double maxLat, string? filterType, int? crs = null)
+        public async Task<IActionResult> GetFilteredListByBoundWeb(double minLng, double minLat, double maxLng, double maxLat, string? filterType, string? viewType, int? crs = null)
         {
             try
             {
@@ -422,14 +422,23 @@ namespace PBTPro.Api.Controllers
                 int total_lesen_gantung = mst_premisList?.Count(x => x.license_status_id == 3) ?? 0;
                 int total_lesen_tiada_data = mst_premisList?.Count(x => x.license_status_id == 4) ?? 0;
                 int total_lesen_tidak_berlesen = mst_premisList?.Count(x => x.license_status_id == 5) ?? 0;
-                int total_cukai_dibayar = mst_premisList?.Count(x => x.tax_status_id == 1) ?? 0;
-                int total_cukai_tertungak = mst_premisList?.Count(x => x.tax_status_id == 2) ?? 0;
-                int total_cukai_tiada_data = mst_premisList?.Count(x => x.tax_status_id == 3) ?? 0;
+                int total_cukai_dibayar = mst_premisList?.Count(x => x.tax_status_id == 7) ?? 0;
+                int total_cukai_tertungak = mst_premisList?.Count(x => x.tax_status_id == 8) ?? 0;
+                int total_cukai_tiada_data = mst_premisList?.Count(x => x.tax_status_id == 9) ?? 0;
                 foreach (var premis in mst_premisList.DistinctBy(premis => premis.codeid_premis).ToList())
                 {
                     String marker_cukai_status = premis.tax_status_view;
                     String marker_lesen_status = premis.license_status_view;
                     String marker_color = premis.license_status_priority <= premis.tax_status_priority ? premis.license_status_color : premis.tax_status_color;
+
+                    if (!string.IsNullOrWhiteSpace(viewType) && viewType.ToLower() == "license")
+                    {
+                        marker_color = premis.license_status_color;
+                    }
+                    if (!string.IsNullOrWhiteSpace(viewType) && viewType.ToLower() == "tax")
+                    {
+                        marker_color = premis.tax_status_color;
+                    }
 
                     if (statusFilters.Count > 0)
                     {
