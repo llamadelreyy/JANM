@@ -406,7 +406,7 @@ namespace PBTPro.Pages
                 List<string> Lots = new List<string>();
                 //==============================
 
-                string requestUrl = $"/api/Premis/GetFilteredListByBoundWeb?viewType=licensecrs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                string requestUrl = $"/api/Premis/GetFilteredListByBoundWeb?viewType=license&crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
                 var response = await _ApiConnector.ProcessLocalApi(requestUrl);
 
                 if (response.ReturnCode == 200)
