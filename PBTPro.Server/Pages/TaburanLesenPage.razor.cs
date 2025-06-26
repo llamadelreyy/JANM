@@ -66,6 +66,7 @@ namespace PBTPro.Pages
         //Premis data
         //////IEnumerable<dynamic> premisData;
         IEnumerable<general_search_premis_detail> searchData;
+        IEnumerable<general_search_premis_detail> licenseData;
         //IEnumerable<(general_search_premis_detail, int)> Items;
         IEnumerable<(premis_license_tax_view, int)> premisItem;
         premis_view premisInfo;
@@ -456,12 +457,19 @@ namespace PBTPro.Pages
                             if (!Lots.Contains(premisId))
                             {
                                 //Count the lesen for each point
-                                int intPointLesen = searchData.Where(x => x.codeid_premis == premisId).Count();
+                                //int intPointLesen = searchData.Where(x => x.codeid_premis == premisId).Count();
+                                licenseData = searchData.Where(x => x.codeid_premis == premisId);
 
                                 if (initStart == 1)
                                 {
                                     //Count lesen based on status
-                                    CountPremisStatus(lesen_status_id, intPointLesen);
+                                    //CountPremisStatus(lesen_status_id, intPointLesen);
+
+                                    foreach (var _lcs in licenseData)
+                                    {
+                                        CountPremisStatus(_lcs.license_status_id, 1);
+                                    }
+
                                     CountCukaiStatus(cukai_status_id);
                                 }
                                 else
@@ -478,7 +486,13 @@ namespace PBTPro.Pages
                                         //Populate cukai & lesen
                                         if (SelectedIds.Contains(lesen_status_id.ToString()))
                                         {
-                                            CountPremisStatus(lesen_status_id, intPointLesen);
+                                            //CountPremisStatus(lesen_status_id, intPointLesen);
+
+                                            foreach (var _lcs in licenseData)
+                                            {
+                                                CountPremisStatus(_lcs.license_status_id, 1);
+                                            }
+
                                             CountCukaiStatus(cukai_status_id);
                                         }
                                         else //Populate only cukai
@@ -502,7 +516,11 @@ namespace PBTPro.Pages
                                         {
                                             if (SelectedIds.Contains(lesen_status_id.ToString()))
                                             {
-                                                CountPremisStatus(lesen_status_id, intPointLesen);
+                                                //CountPremisStatus(lesen_status_id, intPointLesen);
+                                                foreach (var _lcs in licenseData)
+                                                {
+                                                    CountPremisStatus(_lcs.license_status_id, 1);
+                                                }
                                             }
                                         }
 
@@ -680,7 +698,7 @@ namespace PBTPro.Pages
             return result;
         }
 
-        private void CountPremisStatus(int statusID, int TotalLesen)
+        private void CountPremisStatus(int? statusID, int TotalLesen)
         {
             if (statusID == 1) //Aktif
             {
