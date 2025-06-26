@@ -467,7 +467,7 @@ namespace PBTPro.Pages
 
                                     foreach (var _lcs in licenseData)
                                     {
-                                        CountPremisStatus(_lcs.license_status_id, 1);
+                                        CountPremisStatus(_lcs.license_status_id, 1, _lcs.license_status_id);
                                     }
 
                                     CountCukaiStatus(cukai_status_id);
@@ -490,7 +490,7 @@ namespace PBTPro.Pages
 
                                             foreach (var _lcs in licenseData)
                                             {
-                                                CountPremisStatus(_lcs.license_status_id, 1);
+                                                CountPremisStatus(_lcs.license_status_id, 1, lesen_status_id);
                                             }
 
                                             CountCukaiStatus(cukai_status_id);
@@ -519,7 +519,7 @@ namespace PBTPro.Pages
                                                 //CountPremisStatus(lesen_status_id, intPointLesen);
                                                 foreach (var _lcs in licenseData)
                                                 {
-                                                    CountPremisStatus(_lcs.license_status_id, 1);
+                                                    CountPremisStatus(_lcs.license_status_id, 1, lesen_status_id);
                                                 }
                                             }
                                         }
@@ -698,22 +698,25 @@ namespace PBTPro.Pages
             return result;
         }
 
-        private void CountPremisStatus(int? statusID, int TotalLesen)
+        private void CountPremisStatus(int? statusID, int TotalLesen, int currentStatusId)
         {
             if (statusID == 1) //Aktif
             {
                 //mintAktif += 1;
-                _mintTotalLesenAktif += TotalLesen;
+                if (statusID == currentStatusId)
+                    _mintTotalLesenAktif += TotalLesen;
             }
             else if (statusID == 5) //Tidak Berlesen
             {
                 //mintTamatTempoh += 1;
-                _mintTotalTidakBerlesen += TotalLesen;
+                if (statusID == currentStatusId)
+                    _mintTotalTidakBerlesen += TotalLesen;
             }
             else if (statusID == 4) //Tiada Data
             {
                 //mintTiadaData += 1;
-                _mintTotalTiadaData += TotalLesen;
+                if (statusID == currentStatusId)
+                    _mintTotalTiadaData += TotalLesen;
             }
         }
 
