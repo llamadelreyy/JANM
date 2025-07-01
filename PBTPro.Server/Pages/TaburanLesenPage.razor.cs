@@ -131,9 +131,9 @@ namespace PBTPro.Pages
             switch (typeLot)
             {
                 case 1:
-                    return "Green";
+                    return "lightgreen";
                 case 5:
-                    return "Red";
+                    return "lightcoral";
                 case 3:
                     return "Yellow";
                 case 4:
@@ -428,6 +428,10 @@ namespace PBTPro.Pages
                             string no_lot = string.IsNullOrEmpty(_premis.lot.ToString()) ? "?" : _premis.lot.ToString();
                             int lesen_status_id = GetIdColor(lesen_status); //GetIdColor(marker_color);
                             string marker_color = _premis.marker_color; //GetColorLot(lesen_status_id);
+                            if (marker_color.ToUpper() == "RED")
+                                marker_color = "lightcoral";
+                            else
+                                marker_color = "lightgreen";
 
                             //int TotalLesenAktif = _premis.total_lesen_aktif;
                             //int TotalTidakBerlesen = _premis.total_lesen_tidak_berlesen;
@@ -436,11 +440,11 @@ namespace PBTPro.Pages
 
                             //For temp DEMO
                             int cukai_status_id = 7;
-                            string cukai_marker_color = "yellow";
+                            string cukai_marker_color = "yellowgreen";
                             if ((cukai_status.ToUpper() == "CUKAI TERTUNGGAK") || (cukai_status.ToUpper() == "TIDAK BERCUKAI"))
                             {
                                 cukai_status_id = 8;
-                                cukai_marker_color = "black";
+                                cukai_marker_color = "red";
                             }
 
                             ////Get only once
@@ -557,7 +561,7 @@ namespace PBTPro.Pages
                                         Position = latLng,
                                         Map = map1.InteropObject,
                                         //Title = no_lot,  //comment the tooltip for faster loading
-                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='1.3' fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='2' fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
                                     });
 
                                     markers.Push(_marker);
@@ -585,7 +589,7 @@ namespace PBTPro.Pages
                                                 Map = map1.InteropObject,
                                                 //Title = no_lot,  //comment the tooltip for faster loading
                                                 //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='1.3' fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                                Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='2' fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
                                             });
 
                                             markers.Push(_marker);
@@ -1009,13 +1013,13 @@ namespace PBTPro.Pages
             {
                 TypeId = 1,
                 Description = "Berlesen",
-                Color = "Green"
+                Color = "lightgreen"
             };
             var vSubTwo = new FilterData()
             {
                 TypeId = 5,
                 Description = "Tidak Berlesen",
-                Color = "Red"
+                Color = "lightcoral"
             };
             //var vSubThree = new FilterData()
             //{
@@ -1050,13 +1054,13 @@ namespace PBTPro.Pages
             {
                 TypeId = 7,
                 Description = "Bercukai",
-                Color = "yellow"
+                Color = "yellowgreen"
             };
             var vSubTwo = new FilterData()
             {
                 TypeId = 8,
                 Description = "Tidak Bercukai",
-                Color = "black"
+                Color = "red"
             };
 
             var vSubList = new List<FilterData>
