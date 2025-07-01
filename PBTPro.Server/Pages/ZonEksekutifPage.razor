@@ -158,7 +158,7 @@
             <div class="d-lg-flex" style="padding:0 0 0 0;">
                 <div class="d-lg-flex col-12">
 
-                    <div class="col-sm-12 col-lg-12 col-md-12 dashboard-box">
+                    <div class="col-sm-12 col-lg-4 col-md-4 dashboard-box">
                         <div class="dashboard-style-big big-color">
 
                             <div style="width:100%;display: flex;">
@@ -186,6 +186,61 @@
                         </div>
                     </div>
 
+                    <div class="col-sm-12 col-lg-4 col-md-4 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+
+                            <div style="width:100%;display: flex;">
+                                <div style="position:relative;width:20%;height:200px;padding:10px;">
+                                    <div class="circle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M21 21H3C2.44772 21 2 20.5523 2 20V12.4868C2 12.1978 2.12501 11.9229 2.34282 11.733L6 8.54435V4C6 3.44772 6.44772 3 7 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21ZM9 19H12V12.9416L8 9.45402L4 12.9416V19H7V15H9V19ZM14 19H20V5H8V7.12729C8.23444 7.12729 8.46888 7.20938 8.65718 7.37355L13.6572 11.733C13.875 11.9229 14 12.1978 14 12.4868V19ZM16 11H18V13H16V11ZM16 15H18V17H16V15ZM16 7H18V9H16V7ZM12 7H14V9H12V7Z"></path></svg>
+                                    </div>
+                                </div>
+                                <div class="dashboard-wrap" style="z-index:10;width:80%;height:200px">
+                                    <div class="dashboard-center-text">
+                                        <span class="totalinword">Bercukai</span>
+                                        <span class="totalinnumber">
+                                            @mintTotalBercukai
+                                        </span>
+                                        <hr style="padding:0;margin:0;color:#fff" />
+                                        <br />
+                                        <span class="totalallbig">Berlesen <i class="ri-arrow-right-fill"></i> @mintTotalBercukaiBerlesen</span>
+                                        <span class="totalallbig">Tidak Berlesen <i class="ri-arrow-right-fill"></i> @mintTotalBercukaiTakBerlesen</span>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Premis Perniagaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
+
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 col-lg-4 col-md-4 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+
+                            <div style="width:100%;display: flex;">
+                                <div style="position:relative;width:20%;height:200px;padding:10px;">
+                                    <div class="circle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M21 21H3C2.44772 21 2 20.5523 2 20V12.4868C2 12.1978 2.12501 11.9229 2.34282 11.733L6 8.54435V4C6 3.44772 6.44772 3 7 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21ZM9 19H12V12.9416L8 9.45402L4 12.9416V19H7V15H9V19ZM14 19H20V5H8V7.12729C8.23444 7.12729 8.46888 7.20938 8.65718 7.37355L13.6572 11.733C13.875 11.9229 14 12.1978 14 12.4868V19ZM16 11H18V13H16V11ZM16 15H18V17H16V15ZM16 7H18V9H16V7ZM12 7H14V9H12V7Z"></path></svg>
+                                    </div>
+                                </div>
+                                <div class="dashboard-wrap" style="z-index:10;width:80%;height:200px">
+                                    <div class="dashboard-center-text">
+                                        <span class="totalinword">Tidak Bercukai</span>
+                                        <span class="totalinnumber">
+                                            @(dtFinancial.total_premis_perniagaan - mintTotalBercukai)
+                                        </span>
+                                        <hr style="padding:0;margin:0;color:#fff" />
+                                        <br />
+                                        <span class="totalallbig">Berlesen <i class="ri-arrow-right-fill"></i> @mintTotalTakBercukaiBerlesen</span>
+                                        <span class="totalallbig">Tidak Berlesen <i class="ri-arrow-right-fill"></i> @mintTotalTakBercukaiTakBerlesen</span>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Premis Perniagaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
+
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -235,11 +290,17 @@
     dashboard_view dtFinancial = new dashboard_view();
     IEnumerable<general_search_premis_detail> searchData;
     IEnumerable<general_search_premis_detail> licenseData;
+    IEnumerable<general_search_premis_detail> premisData;
 
     int mintAktif = 0;
     int mintTidakBerlesen = 0;
     int mintTiadaData = 0;
     int mintTotalBercukai = 0;
+    int mintTotalTakBercukai = 0;
+    int mintTotalBercukaiBerlesen = 0;
+    int mintTotalBercukaiTakBerlesen = 0;
+    int mintTotalTakBercukaiBerlesen = 0;
+    int mintTotalTakBercukaiTakBerlesen = 0;
     // int mintTotalTidakBercukai = 0;
     double? totalLesenTidakAktif = 0;
     double? totalLesenTiadaData = 0;
@@ -274,6 +335,8 @@
             totalLesenAktif += string.IsNullOrEmpty(_premis.license_total_amount.ToString()) ? 0 : _premis.license_total_amount;
         }
 
+
+        //BERCUKAI
         List<string> Lots = new List<string>();
         licenseData = searchData.Where(x => x.tax_status_id == 7);
         foreach (var _premis in licenseData)
@@ -282,10 +345,58 @@
 
             if (!Lots.Contains(premisId))
             {
+                premisData = searchData.Where(x => x.codeid_premis == premisId);
+
                 mintTotalBercukai += 1;
                 Lots.Add(premisId);
+
+                //Count Bercukai & Berlesen
+                bool blnNoLicense = false;
+                foreach (var _lcs in premisData)
+                {
+                    if (_lcs.license_status_id == 5)
+                    {
+                        blnNoLicense = true;                     
+                    }
+                }
+
+                if (!blnNoLicense)
+                    mintTotalBercukaiBerlesen += 1;
+                else
+                    mintTotalBercukaiTakBerlesen += 1;
             }
         }
+
+        //TAK BERCUKAI
+        licenseData = searchData.Where(x => x.tax_status_id == 8);
+        foreach (var _premis in licenseData)
+        {
+            string premisId = _premis.codeid_premis;
+
+            if (!Lots.Contains(premisId))
+            {
+                premisData = searchData.Where(x => x.codeid_premis == premisId);
+
+                mintTotalTakBercukai += 1;
+                Lots.Add(premisId);
+
+                //Count Bercukai & Berlesen
+                bool blnNoLicense = false;
+                foreach (var _lcs in premisData)
+                {
+                    if (_lcs.license_status_id == 5)
+                    {
+                        blnNoLicense = true;
+                    }
+                }
+
+                if (!blnNoLicense)
+                    mintTotalTakBercukaiBerlesen += 1;
+                else
+                    mintTotalTakBercukaiTakBerlesen += 1;
+            }
+        }
+
 
         // Lots.Clear();
         // licenseData = searchData.Where(x => x.tax_status_id == 8);

@@ -776,16 +776,16 @@ namespace PBTPro.Pages
                 Color = "Red"
             };
 
-            var vSubThree = new FilterData()
-            {
-                TypeId = 3,
-                Description = "Tiada Data",
-                Color = "Grey"
-            };
+            //var vSubThree = new FilterData()
+            //{
+            //    TypeId = 3,
+            //    Description = "Tiada Data",
+            //    Color = "Grey"
+            //};
 
             var vSubList = new List<FilterData>
             {
-                vSubOne, vSubTwo, vSubThree
+                vSubOne, vSubTwo //, vSubThree
             };
 
             return vSubList;

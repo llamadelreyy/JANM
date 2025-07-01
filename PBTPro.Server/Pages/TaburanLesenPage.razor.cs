@@ -64,7 +64,7 @@ namespace PBTPro.Pages
         ////IEnumerable<(NoticeProp, int)> Items;
 
         //Premis data
-        //////IEnumerable<dynamic> premisData;
+        ////IEnumerable<dynamic> premisData;
         IEnumerable<general_search_premis_detail> searchData;
         IEnumerable<general_search_premis_detail> licenseData;
         //IEnumerable<(general_search_premis_detail, int)> Items;
@@ -310,8 +310,8 @@ namespace PBTPro.Pages
                 // Add listener for map api polygon data -- ismail
                 await ProcessMapAPIData(1);
 
-                //Get record
-                //////premisData = await _PremisService.GetList(); //AZMEE
+                //////Get record
+                ////premisData = await _PremisService.GetList(); //AZMEE
 
 
                 ////premisItem = premisData.Select((item, index) => (item, index));
@@ -427,12 +427,12 @@ namespace PBTPro.Pages
 
                             string no_lot = string.IsNullOrEmpty(_premis.lot.ToString()) ? "?" : _premis.lot.ToString();
                             int lesen_status_id = GetIdColor(lesen_status); //GetIdColor(marker_color);
-                            string marker_color = GetColorLot(lesen_status_id); // _premis.marker_color;
+                            string marker_color = _premis.marker_color; //GetColorLot(lesen_status_id);
 
-                            int TotalLesenAktif = _premis.total_lesen_aktif;
-                            int TotalTidakBerlesen = _premis.total_lesen_tidak_berlesen;
-                            int TotalLesenGantung = _premis.total_lesen_gantung;
-                            int TotalTiadaData = _premis.total_lesen_tiada_data;
+                            //int TotalLesenAktif = _premis.total_lesen_aktif;
+                            //int TotalTidakBerlesen = _premis.total_lesen_tidak_berlesen;
+                            //int TotalLesenGantung = _premis.total_lesen_gantung;
+                            //int TotalTiadaData = _premis.total_lesen_tiada_data;
 
                             //For temp DEMO
                             int cukai_status_id = 7;
@@ -467,7 +467,7 @@ namespace PBTPro.Pages
 
                                     foreach (var _lcs in licenseData)
                                     {
-                                        CountPremisStatus(_lcs.license_status_id, 1, _lcs.license_status_id);
+                                        CountPremisStatus(_lcs.license_status_id, 1);
                                     }
 
                                     CountCukaiStatus(cukai_status_id);
@@ -490,7 +490,7 @@ namespace PBTPro.Pages
 
                                             foreach (var _lcs in licenseData)
                                             {
-                                                CountPremisStatus(_lcs.license_status_id, 1, lesen_status_id);
+                                                CountPremisStatus(_lcs.license_status_id, 1);
                                             }
 
                                             CountCukaiStatus(cukai_status_id);
@@ -519,11 +519,10 @@ namespace PBTPro.Pages
                                                 //CountPremisStatus(lesen_status_id, intPointLesen);
                                                 foreach (var _lcs in licenseData)
                                                 {
-                                                    CountPremisStatus(_lcs.license_status_id, 1, lesen_status_id);
+                                                    CountPremisStatus(_lcs.license_status_id, 1);
                                                 }
                                             }
                                         }
-
                                     }
                                 }
 
@@ -685,7 +684,6 @@ namespace PBTPro.Pages
                     }
                 }
 
-
                 //====== ADD HERE =======
                 //////////var boundsLiteral = await _bounds.ToJson();
                 //////////await map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, Padding>.FromT0(5));
@@ -698,25 +696,32 @@ namespace PBTPro.Pages
             return result;
         }
 
-        private void CountPremisStatus(int? statusID, int TotalLesen, int currentStatusId)
+        private void CountPremisStatus(int? statusID, int TotalLesen)
         {
+
             if (statusID == 1) //Aktif
             {
-                //mintAktif += 1;
-                if (statusID == currentStatusId)
-                    _mintTotalLesenAktif += TotalLesen;
-            }
+                _mintTotalLesenAktif += TotalLesen;
+                //if (SelectedIds.Contains(statusID.ToString()))
+                //{
+                //    _mintTotalLesenAktif += TotalLesen;
+                //}
+            } 
             else if (statusID == 5) //Tidak Berlesen
             {
-                //mintTamatTempoh += 1;
-                if (statusID == currentStatusId)
-                    _mintTotalTidakBerlesen += TotalLesen;
-            }
+                _mintTotalTidakBerlesen += TotalLesen;
+                //if (SelectedIds.Contains(statusID.ToString()))
+                //{
+                //    _mintTotalTidakBerlesen += TotalLesen;
+                //}
+            } 
             else if (statusID == 4) //Tiada Data
             {
-                //mintTiadaData += 1;
-                if (statusID == currentStatusId)
-                    _mintTotalTiadaData += TotalLesen;
+                _mintTotalTiadaData += TotalLesen;
+                //if (SelectedIds.Contains(statusID.ToString()))
+                //{
+                //    _mintTotalTiadaData += TotalLesen;
+                //}
             }
         }
 
