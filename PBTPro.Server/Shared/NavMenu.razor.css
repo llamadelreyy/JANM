@@ -35,13 +35,12 @@
 ::deep .app-sidebar {
     --dxbl-treeview-spacing-x: 0.5rem;
     --dxbl-treeview-spacing-y: 0.5rem;
-       
 }
 
 
-::deep .app-sidebar .root-item > :first-child {
-    --dxbl-treeview-font-weight: 600;
-}
+    ::deep .app-sidebar .root-item > :first-child {
+        --dxbl-treeview-font-weight: 900;
+    }
 
 
 ::deep .app-sidebar .root-item > :only-child:not(.dxbl-treeview-tmpl) > button {

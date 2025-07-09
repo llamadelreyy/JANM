@@ -505,6 +505,7 @@ ShowFooter="true"
     public async Task OpenNewStreetWindow(string latitude, string longitude)
     {
         await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,0,0,0,0", "_blank");
+        // await JSRuntime.InvokeVoidAsync("open", "http://maps.google.com/maps?q=&layer=c&cbll=" + latitude + "," + longitude + "&cbp=11,90,0,2,0", "_blank");
     }
 
     // public async Task ShowDetails(int trnId)

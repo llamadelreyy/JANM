@@ -650,10 +650,16 @@ i[class^="ri"] {
 }
 
 .dxbl-treeview-item-text {
-    font-family: var(--bs-body-font-family), Roboto-Light;
+    font-family: Roboto-Thin, var(--bs-body-font-family), Roboto-Light;
     letter-spacing: 0.02rem;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    font-weight:bold;
+}
 
+.app-sidebar .root-item > :first-child .dxbl-treeview-item-text {
+    font-family: Roboto-Light;
+    font-size: 0.88rem;
+    font-weight: 900;
 }
 
 img.dxbl-image {
@@ -755,8 +761,8 @@ img.dxbl-image {
     letter-spacing: 0.06rem;
     margin: 0 0 0 0;
     margin-right: 1px;
-    border: 1px solid #999;
-    font-size: 0.8rem;
+    border: 2px solid #2f5d8a;
+    font-size: 0.75rem;
     text-transform: uppercase;
     line-height: 12px;
     font-weight: bold;
@@ -781,15 +787,16 @@ img.dxbl-image {
 }
 
     .tableMap {
-        font-family:Roboto-Light;
+        font-family:Roboto-Thin;
         text-transform: uppercase;
         letter-spacing: 0.03rem;
     }
 
         .tableMap td {
-            font-size: 1.05em !important;
+            font-size: 0.8rem !important;
             letter-spacing: 0.08rem;
             padding: 3px 5px 3px 5px;
+            font-weight:bold;
         }
 
         .tableMap th {
@@ -1036,11 +1043,22 @@ img.dxbl-image {
 }
 
 .dashboard-wrap span.totalinnumber {
-    font-weight: bold;
+    font-family: Roboto-Medium, Arial, sans-serif;
+    font-weight: normal;
     font-size: 2rem;
-    letter-spacing: 0.2rem;
+    letter-spacing: 0.1rem;
     align-self: center;
     color: #fff;
+}
+
+.dashboard-wrap span.totalpercent {
+    padding-left:10px;
+    font-family: Roboto-Thin;
+    font-weight: normal;
+    font-size: 0.85rem;
+    /*letter-spacing: 0.1rem;*/
+    align-self: center;
+    color: #ccc;
 }
 
 .dashboard-wrap span.totalall {
@@ -1055,7 +1073,7 @@ img.dxbl-image {
 .dashboard-wrap span.totalallbig {
     font-weight: bold;
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 1rem;
     letter-spacing: 0.15rem;
     text-transform: uppercase;
     align-self: center;
@@ -1138,6 +1156,8 @@ img.dxbl-image {
     background-color: #f5f5f5; /* Light gray background */
     padding: 3px 10px 1px 10px; /* Padding for the panel */
     border-top: 1px solid #ddd; /* Border at the top */
+/*    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;*/
     /*border-radius: 0 0 3px 3px;*/ /* Rounded corners at the bottom */
 }
 
@@ -1148,6 +1168,7 @@ img.dxbl-image {
         text-transform: uppercase;
         font-weight: bold;
         color: #337ab7; /* Text color */
+       
     }
 
     .panel-box-footer .pull-right {
@@ -1897,4 +1918,44 @@ label {
     font-size: 1rem;
     letter-spacing: 0.08rem;
     text-transform: uppercase;
+}
+
+/* CSS */
+.button-14 {
+    background-image: linear-gradient(#f7f8fa,#e7e9ec);
+    border-color: #adb1b8 #a2a6ac #8d9096;
+    border-style: solid;
+    border-width: 1px;
+    box-shadow: rgba(255,255,255,.6) 0 1px 0 inset;
+    box-sizing: border-box;
+    color: #0f1111;
+    cursor: pointer;
+    display: inline-block;
+    height: 33px;
+    letter-spacing: 0.06rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    margin-right: 1px;
+    outline: 0;
+    overflow: hidden;
+    padding: 0 11px;
+    text-align: center;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: nowrap;
+}
+
+.button-14:active {
+    border-bottom-color: #a2a6ac;
+}
+
+    .button-14:active:hover {
+        border-bottom-color: #a2a6ac;
+    }
+
+.button-14:hover {
+    border-color: #a2a6ac #979aa1 #82858a;
 }

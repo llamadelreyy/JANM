@@ -561,7 +561,8 @@ namespace PBTPro.Pages
                                         Position = latLng,
                                         Map = map1.InteropObject,
                                         //Title = no_lot,  //comment the tooltip for faster loading
-                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='2' fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                        //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='2' fill='" + marker_color + "'/></svg><label class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</label><label class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</label></div>",
+                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""20"" height=""20"" viewBox=""0 0 20 20""><circle cx=""10"" cy=""10"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='1.5' fill='" + marker_color + "'/></svg><span class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</span><span class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</span></div>",
                                     });
 
                                     markers.Push(_marker);
@@ -588,8 +589,9 @@ namespace PBTPro.Pages
                                                 Position = latLng,
                                                 Map = map1.InteropObject,
                                                 //Title = no_lot,  //comment the tooltip for faster loading
-                                                //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='2' fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                                //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><label class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</label><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</label></div>",
+                                                //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='2' fill='" + marker_color + "'/></svg><label class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</label><label class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</label></div>",
+                                                Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""20"" height=""20"" viewBox=""0 0 20 20""><circle cx=""10"" cy=""10"" r=""4"" stroke='" + cukai_marker_color + "' stroke-width='1.5' fill='" + marker_color + "'/></svg><span class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</span><span class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</span></div>",
                                             });
 
                                             markers.Push(_marker);
@@ -612,8 +614,9 @@ namespace PBTPro.Pages
                                                     Position = latLng,
                                                     Map = map1.InteropObject,
                                                     //Title = no_lot,  //comment the tooltip for faster loading
-                                                    //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + cukai_marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                                    //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><label class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</label><label class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</label></div>",
+                                                    //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + cukai_marker_color + "'/></svg><label class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</label><label class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</label></div>",
+                                                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""20"" height=""20"" viewBox=""0 0 20 20""><circle cx=""10"" cy=""10"" r=""4"" fill='" + cukai_marker_color + "'/></svg><span class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</span><span class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</span></div>",
                                                 });
 
                                                 markers.Push(_marker);
@@ -636,8 +639,9 @@ namespace PBTPro.Pages
                                                         Position = latLng,
                                                         Map = map1.InteropObject,
                                                         //Title = no_lot,  //comment the tooltip for faster loading
-                                                        //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + cukai_marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                                        //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><label class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</label><label class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</label></div>",
+                                                        //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + cukai_marker_color + "'/></svg><label class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</label><label class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</label></div>",
+                                                        Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""20"" height=""20"" viewBox=""0 0 20 20""><circle cx=""10"" cy=""10"" r=""4"" fill='" + cukai_marker_color + "'/></svg><span class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</span><span class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</span></div>",
                                                     });
 
                                                     markers.Push(_marker);
@@ -664,8 +668,9 @@ namespace PBTPro.Pages
                                                     Position = latLng,
                                                     Map = map1.InteropObject,
                                                     //Title = no_lot,  //comment the tooltip for faster loading
-                                                    //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
-                                                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + marker_color + "'/></svg><lable class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</lable><lable class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</lable></div>",
+                                                    //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""5"" fill='" + marker_color + "'/></svg><label class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</label><label class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</label></div>",
+                                                    //Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""26"" height=""26"" viewBox=""0 0 30 30""><circle cx=""15"" cy=""15"" r=""4"" fill='" + marker_color + "'/></svg><label class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</label><label class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</label></div>",
+                                                    Content = @"<div><svg xmlns=""http://www.w3.org/2000/svg"" width=""20"" height=""20"" viewBox=""0 0 20 20""><circle cx=""10"" cy=""10"" r=""4"" fill='" + marker_color + "'/></svg><span class='map-marker-label' style='position:relative'>" + $"{no_lot}" + "</span><span class='map-marker-label' style='position:relative;margin-left:1px;'>" + $"{intPointLesen.ToString()}" + "</span></div>",
                                                 });
 
                                                 markers.Push(_marker);
@@ -1059,7 +1064,7 @@ namespace PBTPro.Pages
             var vSubTwo = new FilterData()
             {
                 TypeId = 8,
-                Description = "Tidak Bercukai",
+                Description = "Tidak Dikenalpasti",
                 Color = "red"
             };
 
@@ -1235,7 +1240,6 @@ namespace PBTPro.Pages
                     }
 
                     //Count the total premis
-                    //await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
                     await InvokeClustering(intStart, bounds.South, bounds.West, bounds.North, bounds.East);
 
                     _isProcessing = false;
@@ -1281,6 +1285,7 @@ namespace PBTPro.Pages
                         }).ToList();
 
                         var semaphore = new SemaphoreSlim(1000);
+                        //////List<LatLngLiteral> allPoints = new();
 
                         foreach (var data in filteredDatas)
                         {
@@ -1327,17 +1332,35 @@ namespace PBTPro.Pages
                                         }
                                         else if (geometry.type == "MultiPolygon")
                                         {
+                                            //////List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+                                            //////foreach (var polygon in geometry.coordinates)
+                                            //////{
+                                            //////    multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+                                            //////}
+
+                                            //////latLngs = multiPolygonCoords;
+                                            ///
                                             List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
 
                                             foreach (var polygon in geometry.coordinates)
                                             {
-                                                multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+                                                foreach (var ring in polygon)
+                                                {
+                                                    multiPolygonCoords.Add(ConvertGeoJsonToLatLng(ring));
+                                                }
                                             }
 
                                             latLngs = multiPolygonCoords;
                                         }
 
                                         await CreatePolygon(latLngs, data); // Assuming CreatePolygon is async
+
+                                        //////// Collect all points for bounds
+                                        //////foreach (var path in latLngs)
+                                        //////{
+                                        //////    allPoints.AddRange(path);
+                                        //////}
                                     }
 
                                     //_drawnLots[dataId] = geometry.type;
@@ -1354,6 +1377,8 @@ namespace PBTPro.Pages
                             }));
 
                         }
+
+                        //////await FitMapToBoundsAsync(this.map1, new[] { allPoints });
 
                         if (tasks.Count > 0)
                         {
@@ -1429,8 +1454,22 @@ namespace PBTPro.Pages
 
         public IEnumerable<LatLngLiteral> ConvertGeoJsonToLatLng(JArray geoJsonCoords)
         {
+            //////List<List<double>> coords = geoJsonCoords.ToObject<List<List<double>>>();
+            //////return coords.Select(coord => new LatLngLiteral(coord[1], coord[0]));
+            ///
+
             List<List<double>> coords = geoJsonCoords.ToObject<List<List<double>>>();
-            return coords.Select(coord => new LatLngLiteral(coord[1], coord[0]));
+
+            var points = coords.Select(coord => new LatLngLiteral(coord[1], coord[0])).ToList();
+
+            // Ensure the ring is closed (first point == last point)
+            if (points.Count > 0 &&
+                (points.First().Lat != points.Last().Lat || points.First().Lng != points.Last().Lng))
+            {
+                points.Add(points.First());
+            }
+
+            return points;
         }
 
         //private async Task CreateMarker(LatLngLiteral position, dynamic data)
@@ -1477,15 +1516,45 @@ namespace PBTPro.Pages
                 Paths = latLngs,
                 StrokeColor = "#0000FF",
                 StrokeOpacity = (float?)0.8,
-                StrokeWeight = 2,
+                StrokeWeight = 1,
                 FillColor = "#0000FF",
-                FillOpacity = (float?)0.35
+                FillOpacity = (float?)0
+                //FillOpacity = (float?)0.35
             };
 
             var polygon = await GoogleMapsComponents.Maps.Polygon.CreateAsync(this.map1.JsRuntime, polygonOptions);
             await polygon.SetMap(this.map1.InteropObject);
 
+            ////await FitMapToBoundsAsync(this.map1, latLngs);
         }
+
+        //////public async Task FitMapToBoundsAsync(GoogleMap map, IEnumerable<IEnumerable<LatLngLiteral>> latLngs)
+        //////{
+        //////    double minLat = double.MaxValue, maxLat = double.MinValue;
+        //////    double minLng = double.MaxValue, maxLng = double.MinValue;
+
+        //////    foreach (var path in latLngs)
+        //////    {
+        //////        foreach (var point in path)
+        //////        {
+        //////            minLat = Math.Min(minLat, point.Lat);
+        //////            maxLat = Math.Max(maxLat, point.Lat);
+        //////            minLng = Math.Min(minLng, point.Lng);
+        //////            maxLng = Math.Max(maxLng, point.Lng);
+        //////        }
+        //////    }
+
+        //////    var center = new LatLngLiteral
+        //////    {
+        //////        Lat = (minLat + maxLat) / 2,
+        //////        Lng = (minLng + maxLng) / 2
+        //////    };
+
+        //////    //await map.SetCenter(center);
+        //////    //await map.SetZoom(15); // You can adjust this based on your desired zoom level
+        //////    await map.InteropObject.SetCenter(center);
+        //////    await map.InteropObject.SetZoom(15);
+        //////}
         #endregion
     }
 
