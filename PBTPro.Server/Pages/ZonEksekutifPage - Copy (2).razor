@@ -1,4 +1,4 @@
-﻿@page "/zon_Eksekutif"
+﻿@page "/zon_Eksekutif_copy2"
 @attribute [Authorize]
 
 @implements IDisposable
@@ -39,129 +39,153 @@
     else
     {
         <div class="item-container-y">
+
+            @*             <div class="table-container">
+                <h3 class="table-title">Maklumat Premis & Lesen</h3>
+                <div class="table-border">
+                    <table class="default-table">
+                        <thead>
+                            <tr>
+                                <th style="width:70%">Keterangan</th>
+                                <th style="width:30%;text-align:center">Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Jumlah Premis Perniagaan</td>
+                                <td style="text-align:right">54</td>
+                            </tr>
+                            <tr>
+                                <td>Jumlah Premis Berlesen</td>
+                                <td style="text-align:right">18</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> *@
+
             <div class="d-lg-flex" style="padding:0 0 0 0;">
-                <div class="d-lg-flex col-12 dashboard">
-                    <!-- Bilangan Premis Card -->
-                    <div class="col-sm-12 col-lg-4 col-md-12 card-d">
-                        <div class="card-header-d">
-                            <div class="card-title-d">
-                                <div class="card-icon premises-icon">🏢</div>
-                                Bilangan Premis
-                            </div>
-                        </div>
-                        <div class="main-number" id="premisesCount">@dtFinancial.total_premis_perniagaan</div>
-                        <div class="chart-container">
-                            <div class="donut-chart">
-                                <svg viewBox="0 0 160 160">
-                                    <circle cx="80" cy="80" r="70" fill="none" stroke="#e2e8f0" stroke-width="20" />
-                                    <circle cx="80" cy="80" r="70" fill="none" stroke="#667eea" stroke-width="20"
-                                            stroke-dasharray="440" stroke-dashoffset="110" class="donut-segment"
-                                            style="--target-offset: 110;" />
-                                </svg>
-                                <div class="donut-chart-center">
-                                    <div class="center-number">@dtFinancial.total_premis_perniagaan</div>
-                                    <div class="center-label">Jum. Premis</div>
+                <div class="d-lg-flex col-12">
+
+                    <div class="col-sm-12 col-lg-4 col-md-4 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+
+                            <div style="width:100%;display: flex;">
+                                <div style="position:relative;width:20%;height:200px;padding:10px;">
+                                    <div class="circle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M21 21H3C2.44772 21 2 20.5523 2 20V12.4868C2 12.1978 2.12501 11.9229 2.34282 11.733L6 8.54435V4C6 3.44772 6.44772 3 7 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21ZM9 19H12V12.9416L8 9.45402L4 12.9416V19H7V15H9V19ZM14 19H20V5H8V7.12729C8.23444 7.12729 8.46888 7.20938 8.65718 7.37355L13.6572 11.733C13.875 11.9229 14 12.1978 14 12.4868V19ZM16 11H18V13H16V11ZM16 15H18V17H16V15ZM16 7H18V9H16V7ZM12 7H14V9H12V7Z"></path></svg>
+                                    </div>
+                                </div>
+                                <div class="dashboard-wrap" style="z-index:10;width:80%;height:200px">
+                                    <div class="dashboard-center-text">
+                                        <span class="totalinword">Bilangan Premis</span>
+                                        <hr style="padding:0;margin:0;color:#fff" />
+                                        <span class="totalinnumber">
+                                            @(dtFinancial.total_premis_perniagaan)
+                                        </span>
+                                    </div>
+
                                 </div>
                             </div>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="--progress-width: 75%;"></div>
+                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Premis Perniagaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
+
                         </div>
                     </div>
 
-                    <!-- Jumlah Lesen Card -->
-                    <div class="col-sm-12 col-lg-4 col-md-12 card-d">
-                        <div class="card-header-d">
-                            <div class="card-title-d">
-                                <div class="card-icon license-icon">📜</div>
-                                Status Lesen
+@*                     <div class="col-sm-12 col-lg-4 col-md-4 dashboard-box">
+                        <div class="dashboard-style-big" style="background-color:white;border-top:5px #333 solid; border-radius:10px;">
+
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; font-family: 'Segoe UI', sans-serif; color: #333;">
+                                <div style="font-weight: 600; font-size: 1.2rem;">Bilangan Premis</div>
+                                <div style="font-size: 2rem; font-weight: bold; color: #0078D4;">755</div>
+                                <div style="height:200px;">
+                                <DxPieChart Data="@GetDataCukai()"
+                                            Width="200"    
+                                            Height="200"
+                                            InnerDiameter="0.75"
+                                            StartAngle="0"
+                                            SegmentDirection="PieChartSegmentDirection.Clockwise"
+                                            Palette="@Colors">
+                                    <DxChartLegend Visible="false" />
+                                    <DxPieChartSeries ArgumentField="@((DataPoint s) => s.Argument)"
+                                                      ValueField="@((DataPoint s) => s.Value)">
+
+                                        <DxChartSeriesLabel Visible="false"
+                                                            Position="RelativePosition.Outside"
+                                                            ValueFormat="ChartElementFormat.Thousands(1)">
+                                            <DxChartSeriesLabelConnector Visible="true" />
+                                        </DxChartSeriesLabel>
+                                    </DxPieChartSeries>
+                                    <DxChartTooltip Enabled="true"
+                                                    Position="RelativePosition.Outside">
+                                        <div style="margin: 0.75rem">
+                                            <div class="chart-tooltip">@context.Point.Argument</div>
+                                            <div class="dashboard-center-text chart-tooltip">@($"{context.Point.Value:#,0.}")</div>
+                                        </div>
+                                    </DxChartTooltip>
+                                </DxPieChart>
+                                </div>
+                                <div style="font-size: 0.9rem; font-style: italic; color: #666;">Data sehingga 30 Jun</div>
                             </div>
+                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Premis Perniagaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
+
                         </div>
-                        <div class="main-number" id="licenseTotal">@mintAktif</div>
-                        <div class="chart-container">
-                            <div class="donut-chart">
-                                <svg viewBox="0 0 160 160">
-                                    <circle cx="80" cy="80" r="70" fill="none" stroke="#e2e8f0" stroke-width="20" />
-                                    <circle cx="80" cy="80" r="70" fill="none" stroke="lightgreen" stroke-width="20"
-                                            stroke-dasharray="440" stroke-dashoffset="235" class="donut-segment"
-                                            style="--target-offset: 235;" />
-                                    <circle cx="80" cy="80" r="70" fill="none" stroke="lightgreen" stroke-width="20"
-                                            stroke-dasharray="440" stroke-dashoffset="440" class="donut-segment"
-                                            style="--target-offset: 205; animation-delay: 0.5s;" />
-                                </svg>
-                                <div class="donut-chart-center">
-                                    <div class="center-number">@mintAktif</div>
-                                    <div class="center-label">Jum. Lesen</div>
+                    </div> *@
+
+                    <div class="col-sm-12 col-lg-4 col-md-4 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+
+                            <div style="width:100%;display: flex;">
+                                <div style="position:relative;width:10%;height:200px;padding:10px;">
+                                    <div class="circle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M3 6H21V18H3V6ZM2 4C1.44772 4 1 4.44772 1 5V19C1 19.5523 1.44772 20 2 20H22C22.5523 20 23 19.5523 23 19V5C23 4.44772 22.5523 4 22 4H2ZM13 8H19V10H13V8ZM18 12H13V14H18V12ZM10.5 10C10.5 11.3807 9.38071 12.5 8 12.5C6.61929 12.5 5.5 11.3807 5.5 10C5.5 8.61929 6.61929 7.5 8 7.5C9.38071 7.5 10.5 8.61929 10.5 10ZM8 13.5C6.067 13.5 4.5 15.067 4.5 17H11.5C11.5 15.067 9.933 13.5 8 13.5Z"></path></svg>
+                                    </div>
+                                </div>
+                                <div class="dashboard-wrap" style="z-index:10;width:90%;height:200px">
+                                    <div class="dashboard-center-text">
+                                        <span class="totalinword">Status Lesen</span>
+                                        <span class="totalinnumber">
+                                            @mintAktif
+                                            @* @mintTotalBercukai *@
+                                        </span>
+                                        <hr style="padding:0;margin:0;color:#fff" />
+                                        <br />
+                                        <div style="display: flex;"><span class="totalallbig">Berlesen <i class="ri-arrow-right-fill"></i> @dtFinancial.total_lesen_aktif </span><span class="totalpercent">(@peratusanLesenAktif)</span></div>
+                                        <div style="display: flex;"><span class="totalallbig">Tidak Berlesen <i class="ri-arrow-right-fill"></i> @mintTidakBerlesen </span><span class="totalpercent">(@peratusanLesenTakAktif)</span></div>
+                                    </div>
+
                                 </div>
                             </div>
-                        </div>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="stat-number berlesen">@dtFinancial.total_lesen_aktif</div>
-                                <div class="stat-label">Berlesen</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-number tidak-berlesen">@mintTidakBerlesen</div>
-                                <div class="stat-label">Tidak Berlesen</div>
-                            </div>
-                        </div>
-                        <div class="legend-d">
-                            <div class="legend-item">
-                                <div class="legend-color" style="background: lightgreen;"></div>
-                                <span>Berlesen (@peratusanLesenAktif)</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background: lightcoral;"></div>
-                                <span>Tidak Berlesen (@peratusanLesenTakAktif)</span>
-                            </div>
+                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Lesen Perniagaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
+
                         </div>
                     </div>
 
-                    <!-- Jumlah Cukai Card -->
-                    <div class="col-sm-12 col-lg-4 col-md-12 card-d">
-                        <div class="card-header-d">
-                            <div class="card-title-d">
-                                <div class="card-icon tax-icon">💰</div>
-                                Status Cukai
-                            </div>
-                        </div>
-                        <div class="main-number" id="taxTotal">@dtFinancial.total_premis_perniagaan</div>
-                        <div class="chart-container">
-                            <div class="donut-chart">
-                                <svg viewBox="0 0 160 160">
-                                    <circle cx="80" cy="80" r="70" fill="none" stroke="#e2e8f0" stroke-width="20" />
-                                    <circle cx="80" cy="80" r="70" fill="none" stroke="yellowgreen" stroke-width="20"
-                                            stroke-dasharray="440" stroke-dashoffset="331" class="donut-segment"
-                                            style="--target-offset: 331;" />
-                                    <circle cx="80" cy="80" r="70" fill="none" stroke="yellowgreen" stroke-width="20"
-                                            stroke-dasharray="440" stroke-dashoffset="440" class="donut-segment"
-                                            style="--target-offset: 109; animation-delay: 0.5s;" />
-                                </svg>
-                                <div class="donut-chart-center">
-                                    <div class="center-number">@dtFinancial.total_premis_perniagaan</div>
-                                    <div class="center-label">Jum. Cukai</div>
+                    <div class="col-sm-12 col-lg-4 col-md-4 dashboard-box">
+                        <div class="dashboard-style-big big-color">
+
+                            <div style="width:100%;display: flex;">
+                                <div style="position:relative;width:10%;height:200px;padding:10px;">
+                                    <div class="circle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="#02699a"><path d="M4 2H20C20.5523 2 21 2.44772 21 3V21C21 21.5523 20.5523 22 20 22H4C3.44772 22 3 21.5523 3 21V3C3 2.44772 3.44772 2 4 2ZM5 4V20H19V4H5ZM7 6H17V10H7V6ZM7 12H9V14H7V12ZM7 16H9V18H7V16ZM11 12H13V14H11V12ZM11 16H13V18H11V16ZM15 12H17V18H15V12Z"></path></svg>
+                                    </div>
+                                </div>
+                                <div class="dashboard-wrap" style="z-index:10;width:90%;height:200px">
+                                    <div class="dashboard-center-text">
+                                        <span class="totalinword">Status Cukai</span>
+                                        <span class="totalinnumber">
+                                            @dtFinancial.total_premis_perniagaan
+                                        </span>
+                                        <hr style="padding:0;margin:0;color:#fff" />
+                                        <br />
+                                        <div style="display: flex;"><span class="totalallbig">Bercukai <i class="ri-arrow-right-fill"></i> @(dtFinancial.total_premis_perniagaan - mintTotalTakBercukai) </span><span class="totalpercent">(@peratusanCukai)</span></div>
+                                        <div style="display: flex;"><span class="totalallbig">Tidak Dikenalpasti <i class="ri-arrow-right-fill"></i> @mintTotalTakBercukai </span><span class="totalpercent">(@peratusanTakCukai)</span></div>
+                                    </div>
+
                                 </div>
                             </div>
-                        </div>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="stat-number bercukai">@(dtFinancial.total_premis_perniagaan - mintTotalTakBercukai)</div>
-                                <div class="stat-label">Bercukai</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-number tidak-dikenalpasti">@mintTotalTakBercukai</div>
-                                <div class="stat-label">Tidak Dikenalpasti</div>
-                            </div>
-                        </div>
-                        <div class="legend-d">
-                            <div class="legend-item">
-                                <div class="legend-color" style="background: yellowgreen;"></div>
-                                <span>Bercukai (@peratusanCukai)</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background: red;"></div>
-                                <span>Tidak Dikenalpasti (@peratusanTakCukai)</span>
-                            </div>
+                            <a href="jumlesenaktif"><div class="panel-box-footer"><span class="pull-left">Perincian Cukai Perniagaan</span> <span class="pull-right"><i class="ri-arrow-right-circle-line"></i></span><div class="clearfix"></div> </div> </a>
+
                         </div>
                     </div>
                 </div>
