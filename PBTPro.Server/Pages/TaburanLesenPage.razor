@@ -31,9 +31,9 @@
 
 @* <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@AfterMapInit"></GoogleMap> *@
 <div class="topMapControl">
-    <button id="buttonTapis" @onclick="@(() => OpenFilter(0))" class="buttonControlMap" disabled="@(PanelVisible ? true : null)">Tapisan</button>
-    <button id="buttonSearch" @onclick="@(() => OpenFilter(1))" class="buttonControlMap" disabled="@(PanelVisible ? true : null)">Carian Premis</button>
-    <button @onclick="AddLegend" class="buttonControlMap">Legend</button>
+    <button id="buttonTapis" @onclick="@(() => OpenFilter(0))" class="button-14" disabled="@(PanelVisible ? true : null)">Tapisan</button>
+    <button id="buttonSearch" @onclick="@(() => OpenFilter(1))" class="button-14" disabled="@(PanelVisible ? true : null)">Carian Premis</button>
+    <button @onclick="AddLegend" class="button-14">Legend</button>
     <input type="text" @ref="this.searchBox" id="searchBox" class="searchMap" placeholder="Masukkan nama tempat untuk dicari..." disabled="@(PanelVisible ? true : null)" />
     @* <button @onclick="Search" class="buttonControlMap">Cari Tempat</button> *@
 </div>
@@ -181,14 +181,14 @@
         </tr>
         <tr>
             <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Green" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="lightgreen" /></svg>
             </td>
             <td style="width:100%;border-left:1px solid #ccc;">Bil. Berlesen</td>
             <td class="text-right">@_mintTotalLesenAktif</td>
         </tr>
         <tr>
             <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Red" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="lightcoral" /></svg>
             </td>
             <td style="width:100%;border-left:1px solid #ccc;">Bil. Tidak Berlesen</td>
             <td class="text-right">@_mintTotalTidakBerlesen</td>
@@ -205,16 +205,16 @@
         </tr>
         <tr>
             <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Yellow" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="yellowgreen" /></svg>
             </td>
             <td style="width:100%;border-left:1px solid #ccc;">Bil. Bercukai</td>
             <td class="text-right">@mintAktif</td>
         </tr>
         <tr>
             <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="Black" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 30 30"><circle cx="15" cy="15" r="5" fill="red" /></svg>
             </td>
-            <td style="width:100%;border-left:1px solid #ccc;">Bil. Tidak Bercukai</td>
+            <td style="width:100%;border-left:1px solid #ccc;">Bil. Tidak Dikenalpasti</td>
             <td class="text-right">@mintTamatTempoh</td>
         </tr>
         <tr style="height:26px">
