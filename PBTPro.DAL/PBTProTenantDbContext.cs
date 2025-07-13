@@ -107,11 +107,15 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<trn_inspect_img> trn_inspect_imgs { get; set; }
 
+    public virtual DbSet<trn_licensee> trn_licensees { get; set; }
+
     public virtual DbSet<trn_notice> trn_notices { get; set; }
 
     public virtual DbSet<trn_notice_img> trn_notice_imgs { get; set; }
 
     public virtual DbSet<trn_patrol_officer> trn_patrol_officers { get; set; }
+
+    public virtual DbSet<trn_premis> trn_premis { get; set; }
 
     public virtual DbSet<trn_premis_visit> trn_premis_visits { get; set; }
 
@@ -1873,6 +1877,48 @@ public partial class PBTProTenantDbContext : DbContext
                 .HasConstraintName("fk_trn_inspect_img_trn_inspect_id");
         });
 
+        modelBuilder.Entity<trn_licensee>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("trn_licensees_pkey");
+
+            entity.ToTable("trn_licensees", "tenant");
+
+            entity.Property(e => e.activity).HasColumnType("character varying");
+            entity.Property(e => e.business_addr).HasMaxLength(255);
+            entity.Property(e => e.business_name).HasMaxLength(100);
+            entity.Property(e => e.codeid_premis).HasMaxLength(100);
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasDefaultValue(0);
+            entity.Property(e => e.floor).HasColumnType("character varying");
+            entity.Property(e => e.image_1).HasColumnType("character varying");
+            entity.Property(e => e.image_2).HasColumnType("character varying");
+            entity.Property(e => e.image_3).HasColumnType("character varying");
+            entity.Property(e => e.image_4).HasColumnType("character varying");
+            entity.Property(e => e.image_5).HasColumnType("character varying");
+            entity.Property(e => e.image_6).HasColumnType("character varying");
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.license_accno).HasMaxLength(40);
+            entity.Property(e => e.license_status_id).HasDefaultValue(1);
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasDefaultValue(0);
+            entity.Property(e => e.notes).HasColumnType("character varying");
+            entity.Property(e => e.owner_addr).HasMaxLength(255);
+            entity.Property(e => e.owner_email).HasMaxLength(100);
+            entity.Property(e => e.owner_icno).HasMaxLength(20);
+            entity.Property(e => e.owner_name).HasMaxLength(100);
+            entity.Property(e => e.owner_telno).HasMaxLength(40);
+            entity.Property(e => e.pic_name).HasColumnType("character varying");
+            entity.Property(e => e.pic_phone_no).HasColumnType("character varying");
+            entity.Property(e => e.ssm_no).HasColumnType("character varying");
+            entity.Property(e => e.status)
+                .HasMaxLength(20)
+                .HasDefaultValueSql("'New'::character varying");
+        });
+
         modelBuilder.Entity<trn_notice>(entity =>
         {
             entity.HasKey(e => e.trn_notice_id).HasName("trn_notices_pkey");
@@ -2019,6 +2065,39 @@ public partial class PBTProTenantDbContext : DbContext
             entity.HasOne(d => d.visit).WithMany(p => p.trn_patrol_officers)
                 .HasForeignKey(d => d.visit_id)
                 .HasConstraintName("fk_visit_id");
+        });
+
+        modelBuilder.Entity<trn_premis>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("trn_premis_pkey");
+
+            entity.ToTable("trn_premis", "tenant");
+
+            entity.Property(e => e.address).HasColumnType("character varying");
+            entity.Property(e => e.category).HasMaxLength(50);
+            entity.Property(e => e.codeid_premis).HasMaxLength(100);
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.creator_id).HasDefaultValue(0);
+            entity.Property(e => e.geom).HasColumnType("geometry(Point,4326)");
+            entity.Property(e => e.image).HasMaxLength(255);
+            entity.Property(e => e.is_deleted).HasDefaultValue(false);
+            entity.Property(e => e.lot).HasColumnType("character varying");
+            entity.Property(e => e.modified_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modifier_id).HasDefaultValue(0);
+            entity.Property(e => e.notes).HasColumnType("character varying");
+            entity.Property(e => e.owner_addr).HasMaxLength(255);
+            entity.Property(e => e.owner_email).HasMaxLength(100);
+            entity.Property(e => e.owner_icno).HasMaxLength(20);
+            entity.Property(e => e.owner_name).HasMaxLength(100);
+            entity.Property(e => e.owner_telno).HasMaxLength(40);
+            entity.Property(e => e.status)
+                .HasMaxLength(20)
+                .HasDefaultValueSql("'New'::character varying");
+            entity.Property(e => e.tax_accno).HasMaxLength(40);
         });
 
         modelBuilder.Entity<trn_premis_visit>(entity =>
