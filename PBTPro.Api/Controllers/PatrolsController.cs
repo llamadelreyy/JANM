@@ -476,6 +476,7 @@ namespace PBTPro.Api.Controllers
                                                   orderby p.schedule_id descending
                                                   select new
                                                   {
+                                                      pm.user_id,
                                                       pm.idno,
                                                   }).FirstOrDefaultAsync();
 
@@ -487,6 +488,7 @@ namespace PBTPro.Api.Controllers
                 var resultData = new
                 {
                     patrol_id = patrol_member.schedule_id,
+                    patrol_leader_id = patrol_member_leader?.user_id,
                     patrol_leader = patrol_member_leader?.idno,
                     total_member = totalMembers,
                     patrol_status = patrol_member.status_id,
