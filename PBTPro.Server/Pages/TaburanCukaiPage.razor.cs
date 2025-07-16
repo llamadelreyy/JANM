@@ -713,6 +713,18 @@ namespace PBTPro.Pages
             }
         }
 
+        private async Task OpenShape()
+        {
+            IJSObjectReference serverSideScripts1 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
+            await serverSideScripts1.InvokeVoidAsync("openNav");
+        }
+
+        private async Task CloseShape()
+        {
+            IJSObjectReference serverSideScripts1 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
+            await serverSideScripts1.InvokeVoidAsync("openNav");
+        }
+
         private async Task OpenFilter(int mode)
         {
             IJSObjectReference serverSideScripts1 = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/main.js");
@@ -966,10 +978,11 @@ namespace PBTPro.Pages
                 if (bounds != null)
                 {
                     _isProcessing = true;
-                    if (intStart == 1)
-                    {
-                        await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
-                    }
+                    //if (intStart == 1)
+                    //{
+                    await LoadPolygonByType();
+                    //await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    //}
                     //////await GeneratePremisData(bounds.South, bounds.West, bounds.North, bounds.East);
                     await InvokeClustering(intStart, bounds.South, bounds.West, bounds.North, bounds.East);
                     _isProcessing = false;
@@ -1072,6 +1085,315 @@ namespace PBTPro.Pages
                                         }
 
                                         await CreatePolygon(latLngs, data); // Assuming CreatePolygon is async
+                                    }
+
+                                    //_drawnLots[dataId] = geometry.type;
+                                    _processedLotGids[dataId] = true;
+                                }
+                                catch (Exception geometryEx)
+                                {
+                                    Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+                                }
+                                finally
+                                {
+                                    semaphore.Release();
+                                }
+                            }));
+
+                        }
+
+                        if (tasks.Count > 0)
+                        {
+                            await Task.WhenAll(tasks);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"API request error: {ex.Message}");
+            }
+        }
+
+        private async Task GenerateDunData(double southLat, double westLng, double northLat, double eastLng)
+        {
+            try
+            {
+                string requestUrl = $"/api/ShpDun/GetListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        var tasks = new List<Task>();
+                        dynamic datas = JsonConvert.DeserializeObject(dataString);
+
+                        List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+                        var filteredDatas = dataList.Where(d =>
+                        {
+                            int dataId = (int)d.gid;  // Convert gid to int (ensure it's valid)
+                            return !_processedLotGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
+                        }).ToList();
+
+                        var semaphore = new SemaphoreSlim(1000);
+
+                        foreach (var data in filteredDatas)
+                        {
+                            int dataId = data.gid.ToObject(typeof(int));
+
+                            if (dataId == null)
+                            {
+                                continue;
+                            }
+
+                            //bool skipProcessing = false;
+
+                            if (_processedLotGids.ContainsKey(dataId))
+                            {
+                                continue;
+                            }
+
+                            var geometry = data.geom;
+                            tasks.Add(Task.Run(async () =>
+                            {
+                                await semaphore.WaitAsync();
+                                try
+                                {
+                                    if (_processedLotGids.ContainsKey(dataId))
+                                    {
+                                        return; // Skip if already processed
+                                    }
+
+                                    if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+                                    {
+                                        IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
+
+                                        if (geometry.type == "Polygon")
+                                        {
+                                            var polygonCoords = geometry.coordinates[0];
+                                            latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+                                        }
+                                        else if (geometry.type == "MultiPolygon")
+                                        {
+                                            List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+                                            foreach (var polygon in geometry.coordinates)
+                                            {
+                                                multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+                                            }
+
+                                            latLngs = multiPolygonCoords;
+                                        }
+
+                                        await CreateDunPolygon(latLngs, data); // Assuming CreatePolygon is async
+                                    }
+
+                                    //_drawnLots[dataId] = geometry.type;
+                                    _processedLotGids[dataId] = true;
+                                }
+                                catch (Exception geometryEx)
+                                {
+                                    Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+                                }
+                                finally
+                                {
+                                    semaphore.Release();
+                                }
+                            }));
+
+                        }
+
+                        if (tasks.Count > 0)
+                        {
+                            await Task.WhenAll(tasks);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"API request error: {ex.Message}");
+            }
+        }
+
+        private async Task GenerateParlimentData(double southLat, double westLng, double northLat, double eastLng)
+        {
+            try
+            {
+                string requestUrl = $"/api/ShpParliment/GetListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        var tasks = new List<Task>();
+                        dynamic datas = JsonConvert.DeserializeObject(dataString);
+
+                        List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+                        var filteredDatas = dataList.Where(d =>
+                        {
+                            int dataId = (int)d.gid;  // Convert gid to int (ensure it's valid)
+                            return !_processedLotGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
+                        }).ToList();
+
+                        var semaphore = new SemaphoreSlim(1000);
+
+                        foreach (var data in filteredDatas)
+                        {
+                            int dataId = data.gid.ToObject(typeof(int));
+
+                            if (dataId == null)
+                            {
+                                continue;
+                            }
+
+                            //bool skipProcessing = false;
+
+                            if (_processedLotGids.ContainsKey(dataId))
+                            {
+                                continue;
+                            }
+
+                            var geometry = data.geom;
+                            tasks.Add(Task.Run(async () =>
+                            {
+                                await semaphore.WaitAsync();
+                                try
+                                {
+                                    if (_processedLotGids.ContainsKey(dataId))
+                                    {
+                                        return; // Skip if already processed
+                                    }
+
+                                    if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+                                    {
+                                        IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
+
+                                        if (geometry.type == "Polygon")
+                                        {
+                                            var polygonCoords = geometry.coordinates[0];
+                                            latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+                                        }
+                                        else if (geometry.type == "MultiPolygon")
+                                        {
+                                            List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+                                            foreach (var polygon in geometry.coordinates)
+                                            {
+                                                multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+                                            }
+
+                                            latLngs = multiPolygonCoords;
+                                        }
+
+                                        await CreateParlimentPolygon(latLngs, data); // Assuming CreatePolygon is async
+                                    }
+
+                                    //_drawnLots[dataId] = geometry.type;
+                                    _processedLotGids[dataId] = true;
+                                }
+                                catch (Exception geometryEx)
+                                {
+                                    Console.WriteLine($"Error processing geometry for ID {data.id}: {geometryEx.Message}");
+                                }
+                                finally
+                                {
+                                    semaphore.Release();
+                                }
+                            }));
+
+                        }
+
+                        if (tasks.Count > 0)
+                        {
+                            await Task.WhenAll(tasks);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"API request error: {ex.Message}");
+            }
+        }
+
+        private async Task GenerateAhliMajlisData(double southLat, double westLng, double northLat, double eastLng)
+        {
+            try
+            {
+                string requestUrl = $"/api/ShpAhliMajlis/GetListByBound?crs=4326&minLng={westLng}&minLat={southLat}&maxLng={eastLng}&maxLat={northLat}";
+                var response = await _ApiConnector.ProcessLocalApi(requestUrl);
+
+                if (response.ReturnCode == 200)
+                {
+                    string? dataString = response?.Data?.ToString();
+                    if (!string.IsNullOrWhiteSpace(dataString))
+                    {
+                        var tasks = new List<Task>();
+                        dynamic datas = JsonConvert.DeserializeObject(dataString);
+
+                        List<dynamic> dataList = datas.ToObject<List<dynamic>>();
+                        var filteredDatas = dataList.Where(d =>
+                        {
+                            int dataId = (int)d.gid;  // Convert gid to int (ensure it's valid)
+                            return !_processedLotGids.ContainsKey(dataId);  // Only include items whose gid is not in _processedLotGids
+                        }).ToList();
+
+                        var semaphore = new SemaphoreSlim(1000);
+
+                        foreach (var data in filteredDatas)
+                        {
+                            int dataId = data.gid.ToObject(typeof(int));
+
+                            if (dataId == null)
+                            {
+                                continue;
+                            }
+
+                            //bool skipProcessing = false;
+
+                            if (_processedLotGids.ContainsKey(dataId))
+                            {
+                                continue;
+                            }
+
+                            var geometry = data.geom;
+                            tasks.Add(Task.Run(async () =>
+                            {
+                                await semaphore.WaitAsync();
+                                try
+                                {
+                                    if (_processedLotGids.ContainsKey(dataId))
+                                    {
+                                        return; // Skip if already processed
+                                    }
+
+                                    if (geometry.type == "Polygon" || geometry.type == "MultiPolygon")
+                                    {
+                                        IEnumerable<IEnumerable<LatLngLiteral>> latLngs = Enumerable.Empty<IEnumerable<LatLngLiteral>>();
+
+                                        if (geometry.type == "Polygon")
+                                        {
+                                            var polygonCoords = geometry.coordinates[0];
+                                            latLngs = new List<IEnumerable<LatLngLiteral>> { ConvertGeoJsonToLatLng(polygonCoords) };
+                                        }
+                                        else if (geometry.type == "MultiPolygon")
+                                        {
+                                            List<IEnumerable<LatLngLiteral>> multiPolygonCoords = new List<IEnumerable<LatLngLiteral>>();
+
+                                            foreach (var polygon in geometry.coordinates)
+                                            {
+                                                multiPolygonCoords.Add(ConvertGeoJsonToLatLng(polygon[0]));
+                                            }
+
+                                            latLngs = multiPolygonCoords;
+                                        }
+
+                                        await CreateAhliMajlisPolygon(latLngs, data); // Assuming CreatePolygon is async
                                     }
 
                                     //_drawnLots[dataId] = geometry.type;
@@ -1244,7 +1566,7 @@ namespace PBTPro.Pages
         //////    }
         //////}
         ///
-        
+
         public IEnumerable<LatLngLiteral> ConvertGeoJsonToLatLng(JArray geoJsonCoords)
         {
             List<List<double>> coords = geoJsonCoords.ToObject<List<List<double>>>();
@@ -1285,6 +1607,29 @@ namespace PBTPro.Pages
         //        StateHasChanged();
         //    });
         //}
+        private InfoWindow? _activeInfoWindow;
+        private PolygonType _selectedPolygonType = PolygonType.Kosong;
+        private List<Polygon> _activePolygons = new();
+        public PolygonType SelectedPolygonType
+        {
+            get => _selectedPolygonType;
+            set
+            {
+                if (_selectedPolygonType != value)
+                {
+                    _selectedPolygonType = value;
+                    _ = OnPolygonTypeChanged(); // Fire and forget
+                }
+            }
+        }
+        public enum PolygonType
+        {
+            Kosong,
+            Lot,
+            Dun,
+            Parlimen,
+            AhliMajlis
+        }
 
         private async Task CreatePolygon(IEnumerable<IEnumerable<LatLngLiteral>> latLngs, dynamic data)
         {
@@ -1295,14 +1640,239 @@ namespace PBTPro.Pages
                 Paths = latLngs,
                 StrokeColor = "#0000FF",
                 StrokeOpacity = (float?)0.8,
-                StrokeWeight = 2,
+                StrokeWeight = 1,
                 FillColor = "#0000FF",
-                FillOpacity = (float?)0.35
+                FillOpacity = (float?)0
             };
 
             var polygon = await GoogleMapsComponents.Maps.Polygon.CreateAsync(this.map1.JsRuntime, polygonOptions);
             await polygon.SetMap(this.map1.InteropObject);
+            _activePolygons.Add(polygon);
 
+            await polygon.AddListener("mouseover", async () =>
+            {
+                await polygon.SetOptions(new PolygonOptions { FillOpacity = 0.5f, StrokeWeight = 2 });
+            });
+
+            await polygon.AddListener("mouseout", async () =>
+            {
+                await polygon.SetOptions(new PolygonOptions { FillOpacity = 0f, StrokeWeight = 1 });
+            });
+
+            await polygon.AddListener("click", async (MouseEvent evt) =>
+            {
+                if (_activeInfoWindow != null)
+                {
+                    await _activeInfoWindow.Close();
+                    _activeInfoWindow = null;
+                }
+
+                string html = $"<strong>{data.lot}</strong>";
+
+                var infoWindow = await InfoWindow.CreateAsync(map1.JsRuntime, new InfoWindowOptions
+                {
+                    Content = html,
+                    Position = evt.LatLng
+                });
+
+                await infoWindow.Open(map1.InteropObject);
+                _activeInfoWindow = infoWindow;
+            });
+        }
+
+        private async Task CreateDunPolygon(IEnumerable<IEnumerable<LatLngLiteral>> latLngs, dynamic data)
+        {
+            int dataId = data.gid.ToObject(typeof(int));
+
+            var polygonOptions = new PolygonOptions
+            {
+                Paths = latLngs,
+                StrokeColor = "#008000",
+                StrokeOpacity = (float?)0.8,
+                StrokeWeight = 1,
+                FillColor = "#00800020",
+                FillOpacity = (float?)0.7
+            };
+
+            var polygon = await GoogleMapsComponents.Maps.Polygon.CreateAsync(this.map1.JsRuntime, polygonOptions);
+            await polygon.SetMap(this.map1.InteropObject);
+            _activePolygons.Add(polygon);
+
+            await polygon.AddListener("mouseover", async () =>
+            {
+                await polygon.SetOptions(new PolygonOptions { FillOpacity = 0.9f, StrokeWeight = 2 });
+            });
+
+            await polygon.AddListener("mouseout", async () =>
+            {
+                await polygon.SetOptions(new PolygonOptions { FillOpacity = 0.7f, StrokeWeight = 1 });
+            });
+
+            await polygon.AddListener("click", async (MouseEvent evt) =>
+            {
+                if (_activeInfoWindow != null)
+                {
+                    await _activeInfoWindow.Close();
+                    _activeInfoWindow = null;
+                }
+
+                string html = $"<strong>{data.name}</strong>";
+
+                var infoWindow = await InfoWindow.CreateAsync(map1.JsRuntime, new InfoWindowOptions
+                {
+                    Content = html,
+                    Position = evt.LatLng
+                });
+
+                await infoWindow.Open(map1.InteropObject);
+                _activeInfoWindow = infoWindow;
+            });
+        }
+
+        private async Task CreateParlimentPolygon(IEnumerable<IEnumerable<LatLngLiteral>> latLngs, dynamic data)
+        {
+            int dataId = data.gid.ToObject(typeof(int));
+
+            var polygonOptions = new PolygonOptions
+            {
+                Paths = latLngs,
+                StrokeColor = "#FFA500",
+                StrokeOpacity = (float?)0.8,
+                StrokeWeight = 1,
+                FillColor = "#FFA50020",
+                FillOpacity = (float?)0.7
+            };
+
+            var polygon = await GoogleMapsComponents.Maps.Polygon.CreateAsync(this.map1.JsRuntime, polygonOptions);
+            await polygon.SetMap(this.map1.InteropObject);
+            _activePolygons.Add(polygon);
+
+            await polygon.AddListener("mouseover", async () =>
+            {
+                await polygon.SetOptions(new PolygonOptions { FillOpacity = 0.9f, StrokeWeight = 2 });
+            });
+
+            await polygon.AddListener("mouseout", async () =>
+            {
+                await polygon.SetOptions(new PolygonOptions { FillOpacity = 0.7f, StrokeWeight = 1 });
+            });
+
+            await polygon.AddListener("click", async (MouseEvent evt) =>
+            {
+                if (_activeInfoWindow != null)
+                {
+                    await _activeInfoWindow.Close();
+                    _activeInfoWindow = null;
+                }
+
+                string html = $"<strong>{data.name}</strong>";
+
+                var infoWindow = await InfoWindow.CreateAsync(map1.JsRuntime, new InfoWindowOptions
+                {
+                    Content = html,
+                    Position = evt.LatLng
+                });
+
+                await infoWindow.Open(map1.InteropObject);
+                _activeInfoWindow = infoWindow;
+            });
+        }
+
+        private async Task CreateAhliMajlisPolygon(IEnumerable<IEnumerable<LatLngLiteral>> latLngs, dynamic data)
+        {
+            int dataId = data.gid.ToObject(typeof(int));
+
+            var polygonOptions = new PolygonOptions
+            {
+                Paths = latLngs,
+                StrokeColor = "#800080",
+                StrokeOpacity = (float?)0.8,
+                StrokeWeight = 1,
+                FillColor = "#80008020",
+                FillOpacity = (float?)0.7
+            };
+
+            var polygon = await GoogleMapsComponents.Maps.Polygon.CreateAsync(this.map1.JsRuntime, polygonOptions);
+            await polygon.SetMap(this.map1.InteropObject);
+            _activePolygons.Add(polygon);
+
+            await polygon.AddListener("mouseover", async () =>
+            {
+                await polygon.SetOptions(new PolygonOptions
+                {
+                    FillOpacity = 2.0f,
+                    StrokeWeight = 2
+                });
+            });
+
+            // Revert on mouseout
+            await polygon.AddListener("mouseout", async () =>
+            {
+                await polygon.SetOptions(new PolygonOptions
+                {
+                    FillOpacity = 0.7f,
+                    StrokeWeight = 1
+                });
+            });
+
+            // Click: Show info window
+            await polygon.AddListener("click", async (MouseEvent evt) =>
+            {
+                if (_activeInfoWindow != null)
+                {
+                    await _activeInfoWindow.Close();
+                    _activeInfoWindow = null;
+                }
+
+                string html = $"{data.name}<br/>{data.ahli_majlis}";
+
+                var infoWindow = await InfoWindow.CreateAsync(map1.JsRuntime, new InfoWindowOptions
+                {
+                    Content = html,
+                    Position = evt.LatLng
+                });
+
+                await infoWindow.Open(map1.InteropObject);
+                _activeInfoWindow = infoWindow;
+            });
+        }
+
+        private async Task OnPolygonTypeChanged()
+        {
+            await ClearPolygons();
+            await LoadPolygonByType();
+        }
+
+        private async Task ClearPolygons()
+        {
+            _processedLotGids = [];
+            var tasks = _activePolygons.Select(p => p.SetMap(null));
+            await Task.WhenAll(tasks);
+            _activePolygons.Clear();
+        }
+
+        private async Task LoadPolygonByType()
+        {
+            var bounds = await this.map1.InteropObject.GetBounds();
+
+            PolygonType type = _selectedPolygonType;
+            switch (type)
+            {
+                case PolygonType.Kosong:
+                    break;
+                case PolygonType.Lot:
+                    await GenerateLotData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    break;
+                case PolygonType.Dun:
+                    await GenerateDunData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    break;
+                case PolygonType.Parlimen:
+                    await GenerateParlimentData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    break;
+                case PolygonType.AhliMajlis:
+                    await GenerateAhliMajlisData(bounds.South, bounds.West, bounds.North, bounds.East);
+                    break;
+            }
         }
         #endregion
     }

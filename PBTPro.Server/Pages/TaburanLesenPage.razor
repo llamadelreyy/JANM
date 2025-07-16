@@ -34,6 +34,15 @@
     <button id="buttonTapis" @onclick="@(() => OpenFilter(0))" class="button-14" disabled="@(PanelVisible ? true : null)">Tapisan</button>
     <button id="buttonSearch" @onclick="@(() => OpenFilter(1))" class="button-14" disabled="@(PanelVisible ? true : null)">Carian Premis</button>
     <button @onclick="AddLegend" class="button-14">Legend</button>
+    <select class="buttonControlMap" 
+        @bind-Value="SelectedPolygonType"
+        @bind-Value:event="onchange">
+        <option value="Kosong">Kosong</option>
+        <option value="Lot">Lot</option>
+        <option value="Dun">DUN</option>
+        <option value="Parlimen">Parlimen</option>
+        <option value="AhliMajlis">Ahli Majlis</option>
+    </select>
     <input type="text" @ref="this.searchBox" id="searchBox" class="searchMap" placeholder="Masukkan nama tempat untuk dicari..." disabled="@(PanelVisible ? true : null)" />
     @* <button @onclick="Search" class="buttonControlMap">Cari Tempat</button> *@
 </div>

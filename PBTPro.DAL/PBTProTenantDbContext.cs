@@ -93,6 +93,12 @@ public partial class PBTProTenantDbContext : DbContext
 
     public virtual DbSet<ref_unit> ref_units { get; set; }
 
+    public virtual DbSet<shp_ahli_majlis> shp_ahli_majlis { get; set; }
+
+    public virtual DbSet<shp_dun> shp_duns { get; set; }
+
+    public virtual DbSet<shp_parliment> shp_parliments { get; set; }
+
     public virtual DbSet<trn_cfsc> trn_cfscs { get; set; }
 
     public virtual DbSet<trn_cfsc_img> trn_cfsc_imgs { get; set; }
@@ -1525,6 +1531,52 @@ public partial class PBTProTenantDbContext : DbContext
             entity.HasOne(d => d.div).WithMany(p => p.ref_units)
                 .HasForeignKey(d => d.div_id)
                 .HasConstraintName("fk_unit_id_belongs_to_div_id");
+        });
+
+        modelBuilder.Entity<shp_ahli_majlis>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("shp_ahli_majlis_pkey");
+
+            entity.ToTable("shp_ahli_majlis", "tenant");
+
+            entity.Property(e => e.AHLIMAJL0).HasMaxLength(150);
+            entity.Property(e => e.AHLIMAJLIS).HasMaxLength(10);
+            entity.Property(e => e.DUN).HasMaxLength(100);
+            entity.Property(e => e.EKAR).HasMaxLength(50);
+            entity.Property(e => e.NO_TELEFON).HasMaxLength(50);
+            entity.Property(e => e.PENGGAL).HasMaxLength(50);
+            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,4326)");
+        });
+
+        modelBuilder.Entity<shp_dun>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("shp_dun_pkey");
+
+            entity.ToTable("shp_dun", "tenant");
+
+            entity.Property(e => e.Name).HasMaxLength(254);
+            entity.Property(e => e.altitudeMo).HasMaxLength(254);
+            entity.Property(e => e.begin).HasMaxLength(24);
+            entity.Property(e => e.descriptio).HasMaxLength(254);
+            entity.Property(e => e.end).HasMaxLength(24);
+            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,4326)");
+            entity.Property(e => e.icon).HasMaxLength(254);
+            entity.Property(e => e.snippet).HasMaxLength(254);
+            entity.Property(e => e.timestamp).HasMaxLength(24);
+        });
+
+        modelBuilder.Entity<shp_parliment>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("shp_parliment_pkey");
+
+            entity.ToTable("shp_parliment", "tenant");
+
+            entity.Property(e => e.Name).HasMaxLength(254);
+            entity.Property(e => e.altitudeMo).HasMaxLength(254);
+            entity.Property(e => e.end).HasMaxLength(24);
+            entity.Property(e => e.geom).HasColumnType("geometry(MultiPolygon,4326)");
+            entity.Property(e => e.icon).HasMaxLength(254);
+            entity.Property(e => e.snippet).HasMaxLength(254);
         });
 
         modelBuilder.Entity<trn_cfsc>(entity =>

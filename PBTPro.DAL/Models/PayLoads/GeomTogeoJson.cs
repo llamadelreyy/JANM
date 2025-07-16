@@ -16,6 +16,32 @@ namespace PBTPro.DAL.Models.PayLoads
         public JsonDocument? geom { get; set; }
     }
 
+    public class DunPolygonViewModel
+    {
+        public int gid { get; set; }
+        public string? name { get; set; }
+        public JsonDocument? geom { get; set; }
+    }
+
+    public class ParlimentPolygonViewModel
+    {
+        public int gid { get; set; }
+        public string? name { get; set; }
+        public JsonDocument? geom { get; set; }
+    }
+
+    public class AhliMajlisPolygonViewModel
+    {
+        public int gid { get; set; }
+        public string? ahli_majlis { get; set; }
+        public string? name { get; set; }
+        public string? no_telefon { get; set; }
+        public string? penggal { get; set; }
+        public string? dun { get; set; }
+        public string? ekar { get; set; }
+        public JsonDocument? geom { get; set; }
+    }
+
     public class PremisMarkerViewModel
     {
         public string codeid_premis { get; set; }
