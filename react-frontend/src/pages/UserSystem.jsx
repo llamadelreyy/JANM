@@ -330,7 +330,7 @@ const UserSystem = () => {
         data={users}
         columns={tableColumns}
         title="Senarai Pengguna"
-        subtitle="Pengurusan pengguna sistem Sistem Pemantauan Lesen - MBDK"
+        subtitle="Pengurusan pengguna sistem Sistem Kecerdasan Buatan JANM"
         onAdd={handleAddUser}
         onEdit={handleEditUser}
         onDelete={handleDeleteUser}

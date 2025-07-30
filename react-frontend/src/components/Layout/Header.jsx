@@ -2,7 +2,7 @@ import { Menu, Bell, User, LogOut, Settings } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import mdkLogo from '../../assets/logo-mbdk.png'
+import mdkLogo from '../../assets/jata-logo.png'
 
 const Header = ({ onMenuClick }) => {
   const { user, logout } = useAuthStore()
@@ -53,10 +53,10 @@ const Header = ({ onMenuClick }) => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">
-                Sistem Pemantauan Lesen - MBDK 
+                Jabatan Akauntan Negara Malaysia GPT 
               </h1>
               <p className="text-blue-100 text-sm hidden lg:block">
-                Sistem Penguatkuasaan Pihak Berkuasa Tempatan
+                Sistem Kecerdasan Buatan JANM
               </p>
             </div>
           </div>

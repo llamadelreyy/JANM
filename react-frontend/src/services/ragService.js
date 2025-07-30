@@ -6,8 +6,10 @@
 class RAGService {
   constructor() {
     this.documents = {
-      objective2Summary: null,
-      objective2Details: null
+      bwtdData: null,
+      obj1Data: null,
+      objective2Details: null,
+      objective2Summary: null
     }
     this.isLoaded = false
   }
@@ -17,16 +19,28 @@ class RAGService {
    */
   async loadDocuments() {
     try {
-      // Load objective 2 summary file
-      const objective2SummaryResponse = await fetch('/r_OBJECTIVE_2_Summry 24072025_markdown.txt')
-      if (objective2SummaryResponse.ok) {
-        this.documents.objective2Summary = await objective2SummaryResponse.text()
+      // Load BWTD data file
+      const bwtdDataResponse = await fetch('/BWTD_2024_06 24072025xlsx_markdown.txt')
+      if (bwtdDataResponse.ok) {
+        this.documents.bwtdData = await bwtdDataResponse.text()
+      }
+
+      // Load Objective 1 data file
+      const obj1DataResponse = await fetch('/OBJ1_24_BWTD 24072025_markdown.txt')
+      if (obj1DataResponse.ok) {
+        this.documents.obj1Data = await obj1DataResponse.text()
       }
 
       // Load objective 2 details file
       const objective2DetailsResponse = await fetch('/r_OBJECTIVE_2_Details 22072025 (1)_markdown.txt')
       if (objective2DetailsResponse.ok) {
         this.documents.objective2Details = await objective2DetailsResponse.text()
+      }
+
+      // Load objective 2 summary file
+      const objective2SummaryResponse = await fetch('/r_OBJECTIVE_2_Summry 24072025_markdown.txt')
+      if (objective2SummaryResponse.ok) {
+        this.documents.objective2Summary = await objective2SummaryResponse.text()
       }
 
       this.isLoaded = true
@@ -50,18 +64,37 @@ class RAGService {
     const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2)
     let relevantContent = []
 
-    // Search in objective 2 summary document
-    if (this.documents.objective2Summary) {
-      const summaryLines = this.documents.objective2Summary.split('\n')
-      summaryLines.forEach((line, index) => {
+    // Search in BWTD data document
+    if (this.documents.bwtdData) {
+      const bwtdLines = this.documents.bwtdData.split('\n')
+      bwtdLines.forEach((line, index) => {
         const lowerLine = line.toLowerCase()
         if (searchTerms.some(term => lowerLine.includes(term))) {
           // Include context (previous and next lines)
           const start = Math.max(0, index - 2)
-          const end = Math.min(summaryLines.length, index + 3)
-          const context = summaryLines.slice(start, end).join('\n')
+          const end = Math.min(bwtdLines.length, index + 3)
+          const context = bwtdLines.slice(start, end).join('\n')
           relevantContent.push({
-            source: 'Objective 2 Summary Database',
+            source: 'BWTD 2024 Database',
+            content: context,
+            relevance: searchTerms.filter(term => lowerLine.includes(term)).length
+          })
+        }
+      })
+    }
+
+    // Search in Objective 1 data document
+    if (this.documents.obj1Data) {
+      const obj1Lines = this.documents.obj1Data.split('\n')
+      obj1Lines.forEach((line, index) => {
+        const lowerLine = line.toLowerCase()
+        if (searchTerms.some(term => lowerLine.includes(term))) {
+          // Include context (previous and next lines)
+          const start = Math.max(0, index - 2)
+          const end = Math.min(obj1Lines.length, index + 3)
+          const context = obj1Lines.slice(start, end).join('\n')
+          relevantContent.push({
+            source: 'Objective 1 Database',
             content: context,
             relevance: searchTerms.filter(term => lowerLine.includes(term)).length
           })
@@ -81,6 +114,25 @@ class RAGService {
           const context = detailsLines.slice(start, end).join('\n')
           relevantContent.push({
             source: 'Objective 2 Details Database',
+            content: context,
+            relevance: searchTerms.filter(term => lowerLine.includes(term)).length
+          })
+        }
+      })
+    }
+
+    // Search in objective 2 summary document
+    if (this.documents.objective2Summary) {
+      const summaryLines = this.documents.objective2Summary.split('\n')
+      summaryLines.forEach((line, index) => {
+        const lowerLine = line.toLowerCase()
+        if (searchTerms.some(term => lowerLine.includes(term))) {
+          // Include context (previous and next lines)
+          const start = Math.max(0, index - 2)
+          const end = Math.min(summaryLines.length, index + 3)
+          const context = summaryLines.slice(start, end).join('\n')
+          relevantContent.push({
+            source: 'Objective 2 Summary Database',
             content: context,
             relevance: searchTerms.filter(term => lowerLine.includes(term)).length
           })
@@ -111,10 +163,14 @@ class RAGService {
   getStatus() {
     return {
       isLoaded: this.isLoaded,
-      hasObjective2Summary: !!this.documents.objective2Summary,
+      hasBwtdData: !!this.documents.bwtdData,
+      hasObj1Data: !!this.documents.obj1Data,
       hasObjective2Details: !!this.documents.objective2Details,
-      objective2SummarySize: this.documents.objective2Summary ? this.documents.objective2Summary.length : 0,
-      objective2DetailsSize: this.documents.objective2Details ? this.documents.objective2Details.length : 0
+      hasObjective2Summary: !!this.documents.objective2Summary,
+      bwtdDataSize: this.documents.bwtdData ? this.documents.bwtdData.length : 0,
+      obj1DataSize: this.documents.obj1Data ? this.documents.obj1Data.length : 0,
+      objective2DetailsSize: this.documents.objective2Details ? this.documents.objective2Details.length : 0,
+      objective2SummarySize: this.documents.objective2Summary ? this.documents.objective2Summary.length : 0
     }
   }
 }
