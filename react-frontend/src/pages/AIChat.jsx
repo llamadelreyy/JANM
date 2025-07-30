@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Send, Bot, User, Loader2, MessageCircle, AlertCircle, RefreshCw } from 'lucide-react'
-import PageTemplate from '../components/UI/PageTemplate'
+import { Send, Bot, User, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import { cn } from '../utils/cn'
 import ollamaService from '../services/ollamaService'
 import ragService from '../services/ragService'
@@ -10,7 +9,7 @@ const AIChat = () => {
     {
       id: 1,
       type: 'bot',
-      content: 'Selamat datang! Saya adalah pembantu AI yang menggunakan model Qwen3-14B dengan akses kepada database Objective 2. Bagaimana saya boleh membantu anda hari ini?',
+      content: 'Selamat datang! Saya adalah pembantu AI yang menggunakan model Qwen3-14B dengan akses kepada database Jabatan Akauntan Negara Malaysia. Bagaimana saya boleh membantu anda hari ini?',
       timestamp: new Date()
     }
   ])
@@ -141,19 +140,14 @@ const AIChat = () => {
       {
         id: 1,
         type: 'bot',
-        content: 'Selamat datang! Saya adalah pembantu AI yang menggunakan model Qwen3-14B dengan akses kepada database Objective 2. Bagaimana saya boleh membantu anda hari ini?',
+        content: 'Selamat datang! Saya adalah pembantu AI yang menggunakan model Qwen3-14B dengan akses kepada database Jabatan Akauntan Negara Malaysia. Bagaimana saya boleh membantu anda hari ini?',
         timestamp: new Date()
       }
     ])
   }
 
   return (
-    <PageTemplate 
-      title="AI Chat" 
-      subtitle="Berbual dengan AI menggunakan Ollama Qwen2.5" 
-      icon={MessageCircle}
-    >
-      <div className="flex flex-col h-[calc(100vh-200px)] bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="h-full bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col overflow-hidden">
         {/* Connection Status */}
         <div className={cn(
           "flex items-center justify-between px-4 py-3 border-b",
@@ -168,7 +162,7 @@ const AIChat = () => {
               "text-sm font-medium",
               isConnected ? "text-green-700" : "text-red-700"
             )}>
-              {isConnected ? 'Tersambung ke OpenAI API' : 'Tidak tersambung'}
+              {isConnected ? 'Connected to JANM Database' : 'Tidak tersambung'}
             </span>
             {connectionError && (
               <span className="text-xs text-red-600">- {connectionError}</span>
@@ -222,29 +216,9 @@ const AIChat = () => {
           </div>
         )}
 
-        {/* RAG Status */}
-        <div className="px-4 py-2 bg-gray-50 border-b text-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-gray-600">
-              RAG Database: {ragStatus.loading ? 'Loading...' : ragStatus.isLoaded ? 'Ready' : 'Not loaded'}
-            </span>
-            {ragStatus.isLoaded && (
-              <span className="text-green-600">
-                ✓ Summary: {ragStatus.hasObjective2Summary ? 'Loaded' : 'Missing'} |
-                Details: {ragStatus.hasObjective2Details ? 'Loaded' : 'Missing'}
-              </span>
-            )}
-            {ragStatus.error && (
-              <span className="text-red-600">Error: {ragStatus.error}</span>
-            )}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">
-            OpenAI API URL: {ollamaService.baseUrl}
-          </div>
-        </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Messages Area - Only this section is scrollable */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -308,8 +282,8 @@ const AIChat = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
-        <div className="border-t p-4">
+        {/* Input Area - Fixed at bottom */}
+        <div className="border-t p-4 flex-shrink-0">
           <div className="flex space-x-2">
             <textarea
               ref={inputRef}
@@ -337,8 +311,7 @@ const AIChat = () => {
             Tekan Enter untuk hantar, Shift+Enter untuk baris baru
           </p>
         </div>
-      </div>
-    </PageTemplate>
+    </div>
   )
 }
 

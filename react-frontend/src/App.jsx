@@ -44,17 +44,17 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       <Routes>
         {/* Public routes */}
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
-            isAuthenticated ? <Navigate to="/home" replace /> : <Login />
-          } 
+            isAuthenticated ? <Navigate to="/ai-chat" replace /> : <Login />
+          }
         />
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
-            isAuthenticated ? <Navigate to="/home" replace /> : <Login />
-          } 
+            isAuthenticated ? <Navigate to="/ai-chat" replace /> : <Login />
+          }
         />
         
         {/* Protected routes */}
@@ -107,7 +107,7 @@ function App() {
                   <Route path="/user_password" element={<UserPassword />} />
                   
                   {/* Catch all route */}
-                  <Route path="*" element={<Navigate to="/home" replace />} />
+                  <Route path="*" element={<Navigate to="/ai-chat" replace />} />
                 </Routes>
               </Layout>
             </ProtectedRoute>

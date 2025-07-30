@@ -20,7 +20,7 @@ import {
   MessageCircle
 } from 'lucide-react'
 import { cn } from '../../utils/cn'
-import mdkLogo from '../../assets/logo-mbdk.png'
+import mdkLogo from '../../assets/jata-logo.png'
 
 const menuItems = [
   {
@@ -134,8 +134,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <img src={mdkLogo} alt="MDK Logo" className="h-6 w-6 object-contain" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Sistem Pemantauan Lesen - MBDK</h2>
-                <p className="text-xs text-slate-600">Sistem Penguatkuasaan</p>
+                <h2 className="text-lg font-bold text-slate-900">Sistem Kecerdasan Buatan JANM</h2>
+                <p className="text-xs text-slate-600">Sistem AI</p>
               </div>
             </div>
             <nav className="flex-1 px-3 py-4 space-y-1">
@@ -157,8 +157,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <img src={mdkLogo} alt="MDK Logo" className="h-5 w-5 object-contain" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Sistem Pemantauan Lesen - MBDK</h2>
-                <p className="text-xs text-slate-600">Sistem Penguatkuasaan</p>
+                <h2 className="text-lg font-bold text-slate-900">Sistem Kecerdasan Buatan JANM</h2>
+                <p className="text-xs text-slate-600">Sistem AI</p>
               </div>
             </div>
             <button

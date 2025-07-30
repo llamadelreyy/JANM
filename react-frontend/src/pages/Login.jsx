@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { Eye, EyeOff, User, Lock } from 'lucide-react'
 import { toast } from 'sonner'
-import mdkLogo from '../assets/logo-mbdk.png'
+import mdkLogo from '../assets/jata-logo.png'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -26,7 +26,7 @@ const Login = () => {
     
     if (result.success) {
       toast.success('Berjaya log masuk')
-      navigate('/home')
+      navigate('/ai-chat')
     } else {
       toast.error(result.error || 'Ralat log masuk')
     }
@@ -49,9 +49,9 @@ const Login = () => {
               <img src={mdkLogo} alt="MDK Logo" className="h-12 w-12 object-contain" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900">Sistem Pemantauan Lesen - MBDK</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Sistem Kecerdasan Buatan JANM</h2>
           <p className="text-sm text-slate-600 font-medium mt-1">
-            Sistem Penguatkuasaan Pihak Berkuasa Tempatan
+            Sistem Kecerdasan Buatan JANM
           </p>
           <p className="text-xs text-slate-500">Kerajaan Malaysia</p>
         </div>
