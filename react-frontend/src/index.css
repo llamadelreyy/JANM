@@ -1,0 +1,235 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-200;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  body {
+    @apply bg-slate-50 text-slate-900;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
+  }
+  
+  /* Professional number formatting */
+  .professional-number {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-weight: 700;
+    font-feature-settings: 'tnum' 1;
+    letter-spacing: -0.025em;
+  }
+  
+  /* Professional chart styling */
+  .professional-chart text {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    font-weight: 500;
+  }
+  
+  /* Government professional styling */
+  .gov-header {
+    @apply bg-gradient-to-r from-blue-900 to-blue-800 text-white;
+  }
+  
+  .gov-card {
+    @apply bg-white rounded-lg shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200;
+  }
+  
+  .gov-button-primary {
+    @apply bg-blue-700 hover:bg-blue-800 text-white font-medium px-4 py-2 rounded-md transition-colors duration-200 shadow-sm;
+  }
+  
+  .gov-button-secondary {
+    @apply bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-md transition-colors duration-200 border border-slate-300;
+  }
+  
+  .gov-input {
+    @apply border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-md;
+  }
+  
+  .gov-table {
+    @apply w-full border-collapse bg-white rounded-lg overflow-hidden shadow-sm;
+  }
+  
+  .gov-table th {
+    @apply bg-slate-50 text-slate-700 font-semibold text-sm px-6 py-4 text-left border-b border-slate-200;
+  }
+  
+  .gov-table td {
+    @apply px-6 py-4 text-sm text-slate-600 border-b border-slate-100;
+  }
+  
+  .gov-table tr:hover {
+    @apply bg-slate-50;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-primary {
+    @apply btn bg-blue-700 text-white hover:bg-blue-800 h-10 py-2 px-4 shadow-sm;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 py-2 px-4 border border-slate-300;
+  }
+  
+  .btn-outline {
+    @apply btn border border-slate-300 hover:bg-slate-50 hover:text-slate-900 h-10 py-2 px-4;
+  }
+  
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700 h-10 py-2 px-4 shadow-sm;
+  }
+  
+  .btn-success {
+    @apply btn bg-green-600 text-white hover:bg-green-700 h-10 py-2 px-4 shadow-sm;
+  }
+  
+  .card {
+    @apply rounded-lg border bg-white text-slate-900 shadow-sm border-slate-200;
+  }
+  
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6 border-b border-slate-200;
+  }
+  
+  .card-title {
+    @apply text-xl font-semibold leading-none tracking-tight text-slate-800;
+  }
+  
+  .card-subtitle {
+    @apply text-sm text-slate-600 mt-1;
+  }
+  
+  .card-content {
+    @apply p-6;
+  }
+  
+  .input {
+    @apply flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .select {
+    @apply flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .textarea {
+    @apply flex min-h-[80px] w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply badge bg-blue-100 text-blue-800;
+  }
+  
+  .badge-secondary {
+    @apply badge bg-slate-100 text-slate-800;
+  }
+  
+  .badge-success {
+    @apply badge bg-green-100 text-green-800;
+  }
+  
+  .badge-warning {
+    @apply badge bg-yellow-100 text-yellow-800;
+  }
+  
+  .badge-danger {
+    @apply badge bg-red-100 text-red-800;
+  }
+  
+  .professional-card {
+    @apply bg-white rounded-lg shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200;
+  }
+  
+  .professional-header {
+    @apply bg-gradient-to-r from-slate-800 to-slate-700 text-white px-6 py-4 rounded-t-lg;
+  }
+  
+  .professional-stats {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
+  }
+  
+  .professional-stat-card {
+    @apply bg-white rounded-lg p-6 shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Loading animation */
+.loading-spinner {
+  @apply animate-spin rounded-full border-2 border-gray-300 border-t-blue-600;
+}
+
+/* Dashboard specific styles */
+.dashboard-card {
+  @apply bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-card {
+  @apply p-6 bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200;
+}
+
+.donut-chart {
+  @apply relative flex items-center justify-center;
+}
+
+.donut-segment {
+  transition: stroke-dashoffset 1s ease-in-out;
+}
+
+/* Animation for charts */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Responsive grid */
+.dashboard-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
+}
+
+.chart-grid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}
