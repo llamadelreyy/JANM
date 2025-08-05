@@ -233,3 +233,83 @@
 .chart-grid {
   @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
 }
+
+/* Enhanced text formatting for AI chat messages */
+.formatted-message {
+  @apply text-sm leading-relaxed;
+}
+
+.formatted-message h1 {
+  @apply text-lg font-bold text-slate-900 mt-3 mb-2 leading-tight border-b border-slate-200 pb-1;
+}
+
+.formatted-message h2 {
+  @apply text-base font-semibold text-slate-800 mt-3 mb-2 leading-tight;
+}
+
+.formatted-message h3 {
+  @apply text-sm font-semibold text-slate-800 mt-2 mb-1 leading-tight;
+}
+
+.formatted-message p {
+  @apply text-slate-700 leading-relaxed mb-2;
+}
+
+.formatted-message strong {
+  @apply font-semibold text-slate-900;
+}
+
+.formatted-message em {
+  @apply italic text-slate-700;
+}
+
+.formatted-message code {
+  @apply bg-slate-100 text-slate-800 px-1 py-0.5 rounded text-xs font-mono border;
+}
+
+.formatted-message blockquote {
+  @apply border-l-4 border-blue-300 pl-3 py-1 my-2 bg-blue-50 text-slate-700 italic rounded-r;
+}
+
+.formatted-message ul, .formatted-message ol {
+  @apply my-2 space-y-1;
+}
+
+.formatted-message li {
+  @apply text-slate-700 leading-relaxed;
+}
+
+/* Code block styling */
+.formatted-message pre {
+  @apply bg-slate-100 border border-slate-200 rounded-md p-3 my-2 overflow-x-auto;
+}
+
+.formatted-message pre code {
+  @apply bg-transparent border-0 p-0 text-xs font-mono text-slate-800;
+}
+
+/* Table styling for formatted messages */
+.formatted-message table {
+  @apply w-full border-collapse border border-slate-300 my-2 text-xs;
+}
+
+.formatted-message th {
+  @apply bg-slate-100 border border-slate-300 px-2 py-1 text-left font-semibold text-slate-800;
+}
+
+.formatted-message td {
+  @apply border border-slate-300 px-2 py-1 text-slate-700;
+}
+
+/* Improved spacing for chat messages */
+.chat-message-content {
+  @apply space-y-1;
+}
+
+.chat-message-content > *:first-child {
+  @apply mt-0;
+}
+
+.chat-message-content > *:last-child {
+  @apply mb-0;
+}

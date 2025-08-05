@@ -3,6 +3,7 @@ import { Send, Bot, User, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import { cn } from '../utils/cn'
 import ollamaService from '../services/ollamaService'
 import ragService from '../services/ragService'
+import FormattedMessage from '../components/UI/FormattedMessage'
 
 const AIChat = () => {
   const [messages, setMessages] = useState([
@@ -50,7 +51,7 @@ const AIChat = () => {
           setConnectionError(`Model ${status.model} tidak tersedia. Sila pastikan model telah dimuat turun.`)
         }
       } else {
-        setConnectionError(`Ollama service tidak dapat diakses di ${status.baseUrl}. Pastikan Ollama berjalan dan boleh diakses dari peranti ini.`)
+        setConnectionError("Database tidak boleh diakses.")
       }
     } catch (error) {
       console.error('Failed to connect to Ollama:', error)
@@ -73,7 +74,7 @@ const AIChat = () => {
 
   const updateOllamaUrl = () => {
     if (customOllamaUrl.trim()) {
-      ollamaService.baseUrl = customOllamaUrl.trim()
+      ollamaService.setBaseUrl(customOllamaUrl.trim())
       setShowUrlConfig(false)
       setCustomOllamaUrl('')
       checkOllamaConnection()
@@ -211,7 +212,10 @@ const AIChat = () => {
               </button>
             </div>
             <p className="text-xs text-yellow-700 mt-1">
-              Contoh: http://192.168.1.100:11434 (ganti dengan IP server anda)
+              Contoh: http://192.168.1.100:5501/v1 (ganti dengan IP server anda)
+            </p>
+            <p className="text-xs text-yellow-600 mt-1">
+              URL semasa: {ollamaService.baseUrl}
             </p>
           </div>
         )}
@@ -241,17 +245,28 @@ const AIChat = () => {
               )}
               
               <div className={cn(
-                "max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-lg",
+                "max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg",
                 message.type === 'user'
                   ? "bg-blue-600 text-white"
                   : message.isError
                   ? "bg-red-50 text-red-800 border border-red-200"
-                  : "bg-gray-100 text-gray-800"
+                  : "bg-gray-50 text-gray-800 border border-gray-200"
               )}>
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                {message.type === 'bot' && !message.isError ? (
+                  <FormattedMessage
+                    content={message.content}
+                    className="text-sm"
+                  />
+                ) : (
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                )}
                 <p className={cn(
-                  "text-xs mt-1",
-                  message.type === 'user' ? "text-blue-100" : "text-gray-500"
+                  "text-xs mt-2 pt-2 border-t",
+                  message.type === 'user'
+                    ? "text-blue-100 border-blue-500"
+                    : message.isError
+                    ? "text-red-500 border-red-200"
+                    : "text-gray-500 border-gray-200"
                 )}>
                   {formatTime(message.timestamp)}
                 </p>

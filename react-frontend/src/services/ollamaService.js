@@ -8,31 +8,103 @@ import ragService from './ragService'
 class OpenAIService {
   constructor() {
     this.model = import.meta.env.VITE_OPENAI_MODEL || 'Qwen3-14B'
-    this.baseUrl = import.meta.env.VITE_OPENAI_API_BASE_URL || 'http://192.168.50.125:5501/v1'
     this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || 'dummy-key' // Some OpenAI-compatible APIs don't require a real key
+    
+    // Auto-detect the appropriate base URL
+    this.baseUrl = this.getBaseUrl()
   }
 
   /**
-   * Check if OpenAI service is available
+   * Automatically determine the correct base URL based on the current environment
+   * @returns {string} The appropriate base URL
+   */
+  getBaseUrl() {
+    // If environment variable is set, use it
+    if (import.meta.env.VITE_OPENAI_API_BASE_URL) {
+      return import.meta.env.VITE_OPENAI_API_BASE_URL
+    }
+
+    // Get current hostname to determine if we're accessing locally or externally
+    const currentHostname = window.location.hostname
+    const currentOrigin = window.location.origin
+    
+    // For external access or any non-local access, prioritize proxy route
+    // This ensures external devices use the proxy instead of trying direct connection
+    if (currentHostname !== 'localhost' && currentHostname !== '127.0.0.1' && !currentHostname.startsWith('192.168.')) {
+      return `${currentOrigin}/v1`
+    }
+    
+    // If accessing via localhost or 127.0.0.1, use direct backend connection
+    if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
+      return 'http://192.168.50.125:5501/v1'
+    }
+    
+    // If accessing via the local network IP (192.168.x.x), use direct connection
+    if (currentHostname.startsWith('192.168.')) {
+      return 'http://192.168.50.125:5501/v1'
+    }
+    
+    // Fallback to proxy route
+    return `${currentOrigin}/v1`
+  }
+
+  /**
+   * Update the base URL (useful for manual configuration)
+   * @param {string} newUrl - The new base URL
+   */
+  setBaseUrl(newUrl) {
+    this.baseUrl = newUrl
+  }
+
+  /**
+   * Check if OpenAI service is available with fallback URLs
    * @returns {Promise<boolean>}
    */
   async checkConnection() {
-    try {
-      const response = await fetch(`${this.baseUrl}/models`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-      })
-      
-      if (response.ok) {
-        return true
-      }
-    } catch (error) {
-      console.error(`OpenAI API connection check failed for ${this.baseUrl}:`, error)
+    const currentHostname = window.location.hostname
+    
+    // Determine URLs to try based on access method
+    let urlsToTry = []
+    
+    if (currentHostname === 'localhost' || currentHostname === '127.0.0.1' || currentHostname.startsWith('192.168.')) {
+      // Local access - try direct connection first, then proxy
+      urlsToTry = [
+        this.baseUrl,
+        'http://192.168.50.125:5501/v1', // Direct backend
+        `${window.location.origin}/v1`, // Proxy route
+      ]
+    } else {
+      // External access - prioritize proxy route
+      urlsToTry = [
+        `${window.location.origin}/v1`, // Proxy route (prioritized for external)
+        this.baseUrl,
+        'http://192.168.50.125:5501/v1', // Direct backend (likely to fail)
+      ]
     }
 
+    for (const url of urlsToTry) {
+      try {
+        console.log(`Trying to connect to: ${url}`)
+        const response = await fetch(`${url}/models`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`
+          },
+        })
+        
+        if (response.ok) {
+          console.log(`Successfully connected to: ${url}`)
+          // Update baseUrl to the working one
+          this.baseUrl = url
+          return true
+        }
+      } catch (error) {
+        console.error(`Connection failed for ${url}:`, error)
+      }
+    }
+
+    console.error('All connection attempts failed')
     return false
   }
 
