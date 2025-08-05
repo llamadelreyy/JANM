@@ -61,7 +61,13 @@ class RAGService {
       return 'Database not loaded yet. Please wait...'
     }
 
+    // Enhanced search terms - include original query, split terms, and numbers
+    const originalQuery = query.toLowerCase()
     const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2)
+    
+    // Extract numbers from query for better number matching
+    const numberMatches = query.match(/\d+/g) || []
+    
     let relevantContent = []
 
     // Search in BWTD data document
@@ -69,15 +75,28 @@ class RAGService {
       const bwtdLines = this.documents.bwtdData.split('\n')
       bwtdLines.forEach((line, index) => {
         const lowerLine = line.toLowerCase()
-        if (searchTerms.some(term => lowerLine.includes(term))) {
-          // Include context (previous and next lines)
-          const start = Math.max(0, index - 2)
-          const end = Math.min(bwtdLines.length, index + 3)
+        const originalLine = line
+        
+        // Check for exact query match, search terms, or number matches
+        const hasExactMatch = lowerLine.includes(originalQuery)
+        const hasTermMatch = searchTerms.some(term => lowerLine.includes(term))
+        const hasNumberMatch = numberMatches.some(num => originalLine.includes(num))
+        
+        if (hasExactMatch || hasTermMatch || hasNumberMatch) {
+          // Include more context for better understanding
+          const start = Math.max(0, index - 3)
+          const end = Math.min(bwtdLines.length, index + 4)
           const context = bwtdLines.slice(start, end).join('\n')
+          
+          let relevance = 0
+          if (hasExactMatch) relevance += 10
+          if (hasNumberMatch) relevance += 5
+          relevance += searchTerms.filter(term => lowerLine.includes(term)).length
+          
           relevantContent.push({
             source: 'BWTD 2024 Database',
             content: context,
-            relevance: searchTerms.filter(term => lowerLine.includes(term)).length
+            relevance: relevance
           })
         }
       })
@@ -88,15 +107,28 @@ class RAGService {
       const obj1Lines = this.documents.obj1Data.split('\n')
       obj1Lines.forEach((line, index) => {
         const lowerLine = line.toLowerCase()
-        if (searchTerms.some(term => lowerLine.includes(term))) {
-          // Include context (previous and next lines)
-          const start = Math.max(0, index - 2)
-          const end = Math.min(obj1Lines.length, index + 3)
+        const originalLine = line
+        
+        // Check for exact query match, search terms, or number matches
+        const hasExactMatch = lowerLine.includes(originalQuery)
+        const hasTermMatch = searchTerms.some(term => lowerLine.includes(term))
+        const hasNumberMatch = numberMatches.some(num => originalLine.includes(num))
+        
+        if (hasExactMatch || hasTermMatch || hasNumberMatch) {
+          // Include more context for better understanding
+          const start = Math.max(0, index - 3)
+          const end = Math.min(obj1Lines.length, index + 4)
           const context = obj1Lines.slice(start, end).join('\n')
+          
+          let relevance = 0
+          if (hasExactMatch) relevance += 10
+          if (hasNumberMatch) relevance += 5
+          relevance += searchTerms.filter(term => lowerLine.includes(term)).length
+          
           relevantContent.push({
             source: 'Objective 1 Database',
             content: context,
-            relevance: searchTerms.filter(term => lowerLine.includes(term)).length
+            relevance: relevance
           })
         }
       })
@@ -107,15 +139,28 @@ class RAGService {
       const detailsLines = this.documents.objective2Details.split('\n')
       detailsLines.forEach((line, index) => {
         const lowerLine = line.toLowerCase()
-        if (searchTerms.some(term => lowerLine.includes(term))) {
-          // Include context (previous and next lines)
-          const start = Math.max(0, index - 2)
-          const end = Math.min(detailsLines.length, index + 3)
+        const originalLine = line
+        
+        // Check for exact query match, search terms, or number matches
+        const hasExactMatch = lowerLine.includes(originalQuery)
+        const hasTermMatch = searchTerms.some(term => lowerLine.includes(term))
+        const hasNumberMatch = numberMatches.some(num => originalLine.includes(num))
+        
+        if (hasExactMatch || hasTermMatch || hasNumberMatch) {
+          // Include more context for better understanding
+          const start = Math.max(0, index - 3)
+          const end = Math.min(detailsLines.length, index + 4)
           const context = detailsLines.slice(start, end).join('\n')
+          
+          let relevance = 0
+          if (hasExactMatch) relevance += 10
+          if (hasNumberMatch) relevance += 5
+          relevance += searchTerms.filter(term => lowerLine.includes(term)).length
+          
           relevantContent.push({
             source: 'Objective 2 Details Database',
             content: context,
-            relevance: searchTerms.filter(term => lowerLine.includes(term)).length
+            relevance: relevance
           })
         }
       })
@@ -126,15 +171,28 @@ class RAGService {
       const summaryLines = this.documents.objective2Summary.split('\n')
       summaryLines.forEach((line, index) => {
         const lowerLine = line.toLowerCase()
-        if (searchTerms.some(term => lowerLine.includes(term))) {
-          // Include context (previous and next lines)
-          const start = Math.max(0, index - 2)
-          const end = Math.min(summaryLines.length, index + 3)
+        const originalLine = line
+        
+        // Check for exact query match, search terms, or number matches
+        const hasExactMatch = lowerLine.includes(originalQuery)
+        const hasTermMatch = searchTerms.some(term => lowerLine.includes(term))
+        const hasNumberMatch = numberMatches.some(num => originalLine.includes(num))
+        
+        if (hasExactMatch || hasTermMatch || hasNumberMatch) {
+          // Include more context for better understanding
+          const start = Math.max(0, index - 3)
+          const end = Math.min(summaryLines.length, index + 4)
           const context = summaryLines.slice(start, end).join('\n')
+          
+          let relevance = 0
+          if (hasExactMatch) relevance += 10
+          if (hasNumberMatch) relevance += 5
+          relevance += searchTerms.filter(term => lowerLine.includes(term)).length
+          
           relevantContent.push({
             source: 'Objective 2 Summary Database',
             content: context,
-            relevance: searchTerms.filter(term => lowerLine.includes(term)).length
+            relevance: relevance
           })
         }
       })
@@ -142,7 +200,7 @@ class RAGService {
 
     // Sort by relevance and limit results
     relevantContent.sort((a, b) => b.relevance - a.relevance)
-    relevantContent = relevantContent.slice(0, 5) // Top 5 most relevant
+    relevantContent = relevantContent.slice(0, 10) // Top 10 most relevant for better coverage
 
     if (relevantContent.length === 0) {
       return 'No relevant information found in the database.'
