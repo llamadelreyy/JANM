@@ -53,10 +53,10 @@ const Header = ({ onMenuClick }) => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">
-                Jabatan Akauntan Negara Malaysia GPT 
+                Kementerian Dalam Negeri 
               </h1>
               <p className="text-blue-100 text-sm hidden lg:block">
-                Sistem Kecerdasan Buatan JANM
+                Sistem Kecerdasan Buatan KDN
               </p>
             </div>
           </div>
