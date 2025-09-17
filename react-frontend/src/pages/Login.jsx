@@ -49,9 +49,9 @@ const Login = () => {
               <img src={mdkLogo} alt="MDK Logo" className="h-12 w-12 object-contain" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900">Sistem Kecerdasan Buatan JANM</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Sistem Kecerdasan Buatan PDRM</h2>
           <p className="text-sm text-slate-600 font-medium mt-1">
-            Sistem Kecerdasan Buatan JANM
+            Sistem Kecerdasan Buatan PDRM
           </p>
           <p className="text-xs text-slate-500">Kerajaan Malaysia</p>
         </div>

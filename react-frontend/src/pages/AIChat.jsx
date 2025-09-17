@@ -10,7 +10,7 @@ const AIChat = () => {
     {
       id: 1,
       type: 'bot',
-      content: 'Selamat datang! Saya adalah pembantu AI yang menggunakan model Qwen3-14B dengan akses kepada database Jabatan Akauntan Negara Malaysia. Bagaimana saya boleh membantu anda hari ini?',
+      content: 'Selamat datang! Saya adalah pembantu AI yang menggunakan model Qwen3-235B dengan akses kepada database Polis Diraja Malaysia. Bagaimana saya boleh membantu anda hari ini?',
       timestamp: new Date()
     }
   ])
@@ -141,7 +141,7 @@ const AIChat = () => {
       {
         id: 1,
         type: 'bot',
-        content: 'Selamat datang! Saya adalah pembantu AI yang menggunakan model Qwen3-14B dengan akses kepada database Jabatan Akauntan Negara Malaysia. Bagaimana saya boleh membantu anda hari ini?',
+        content: 'Selamat datang! Saya adalah pembantu AI yang menggunakan model Qwen3-235B dengan akses kepada database Polis Diraja Malaysia. Bagaimana saya boleh membantu anda hari ini?',
         timestamp: new Date()
       }
     ])
@@ -163,7 +163,7 @@ const AIChat = () => {
               "text-sm font-medium",
               isConnected ? "text-green-700" : "text-red-700"
             )}>
-              {isConnected ? 'Connected to JANM Database' : 'Tidak tersambung'}
+              {isConnected ? 'Connected to PDRM Database' : 'Tidak tersambung'}
             </span>
             {connectionError && (
               <span className="text-xs text-red-600">- {connectionError}</span>
