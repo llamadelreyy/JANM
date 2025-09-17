@@ -55,24 +55,34 @@ export const useAuthStore = create(
           // Always fall back to mock authentication for development
           console.warn('Backend error or not available, using mock authentication for development:', error.message)
           
-          // Mock authentication for development - accept any credentials
-          const mockUser = {
-            userid: 1,
-            fullname: credentials.username || 'Admin User',
-            role: 'Administrator',
-            roleid: 1,
-            email: `${credentials.username}@pbt.gov.my`
-          }
-          
-          set({
-            user: mockUser,
-            accessToken: 'mock-token-' + Date.now(),
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          })
+          // Mock authentication for development - validate specific credentials
+          if (credentials.username === 'muhaidi' && credentials.password === 'Admin1234') {
+            const mockUser = {
+              userid: 1,
+              fullname: 'Muhaidi',
+              role: 'Administrator',
+              roleid: 1,
+              email: 'muhaidi@pbt.gov.my'
+            }
+            
+            set({
+              user: mockUser,
+              accessToken: 'mock-token-' + Date.now(),
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            })
 
-          return { success: true }
+            return { success: true }
+          } else {
+            // Invalid credentials
+            set({
+              isLoading: false,
+              error: 'Invalid username or password',
+            })
+            
+            return { success: false, error: 'Invalid username or password' }
+          }
         }
       },
 
