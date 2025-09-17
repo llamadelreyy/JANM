@@ -4,13 +4,17 @@ import { cn } from '../utils/cn'
 import ollamaService from '../services/ollamaService'
 import ragService from '../services/ragService'
 import FormattedMessage from '../components/UI/FormattedMessage'
+import { useAuthStore } from '../stores/authStore'
 
 const AIChat = () => {
+  const { user } = useAuthStore()
+  const userName = user?.fullname || 'Pengguna'
+  
   const [messages, setMessages] = useState([
     {
       id: 1,
       type: 'bot',
-      content: 'Selamat datang! Saya adalah pembantu AI yang menggunakan model Qwen3-235B dengan akses kepada database Polis Diraja Malaysia. Bagaimana saya boleh membantu anda hari ini?',
+      content: `Selamat datang ${userName}! Saya adalah Akak Trafik PDRM. Bagaimana saya boleh membantu anda hari ini?`,
       timestamp: new Date()
     }
   ])
@@ -141,7 +145,7 @@ const AIChat = () => {
       {
         id: 1,
         type: 'bot',
-        content: 'Selamat datang! Saya adalah pembantu AI yang menggunakan model Qwen3-235B dengan akses kepada database Polis Diraja Malaysia. Bagaimana saya boleh membantu anda hari ini?',
+        content: `Selamat datang ${userName}! Saya adalah pembantu AI yang menggunakan model Qwen3-235B dengan akses kepada database Polis Diraja Malaysia. Bagaimana saya boleh membantu anda hari ini?`,
         timestamp: new Date()
       }
     ])
@@ -245,7 +249,7 @@ const AIChat = () => {
               )}
               
               <div className={cn(
-                "max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg",
+                "max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl px-4 py-3 rounded-lg",
                 message.type === 'user'
                   ? "bg-blue-600 text-white"
                   : message.isError
@@ -299,7 +303,7 @@ const AIChat = () => {
 
         {/* Input Area - Fixed at bottom */}
         <div className="border-t p-4 flex-shrink-0">
-          <div className="flex space-x-2">
+          <div className="flex space-x-3 max-w-6xl mx-auto">
             <textarea
               ref={inputRef}
               value={inputMessage}
@@ -307,24 +311,26 @@ const AIChat = () => {
               onKeyPress={handleKeyPress}
               placeholder={isConnected ? "Taip mesej anda di sini..." : "Sila sambung ke OpenAI API terlebih dahulu"}
               disabled={!isConnected || isLoading}
-              className="flex-1 resize-none border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              rows="2"
+              className="flex-1 resize-none border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              rows="3"
             />
             <button
               onClick={sendMessage}
               disabled={!inputMessage.trim() || !isConnected || isLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              className="px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <Send className="h-4 w-4" />
+                <Send className="h-5 w-5" />
               )}
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-2">
-            Tekan Enter untuk hantar, Shift+Enter untuk baris baru
-          </p>
+          <div className="max-w-6xl mx-auto">
+            <p className="text-xs text-gray-500 mt-2">
+              Tekan Enter untuk hantar, Shift+Enter untuk baris baru
+            </p>
+          </div>
         </div>
     </div>
   )

@@ -49,11 +49,10 @@ const Login = () => {
               <img src={mdkLogo} alt="MDK Logo" className="h-12 w-12 object-contain" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900">Sistem Kecerdasan Buatan PDRM</h2>
+          <h2 className="text-2xl font-bold text-slate-900">PDRM GPT</h2>
           <p className="text-sm text-slate-600 font-medium mt-1">
-            Sistem Kecerdasan Buatan PDRM
+            Sistem Kecerdasan Buatan Polis Diraja Malaysia
           </p>
-          <p className="text-xs text-slate-500">Kerajaan Malaysia</p>
         </div>
 
         {/* Login Form */}
@@ -138,7 +137,7 @@ const Login = () => {
           </form>
 
           {/* Development notice */}
-          {process.env.NODE_ENV === 'development' && (
+          {/* {process.env.NODE_ENV === 'development' && (
             <div className="mt-4">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -152,16 +151,16 @@ const Login = () => {
               <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="text-center text-xs text-slate-600">
                   <p className="font-semibold mb-1">Akaun Demo:</p>
-                  <p><span className="font-medium">Username:</span> admin</p>
-                  <p><span className="font-medium">Password:</span> admin</p>
+                  <p><span className="font-medium">Username:</span> muhaidi</p>
+                  <p><span className="font-medium">Password:</span> Admin1234</p>
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           <div className="mt-4 text-center">
             <p className="text-xs text-slate-500">
-              © 2024 Kerajaan Malaysia. Hak Cipta Terpelihara.
+              © 2025 Polis Diraja Malaysia. Hak Cipta Terpelihara.
             </p>
           </div>
         </div>
