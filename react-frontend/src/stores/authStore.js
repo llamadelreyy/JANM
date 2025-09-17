@@ -62,7 +62,7 @@ export const useAuthStore = create(
               fullname: 'Muhaidi',
               role: 'Administrator',
               roleid: 1,
-              email: 'muhaidi@pbt.gov.my'
+              email: 'muhaidi@rmp.gov.my'
             }
             
             set({
