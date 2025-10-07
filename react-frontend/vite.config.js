@@ -22,6 +22,20 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/chat-api': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/chat-api/, '/api'),
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('Chat API Proxy error:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('Proxying chat request to:', proxyReq.path);
+          });
+        }
+      },
       '/v1': {
         target: 'http://192.168.50.125:5501',
         changeOrigin: true,

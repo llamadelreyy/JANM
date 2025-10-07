@@ -139,6 +139,63 @@ class OpenAIService {
   }
 
   /**
+   * Clean response to remove structured format and markdown
+   * @param {string} text - Raw response from AI
+   * @returns {string} - Cleaned conversational response
+   */
+  cleanResponse(text) {
+    if (!text) return text
+
+    console.log('Original response:', text) // Debug log
+
+    // First remove markdown formatting
+    let cleaned = this.removeMarkdownFormatting(text)
+
+    // More aggressive cleaning of structured format
+    cleaned = cleaned
+      // Remove JAWAPAN: and everything up to the first meaningful content
+      .replace(/^JAWAPAN:\s*/i, '')
+      // Remove MAKLUMAT TAMBAHAN: section and empty lines after it
+      .replace(/\n\s*MAKLUMAT TAMBAHAN:\s*\n*/gi, ' ')
+      // Remove SUMBER: section and everything after it
+      .replace(/\n\s*SUMBER:\s*[\s\S]*$/gi, '')
+      // Clean up multiple spaces and newlines
+      .replace(/\n{2,}/g, '\n')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+
+    console.log('Cleaned response:', cleaned) // Debug log
+
+    // If the response is too short, provide a better fallback
+    if (!cleaned || cleaned.length < 20) {
+      const fallback = "Hello! I'm here to help you with information about government services and regulations. What would you like to know?"
+      console.log('Using fallback response:', fallback) // Debug log
+      return fallback
+    }
+
+    return cleaned
+  }
+
+  /**
+   * Clean streaming content chunks to remove structured format patterns
+   * @param {string} chunk - Streaming content chunk
+   * @returns {string} - Cleaned chunk or empty string if it should be filtered
+   */
+  cleanStreamingContent(chunk) {
+    if (!chunk) return chunk
+
+    // Filter out structured format headers completely during streaming
+    if (chunk.includes('JAWAPAN:') ||
+        chunk.includes('MAKLUMAT TAMBAHAN:') ||
+        chunk.includes('SUMBER:')) {
+      return '' // Skip these chunks entirely
+    }
+
+    // Remove markdown formatting from the chunk
+    return this.removeMarkdownFormatting(chunk)
+  }
+
+  /**
    * Send a message to the AI model with RAG support
    * @param {string} message - The user message
    * @param {Object} options - Additional options
@@ -153,48 +210,39 @@ class OpenAIService {
       const messages = [
         {
           role: 'system',
-          content: `You are a helpful FAQ assistant that provides clear, direct answers based on database information. Your role is to give users straightforward, informative responses that are neither too long nor too short.
+          content: `ABSOLUTELY CRITICAL: DO NOT use "JAWAPAN:", "MAKLUMAT TAMBAHAN:", or "SUMBER:" in your response. These words are BANNED.
 
-Context from database:
+WRONG FORMAT (DO NOT USE):
+JAWAPAN: Hello! How can I assist you today?
+MAKLUMAT TAMBAHAN:
+I'm here to help with any questions...
+SUMBER: database
+
+CORRECT FORMAT (USE THIS):
+Hello! I'm here to help you with any questions about government services, regulations, or municipal affairs. What would you like to know?
+
+You are a helpful conversational assistant. Write naturally like a human would speak.
+
+Available context from database:
 ${relevantContent}
 
-FORMATTING RULES:
-1. NEVER use markdown symbols like asterisks, underscores, hashtags, or backticks
-2. Use ONLY plain text without special formatting characters
-3. Structure responses with clear, simple headings
-4. Use proper spacing and line breaks for readability
+INSTRUCTIONS:
+- Start responses immediately without headers
+- Write in natural conversation style
+- Be detailed and thorough using all available information
+- Use complete sentences and paragraphs
+- Include all relevant details, procedures, and requirements
+- Explain processes step by step when needed
+- Use plain text only - no special symbols or formatting
+- If greeting users, just say "Hello!" or "Hi there!" naturally
+- Provide comprehensive explanations making full use of available context
 
-RESPONSE STYLE:
-- Be direct and helpful like an FAQ bot
-- Provide clear, concise answers with relevant details
-- Include ALL specific information from the database when available
-- Keep responses focused and practical
-- Use professional but approachable language
-- When the database contains lists (a, b, c... or 1, 2, 3...), include ALL items, not just the first few
-- If there are points a-f in the database, provide ALL points from a to f
-- Don't truncate or summarize complete lists - give the full information
+Example good responses:
+"Hello! I can help you with information about government services and regulations. What specific topic are you interested in?"
+"To apply for that permit, you'll need to follow several steps. First, you'll need to gather these documents..."
+"The licensing process involves multiple stages. Let me walk you through each one in detail..."
 
-COMPLETENESS REQUIREMENTS:
-- Always provide COMPLETE lists and numbered items from the database
-- If the database shows points (a) through (f), include ALL points
-- If there are steps 1-10, include ALL steps
-- Don't cut off information halfway through a list or sequence
-- Ensure users get the full answer they need
-
-RESPONSE STRUCTURE (NO MARKDOWN):
-JAWAPAN: [Direct answer to the question]
-
-MAKLUMAT TAMBAHAN:
-[Key details and context from the database - include ALL relevant points and lists]
-
-SUMBER:
-[Which database the information came from]
-
-If the database doesn't contain relevant information, clearly state this and suggest what type of information would be helpful.
-
-Always use "database" instead of "worksheet" or "spreadsheet" when referring to data sources.
-
-Be helpful, accurate, and complete while ensuring the user gets ALL the information they need from the database.`
+Never use formal section headers. Just write naturally and conversationally.`
         },
         {
           role: 'user',
@@ -227,8 +275,8 @@ Be helpful, accurate, and complete while ensuring the user gets ALL the informat
       const data = await response.json()
       const content = data.choices?.[0]?.message?.content || 'Maaf, saya tidak dapat memberikan respons.'
       
-      // Remove any markdown formatting that might still appear
-      return this.removeMarkdownFormatting(content)
+      // Remove structured format and markdown formatting
+      return this.cleanResponse(content)
     } catch (error) {
       console.error('Failed to send message:', error)
       throw new Error('Gagal menghantar mesej ke AI. Sila cuba lagi.')
@@ -251,48 +299,39 @@ Be helpful, accurate, and complete while ensuring the user gets ALL the informat
       const messages = [
         {
           role: 'system',
-          content: `You are a helpful FAQ assistant that provides clear, direct answers based on database information. Your role is to give users straightforward, informative responses that are neither too long nor too short.
+          content: `ABSOLUTELY CRITICAL: DO NOT use "JAWAPAN:", "MAKLUMAT TAMBAHAN:", or "SUMBER:" in your response. These words are BANNED.
 
-Context from database:
+WRONG FORMAT (DO NOT USE):
+JAWAPAN: Hello! How can I assist you today?
+MAKLUMAT TAMBAHAN:
+I'm here to help with any questions...
+SUMBER: database
+
+CORRECT FORMAT (USE THIS):
+Hello! I'm here to help you with any questions about government services, regulations, or municipal affairs. What would you like to know?
+
+You are a helpful conversational assistant. Write naturally like a human would speak.
+
+Available context from database:
 ${relevantContent}
 
-FORMATTING RULES:
-1. NEVER use markdown symbols like asterisks, underscores, hashtags, or backticks
-2. Use ONLY plain text without special formatting characters
-3. Structure responses with clear, simple headings
-4. Use proper spacing and line breaks for readability
+INSTRUCTIONS:
+- Start responses immediately without headers
+- Write in natural conversation style
+- Be detailed and thorough using all available information
+- Use complete sentences and paragraphs
+- Include all relevant details, procedures, and requirements
+- Explain processes step by step when needed
+- Use plain text only - no special symbols or formatting
+- If greeting users, just say "Hello!" or "Hi there!" naturally
+- Provide comprehensive explanations making full use of available context
 
-RESPONSE STYLE:
-- Be direct and helpful like an FAQ bot
-- Provide clear, concise answers with relevant details
-- Include ALL specific information from the database when available
-- Keep responses focused and practical
-- Use professional but approachable language
-- When the database contains lists (a, b, c... or 1, 2, 3...), include ALL items, not just the first few
-- If there are points a-f in the database, provide ALL points from a to f
-- Don't truncate or summarize complete lists - give the full information
+Example good responses:
+"Hello! I can help you with information about government services and regulations. What specific topic are you interested in?"
+"To apply for that permit, you'll need to follow several steps. First, you'll need to gather these documents..."
+"The licensing process involves multiple stages. Let me walk you through each one in detail..."
 
-COMPLETENESS REQUIREMENTS:
-- Always provide COMPLETE lists and numbered items from the database
-- If the database shows points (a) through (f), include ALL points
-- If there are steps 1-10, include ALL steps
-- Don't cut off information halfway through a list or sequence
-- Ensure users get the full answer they need
-
-RESPONSE STRUCTURE (NO MARKDOWN):
-JAWAPAN: [Direct answer to the question]
-
-MAKLUMAT TAMBAHAN:
-[Key details and context from the database - include ALL relevant points and lists]
-
-SUMBER:
-[Which database the information came from]
-
-If the database doesn't contain relevant information, clearly state this and suggest what type of information would be helpful.
-
-Always use "database" instead of "worksheet" or "spreadsheet" when referring to data sources.
-
-Be helpful, accurate, and complete while ensuring the user gets ALL the information they need from the database.`
+Never use formal section headers. Just write naturally and conversationally.`
         },
         {
           role: 'user',
@@ -343,9 +382,11 @@ Be helpful, accurate, and complete while ensuring the user gets ALL the informat
               const parsed = JSON.parse(data)
               const content = parsed.choices?.[0]?.delta?.content
               if (content) {
-                // Remove markdown formatting from streaming content
-                const cleanContent = this.removeMarkdownFormatting(content)
-                onChunk(cleanContent)
+                // Clean streaming content from structured format and markdown
+                const cleanContent = this.cleanStreamingContent(content)
+                if (cleanContent) {
+                  onChunk(cleanContent)
+                }
               }
             } catch (parseError) {
               console.warn('Failed to parse chunk:', parseError)

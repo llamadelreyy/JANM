@@ -28,10 +28,9 @@ export function useChatStream() {
     abortRef.current = new AbortController();
 
     try {
-      // Determine the backend URL - use environment variable or default to localhost
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-      
-      const response = await fetch(`${backendUrl}/api/chat/stream`, {
+      // Use proxy route for better network compatibility
+      // This routes through the frontend server, so only frontend port needs to be forwarded
+      const response = await fetch(`/chat-api/chat/stream`, {
         method: "POST",
         signal: abortRef.current.signal,
         headers: { 

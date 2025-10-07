@@ -8,7 +8,12 @@ const PORT = process.env.PORT || 3001;
 const LLM_URL = process.env.LLM_URL || 'http://60.51.17.97:9501/v1/chat/completions';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: true, // Allow all origins for development
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cache-Control']
+}));
 app.use(express.json({ limit: '10mb' }));
 
 // Health check endpoint
@@ -166,9 +171,10 @@ app.use((error, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Chat backend server running on port ${PORT}`);
   console.log(`📡 LLM URL: ${LLM_URL}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-  console.log(`💬 Chat stream: http://localhost:${PORT}/api/chat/stream`);
+  console.log(`🏥 Health check: http://0.0.0.0:${PORT}/health`);
+  console.log(`💬 Chat stream: http://0.0.0.0:${PORT}/api/chat/stream`);
+  console.log(`🌐 Server accessible on all network interfaces`);
 });
