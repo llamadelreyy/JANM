@@ -56,13 +56,13 @@ export const useAuthStore = create(
           console.warn('Backend error or not available, using mock authentication for development:', error.message)
           
           // Mock authentication for development - validate specific credentials
-          if (credentials.username === 'muhaidi' && credentials.password === 'Admin1234') {
+          if (credentials.username === 'doria' && credentials.password === 'Admin1234') {
             const mockUser = {
               userid: 1,
-              fullname: 'Muhaidi',
+              fullname: 'Doria',
               role: 'Administrator',
               roleid: 1,
-              email: 'muhaidi@rmp.gov.my'
+              email: 'doria@sabah.gov.my'
             }
             
             set({

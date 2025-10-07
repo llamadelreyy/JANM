@@ -8,6 +8,7 @@ class RAGService {
     this.documents = {
       roadTransportRegulations: null
     }
+    this.processedChunks = []
     this.isLoaded = false
   }
 
@@ -17,17 +18,46 @@ class RAGService {
   async loadDocuments() {
     try {
       // Load road transport regulations file
-      const roadTransportResponse = await fetch('/KAEDAH-KAEDAH PENGANGKUTAN JALAN.txt')
+      const roadTransportResponse = await fetch('/kuala-kurau')
       if (roadTransportResponse.ok) {
         this.documents.roadTransportRegulations = await roadTransportResponse.text()
+        // Preprocess document into searchable chunks for faster retrieval
+        this.preprocessDocument()
       }
 
       this.isLoaded = true
-      console.log('RAG database loaded successfully')
+      console.log('RAG database loaded and preprocessed successfully')
     } catch (error) {
       console.error('Failed to load RAG database:', error)
       this.isLoaded = false
     }
+  }
+
+  /**
+   * Preprocess document into searchable chunks for faster retrieval
+   */
+  preprocessDocument() {
+    if (!this.documents.roadTransportRegulations) return
+
+    const lines = this.documents.roadTransportRegulations.split('\n')
+    this.processedChunks = []
+    
+    // Create chunks of related content (every 8-12 lines)
+    for (let i = 0; i < lines.length; i += 8) {
+      const chunkLines = lines.slice(i, i + 12)
+      const chunkText = chunkLines.join('\n').trim()
+      
+      if (chunkText.length > 20) { // Skip very short chunks
+        this.processedChunks.push({
+          content: chunkText,
+          lowerContent: chunkText.toLowerCase(),
+          startLine: i,
+          endLine: Math.min(i + 12, lines.length)
+        })
+      }
+    }
+    
+    console.log(`Preprocessed ${this.processedChunks.length} chunks for fast retrieval`)
   }
 
   /**
@@ -36,105 +66,78 @@ class RAGService {
    * @returns {string} - Relevant content found
    */
   searchDocuments(query) {
-    if (!this.isLoaded) {
+    if (!this.isLoaded || this.processedChunks.length === 0) {
       return 'Database not loaded yet. Please wait...'
     }
 
-    // Enhanced search terms - include original query, split terms, and numbers
-    const originalQuery = query.toLowerCase()
-    const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2)
+    const startTime = performance.now()
     
-    // Extract numbers from query for better number matching
+    // Optimize search terms preprocessing
+    const queryLower = query.toLowerCase()
+    const searchTerms = queryLower.split(/\s+/).filter(term => term.length > 2)
     const numberMatches = query.match(/\d+/g) || []
     
     let relevantContent = []
+    let processedChunks = 0
 
-    // Search in road transport regulations document
-    if (this.documents.roadTransportRegulations) {
-      const roadTransportLines = this.documents.roadTransportRegulations.split('\n')
-      roadTransportLines.forEach((line, index) => {
-        const lowerLine = line.toLowerCase()
-        const originalLine = line
-        
-        // Check for exact query match, search terms, or number matches
-        const hasExactMatch = lowerLine.includes(originalQuery)
-        const hasTermMatch = searchTerms.some(term => lowerLine.includes(term))
-        const hasNumberMatch = numberMatches.some(num => originalLine.includes(num))
-        
-        if (hasExactMatch || hasTermMatch || hasNumberMatch) {
-          // Include much more context to capture complete sections and lists
-          let start = Math.max(0, index - 10)
-          let end = Math.min(roadTransportLines.length, index + 15)
-          
-          // Look for section boundaries to include complete information
-          // Find the start of the current section (look for headers, numbered items, etc.)
-          for (let i = index; i >= start; i--) {
-            const currentLine = roadTransportLines[i]
-            if (currentLine.match(/^#{1,6}\s+/) || // Markdown headers
-                currentLine.match(/^\d+\.\s+/) || // Numbered lists
-                currentLine.match(/^[A-Z][^a-z]*:/) || // All caps headers with colon
-                currentLine.match(/^\*\*[^*]+\*\*/) || // Bold headers
-                currentLine.match(/^#{1,6}/) || // Hash headers
-                currentLine.match(/^[A-Za-z\s]+:$/) || // Simple headers ending with colon
-                currentLine.trim() === '') { // Empty line indicating section break
-              if (i < index - 2) { // Don't go too far back
-                start = i
-                break
-              }
-            }
-          }
-          
-          // Find the end of the current section (look for next section or natural break)
-          for (let i = index; i <= end; i++) {
-            const currentLine = roadTransportLines[i] || ''
-            const nextLine = roadTransportLines[i + 1] || ''
-            
-            // Look for natural section endings
-            if (i > index + 5 && (
-                nextLine.match(/^#{1,6}\s+/) || // Next header
-                nextLine.match(/^\d+\.\s+/) || // Next numbered item
-                nextLine.match(/^[A-Z][^a-z]*:/) || // Next all caps header
-                nextLine.match(/^\*\*[^*]+\*\*/) || // Next bold header
-                (currentLine.trim() === '' && nextLine.trim() === '') || // Double empty line
-                nextLine.match(/^[A-Za-z\s]+:$/) // Next simple header
-              )) {
-              end = i + 1
-              break
-            }
-          }
-          
-          const context = roadTransportLines.slice(start, end).join('\n')
-          
-          let relevance = 0
-          if (hasExactMatch) relevance += 10
-          if (hasNumberMatch) relevance += 5
-          relevance += searchTerms.filter(term => lowerLine.includes(term)).length
-          
-          relevantContent.push({
-            source: 'Road Transport Regulations Database',
-            content: context,
-            relevance: relevance
-          })
-        }
-      })
+    // Fast chunk-based search with early termination
+    for (const chunk of this.processedChunks) {
+      processedChunks++
+      
+      // Quick relevance check
+      let relevance = 0
+      let hasMatch = false
+      
+      // Check for exact query match (highest priority)
+      if (chunk.lowerContent.includes(queryLower)) {
+        relevance += 20
+        hasMatch = true
+      }
+      
+      // Check search terms
+      const termMatches = searchTerms.filter(term => chunk.lowerContent.includes(term))
+      if (termMatches.length > 0) {
+        relevance += termMatches.length * 3
+        hasMatch = true
+      }
+      
+      // Check number matches
+      const chunkNumberMatches = numberMatches.filter(num => chunk.content.includes(num))
+      if (chunkNumberMatches.length > 0) {
+        relevance += chunkNumberMatches.length * 5
+        hasMatch = true
+      }
+      
+      if (hasMatch) {
+        relevantContent.push({
+          source: 'Kuala Kurau Database',
+          content: chunk.content,
+          relevance: relevance
+        })
+      }
+      
+      // Early termination if we have enough high-quality results
+      if (relevantContent.length >= 15 && relevance < 5) {
+        break
+      }
     }
 
-    // Sort by relevance and limit results
+    // Sort by relevance and limit to top results for faster processing
     relevantContent.sort((a, b) => b.relevance - a.relevance)
-    relevantContent = relevantContent.slice(0, 50) // Top 10 most relevant for better coverage
+    relevantContent = relevantContent.slice(0, 8) // Reduced to 8 for faster LLM processing
+
+    const endTime = performance.now()
+    console.log(`RAG search completed in ${(endTime - startTime).toFixed(2)}ms, processed ${processedChunks} chunks, found ${relevantContent.length} results`)
 
     if (relevantContent.length === 0) {
       return 'No relevant information found in the database.'
     }
 
-    // Format the results
+    // Optimized result formatting
     let formattedResults = 'Relevant information found:\n\n'
     relevantContent.forEach((item, index) => {
       formattedResults += `${index + 1}. From ${item.source}:\n${item.content}\n\n`
     })
-    
-    // Log the search results to console
-    console.log('RAG Search Results:', relevantContent)
 
     return formattedResults
   }

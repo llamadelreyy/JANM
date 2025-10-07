@@ -49,9 +49,9 @@ const Login = () => {
               <img src={mdkLogo} alt="MDK Logo" className="h-12 w-12 object-contain" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900">PDRM GPT</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Kuala Kurau GPT</h2>
           <p className="text-sm text-slate-600 font-medium mt-1">
-            Sistem Kecerdasan Buatan Polis Diraja Malaysia
+            Sistem Kecerdasan Buatan Kuala Kurau
           </p>
         </div>
 
@@ -160,7 +160,7 @@ const Login = () => {
 
           <div className="mt-4 text-center">
             <p className="text-xs text-slate-500">
-              © 2025 Polis Diraja Malaysia. Hak Cipta Terpelihara.
+              © 2025 Kuala Kurau. Hak Cipta Terpelihara.
             </p>
           </div>
         </div>

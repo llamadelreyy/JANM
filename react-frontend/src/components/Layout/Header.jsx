@@ -53,10 +53,10 @@ const Header = ({ onMenuClick }) => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">
-                Polis Diraja Malaysia GPT 
+                Kuala Kurau Bot 
               </h1>
               <p className="text-blue-100 text-sm hidden lg:block">
-                Sistem Kecerdasan Buatan PDRM
+                Sistem Kecerdasan Buatan Kuala Kurau
               </p>
             </div>
           </div>

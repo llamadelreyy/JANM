@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { Send, Bot, User, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
+import { Send, Bot, User, Loader2, AlertCircle, RefreshCw, Square } from 'lucide-react'
 import { cn } from '../utils/cn'
 import ollamaService from '../services/ollamaService'
 import ragService from '../services/ragService'
 import FormattedMessage from '../components/UI/FormattedMessage'
 import { useAuthStore } from '../stores/authStore'
+import useChatStream from '../hooks/useChatStream'
 
 const AIChat = () => {
   const { user } = useAuthStore()
@@ -14,19 +15,22 @@ const AIChat = () => {
     {
       id: 1,
       type: 'bot',
-      content: `Selamat datang ${userName}! Saya adalah Akak Trafik PDRM. Bagaimana saya boleh membantu anda hari ini?`,
+      content: `Selamat datang ${userName}! Saya adalah Kuala Kurau Bot. Bagaimana saya boleh membantu anda hari ini?`,
       timestamp: new Date()
     }
   ])
   const [inputMessage, setInputMessage] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
   const [connectionError, setConnectionError] = useState('')
   const [ragStatus, setRagStatus] = useState({ isLoaded: false, loading: true })
   const [showUrlConfig, setShowUrlConfig] = useState(false)
   const [customOllamaUrl, setCustomOllamaUrl] = useState('')
+  const [useStreaming, setUseStreaming] = useState(true)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  
+  // Use the streaming hook
+  const { answer, thinking, loading: streamLoading, error: streamError, send: sendStream, cancel: cancelStream, reset: resetStream } = useChatStream()
 
   // Check Ollama connection and load RAG documents on component mount
   useEffect(() => {
@@ -86,7 +90,7 @@ const AIChat = () => {
   }
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading || !isConnected) return
+    if (!inputMessage.trim() || streamLoading || !isConnected) return
 
     const userMessage = {
       id: Date.now(),
@@ -96,34 +100,128 @@ const AIChat = () => {
     }
 
     setMessages(prev => [...prev, userMessage])
+    const currentMessage = inputMessage.trim()
     setInputMessage('')
-    setIsLoading(true)
 
-    try {
-      const response = await ollamaService.sendMessage(userMessage.content)
-      
-      const botMessage = {
-        id: Date.now() + 1,
-        type: 'bot',
-        content: response,
-        timestamp: new Date()
-      }
+    if (useStreaming) {
+      // Use streaming for token-by-token rendering
+      try {
+        // Search for relevant content using RAG
+        const relevantContent = ragService.searchDocuments(currentMessage)
+        
+        // Create messages array for the API
+        const apiMessages = [
+          {
+            role: 'system',
+            content: `You are a helpful FAQ assistant that provides clear, direct answers based on database information. Your role is to give users straightforward, informative responses that are neither too long nor too short.
 
-      setMessages(prev => [...prev, botMessage])
-    } catch (error) {
-      console.error('Error sending message:', error)
-      const errorMessage = {
-        id: Date.now() + 1,
-        type: 'bot',
-        content: error.message || 'Maaf, terdapat masalah dalam menghubungi AI. Sila cuba lagi.',
-        timestamp: new Date(),
-        isError: true
+Context from database:
+${relevantContent}
+
+FORMATTING RULES:
+1. NEVER use markdown symbols like asterisks, underscores, hashtags, or backticks
+2. Use ONLY plain text without special formatting characters
+3. Structure responses with clear, simple headings
+4. Use proper spacing and line breaks for readability
+
+RESPONSE STYLE:
+- Be direct and helpful like an FAQ bot
+- Provide clear, concise answers with relevant details
+- Include ALL specific information from the database when available
+- Keep responses focused and practical
+- Use professional but approachable language
+- When the database contains lists (a, b, c... or 1, 2, 3...), include ALL items, not just the first few
+- If there are points a-f in the database, provide ALL points from a to f
+- Don't truncate or summarize complete lists - give the full information
+
+COMPLETENESS REQUIREMENTS:
+- Always provide COMPLETE lists and numbered items from the database
+- If the database shows points (a) through (f), include ALL points
+- If there are steps 1-10, include ALL steps
+- Don't cut off information halfway through a list or sequence
+- Ensure users get the full answer they need
+
+RESPONSE STRUCTURE (NO MARKDOWN):
+JAWAPAN: [Direct answer to the question]
+
+MAKLUMAT TAMBAHAN:
+[Key details and context from the database - include ALL relevant points and lists]
+
+SUMBER:
+[Which database the information came from]
+
+If the database doesn't contain relevant information, clearly state this and suggest what type of information would be helpful.
+
+Always use "database" instead of "worksheet" or "spreadsheet" when referring to data sources.
+
+Be helpful, accurate, and complete while ensuring the user gets ALL the information they need from the database.`
+          },
+          {
+            role: 'user',
+            content: currentMessage
+          }
+        ]
+
+        // Add streaming message placeholder with typing animation
+        const streamingMessageId = Date.now() + 1
+        const streamingMessage = {
+          id: streamingMessageId,
+          type: 'bot',
+          content: '',
+          timestamp: new Date(),
+          isStreaming: true,
+          showTyping: true
+        }
+        setMessages(prev => [...prev, streamingMessage])
+
+        // Reset the stream state
+        resetStream()
+
+        // Send the streaming request
+        await sendStream(apiMessages, {
+          temperature: 0.7,
+          top_p: 0.9,
+          max_tokens: 8000
+        })
+
+      } catch (error) {
+        console.error('Error sending streaming message:', error)
+        const errorMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          content: error.message || 'Maaf, terdapat masalah dalam menghubungi AI. Sila cuba lagi.',
+          timestamp: new Date(),
+          isError: true
+        }
+        setMessages(prev => [...prev, errorMessage])
       }
-      setMessages(prev => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-      inputRef.current?.focus()
+    } else {
+      // Use non-streaming (original method)
+      try {
+        const response = await ollamaService.sendMessage(currentMessage)
+        
+        const botMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          content: response,
+          timestamp: new Date()
+        }
+
+        setMessages(prev => [...prev, botMessage])
+      } catch (error) {
+        console.error('Error sending message:', error)
+        const errorMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          content: error.message || 'Maaf, terdapat masalah dalam menghubungi AI. Sila cuba lagi.',
+          timestamp: new Date(),
+          isError: true
+        }
+        setMessages(prev => [...prev, errorMessage])
+      }
     }
+
+    inputRef.current?.focus()
   }
 
   const handleKeyPress = (e) => {
@@ -133,6 +231,39 @@ const AIChat = () => {
     }
   }
 
+  // Update streaming message content in real-time
+  useEffect(() => {
+    if (answer && useStreaming) {
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.isStreaming ? {
+            ...msg,
+            content: answer,
+            isStreaming: streamLoading,
+            showTyping: answer.length === 0 // Only show typing if no content yet
+          } : msg
+        )
+      )
+    }
+  }, [answer, streamLoading, useStreaming])
+
+  // Handle stream errors
+  useEffect(() => {
+    if (streamError) {
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.isStreaming ? {
+            ...msg,
+            content: streamError,
+            isError: true,
+            isStreaming: false,
+            showTyping: false
+          } : msg
+        )
+      )
+    }
+  }, [streamError])
+
   const formatTime = (timestamp) => {
     return new Intl.DateTimeFormat('ms-MY', {
       hour: '2-digit',
@@ -140,12 +271,13 @@ const AIChat = () => {
     }).format(timestamp)
   }
 
+
   const clearChat = () => {
     setMessages([
       {
         id: 1,
         type: 'bot',
-        content: `Selamat datang ${userName}! Saya adalah pembantu AI yang menggunakan model Qwen3-235B dengan akses kepada database Polis Diraja Malaysia. Bagaimana saya boleh membantu anda hari ini?`,
+        content: `Selamat datang ${userName}! Saya adalah pembantu AI yang menggunakan model Qwen3-235B dengan akses kepada database Kuala Kurau. Bagaimana saya boleh membantu anda hari ini?`,
         timestamp: new Date()
       }
     ])
@@ -167,7 +299,7 @@ const AIChat = () => {
               "text-sm font-medium",
               isConnected ? "text-green-700" : "text-red-700"
             )}>
-              {isConnected ? 'Connected to PDRM Database' : 'Tidak tersambung'}
+              {isConnected ? 'Connected to Kuala Kurau Database' : 'Tidak tersambung'}
             </span>
             {connectionError && (
               <span className="text-xs text-red-600">- {connectionError}</span>
@@ -180,6 +312,17 @@ const AIChat = () => {
               title="Semak sambungan"
             >
               <RefreshCw className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setUseStreaming(!useStreaming)}
+              className={cn(
+                "px-3 py-1 text-xs rounded transition-colors",
+                useStreaming
+                  ? "bg-green-100 text-green-600 hover:bg-green-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              )}
+            >
+              {useStreaming ? 'Streaming: ON' : 'Streaming: OFF'}
             </button>
             <button
               onClick={() => setShowUrlConfig(!showUrlConfig)}
@@ -256,7 +399,16 @@ const AIChat = () => {
                   ? "bg-red-50 text-red-800 border border-red-200"
                   : "bg-gray-50 text-gray-800 border border-gray-200"
               )}>
-                {message.type === 'bot' && !message.isError ? (
+                {message.showTyping ? (
+                  // Typing animation with 3 dots
+                  <div className="flex items-center space-x-1">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    </div>
+                  </div>
+                ) : message.type === 'bot' && !message.isError ? (
                   <FormattedMessage
                     content={message.content}
                     className="text-sm"
@@ -284,19 +436,6 @@ const AIChat = () => {
             </div>
           ))}
           
-          {isLoading && (
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <Bot className="h-4 w-4 text-blue-600" />
-              </div>
-              <div className="bg-gray-100 px-4 py-2 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
-                  <span className="text-sm text-gray-600">AI sedang menaip...</span>
-                </div>
-              </div>
-            </div>
-          )}
           
           <div ref={messagesEndRef} />
         </div>
@@ -309,17 +448,17 @@ const AIChat = () => {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder={isConnected ? "Taip mesej anda di sini..." : "Sila sambung ke OpenAI API terlebih dahulu"}
-              disabled={!isConnected || isLoading}
+              placeholder={isConnected ? "Taip mesej anda di sini..." : "Sila sambung ke backend server terlebih dahulu"}
+              disabled={!isConnected || streamLoading}
               className="flex-1 resize-none border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               rows="3"
             />
             <button
               onClick={sendMessage}
-              disabled={!inputMessage.trim() || !isConnected || isLoading}
+              disabled={!inputMessage.trim() || !isConnected || streamLoading}
               className="px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? (
+              {streamLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <Send className="h-5 w-5" />
@@ -327,9 +466,16 @@ const AIChat = () => {
             </button>
           </div>
           <div className="max-w-6xl mx-auto">
-            <p className="text-xs text-gray-500 mt-2">
-              Tekan Enter untuk hantar, Shift+Enter untuk baris baru
-            </p>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-gray-500">
+                Tekan Enter untuk hantar, Shift+Enter untuk baris baru
+              </p>
+              {useStreaming && (
+                <p className="text-xs text-green-600">
+                  🔄 Token streaming enabled
+                </p>
+              )}
+            </div>
           </div>
         </div>
     </div>
