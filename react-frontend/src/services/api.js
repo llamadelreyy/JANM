@@ -115,4 +115,86 @@ export const authApi = {
   resetPassword: (data) => api.post('/Auth/ResetPassword', data),
 }
 
+// AI Services API (FastAPI backend on port 8002)
+export const aiApi = {
+  // Whisper Speech-to-Text API
+  transcribeAudio: async (audioBlob) => {
+    const formData = new FormData()
+    formData.append('audio', audioBlob, 'recording.wav')
+    
+    const response = await fetch('/api/whisper', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
+  },
+
+  // LLM Chat API
+  chatWithLLM: async (message, conversationHistory = []) => {
+    const response = await fetch('/api/llm', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message,
+        user_name: 'User',
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
+  },
+
+  // TTS (Text-to-Speech) API
+  synthesizeSpeech: async (text, voice = 'female', speed = 1.0) => {
+    const response = await fetch('/api/tts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        voice,
+        speed,
+        user_name: 'User'
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    
+    // Convert base64 to blob
+    const audioBase64 = data.audio_base64
+    const binaryString = atob(audioBase64)
+    const bytes = new Uint8Array(binaryString.length)
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i)
+    }
+    
+    const audioBlob = new Blob([bytes], { type: 'audio/wav' })
+    return audioBlob
+  },
+
+  // Health check
+  healthCheck: async () => {
+    const response = await fetch('/health')
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    return await response.json()
+  },
+}
+
 export default api

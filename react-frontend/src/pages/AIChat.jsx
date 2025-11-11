@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { Send, Bot, User, Loader2, AlertCircle, RefreshCw, Square } from 'lucide-react'
+import { Send, Bot, User, Loader2, AlertCircle, RefreshCw, Square, Mic, MicOff } from 'lucide-react'
 import { cn } from '../utils/cn'
 import ollamaService from '../services/ollamaService'
 import ragService from '../services/ragService'
+import speechService from '../services/speechService'
 import FormattedMessage from '../components/UI/FormattedMessage'
 import { useAuthStore } from '../stores/authStore'
 import useChatStream from '../hooks/useChatStream'
@@ -26,8 +27,13 @@ const AIChat = () => {
   const [showUrlConfig, setShowUrlConfig] = useState(false)
   const [customOllamaUrl, setCustomOllamaUrl] = useState('')
   const [useStreaming, setUseStreaming] = useState(true)
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordingError, setRecordingError] = useState('')
+  const [isTranscribing, setIsTranscribing] = useState(false)
+  const [speechSupport, setSpeechSupport] = useState({ isSupported: false, message: '' })
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  const recordingPromiseRef = useRef(null)
   
   // Use the streaming hook
   const { answer, thinking, loading: streamLoading, error: streamError, send: sendStream, cancel: cancelStream, reset: resetStream } = useChatStream()
@@ -36,6 +42,10 @@ const AIChat = () => {
   useEffect(() => {
     checkOllamaConnection()
     loadRagDocuments()
+    
+    // Check speech support
+    const supportInfo = speechService.getSupportInfo()
+    setSpeechSupport(supportInfo)
   }, [])
 
   // Auto-scroll to bottom when new messages are added
@@ -222,6 +232,190 @@ Never use formal section headers. Just write naturally and conversationally.`
     }
   }
 
+  // Speech-to-text functions
+  const startRecording = async () => {
+    if (!speechSupport.isSupported) {
+      setRecordingError(speechSupport.message)
+      return
+    }
+
+    try {
+      setRecordingError('')
+      setIsRecording(true)
+      
+      // Start recording and store the promise
+      recordingPromiseRef.current = speechService.startRecording()
+      
+    } catch (error) {
+      console.error('Failed to start recording:', error)
+      setRecordingError(error.message)
+      setIsRecording(false)
+    }
+  }
+
+  const stopRecording = async () => {
+    try {
+      setIsTranscribing(true)
+      speechService.stopRecording()
+      
+      // Wait for the recording to complete
+      if (recordingPromiseRef.current) {
+        const audioBlob = await recordingPromiseRef.current
+        
+        // Transcribe the audio
+        const transcription = await speechService.transcribeAudio(audioBlob)
+        
+        if (transcription) {
+          // Add a user message showing the transcribed text (same as normal text)
+          const transcriptionMessage = {
+            id: Date.now(),
+            type: 'user',
+            content: transcription,
+            timestamp: new Date()
+          }
+          setMessages(prev => [...prev, transcriptionMessage])
+          
+          // Automatically send the transcribed message to the bot
+          await sendTranscribedMessage(transcription)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to process recording:', error)
+      setRecordingError(error.message)
+    } finally {
+      setIsRecording(false)
+      setIsTranscribing(false)
+      recordingPromiseRef.current = null
+    }
+  }
+
+  // Send transcribed message directly to the bot
+  const sendTranscribedMessage = async (message) => {
+    if (!message.trim() || !isConnected) return
+
+    if (useStreaming) {
+      // Use streaming for token-by-token rendering
+      try {
+        // Search for relevant content using RAG
+        const relevantContent = ragService.searchDocuments(message)
+        
+        // Create messages array for the API
+        const apiMessages = [
+          {
+            role: 'system',
+            content: `ABSOLUTELY CRITICAL: DO NOT use "JAWAPAN:", "MAKLUMAT TAMBAHAN:", or "SUMBER:" in your response. These words are BANNED.
+
+WRONG FORMAT (DO NOT USE):
+JAWAPAN: Hello! How can I assist you today?
+MAKLUMAT TAMBAHAN:
+I'm here to help with any questions...
+SUMBER: database
+
+CORRECT FORMAT (USE THIS):
+Hello! I'm here to help you with any questions about government services, regulations, or municipal affairs. What would you like to know?
+
+You are a helpful conversational assistant. Write naturally like a human would speak.
+
+Available context from database:
+${relevantContent}
+
+INSTRUCTIONS:
+- Start responses immediately without headers
+- Write in natural conversation style
+- Be detailed and thorough using all available information
+- Use complete sentences and paragraphs
+- Include all relevant details, procedures, and requirements
+- Explain processes step by step when needed
+- Use plain text only - no special symbols or formatting
+- If greeting users, just say "Hello!" or "Hi there!" naturally
+- Provide comprehensive explanations making full use of available context
+
+Example good responses:
+"Hello! I can help you with information about government services and regulations. What specific topic are you interested in?"
+"To apply for that permit, you'll need to follow several steps. First, you'll need to gather these documents..."
+"The licensing process involves multiple stages. Let me walk you through each one in detail..."
+
+Never use formal section headers. Just write naturally and conversationally.`
+          },
+          {
+            role: 'user',
+            content: message
+          }
+        ]
+
+        // Add streaming message placeholder with typing animation
+        const streamingMessageId = Date.now() + 1
+        const streamingMessage = {
+          id: streamingMessageId,
+          type: 'bot',
+          content: '',
+          timestamp: new Date(),
+          isStreaming: true,
+          showTyping: true
+        }
+        setMessages(prev => [...prev, streamingMessage])
+
+        // Reset the stream state
+        resetStream()
+
+        // Send the streaming request
+        await sendStream(apiMessages, {
+          temperature: 0.7,
+          top_p: 0.9,
+          max_tokens: 8000
+        })
+
+      } catch (error) {
+        console.error('Error sending transcribed message:', error)
+        const errorMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          content: error.message || 'Maaf, terdapat masalah dalam menghubungi AI. Sila cuba lagi.',
+          timestamp: new Date(),
+          isError: true
+        }
+        setMessages(prev => [...prev, errorMessage])
+      }
+    } else {
+      // Use non-streaming (original method)
+      try {
+        const response = await ollamaService.sendMessage(message)
+        
+        const botMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          content: response,
+          timestamp: new Date()
+        }
+
+        setMessages(prev => [...prev, botMessage])
+      } catch (error) {
+        console.error('Error sending transcribed message:', error)
+        const errorMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          content: error.message || 'Maaf, terdapat masalah dalam menghubungi AI. Sila cuba lagi.',
+          timestamp: new Date(),
+          isError: true
+        }
+        setMessages(prev => [...prev, errorMessage])
+      }
+    }
+  }
+
+  const toggleRecording = () => {
+    if (!speechSupport.isSupported) {
+      setRecordingError(speechSupport.message)
+      return
+    }
+
+    if (isRecording) {
+      stopRecording()
+    } else {
+      startRecording()
+    }
+  }
+
   // Update streaming message content in real-time
   useEffect(() => {
     if (answer && useStreaming) {
@@ -358,6 +552,29 @@ Never use formal section headers. Just write naturally and conversationally.`
           </div>
         )}
 
+        {/* Speech Support Warning for Port Forwarding */}
+        {speechSupport.isPortForwarded && (
+          <div className="px-4 py-3 bg-orange-50 border-b border-orange-200">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-orange-800">
+                  Mikrofon Tidak Tersedia (Port Forwarding Detected)
+                </p>
+                <p className="text-xs text-orange-700 mt-1">
+                  Browser memblokir akses mikrofon melalui port forwarding untuk keselamatan.
+                  Untuk menggunakan ciri speech-to-text:
+                </p>
+                <ul className="text-xs text-orange-700 mt-1 ml-4 list-disc">
+                  <li>Akses terus melalui <code className="bg-orange-100 px-1 rounded">localhost:5173</code></li>
+                  <li>Atau gunakan HTTPS dengan SSL certificate</li>
+                  <li>Atau taip mesej secara manual</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* Messages Area - Only this section is scrollable */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
@@ -433,20 +650,65 @@ Never use formal section headers. Just write naturally and conversationally.`
 
         {/* Input Area - Fixed at bottom */}
         <div className="border-t p-4 flex-shrink-0">
+          {/* Recording status - Only show errors */}
+          {recordingError && (
+            <div className="max-w-6xl mx-auto mb-3">
+              <div className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200">
+                <AlertCircle className="h-4 w-4" />
+                <span>❌ Ralat: {recordingError}</span>
+              </div>
+            </div>
+          )}
+
           <div className="flex space-x-3 max-w-6xl mx-auto">
-            <textarea
-              ref={inputRef}
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={isConnected ? "Taip mesej anda di sini..." : "Sila sambung ke backend server terlebih dahulu"}
-              disabled={!isConnected || streamLoading}
-              className="flex-1 resize-none border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              rows="3"
-            />
+            <div className="flex-1 relative">
+              <textarea
+                ref={inputRef}
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={isConnected ? "Taip mesej anda di sini atau gunakan mikrofon..." : "Sila sambung ke backend server terlebih dahulu"}
+                disabled={!isConnected || streamLoading || isTranscribing}
+                className="w-full resize-none border border-gray-300 rounded-lg px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                rows="3"
+              />
+              {/* Microphone button inside textarea */}
+              <button
+                onClick={toggleRecording}
+                disabled={!isConnected || streamLoading || isTranscribing || !speechSupport.isSupported}
+                className={cn(
+                  "absolute right-2 top-2 p-2 rounded-lg transition-all duration-200",
+                  !speechSupport.isSupported
+                    ? "bg-gray-50 text-gray-300 cursor-not-allowed"
+                    : isRecording
+                    ? "bg-red-500 text-white shadow-lg animate-pulse"
+                    : isTranscribing
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                  "disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+                )}
+                title={
+                  !speechSupport.isSupported
+                    ? speechSupport.message
+                    : isRecording
+                    ? "Sedang merakam..."
+                    : isTranscribing
+                    ? "Memproses..."
+                    : "Tekan untuk merakam"
+                }
+              >
+                {isTranscribing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isRecording ? (
+                  <MicOff className="h-4 w-4" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </button>
+            </div>
             <button
               onClick={sendMessage}
-              disabled={!inputMessage.trim() || !isConnected || streamLoading}
+              disabled={!inputMessage.trim() || !isConnected || streamLoading || isRecording || isTranscribing}
               className="px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               {streamLoading ? (
@@ -458,14 +720,32 @@ Never use formal section headers. Just write naturally and conversationally.`
           </div>
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-gray-500">
-                Tekan Enter untuk hantar, Shift+Enter untuk baris baru
-              </p>
-              {useStreaming && (
-                <p className="text-xs text-green-600">
-                  🔄 Token streaming enabled
+              <div className="flex flex-col space-y-1">
+                <p className="text-xs text-gray-500">
+                  Tekan Enter untuk hantar, Shift+Enter untuk baris baru
                 </p>
-              )}
+                <p className={cn(
+                  "text-xs",
+                  speechSupport.isSupported ? "text-gray-400" : "text-red-400"
+                )}>
+                  🎤 {speechSupport.isSupported
+                    ? "Klik mikrofon untuk merakam → klik lagi untuk hantar ke bot"
+                    : `Mikrofon tidak tersedia: ${speechSupport.message}`
+                  }
+                </p>
+              </div>
+              <div className="flex flex-col items-end space-y-1">
+                {useStreaming && (
+                  <p className="text-xs text-green-600">
+                    🔄 Token streaming enabled
+                  </p>
+                )}
+                {speechSupport.isSupported && (
+                  <p className="text-xs text-green-600">
+                    🎤 Speech-to-text ready
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

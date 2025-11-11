@@ -1,11 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const multer = require('multer');
+const FormData = require('form-data');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const LLM_URL = process.env.LLM_URL || 'http://60.51.17.97:9501/v1/chat/completions';
+const LLM_URL = process.env.LLM_URL || 'http://60.51.17.97:14501/v1/chat/completions';
+const WHISPER_URL = process.env.WHISPER_URL || 'http://localhost:14801/v1/audio/transcriptions';
 
 // Middleware
 app.use(cors({
@@ -15,6 +18,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cache-Control']
 }));
 app.use(express.json({ limit: '10mb' }));
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -164,6 +175,65 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// Whisper Speech-to-Text endpoint
+app.post('/api/whisper', upload.single('audio'), async (req, res) => {
+  try {
+    console.log('=== WHISPER REQUEST RECEIVED ===');
+    console.log('Headers:', req.headers);
+    console.log('File info:', req.file ? {
+      fieldname: req.file.fieldname,
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    } : 'No file');
+
+    if (!req.file) {
+      console.log('ERROR: No audio file provided');
+      return res.status(400).json({ error: 'No audio file provided' });
+    }
+
+    // Create FormData to forward to Whisper service
+    const formData = new FormData();
+    formData.append('file', req.file.buffer, {
+      filename: 'audio.wav',
+      contentType: req.file.mimetype || 'audio/wav'
+    });
+    formData.append('model', 'stt_model');
+    formData.append('language', 'ms'); // Force Malay language
+    formData.append('response_format', 'json');
+
+    console.log('Forwarding to Whisper service:', WHISPER_URL);
+
+    // Forward to Whisper service
+    const response = await axios({
+      method: 'POST',
+      url: WHISPER_URL,
+      data: formData,
+      headers: {
+        ...formData.getHeaders(),
+      },
+      timeout: 30000, // 30 seconds timeout
+    });
+
+    console.log('Whisper response received:', response.data);
+    res.json(response.data);
+
+  } catch (error) {
+    console.error('Error in Whisper endpoint:', error);
+    
+    if (error.response) {
+      // Forward the error from Whisper service
+      res.status(error.response.status).json({
+        error: error.response.data?.error || error.message
+      });
+    } else {
+      res.status(500).json({
+        error: error.message || 'Whisper transcription failed'
+      });
+    }
+  }
+});
+
 // Error handling middleware
 app.use((error, req, res, next) => {
   console.error('Unhandled error:', error);
@@ -174,7 +244,9 @@ app.use((error, req, res, next) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Chat backend server running on port ${PORT}`);
   console.log(`📡 LLM URL: ${LLM_URL}`);
-  console.log(`🏥 Health check: http://0.0.0.0:${PORT}/health`);
+  console.log(`🎤 Whisper URL: ${WHISPER_URL}`);
+  console.log(` Health check: http://0.0.0.0:${PORT}/health`);
   console.log(`💬 Chat stream: http://0.0.0.0:${PORT}/api/chat/stream`);
-  console.log(`🌐 Server accessible on all network interfaces`);
+  console.log(`🎙️ Whisper endpoint: http://0.0.0.0:${PORT}/api/whisper`);
+  console.log(`� Server accessible on all network interfaces`);
 });
