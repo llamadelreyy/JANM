@@ -16,7 +16,7 @@ const AIChat = () => {
     {
       id: 1,
       type: 'bot',
-      content: `Selamat datang ${userName}! Saya adalah Kuala Kurau Bot. Bagaimana saya boleh membantu anda hari ini?`,
+      content: `Selamat datang ${userName}! Saya adalah KDN Bot. Bagaimana saya boleh membantu anda hari ini?`,
       timestamp: new Date()
     }
   ])
@@ -462,7 +462,7 @@ Never use formal section headers. Just write naturally and conversationally.`
       {
         id: 1,
         type: 'bot',
-        content: `Selamat datang ${userName}! Saya adalah pembantu AI yang menggunakan model Qwen3-235B dengan akses kepada database Kuala Kurau. Bagaimana saya boleh membantu anda hari ini?`,
+        content: `Selamat datang ${userName}! Saya adalah pembantu AI yang menggunakan model Qwen3-235B dengan akses kepada database KDN. Bagaimana saya boleh membantu anda hari ini?`,
         timestamp: new Date()
       }
     ])
@@ -484,7 +484,7 @@ Never use formal section headers. Just write naturally and conversationally.`
               "text-sm font-medium",
               isConnected ? "text-green-700" : "text-red-700"
             )}>
-              {isConnected ? 'Connected to Kuala Kurau Database' : 'Tidak tersambung'}
+              {isConnected ? 'Connected to KDN Database' : 'Tidak tersambung'}
             </span>
             {connectionError && (
               <span className="text-xs text-red-600">- {connectionError}</span>

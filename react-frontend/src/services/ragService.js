@@ -6,7 +6,14 @@
 class RAGService {
   constructor() {
     this.documents = {
-      roadTransportRegulations: null
+      roadTransportRegulations: null,
+      aadk: null,
+      jpn: null,
+      kdnFaq: null,
+      mmea: null,
+      pdrm: null,
+      relaFaq: null,
+      ros: null
     }
     this.processedChunks = []
     this.isLoaded = false
@@ -17,16 +24,44 @@ class RAGService {
    */
   async loadDocuments() {
     try {
-      // Load road transport regulations file
-      const roadTransportResponse = await fetch('/kuala-kurau')
-      if (roadTransportResponse.ok) {
-        this.documents.roadTransportRegulations = await roadTransportResponse.text()
-        // Preprocess document into searchable chunks for faster retrieval
-        this.preprocessDocument()
-      }
+      // Load all available datasets
+      const datasets = [
+        { key: 'roadTransportRegulations', url: '/kuala-kurau', name: 'KDN Database' },
+        { key: 'aadk', url: '/AADK', name: 'AADK Database' },
+        { key: 'jpn', url: '/JPN', name: 'JPN Database' },
+        { key: 'kdnFaq', url: '/KDN FAQ', name: 'KDN FAQ Database' },
+        { key: 'mmea', url: '/MMEA', name: 'MMEA Database' },
+        { key: 'pdrm', url: '/PDRM', name: 'PDRM Database' },
+        { key: 'relaFaq', url: '/RELA - FAQ', name: 'RELA FAQ Database' },
+        { key: 'ros', url: '/ROS', name: 'ROS Database' }
+      ]
+
+      // Load all datasets in parallel for better performance
+      const loadPromises = datasets.map(async (dataset) => {
+        try {
+          const response = await fetch(dataset.url)
+          if (response.ok) {
+            this.documents[dataset.key] = await response.text()
+            console.log(`Loaded ${dataset.name}: ${this.documents[dataset.key].length} characters`)
+            return { success: true, name: dataset.name }
+          } else {
+            console.warn(`Failed to load ${dataset.name}: ${response.status}`)
+            return { success: false, name: dataset.name }
+          }
+        } catch (error) {
+          console.warn(`Error loading ${dataset.name}:`, error)
+          return { success: false, name: dataset.name }
+        }
+      })
+
+      const results = await Promise.all(loadPromises)
+      const successCount = results.filter(r => r.success).length
+      
+      // Preprocess all loaded documents into searchable chunks
+      this.preprocessDocuments()
 
       this.isLoaded = true
-      console.log('RAG database loaded and preprocessed successfully')
+      console.log(`RAG database loaded successfully: ${successCount}/${datasets.length} datasets`)
     } catch (error) {
       console.error('Failed to load RAG database:', error)
       this.isLoaded = false
@@ -34,30 +69,54 @@ class RAGService {
   }
 
   /**
-   * Preprocess document into searchable chunks for faster retrieval
+   * Preprocess all documents into searchable chunks for faster retrieval
    */
-  preprocessDocument() {
-    if (!this.documents.roadTransportRegulations) return
-
-    const lines = this.documents.roadTransportRegulations.split('\n')
+  preprocessDocuments() {
     this.processedChunks = []
     
-    // Create chunks of related content (every 8-12 lines)
-    for (let i = 0; i < lines.length; i += 8) {
-      const chunkLines = lines.slice(i, i + 12)
-      const chunkText = chunkLines.join('\n').trim()
+    // Process each loaded document
+    Object.entries(this.documents).forEach(([key, content]) => {
+      if (!content) return
       
-      if (chunkText.length > 20) { // Skip very short chunks
-        this.processedChunks.push({
-          content: chunkText,
-          lowerContent: chunkText.toLowerCase(),
-          startLine: i,
-          endLine: Math.min(i + 12, lines.length)
-        })
+      const sourceName = this.getSourceName(key)
+      const lines = content.split('\n')
+      
+      // Create chunks of related content (every 8-12 lines)
+      for (let i = 0; i < lines.length; i += 8) {
+        const chunkLines = lines.slice(i, i + 12)
+        const chunkText = chunkLines.join('\n').trim()
+        
+        if (chunkText.length > 20) { // Skip very short chunks
+          this.processedChunks.push({
+            content: chunkText,
+            lowerContent: chunkText.toLowerCase(),
+            source: sourceName,
+            dataset: key,
+            startLine: i,
+            endLine: Math.min(i + 12, lines.length)
+          })
+        }
       }
-    }
+    })
     
-    console.log(`Preprocessed ${this.processedChunks.length} chunks for fast retrieval`)
+    console.log(`Preprocessed ${this.processedChunks.length} chunks from all datasets for fast retrieval`)
+  }
+
+  /**
+   * Get human-readable source name for dataset key
+   */
+  getSourceName(key) {
+    const sourceNames = {
+      roadTransportRegulations: 'KDN Database',
+      aadk: 'AADK Database',
+      jpn: 'JPN Database',
+      kdnFaq: 'KDN FAQ Database',
+      mmea: 'MMEA Database',
+      pdrm: 'PDRM Database',
+      relaFaq: 'RELA FAQ Database',
+      ros: 'ROS Database'
+    }
+    return sourceNames[key] || key
   }
 
   /**
@@ -110,7 +169,7 @@ class RAGService {
       
       if (hasMatch) {
         relevantContent.push({
-          source: 'Kuala Kurau Database',
+          source: chunk.source,
           content: chunk.content,
           relevance: relevance
         })
@@ -146,10 +205,18 @@ class RAGService {
    * Get document status
    */
   getStatus() {
+    const loadedDatasets = Object.entries(this.documents)
+      .filter(([key, content]) => !!content)
+      .map(([key, content]) => ({
+        name: this.getSourceName(key),
+        size: content.length
+      }))
+
     return {
       isLoaded: this.isLoaded,
-      hasRoadTransportRegulations: !!this.documents.roadTransportRegulations,
-      roadTransportRegulationsSize: this.documents.roadTransportRegulations ? this.documents.roadTransportRegulations.length : 0
+      loadedDatasets: loadedDatasets,
+      totalChunks: this.processedChunks.length,
+      totalSize: Object.values(this.documents).reduce((sum, doc) => sum + (doc ? doc.length : 0), 0)
     }
   }
 }
