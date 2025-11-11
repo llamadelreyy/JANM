@@ -6,11 +6,12 @@
 class RAGService {
   constructor() {
     this.documents = {
-      bwtdData: null,
-      obj1Data: null,
+      bwtd2024: null,
+      obj1Bwtd: null,
       objective2Details: null,
       objective2Summary: null
     }
+    this.processedChunks = []
     this.isLoaded = false
   }
 
@@ -19,36 +20,69 @@ class RAGService {
    */
   async loadDocuments() {
     try {
-      // Load BWTD data file
-      const bwtdDataResponse = await fetch('/BWTD_2024_06 24072025xlsx_markdown.txt')
-      if (bwtdDataResponse.ok) {
-        this.documents.bwtdData = await bwtdDataResponse.text()
-      }
+      // Load all markdown files from public folder
+      const documentFiles = [
+        { key: 'bwtd2024', path: '/BWTD_2024_06 24072025xlsx_markdown.txt' },
+        { key: 'obj1Bwtd', path: '/OBJ1_24_BWTD 24072025_markdown.txt' },
+        { key: 'objective2Details', path: '/r_OBJECTIVE_2_Details 22072025 (1)_markdown.txt' },
+        { key: 'objective2Summary', path: '/r_OBJECTIVE_2_Summry 24072025_markdown.txt' }
+      ]
 
-      // Load Objective 1 data file
-      const obj1DataResponse = await fetch('/OBJ1_24_BWTD 24072025_markdown.txt')
-      if (obj1DataResponse.ok) {
-        this.documents.obj1Data = await obj1DataResponse.text()
-      }
+      const loadPromises = documentFiles.map(async (file) => {
+        try {
+          const response = await fetch(file.path)
+          if (response.ok) {
+            this.documents[file.key] = await response.text()
+            console.log(`Loaded ${file.key}: ${this.documents[file.key].length} characters`)
+          } else {
+            console.warn(`Failed to load ${file.path}: ${response.status}`)
+          }
+        } catch (error) {
+          console.error(`Error loading ${file.path}:`, error)
+        }
+      })
 
-      // Load objective 2 details file
-      const objective2DetailsResponse = await fetch('/r_OBJECTIVE_2_Details 22072025 (1)_markdown.txt')
-      if (objective2DetailsResponse.ok) {
-        this.documents.objective2Details = await objective2DetailsResponse.text()
-      }
-
-      // Load objective 2 summary file
-      const objective2SummaryResponse = await fetch('/r_OBJECTIVE_2_Summry 24072025_markdown.txt')
-      if (objective2SummaryResponse.ok) {
-        this.documents.objective2Summary = await objective2SummaryResponse.text()
-      }
-
+      await Promise.all(loadPromises)
+      
+      // Preprocess documents into searchable chunks for faster retrieval
+      this.preprocessDocuments()
       this.isLoaded = true
-      console.log('RAG database loaded successfully')
+      console.log('RAG database loaded and preprocessed successfully')
     } catch (error) {
       console.error('Failed to load RAG database:', error)
       this.isLoaded = false
     }
+  }
+
+  /**
+   * Preprocess documents into searchable chunks for faster retrieval
+   */
+  preprocessDocuments() {
+    this.processedChunks = []
+    
+    Object.entries(this.documents).forEach(([docKey, docContent]) => {
+      if (!docContent) return
+
+      const lines = docContent.split('\n')
+      
+      // Create chunks of related content (every 8-12 lines)
+      for (let i = 0; i < lines.length; i += 8) {
+        const chunkLines = lines.slice(i, i + 12)
+        const chunkText = chunkLines.join('\n').trim()
+        
+        if (chunkText.length > 20) { // Skip very short chunks
+          this.processedChunks.push({
+            content: chunkText,
+            lowerContent: chunkText.toLowerCase(),
+            source: docKey,
+            startLine: i,
+            endLine: Math.min(i + 12, lines.length)
+          })
+        }
+      }
+    })
+    
+    console.log(`Preprocessed ${this.processedChunks.length} chunks for fast retrieval`)
   }
 
   /**
@@ -57,156 +91,74 @@ class RAGService {
    * @returns {string} - Relevant content found
    */
   searchDocuments(query) {
-    if (!this.isLoaded) {
+    if (!this.isLoaded || this.processedChunks.length === 0) {
       return 'Database not loaded yet. Please wait...'
     }
 
-    // Enhanced search terms - include original query, split terms, and numbers
-    const originalQuery = query.toLowerCase()
-    const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2)
+    const startTime = performance.now()
     
-    // Extract numbers from query for better number matching
+    // Optimize search terms preprocessing
+    const queryLower = query.toLowerCase()
+    const searchTerms = queryLower.split(/\s+/).filter(term => term.length > 2)
     const numberMatches = query.match(/\d+/g) || []
     
     let relevantContent = []
+    let processedChunks = 0
 
-    // Search in BWTD data document
-    if (this.documents.bwtdData) {
-      const bwtdLines = this.documents.bwtdData.split('\n')
-      bwtdLines.forEach((line, index) => {
-        const lowerLine = line.toLowerCase()
-        const originalLine = line
-        
-        // Check for exact query match, search terms, or number matches
-        const hasExactMatch = lowerLine.includes(originalQuery)
-        const hasTermMatch = searchTerms.some(term => lowerLine.includes(term))
-        const hasNumberMatch = numberMatches.some(num => originalLine.includes(num))
-        
-        if (hasExactMatch || hasTermMatch || hasNumberMatch) {
-          // Include more context for better understanding
-          const start = Math.max(0, index - 3)
-          const end = Math.min(bwtdLines.length, index + 4)
-          const context = bwtdLines.slice(start, end).join('\n')
-          
-          let relevance = 0
-          if (hasExactMatch) relevance += 10
-          if (hasNumberMatch) relevance += 5
-          relevance += searchTerms.filter(term => lowerLine.includes(term)).length
-          
-          relevantContent.push({
-            source: 'BWTD 2024 Database',
-            content: context,
-            relevance: relevance
-          })
-        }
-      })
+    // Fast chunk-based search with early termination
+    for (const chunk of this.processedChunks) {
+      processedChunks++
+      
+      // Quick relevance check
+      let relevance = 0
+      let hasMatch = false
+      
+      // Check for exact query match (highest priority)
+      if (chunk.lowerContent.includes(queryLower)) {
+        relevance += 20
+        hasMatch = true
+      }
+      
+      // Check search terms
+      const termMatches = searchTerms.filter(term => chunk.lowerContent.includes(term))
+      if (termMatches.length > 0) {
+        relevance += termMatches.length * 3
+        hasMatch = true
+      }
+      
+      // Check number matches
+      const chunkNumberMatches = numberMatches.filter(num => chunk.content.includes(num))
+      if (chunkNumberMatches.length > 0) {
+        relevance += chunkNumberMatches.length * 5
+        hasMatch = true
+      }
+      
+      if (hasMatch) {
+        relevantContent.push({
+          source: this.getSourceDisplayName(chunk.source),
+          content: chunk.content,
+          relevance: relevance
+        })
+      }
+      
+      // Early termination if we have enough high-quality results
+      if (relevantContent.length >= 15 && relevance < 5) {
+        break
+      }
     }
 
-    // Search in Objective 1 data document
-    if (this.documents.obj1Data) {
-      const obj1Lines = this.documents.obj1Data.split('\n')
-      obj1Lines.forEach((line, index) => {
-        const lowerLine = line.toLowerCase()
-        const originalLine = line
-        
-        // Check for exact query match, search terms, or number matches
-        const hasExactMatch = lowerLine.includes(originalQuery)
-        const hasTermMatch = searchTerms.some(term => lowerLine.includes(term))
-        const hasNumberMatch = numberMatches.some(num => originalLine.includes(num))
-        
-        if (hasExactMatch || hasTermMatch || hasNumberMatch) {
-          // Include more context for better understanding
-          const start = Math.max(0, index - 3)
-          const end = Math.min(obj1Lines.length, index + 4)
-          const context = obj1Lines.slice(start, end).join('\n')
-          
-          let relevance = 0
-          if (hasExactMatch) relevance += 10
-          if (hasNumberMatch) relevance += 5
-          relevance += searchTerms.filter(term => lowerLine.includes(term)).length
-          
-          relevantContent.push({
-            source: 'Objective 1 Database',
-            content: context,
-            relevance: relevance
-          })
-        }
-      })
-    }
-
-    // Search in objective 2 details document
-    if (this.documents.objective2Details) {
-      const detailsLines = this.documents.objective2Details.split('\n')
-      detailsLines.forEach((line, index) => {
-        const lowerLine = line.toLowerCase()
-        const originalLine = line
-        
-        // Check for exact query match, search terms, or number matches
-        const hasExactMatch = lowerLine.includes(originalQuery)
-        const hasTermMatch = searchTerms.some(term => lowerLine.includes(term))
-        const hasNumberMatch = numberMatches.some(num => originalLine.includes(num))
-        
-        if (hasExactMatch || hasTermMatch || hasNumberMatch) {
-          // Include more context for better understanding
-          const start = Math.max(0, index - 3)
-          const end = Math.min(detailsLines.length, index + 4)
-          const context = detailsLines.slice(start, end).join('\n')
-          
-          let relevance = 0
-          if (hasExactMatch) relevance += 10
-          if (hasNumberMatch) relevance += 5
-          relevance += searchTerms.filter(term => lowerLine.includes(term)).length
-          
-          relevantContent.push({
-            source: 'Objective 2 Details Database',
-            content: context,
-            relevance: relevance
-          })
-        }
-      })
-    }
-
-    // Search in objective 2 summary document
-    if (this.documents.objective2Summary) {
-      const summaryLines = this.documents.objective2Summary.split('\n')
-      summaryLines.forEach((line, index) => {
-        const lowerLine = line.toLowerCase()
-        const originalLine = line
-        
-        // Check for exact query match, search terms, or number matches
-        const hasExactMatch = lowerLine.includes(originalQuery)
-        const hasTermMatch = searchTerms.some(term => lowerLine.includes(term))
-        const hasNumberMatch = numberMatches.some(num => originalLine.includes(num))
-        
-        if (hasExactMatch || hasTermMatch || hasNumberMatch) {
-          // Include more context for better understanding
-          const start = Math.max(0, index - 3)
-          const end = Math.min(summaryLines.length, index + 4)
-          const context = summaryLines.slice(start, end).join('\n')
-          
-          let relevance = 0
-          if (hasExactMatch) relevance += 10
-          if (hasNumberMatch) relevance += 5
-          relevance += searchTerms.filter(term => lowerLine.includes(term)).length
-          
-          relevantContent.push({
-            source: 'Objective 2 Summary Database',
-            content: context,
-            relevance: relevance
-          })
-        }
-      })
-    }
-
-    // Sort by relevance and limit results
+    // Sort by relevance and limit to top results for faster processing
     relevantContent.sort((a, b) => b.relevance - a.relevance)
-    relevantContent = relevantContent.slice(0, 10) // Top 10 most relevant for better coverage
+    relevantContent = relevantContent.slice(0, 8) // Reduced to 8 for faster LLM processing
+
+    const endTime = performance.now()
+    console.log(`RAG search completed in ${(endTime - startTime).toFixed(2)}ms, processed ${processedChunks} chunks, found ${relevantContent.length} results`)
 
     if (relevantContent.length === 0) {
       return 'No relevant information found in the database.'
     }
 
-    // Format the results
+    // Optimized result formatting
     let formattedResults = 'Relevant information found:\n\n'
     relevantContent.forEach((item, index) => {
       formattedResults += `${index + 1}. From ${item.source}:\n${item.content}\n\n`
@@ -216,19 +168,32 @@ class RAGService {
   }
 
   /**
+   * Get display name for document source
+   * @param {string} sourceKey - Internal source key
+   * @returns {string} - Human readable source name
+   */
+  getSourceDisplayName(sourceKey) {
+    const sourceNames = {
+      bwtd2024: 'BWTD 2024 Report',
+      obj1Bwtd: 'Objective 1 BWTD Report',
+      objective2Details: 'Objective 2 Details Report',
+      objective2Summary: 'Objective 2 Summary Report'
+    }
+    return sourceNames[sourceKey] || sourceKey
+  }
+
+  /**
    * Get document status
    */
   getStatus() {
     return {
       isLoaded: this.isLoaded,
-      hasBwtdData: !!this.documents.bwtdData,
-      hasObj1Data: !!this.documents.obj1Data,
-      hasObjective2Details: !!this.documents.objective2Details,
-      hasObjective2Summary: !!this.documents.objective2Summary,
-      bwtdDataSize: this.documents.bwtdData ? this.documents.bwtdData.length : 0,
-      obj1DataSize: this.documents.obj1Data ? this.documents.obj1Data.length : 0,
-      objective2DetailsSize: this.documents.objective2Details ? this.documents.objective2Details.length : 0,
-      objective2SummarySize: this.documents.objective2Summary ? this.documents.objective2Summary.length : 0
+      loadedDocuments: Object.keys(this.documents).filter(key => this.documents[key]),
+      totalChunks: this.processedChunks.length,
+      documentSizes: Object.entries(this.documents).reduce((acc, [key, content]) => {
+        acc[key] = content ? content.length : 0
+        return acc
+      }, {})
     }
   }
 }
