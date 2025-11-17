@@ -2,7 +2,7 @@ import { Menu, Bell, User, LogOut, Settings } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import mdkLogo from '../../assets/kdn.png'
+import mdkLogo from '../../assets/upsi.png'
 
 const Header = ({ onMenuClick }) => {
   const { user, logout } = useAuthStore()
@@ -53,10 +53,10 @@ const Header = ({ onMenuClick }) => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">
-                KDN Bot 
+                UPSI GPT 
               </h1>
               <p className="text-blue-100 text-sm hidden lg:block">
-                Sistem Kecerdasan Buatan KDN
+                Sistem Kecerdasan Buatan UPSI
               </p>
             </div>
           </div>

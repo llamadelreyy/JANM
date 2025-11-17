@@ -13,7 +13,8 @@ class RAGService {
       mmea: null,
       pdrm: null,
       relaFaq: null,
-      ros: null
+      ros: null,
+      upsi: null
     }
     this.processedChunks = []
     this.isLoaded = false
@@ -33,7 +34,8 @@ class RAGService {
         { key: 'mmea', url: '/MMEA', name: 'MMEA Database' },
         { key: 'pdrm', url: '/PDRM', name: 'PDRM Database' },
         { key: 'relaFaq', url: '/RELA - FAQ', name: 'RELA FAQ Database' },
-        { key: 'ros', url: '/ROS', name: 'ROS Database' }
+        { key: 'ros', url: '/ROS', name: 'ROS Database' },
+        { key: 'upsi', url: '/UPSI', name: 'UPSI Database' }
       ]
 
       // Load all datasets in parallel for better performance
@@ -81,20 +83,71 @@ class RAGService {
       const sourceName = this.getSourceName(key)
       const lines = content.split('\n')
       
-      // Create chunks of related content (every 8-12 lines)
-      for (let i = 0; i < lines.length; i += 8) {
-        const chunkLines = lines.slice(i, i + 12)
-        const chunkText = chunkLines.join('\n').trim()
-        
-        if (chunkText.length > 20) { // Skip very short chunks
-          this.processedChunks.push({
-            content: chunkText,
-            lowerContent: chunkText.toLowerCase(),
-            source: sourceName,
-            dataset: key,
-            startLine: i,
-            endLine: Math.min(i + 12, lines.length)
-          })
+      if (key === 'upsi') {
+        // Special handling for UPSI data in CSV format
+        // Skip the header row
+        const dataLines = lines.slice(1)
+        dataLines.forEach((line, i) => {
+          if (line.trim().length > 0) {
+            const fields = line.split('|')
+            // Check if it's a valid data row with all expected fields
+            if (fields.length >= 13) {
+              // Format all available fields from the UPSI data
+              const formattedContent = [
+                `Program: ${fields[0]}`,
+                `Race: ${fields[1]}`,
+                `Religion: ${fields[2]}`,
+                `Intake: ${fields[3]}`,
+                `Course: ${fields[4]}`,
+                `Status: ${fields[5]}`,
+                `Birth State: ${fields[6]}`,
+                `International: ${fields[7]}`,
+                `Gender: ${fields[8]}`,
+                `Birth Date: ${fields[9]}`,
+                `Intake Date: ${fields[10]}`,
+                `Permanent State: ${fields[11]}`,
+                `Current State: ${fields[12]}`,
+                `Citizen: ${fields[13]}`,
+                `PDapatk: ${fields[14]}`,
+                `Marital Status: ${fields[15]}`,
+                `Level: ${fields[16]}`,
+                `Part Time: ${fields[17]}`,
+                `Mode: ${fields[18]}`,
+                `Graduation Date: ${fields[19]}`,
+                `Senate: ${fields[20]}`,
+                `SES Category: ${fields[21]}`,
+                `Expected Graduation: ${fields[22]}`,
+                `Current Year: ${fields[23]}`,
+                `Current Semester: ${fields[24]}`
+              ].join('\n')
+
+              this.processedChunks.push({
+                content: formattedContent,
+                lowerContent: formattedContent.toLowerCase(),
+                source: sourceName,
+                dataset: key,
+                startLine: i,
+                endLine: i + 1
+              })
+            }
+          }
+        })
+      } else {
+        // Original chunk processing for other datasets
+        for (let i = 0; i < lines.length; i += 8) {
+          const chunkLines = lines.slice(i, i + 12)
+          const chunkText = chunkLines.join('\n').trim()
+          
+          if (chunkText.length > 20) { // Skip very short chunks
+            this.processedChunks.push({
+              content: chunkText,
+              lowerContent: chunkText.toLowerCase(),
+              source: sourceName,
+              dataset: key,
+              startLine: i,
+              endLine: Math.min(i + 12, lines.length)
+            })
+          }
         }
       }
     })
@@ -114,7 +167,8 @@ class RAGService {
       mmea: 'MMEA Database',
       pdrm: 'PDRM Database',
       relaFaq: 'RELA FAQ Database',
-      ros: 'ROS Database'
+      ros: 'ROS Database',
+      upsi: 'UPSI Database'
     }
     return sourceNames[key] || key
   }
@@ -130,9 +184,17 @@ class RAGService {
     }
 
     const startTime = performance.now()
-    
-    // Optimize search terms preprocessing
     const queryLower = query.toLowerCase()
+
+    // Special handling for aggregate queries on UPSI data (English and Malay)
+    if (queryLower.includes('how many') || queryLower.includes('count') ||
+        queryLower.includes('berapa') || queryLower.includes('jumlah') ||
+        queryLower.includes('kira') || queryLower.includes('bilangan') ||
+        queryLower.includes('senarai') || queryLower.includes('cari')) {
+      return this.handleAggregateQuery(queryLower)
+    }
+
+    // Regular search processing
     const searchTerms = queryLower.split(/\s+/).filter(term => term.length > 2)
     const numberMatches = query.match(/\d+/g) || []
     
@@ -146,25 +208,57 @@ class RAGService {
       // Quick relevance check
       let relevance = 0
       let hasMatch = false
-      
-      // Check for exact query match (highest priority)
-      if (chunk.lowerContent.includes(queryLower)) {
-        relevance += 20
-        hasMatch = true
-      }
-      
-      // Check search terms
-      const termMatches = searchTerms.filter(term => chunk.lowerContent.includes(term))
-      if (termMatches.length > 0) {
-        relevance += termMatches.length * 3
-        hasMatch = true
-      }
-      
-      // Check number matches
-      const chunkNumberMatches = numberMatches.filter(num => chunk.content.includes(num))
-      if (chunkNumberMatches.length > 0) {
-        relevance += chunkNumberMatches.length * 5
-        hasMatch = true
+
+      // Special handling for UPSI dataset
+      if (chunk.dataset === 'upsi') {
+        // Check for exact query match (highest priority)
+        if (chunk.lowerContent.includes(queryLower)) {
+          relevance += 20
+          hasMatch = true
+        }
+
+        // Check each field separately for better matching
+        const fields = chunk.content.split('\n')
+        fields.forEach(field => {
+          const fieldLower = field.toLowerCase()
+          if (fieldLower.includes(queryLower)) {
+            relevance += 15
+            hasMatch = true
+          }
+          
+          // Check individual search terms
+          searchTerms.forEach(term => {
+            if (fieldLower.includes(term)) {
+              relevance += 5
+              hasMatch = true
+            }
+          })
+        })
+
+        // Check number matches
+        const chunkNumberMatches = numberMatches.filter(num => chunk.content.includes(num))
+        if (chunkNumberMatches.length > 0) {
+          relevance += chunkNumberMatches.length * 5
+          hasMatch = true
+        }
+      } else {
+        // Original relevance calculation for other datasets
+        if (chunk.lowerContent.includes(queryLower)) {
+          relevance += 20
+          hasMatch = true
+        }
+        
+        const termMatches = searchTerms.filter(term => chunk.lowerContent.includes(term))
+        if (termMatches.length > 0) {
+          relevance += termMatches.length * 3
+          hasMatch = true
+        }
+        
+        const chunkNumberMatches = numberMatches.filter(num => chunk.content.includes(num))
+        if (chunkNumberMatches.length > 0) {
+          relevance += chunkNumberMatches.length * 5
+          hasMatch = true
+        }
       }
       
       if (hasMatch) {
@@ -219,6 +313,101 @@ class RAGService {
       totalSize: Object.values(this.documents).reduce((sum, doc) => sum + (doc ? doc.length : 0), 0)
     }
   }
+
+  /**
+   * Handle aggregate queries for UPSI data
+   */
+  handleAggregateQuery(query) {
+    const upsiChunks = this.processedChunks.filter(chunk => chunk.dataset === 'upsi')
+    const queryLower = query.toLowerCase()
+    
+    // Helper function to count by field
+    const countByField = (fieldName, displayName, valueFilter = null) => {
+      const counts = {}
+      upsiChunks.forEach(chunk => {
+        const match = chunk.content.match(new RegExp(`${fieldName}: (.+?)(?:\\n|$)`))
+        if (match) {
+          const value = match[1]
+          counts[value] = (counts[value] || 0) + 1
+        }
+      })
+      
+      let response = `Jumlah pelajar mengikut ${displayName}:\n`
+      const entries = Object.entries(counts)
+        .sort(([,a], [,b]) => b - a)
+        
+      if (valueFilter) {
+        const filtered = entries.filter(([value]) => value.toLowerCase() === valueFilter.toLowerCase())
+        if (filtered.length > 0) {
+          return `Terdapat ${filtered[0][1]} pelajar ${valueFilter}.`
+        }
+        return `Tiada pelajar ${valueFilter} dalam pangkalan data.`
+      }
+      
+      entries.forEach(([value, count]) => {
+        response += `${value}: ${count} pelajar\n`
+      })
+      return response
+    }
+
+    // Count active students
+    if (query.includes('active')) {
+      const activeCount = upsiChunks.filter(chunk =>
+        chunk.content.toLowerCase().includes('status: active')
+      ).length
+      return `There are ${activeCount} active students in the database.`
+    }
+
+    // Handle various counting queries in English and Malay
+    if (queryLower.includes('program') || queryLower.includes('kursus pengajian'))
+      return countByField('Program', 'program')
+    
+    if (queryLower.includes('status') || queryLower.includes('keadaan'))
+      return countByField('Status', 'status')
+    
+    if (queryLower.includes('state') || queryLower.includes('negeri') || queryLower.includes('tempat'))
+      return countByField('Current State', 'negeri')
+    
+    if (queryLower.includes('race') || queryLower.includes('bangsa') || queryLower.includes('kaum'))
+      return countByField('Race', 'bangsa')
+    
+    if (queryLower.includes('religion') || queryLower.includes('agama') || queryLower.includes('ugama'))
+      return countByField('Religion', 'agama')
+    
+    if (queryLower.includes('gender') || queryLower.includes('jantina') || queryLower.includes('lelaki') || queryLower.includes('perempuan'))
+      return countByField('Gender', 'jantina')
+    
+    if (queryLower.includes('international') || queryLower.includes('antarabangsa') || queryLower.includes('luar negara'))
+      return countByField('International', 'status antarabangsa')
+    
+    if (queryLower.includes('mode') || queryLower.includes('mod') || queryLower.includes('cara'))
+      return countByField('Mode', 'mod pengajian')
+    
+    // Special handling for B40/M40/T20 queries with variations
+    if (queryLower.includes('b40') || queryLower.includes('b 40') || queryLower.includes('b-40'))
+      return countByField('SES Category', 'kategori SES', 'B40')
+    
+    if (queryLower.includes('m40') || queryLower.includes('m 40') || queryLower.includes('m-40'))
+      return countByField('SES Category', 'kategori SES', 'M40')
+    
+    if (queryLower.includes('t20') || queryLower.includes('t 20') || queryLower.includes('t-20'))
+      return countByField('SES Category', 'kategori SES', 'T20')
+    
+    if (queryLower.includes('ses') || queryLower.includes('category') || queryLower.includes('kategori') ||
+        queryLower.includes('ekonomi') || queryLower.includes('pendapatan'))
+      return countByField('SES Category', 'kategori SES')
+    
+    if (queryLower.includes('level') || queryLower.includes('tahap') || queryLower.includes('peringkat'))
+      return countByField('Level', 'tahap')
+    
+    if (queryLower.includes('marital') || queryLower.includes('kahwin') || queryLower.includes('perkahwinan'))
+      return countByField('Marital Status', 'status perkahwinan')
+    
+    if (queryLower.includes('course') || queryLower.includes('kursus') || queryLower.includes('subjek'))
+      return countByField('Course', 'kursus')
+
+    return 'Sila nyatakan apa yang ingin anda kira (contoh: pelajar aktif, mengikut program, status, negeri, bangsa, agama, jantina, status antarabangsa, mod pengajian, kategori SES (B40/M40/T20), tahap, status perkahwinan, atau kursus)'
+  }
 }
 
 // Create and export a singleton instance
@@ -227,3 +416,32 @@ export default ragService
 
 // Also export the class for testing or custom instances
 export { RAGService }
+
+/**
+ * UPSI Data Format:
+ * 1. Program - Study program (e.g., Diploma, Masters)
+ * 2. Race - Student's race
+ * 3. Religion - Student's religion
+ * 4. Intake - Intake semester (e.g., Apr2020)
+ * 5. Course - Course code
+ * 6. Status - Student status (Active, Graduated, etc.)
+ * 7. Birth State - State of birth
+ * 8. International - International student flag (0/1)
+ * 9. Gender - Student's gender
+ * 10. Birth Date - Date of birth
+ * 11. Intake Date - Date of intake
+ * 12. Permanent State - Permanent residence state
+ * 13. Current State - Current residence state
+ * 14. Citizen - Citizenship status
+ * 15. PDapatk - PDapatk status (Yes/No)
+ * 16. Marital Status - Marital status
+ * 17. Level - Study level (L1-L4)
+ * 18. Part Time - Part-time status (0/1)
+ * 19. Mode - Study mode (Full-Time/Part-Time)
+ * 20. Graduation Date - Actual graduation date
+ * 21. Senate - Senate reference number
+ * 22. SES Category - Socioeconomic status (B40/M40/T20)
+ * 23. Expected Graduation - Expected graduation date
+ * 24. Current Year - Current year of study
+ * 25. Current Semester - Current semester
+ */
