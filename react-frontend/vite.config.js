@@ -16,6 +16,7 @@ export default defineConfig({
     allowedHosts: [
       'e7b777cc0b96.ngrok-free.app',
       'sarah-noninclinational-ingrately.ngrok-free.dev',
+      'regardless-stake-knife-materials.trycloudflare.com',
       // Allow all ngrok hosts for development
       /\.ngrok-free\.(app|dev)$/,
       /\.ngrok\.io$/,

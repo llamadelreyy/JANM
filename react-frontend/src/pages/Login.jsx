@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { Eye, EyeOff, User, Lock } from 'lucide-react'
 import { toast } from 'sonner'
-import mdkLogo from '../assets/jata-logo.png'
+import mdkLogo from '../assets/upsi.png'
 
 const Login = () => {
   const [formData, setFormData] = useState({
