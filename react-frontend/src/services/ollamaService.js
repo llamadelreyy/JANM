@@ -10,22 +10,35 @@ class OpenAIService {
     this.model = import.meta.env.VITE_OPENAI_MODEL || 'llm_model'
     this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || 'dummy-key' // Some OpenAI-compatible APIs don't require a real key
     
-    // Auto-detect the appropriate base URL
-    this.baseUrl = this.getBaseUrl()
+    // Available model endpoints
+    this.modelEndpoints = {
+      'localhost:11434': '/ollama/chat/completions',
+      '9501': '/remote/chat/completions'
+    }
+    
+    // Default to localhost model
+    this.baseUrl = this.modelEndpoints['localhost:11434']
   }
 
   /**
    * Automatically determine the correct base URL based on the current environment
    * @returns {string} The appropriate base URL
    */
-  getBaseUrl() {
-    // If environment variable is set, use it
-    if (import.meta.env.VITE_OPENAI_API_BASE_URL) {
-      return import.meta.env.VITE_OPENAI_API_BASE_URL
-    }
+  /**
+   * Get list of available model endpoints
+   * @returns {Object} Map of endpoint names to URLs
+   */
+  getModelEndpoints() {
+    return this.modelEndpoints
+  }
 
-    // Use the new model endpoint
-    return 'http://127.0.0.1:14501/v1'
+  /**
+   * Get current model endpoint name
+   * @returns {string} Current endpoint name
+   */
+  getCurrentEndpoint() {
+    return Object.entries(this.modelEndpoints)
+      .find(([_, url]) => url === this.baseUrl)?.[0] || 'localhost:11434'
   }
 
   /**
@@ -41,37 +54,26 @@ class OpenAIService {
    * @returns {Promise<boolean>}
    */
   async checkConnection() {
-    // Try the new model endpoint first, then fallbacks
-    const urlsToTry = [
-      'http://127.0.0.1:14501/v1', // New model endpoint
-      this.baseUrl,
-      `${window.location.origin}/v1`, // Proxy route
-    ]
-
-    for (const url of urlsToTry) {
-      try {
-        console.log(`Trying to connect to: ${url}`)
-        const response = await fetch(`${url}/models`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`
-          },
-        })
-        
-        if (response.ok) {
-          console.log(`Successfully connected to: ${url}`)
-          // Update baseUrl to the working one
-          this.baseUrl = url
-          return true
-        }
-      } catch (error) {
-        console.error(`Connection failed for ${url}:`, error)
+    try {
+      const basePath = this.getCurrentEndpoint() === 'localhost:11434' ? '/ollama' : '/remote'
+      console.log(`Trying to connect to: ${basePath}/models`)
+      const response = await fetch(`${this.baseUrl.replace('/chat/completions', '')}/models`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+      })
+      
+      if (response.ok) {
+        console.log(`Successfully connected to: ${this.baseUrl}`)
+        return true
       }
+      return false
+    } catch (error) {
+      console.error(`Connection failed for ${this.baseUrl}:`, error)
+      return false
     }
-
-    console.error('All connection attempts failed')
-    return false
   }
 
   /**
@@ -80,7 +82,8 @@ class OpenAIService {
    */
   async getModels() {
     try {
-      const response = await fetch(`${this.baseUrl}/models`, {
+      const basePath = this.getCurrentEndpoint() === 'localhost:11434' ? '/ollama' : '/remote'
+      const response = await fetch(`${basePath}/models`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -259,7 +262,7 @@ Never use formal section headers. Just write naturally and conversationally.`
         stream: false
       }
 
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -348,7 +351,7 @@ Never use formal section headers. Just write naturally and conversationally.`
         stream: true
       }
 
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

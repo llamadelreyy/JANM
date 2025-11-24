@@ -2,7 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 
-// https://vitejs.dev/config/
+// Replace with your ngrok host
+const NGROK_HOST = 'sarah-noninclinational-ingrately.ngrok-free.dev'
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -12,71 +14,45 @@ export default defineConfig({
   },
   server: {
     port: 2002,
-    host: true,
+    host: true, // Allows external devices to connect
+    hmr: {
+      protocol: 'wss', // Use secure WebSocket for ngrok
+      host: NGROK_HOST,
+      port: 443,       // Standard HTTPS port, required by ngrok
+    },
     allowedHosts: [
-      'e7b777cc0b96.ngrok-free.app',
-      'sarah-noninclinational-ingrately.ngrok-free.dev',
-      'regardless-stake-knife-materials.trycloudflare.com',
-      // Allow all ngrok hosts for development
-      /\.ngrok-free\.(app|dev)$/,
-      /\.ngrok\.io$/,
-      /\.ngrok\.app$/
+      /\.ngrok-free\.(app|dev)$/, // Allow all ngrok hosts
     ],
     proxy: {
-      '/chat-api': {
-        target: 'http://localhost:3002',
+      '/ollama': {
+        target: 'http://localhost:11434',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/chat-api/, '/api'),
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            console.log('Chat API Proxy error:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Proxying chat request to:', proxyReq.path);
-          });
-        }
+        rewrite: (path) => path.replace(/^\/ollama/, '/v1')
       },
-      '/api/chat': {
-        target: 'http://localhost:3002',
+      '/remote': {
+        target: 'http://60.51.17.97:9501',
         changeOrigin: true,
         secure: false,
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            console.log('Chat API Proxy error:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Proxying chat request to:', proxyReq.path);
-          });
-        }
-      },
-      '/api/whisper': {
-        target: 'http://localhost:3002',
-        changeOrigin: true,
-        secure: false,
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            console.log('Whisper API Proxy error:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Proxying whisper request to:', proxyReq.path);
-          });
-        }
-      },
-      '/v1': {
-        target: 'http://localhost:14501',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/v1/, '/v1'),
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            console.log('LLM API Proxy error:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Proxying LLM request to:', proxyReq.path);
-          });
-        }
-      },
+        rewrite: (path) => path.replace(/^\/remote/, '/v1')
+      }
     },
   },
+  headers: {
+    '/*': {
+      'Content-Security-Policy': [
+        // Allow scripts, inline code, evals, and your ngrok domain
+        "default-src 'self' http://localhost:11434 http://60.51.17.97:9501 https://*.ngrok-free.dev 'unsafe-eval' 'unsafe-inline'",
+
+        // Fonts from Google Fonts and ngrok domain
+        "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://*.ngrok-free.dev",
+
+        // Images from self, data URIs, SVGs, ngrok, and external assets
+        "img-src 'self' data: https://www.w3.org/2000/svg https://ngrok.com https://*.ngrok-free.dev",
+
+        // WebSocket and API connections
+        "connect-src 'self' ws://localhost:8081 wss://*.ngrok-free.dev http://localhost:11434 http://60.51.17.97:9501 https://*.ngrok-free.dev"
+      ].join('; ')
+    }
+  }
 })

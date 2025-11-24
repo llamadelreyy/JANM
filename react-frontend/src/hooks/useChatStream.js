@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import ollamaService from '../services/ollamaService';
 
 /**
  * Custom hook for handling chat streaming with Server-Sent Events
@@ -30,7 +31,14 @@ export function useChatStream() {
     try {
       // Use proxy route for better network compatibility
       // This routes through the frontend server, so only frontend port needs to be forwarded
-      const response = await fetch(`/chat-api/chat/stream`, {
+      // Get the current endpoint and use appropriate proxy path
+      const currentEndpoint = ollamaService.getCurrentEndpoint();
+      const proxyPath = currentEndpoint === 'localhost:11434'
+        ? '/ollama/chat/completions'
+        : '/remote/chat/completions';
+
+      console.log(`Sending chat request to: ${proxyPath}`);
+      const response = await fetch(proxyPath, {
         method: "POST",
         signal: abortRef.current.signal,
         headers: { 
@@ -38,16 +46,12 @@ export function useChatStream() {
           "Accept": "text/event-stream"
         },
         body: JSON.stringify({
-          model: "llm_model",
+          model: ollamaService.model,
           messages,
-          chat_template_kwargs: { 
-            enable_thinking: !!options?.enableThinking 
-          },
           temperature: options.temperature || 0.7,
-          top_p: options.top_p || 0.95,
-          top_k: options.top_k || 40,
+          top_p: options.top_p || 0.9,
           max_tokens: options.max_tokens || 8000,
-          stream: true,
+          stream: true
         }),
       });
 

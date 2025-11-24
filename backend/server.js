@@ -7,7 +7,8 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const LLM_URL = process.env.LLM_URL || 'http://60.51.17.97:14501/v1/chat/completions';
+const LOCAL_LLM_URL = 'http://localhost:11434/v1/chat/completions';
+const REMOTE_LLM_URL = 'http://60.51.17.97:9501/v1/chat/completions';
 const WHISPER_URL = process.env.WHISPER_URL || 'http://localhost:14801/v1/audio/transcriptions';
 
 // Middleware
@@ -34,6 +35,30 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     llm_url: LLM_URL 
   });
+  
+  // Models endpoint
+  app.get('/api/models', async (req, res) => {
+    try {
+      // Determine which LLM URL to use based on query parameter
+      const modelType = req.query.model || 'local';
+      const baseUrl = modelType === 'local' ? 'http://localhost:11434/v1' : 'http://60.51.17.97:9501/v1';
+      
+      const response = await axios({
+        method: 'GET',
+        url: `${baseUrl}/models`,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      res.json(response.data);
+    } catch (error) {
+      console.error('Error fetching models:', error);
+      res.status(error.response?.status || 500).json({
+        error: error.message || 'Failed to fetch models'
+      });
+    }
+  });
 });
 
 // SSE streaming endpoint for chat
@@ -56,7 +81,10 @@ app.post('/api/chat/stream', async (req, res) => {
       stream: true
     };
 
-    console.log('Proxying request to LLM:', LLM_URL);
+    // Determine which LLM URL to use based on query parameter
+    const modelType = req.query.model || 'local';
+    const LLM_URL = modelType === 'local' ? LOCAL_LLM_URL : REMOTE_LLM_URL;
+    console.log(`Proxying request to ${modelType} LLM:`, LLM_URL);
 
     // Create axios request with streaming
     const response = await axios({
