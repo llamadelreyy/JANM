@@ -14,6 +14,9 @@ const queryClient = new QueryClient({
       cacheTime: 1000 * 60 * 10, // 10 minutes
       retry: 1,
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchInterval: false, // Disable automatic refetching
     },
   },
 })

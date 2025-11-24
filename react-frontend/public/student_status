@@ -1,0 +1,57 @@
+|ss_status_code|ss_status_sts|ss_status_desc                          |ss_status_type|ss_status_reg|
+44,INACTIVE,Pre-Active,PREACTIVE,
+22,ACTIVE,Disertasi Disemak,LEAVE,
+05,INACTIVE,Pasif,REJECT,
+09,INACTIVE,Diberhentikan Kerana Gagal,TERMINATED,
+13,INACTIVE,Berhenti - Kesihatan,QUIT,
+29,ACTIVE,Tangguh Praktikum,LEAVE,
+51,ACTIVE,Meninggal Dunia - ANUMERTA,COMPLETED,
+52,INACTIVE,Diberhentikan - Belum Senat,PENDING,
+49,INACTIVE,Lintas Bitara,QUIT,
+45,INACTIVE,Pasif - PJJ,REJECT,
+21,INACTIVE,Diberhentikan,TERMINATED,
+33,INACTIVE,Diberhentikan - Mencapai Tempoh Maksimum,TERMINATED,
+01,INACTIVE,Tamat Pengajian,GRADUATED,N
+06,INACTIVE,Diberhentikan Kerana Tatatertib,TERMINATED,
+11,INACTIVE,Berhenti - Tukar Universiti,QUIT,
+20,ACTIVE,Digantung Pengajian,SUSPENDED,
+35,ACTIVE,Tangguh Pengajian-Psychiatric(Tidak kir),LEAVE,N
+27,INACTIVE,Berhenti - Mendapat Pekerjaan,QUIT,
+41,INACTIVE,Menangguh kursus ELP,PENDING,
+54,INACTIVE,Percubaan Sistem,PREACTIVE,
+04,INACTIVE,Tangguh Kemasukan,PENDING,
+08,ACTIVE,Praktikum,PRACTICUM,
+12,INACTIVE,Berhenti - Meninggal Dunia,QUIT,
+32,INACTIVE,Dalam proses perbicaraan tatatertib,SUSPENDED,
+23,ACTIVE,Dibenarkan Meneruskan Pengajian,ACTIVE,
+38,ACTIVE,Pertukaran Pelajar (Dalam),ACTIVE,N
+39,ACTIVE,Pertukaran Pelajar (IPTA Luar),ACTIVE,
+37,ACTIVE,Tangguh Pengajian-Bersalin (Kira),DEFER,N
+42,INACTIVE,Tamat Kursus ELP,PENDING,
+46,ACTIVE,Tangguh - PJJ,LEAVE,
+47,INACTIVE,Pasif Francais,PENDING,
+50,ACTIVE,"Tamat, Layak Konvo Tetapi Berhutang",COMPLETED,
+24,ACTIVE,Telah melengkapkan struktur pengajian,PENDING,
+30,INACTIVE,Menolak Tawaran,REJECT,
+02,ACTIVE,Aktif,ACTIVE,Y
+00,ACTIVE,"Tamat, Layak Konvo",COMPLETED,
+03,ACTIVE,Tangguh Pengajian (Tidak Kira Semester),LEAVE,N
+10,INACTIVE,Berhenti/ Menarik Diri,QUIT,
+14,INACTIVE,Berhenti - Kewangan,QUIT,
+16,ACTIVE,Tangguh Pengajian (Kira Semester),DEFER,N
+15,INACTIVE,Ditawarkan,OFFER,
+36,ACTIVE,Tangguh Pengajian-Accident (Tidak Kira),LEAVE,N
+43,INACTIVE,Berhenti/Menarik Diri Dari Kursus ELP,QUIT,
+48,INACTIVE,Gugur Status,TERMINATED,
+40,INACTIVE,Mengikuti kursus ELPC,PENDING,
+07,ACTIVE,Digantung Kerana Tatatertib,SUSPENDED,
+28,INACTIVE,Dibatalkan Tawaran,REJECT,
+34,INACTIVE,Tawaran Bersyarat,PENDING,N
+25,INACTIVE,Berhenti - Masalah Peribadi,QUIT,
+57,INACTIVE,Diberhentikan - Berhutang,TERMINATED,""
+58,INACTIVE,Mobiliti - Tamat Pengajian,COMPLETED,N
+55,INACTIVE,USM - UPSI Tamat Pengajian ,COMPLETED,N
+31,INACTIVE,Pertukaran Pelajar (Telah Selesai),COMPLETED,""
+53,INACTIVE,Aktif - Berhutang (Bayaran Ansuran),PENDING,""
+59,INACTIVE,APTIS-TAMAT,COMPLETED,N
+56,ACTIVE,Tangguh - BT (Belum Tamat-Kira Semester),DEFER,N

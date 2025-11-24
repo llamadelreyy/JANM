@@ -5,6 +5,9 @@ import { resolve } from 'path'
 // Replace with your ngrok host
 const NGROK_HOST = 'sarah-noninclinational-ingrately.ngrok-free.dev'
 
+// Check if we're running in ngrok environment
+const isNgrokEnv = process.env.NODE_ENV === 'production' || process.env.VITE_USE_NGROK === 'true'
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -15,14 +18,23 @@ export default defineConfig({
   server: {
     port: 2002,
     host: true, // Allows external devices to connect
-    hmr: {
+    hmr: isNgrokEnv ? {
       protocol: 'wss', // Use secure WebSocket for ngrok
       host: NGROK_HOST,
       port: 443,       // Standard HTTPS port, required by ngrok
+    } : {
+      // Local development - use default HMR settings
+      port: 2002,
     },
     allowedHosts: [
       /\.ngrok-free\.(app|dev)$/, // Allow all ngrok hosts
     ],
+    // Optimize file watching to prevent excessive refreshes
+    watch: {
+      usePolling: false,
+      interval: 1000,
+      ignored: ['**/node_modules/**', '**/.git/**']
+    },
     proxy: {
       '/ollama': {
         target: 'http://localhost:11434',

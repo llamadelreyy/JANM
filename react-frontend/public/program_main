@@ -1,0 +1,13 @@
+|pm_program_code|pm_program_desc                    |pm_id_prefix|pm_id_count|pm_hierarchy|pm_postgraduate|pm_pjj|pm_min_parttime|pm_max_parttime|pm_min_fulltime|pm_max_fulltime|pm_desc_eng         |pm_head_lvl|
+EDD,Doktor Pendidikan,Q,,2,Y,N,6,14,4,10,Doctor of Education,DOCTORATE
+PSK,Doktor Psikologi,K,,3,Y,N,10,14,6,12,Doctor of Psychology,DOCTORATE
+MASTER,Sarjana,M,,4,Y,Y,4,10,3,6,Master,MASTER
+PHD,Doktor Falsafah,P,,1,Y,Y,6,14,4,10,Doctor of Philosophy,DOCTORATE
+DIPLOMA,Diploma Pendidikan,L,15470,5,Y,Y,3,3,4,4,Diploma of Education,DPLI
+MOBILITY,Mobiliti Pelajar Pengajian Siswazah,S,,9,Y,N,,,,,,
+KJP,Kursus Jangka Pendek,T,733,8,N,,,,,,,
+DIPPEND,Diploma,E,36368,7,N,,,,,,,
+PRADIP,Pra Diploma,B,34,11,N,N,,,,,,
+DPSP,Diploma Pascasiswazah,L,1,5,Y,Y,3,3,4,4,Postgraduate Diploma,DPLI
+COND,Calon Sarjana/Kedoktoran,C,,10,Y,,,,,,,
+DEGREE,Ijazah Sarjana Muda,D,119921,6,N,Y,,,,,,
