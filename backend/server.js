@@ -6,18 +6,33 @@ const FormData = require('form-data');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
-const LOCAL_LLM_URL = 'http://localhost:11434/v1/chat/completions';
+const PORT = process.env.PORT || 3002;
+const LOCAL_LLM_URL = 'http://localhost:11434/api/generate';
 const REMOTE_LLM_URL = 'http://60.51.17.97:9501/v1/chat/completions';
 const WHISPER_URL = process.env.WHISPER_URL || 'http://localhost:14801/v1/audio/transcriptions';
 
-// Middleware
+// Middleware - CORS must allow ngrok origin
 app.use(cors({
-  origin: true, // Allow all origins for development
-  credentials: true,
+  origin: '*', // Allow all origins explicitly
+  credentials: false, // Don't use credentials with wildcard origin
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cache-Control']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cache-Control', 'ngrok-skip-browser-warning'],
+  exposedHeaders: ['Content-Type', 'Cache-Control']
 }));
+
+// Add explicit CORS headers for ngrok
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Cache-Control, ngrok-skip-browser-warning');
+  res.setHeader('ngrok-skip-browser-warning', 'true');
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 app.use(express.json({ limit: '10mb' }));
 
 // Configure multer for file uploads
@@ -30,35 +45,67 @@ const upload = multer({
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
-    llm_url: LLM_URL 
+    llm_url: process.env.LLM_URL
   });
-  
-  // Models endpoint
-  app.get('/api/models', async (req, res) => {
-    try {
-      // Determine which LLM URL to use based on query parameter
-      const modelType = req.query.model || 'local';
-      const baseUrl = modelType === 'local' ? 'http://localhost:11434/v1' : 'http://60.51.17.97:9501/v1';
-      
-      const response = await axios({
-        method: 'GET',
-        url: `${baseUrl}/models`,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-  
-      res.json(response.data);
-    } catch (error) {
-      console.error('Error fetching models:', error);
-      res.status(error.response?.status || 500).json({
-        error: error.message || 'Failed to fetch models'
-      });
+});
+
+// Test endpoint to verify backend is reachable
+app.get('/api/test', (req, res) => {
+  res.json({
+    status: 'Backend is working!',
+    timestamp: new Date().toISOString(),
+    port: PORT
+  });
+});
+
+// Models endpoint
+app.get('/api/models', async (req, res) => {
+  try {
+    const modelType = req.query.model || 'local';
+    console.log(`Fetching models for: ${modelType}`);
+    
+    if (modelType === 'local') {
+      // For Ollama, use /api/tags endpoint
+      try {
+        const response = await axios({
+          method: 'GET',
+          url: 'http://localhost:11434/api/tags',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        // Transform Ollama response to OpenAI format
+        const models = response.data.models || [];
+        res.json({
+          data: models.map(m => ({ id: m.name, object: 'model', ready: true }))
+        });
+      } catch (error) {
+        console.error('Local model fetch error:', error.message);
+        // Return empty list if Ollama is not available
+        res.json({ data: [] });
+      }
+    } else {
+      // For remote OpenAI-compatible server
+      try {
+        const response = await axios({
+          method: 'GET',
+          url: 'http://60.51.17.97:9501/v1/models',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        res.json(response.data);
+      } catch (error) {
+        console.error('Remote model fetch error:', error.message);
+        res.json({ data: [] });
+      }
     }
-  });
+  } catch (error) {
+    console.error('Error in models endpoint:', error);
+    res.status(500).json({
+      error: error.message || 'Failed to fetch models'
+    });
+  }
 });
 
 // SSE streaming endpoint for chat
@@ -75,16 +122,17 @@ app.post('/api/chat/stream', async (req, res) => {
       'Access-Control-Allow-Headers': 'Cache-Control'
     });
 
-    // Ensure the payload requests streaming
-    const payload = {
-      ...req.body,
-      stream: true
-    };
-
     // Determine which LLM URL to use based on query parameter
     const modelType = req.query.model || 'local';
     const LLM_URL = modelType === 'local' ? LOCAL_LLM_URL : REMOTE_LLM_URL;
     console.log(`Proxying request to ${modelType} LLM:`, LLM_URL);
+
+    // Both endpoints use OpenAI format - keep it simple
+    const payload = {
+      ...req.body,
+      model: req.body.model || 'qwen3-vl:32b',
+      stream: true
+    };
 
     // Create axios request with streaming
     const response = await axios({
@@ -113,16 +161,28 @@ app.post('/api/chat/stream', async (req, res) => {
         for (const line of lines) {
           if (!line.trim()) continue;
 
-          // Normalize to SSE format
-          let sseData;
-          if (line.startsWith('data: ')) {
-            sseData = line;
-          } else {
-            sseData = `data: ${line}`;
+          try {
+            const json = JSON.parse(line);
+            
+            // Transform Ollama /api/generate to OpenAI format
+            if (modelType === 'local' && json.response !== undefined) {
+              const transformed = {
+                choices: [{
+                  delta: { content: json.response || '' },
+                  finish_reason: json.done ? 'stop' : null
+                }]
+              };
+              res.write(`data: ${JSON.stringify(transformed)}\n\n`);
+            } else {
+              // Remote already in SSE format
+              const sseData = line.startsWith('data: ') ? line : `data: ${line}`;
+              res.write(`${sseData}\n\n`);
+            }
+          } catch (e) {
+            // If not JSON, forward as SSE
+            const sseData = line.startsWith('data: ') ? line : `data: ${line}`;
+            res.write(`${sseData}\n\n`);
           }
-
-          // Write the SSE data
-          res.write(`${sseData}\n\n`);
         }
       } catch (error) {
         console.error('Error processing chunk:', error);
@@ -183,6 +243,10 @@ app.post('/api/chat', async (req, res) => {
       ...req.body,
       stream: false
     };
+
+    // Determine which LLM URL to use based on query parameter
+    const modelType = req.query.model || 'local';
+    const LLM_URL = modelType === 'local' ? LOCAL_LLM_URL : REMOTE_LLM_URL;
 
     const response = await axios({
       method: 'POST',
@@ -271,7 +335,8 @@ app.use((error, req, res, next) => {
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Chat backend server running on port ${PORT}`);
-  console.log(`📡 LLM URL: ${LLM_URL}`);
+  console.log(`📡 Local LLM URL: ${LOCAL_LLM_URL}`);
+  console.log(`📡 Remote LLM URL: ${REMOTE_LLM_URL}`);
   console.log(`🎤 Whisper URL: ${WHISPER_URL}`);
   console.log(` Health check: http://0.0.0.0:${PORT}/health`);
   console.log(`💬 Chat stream: http://0.0.0.0:${PORT}/api/chat/stream`);

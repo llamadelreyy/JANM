@@ -17,17 +17,16 @@ export default defineConfig({
   },
   server: {
     port: 2002,
-    host: true, // Allows external devices to connect
+    host: '0.0.0.0', // Listen on all interfaces for external access
+    strictPort: true,
     hmr: isNgrokEnv ? {
-      protocol: 'wss', // Use secure WebSocket for ngrok
+      protocol: 'wss',
       host: NGROK_HOST,
-      port: 443,       // Standard HTTPS port, required by ngrok
-    } : {
-      // Local development - use default HMR settings
-      port: 2002,
-    },
+      clientPort: 443, // Client connects via HTTPS (443)
+    } : true, // Use default HMR for local development
     allowedHosts: [
       /\.ngrok-free\.(app|dev)$/, // Allow all ngrok hosts
+      'sarah-noninclinational-ingrately.ngrok-free.dev',
     ],
     // Optimize file watching to prevent excessive refreshes
     watch: {
@@ -36,6 +35,11 @@ export default defineConfig({
       ignored: ['**/node_modules/**', '**/.git/**']
     },
     proxy: {
+      '/api': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+        secure: false
+      },
       '/ollama': {
         target: 'http://localhost:11434',
         changeOrigin: true,

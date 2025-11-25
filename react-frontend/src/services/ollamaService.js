@@ -8,16 +8,21 @@ import ragService from './ragService'
 class OpenAIService {
   constructor() {
     this.model = import.meta.env.VITE_OPENAI_MODEL || 'llm_model'
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || 'dummy-key' // Some OpenAI-compatible APIs don't require a real key
+    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || 'dummy-key'
     
-    // Available model endpoints
+    // Detect if accessing through ngrok and use Vite proxy
+    const isNgrok = window.location.hostname.includes('ngrok')
+    const BACKEND_URL = isNgrok ? '' : 'http://localhost:3002'
+    
+    // Available model endpoints - use proxy when through ngrok, direct when local
     this.modelEndpoints = {
-      'localhost:11434': '/ollama/chat/completions',
-      '9501': '/remote/chat/completions'
+      'localhost:11434': `${BACKEND_URL}/api/chat/stream?model=local`,
+      '9501': `${BACKEND_URL}/api/chat/stream?model=remote`
     }
     
-    // Default to localhost model
-    this.baseUrl = this.modelEndpoints['localhost:11434']
+    // Track current endpoint - ALWAYS USE REMOTE
+    this.currentEndpoint = '9501'
+    this.baseUrl = this.modelEndpoints[this.currentEndpoint]
   }
 
   /**
@@ -37,16 +42,18 @@ class OpenAIService {
    * @returns {string} Current endpoint name
    */
   getCurrentEndpoint() {
-    return Object.entries(this.modelEndpoints)
-      .find(([_, url]) => url === this.baseUrl)?.[0] || 'localhost:11434'
+    return '9501' // Always remote
   }
 
   /**
    * Update the base URL (useful for manual configuration)
    * @param {string} newUrl - The new base URL
    */
-  setBaseUrl(newUrl) {
-    this.baseUrl = newUrl
+  setBaseUrl(endpoint) {
+    // Always use remote
+    this.currentEndpoint = '9501'
+    this.baseUrl = this.modelEndpoints['9501']
+    console.log(`Using remote endpoint: ${this.baseUrl}`)
   }
 
   /**
@@ -55,14 +62,14 @@ class OpenAIService {
    */
   async checkConnection() {
     try {
-      const basePath = this.getCurrentEndpoint() === 'localhost:11434' ? '/ollama' : '/remote'
-      console.log(`Trying to connect to: ${basePath}/models`)
-      const response = await fetch(`${this.baseUrl.replace('/chat/completions', '')}/models`, {
+      const modelType = 'remote' // Always remote
+      const url = `/api/models?model=${modelType}`
+      console.log(`Trying to connect to: ${url}`)
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
+          'Content-Type': 'application/json'
+        }
       })
       
       if (response.ok) {
@@ -82,12 +89,11 @@ class OpenAIService {
    */
   async getModels() {
     try {
-      const basePath = this.getCurrentEndpoint() === 'localhost:11434' ? '/ollama' : '/remote'
-      const response = await fetch(`${basePath}/models`, {
+      const modelType = 'remote' // Always remote
+      const response = await fetch(`/api/models?model=${modelType}`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
+          'Content-Type': 'application/json'
         }
       })
       
@@ -96,6 +102,8 @@ class OpenAIService {
       }
       
       const data = await response.json()
+      
+      // Both local and remote return data.data format
       return data.data || []
     } catch (error) {
       console.error('Failed to get models:', error)
@@ -110,7 +118,14 @@ class OpenAIService {
   async isModelAvailable() {
     try {
       const models = await this.getModels()
-      return models.some(model => model.id === this.model)
+      
+      // For local endpoint, check for any available model
+      if (this.getCurrentEndpoint() === 'localhost:11434') {
+        return models.length > 0
+      }
+      
+      // For remote endpoint, check for specific model
+      return models.some(model => model.id === 'llm_model')
     } catch (error) {
       console.error('Failed to check model availability:', error)
       return false
@@ -206,60 +221,37 @@ class OpenAIService {
    */
   async sendMessage(message, options = {}) {
     try {
-      // Search for relevant content using RAG
       const relevantContent = ragService.searchDocuments(message)
+      const isLocal = this.getCurrentEndpoint() === 'localhost:11434'
       
-      // Create messages array for OpenAI API format
-      const messages = [
-        {
-          role: 'system',
-          content: `ABSOLUTELY CRITICAL: DO NOT use "JAWAPAN:", "MAKLUMAT TAMBAHAN:", or "SUMBER:" in your response. These words are BANNED.
-
-WRONG FORMAT (DO NOT USE):
-JAWAPAN: Hello! How can I assist you today?
-MAKLUMAT TAMBAHAN:
-I'm here to help with any questions...
-SUMBER: database
-
-CORRECT FORMAT (USE THIS):
-Hello! I'm here to help you with any questions about government services, regulations, or municipal affairs. What would you like to know?
-
-You are a helpful conversational assistant. Write naturally like a human would speak.
-
-Available context from database:
-${relevantContent}
-
-INSTRUCTIONS:
-- Start responses immediately without headers
-- Write in natural conversation style
-- Be detailed and thorough using all available information
-- Use complete sentences and paragraphs
-- Include all relevant details, procedures, and requirements
-- Explain processes step by step when needed
-- Use plain text only - no special symbols or formatting
-- If greeting users, just say "Hello!" or "Hi there!" naturally
-- Provide comprehensive explanations making full use of available context
-
-Example good responses:
-"Hello! I can help you with information about government services and regulations. What specific topic are you interested in?"
-"To apply for that permit, you'll need to follow several steps. First, you'll need to gather these documents..."
-"The licensing process involves multiple stages. Let me walk you through each one in detail..."
-
-Never use formal section headers. Just write naturally and conversationally.`
-        },
-        {
-          role: 'user',
-          content: message
+      let requestBody
+      if (isLocal) {
+        // Local Ollama format
+        requestBody = {
+          model: this.model,
+          prompt: message,
+          system: `You are a helpful conversational assistant. Available context: ${relevantContent}`,
+          stream: false
         }
-      ]
-
-      const requestBody = {
-        model: this.model,
-        messages: messages,
-        temperature: options.temperature || 0.7,
-        top_p: options.top_p || 0.9,
-        max_tokens: options.max_tokens || 8000,
-        stream: false
+      } else {
+        // Remote OpenAI format
+        requestBody = {
+          model: this.model,
+          messages: [
+            {
+              role: 'system',
+              content: `You are a helpful conversational assistant. Available context: ${relevantContent}`
+            },
+            {
+              role: 'user',
+              content: message
+            }
+          ],
+          temperature: options.temperature || 0.7,
+          top_p: options.top_p || 0.9,
+          max_tokens: options.max_tokens || 8000,
+          stream: false
+        }
       }
 
       const response = await fetch(this.baseUrl, {
@@ -295,60 +287,37 @@ Never use formal section headers. Just write naturally and conversationally.`
    */
   async sendMessageStream(message, onChunk, options = {}) {
     try {
-      // Search for relevant content using RAG
       const relevantContent = ragService.searchDocuments(message)
+      const isLocal = this.getCurrentEndpoint() === 'localhost:11434'
       
-      // Create messages array for OpenAI API format
-      const messages = [
-        {
-          role: 'system',
-          content: `ABSOLUTELY CRITICAL: DO NOT use "JAWAPAN:", "MAKLUMAT TAMBAHAN:", or "SUMBER:" in your response. These words are BANNED.
-
-WRONG FORMAT (DO NOT USE):
-JAWAPAN: Hello! How can I assist you today?
-MAKLUMAT TAMBAHAN:
-I'm here to help with any questions...
-SUMBER: database
-
-CORRECT FORMAT (USE THIS):
-Hello! I'm here to help you with any questions about government services, regulations, or municipal affairs. What would you like to know?
-
-You are a helpful conversational assistant. Write naturally like a human would speak.
-
-Available context from database:
-${relevantContent}
-
-INSTRUCTIONS:
-- Start responses immediately without headers
-- Write in natural conversation style
-- Be detailed and thorough using all available information
-- Use complete sentences and paragraphs
-- Include all relevant details, procedures, and requirements
-- Explain processes step by step when needed
-- Use plain text only - no special symbols or formatting
-- If greeting users, just say "Hello!" or "Hi there!" naturally
-- Provide comprehensive explanations making full use of available context
-
-Example good responses:
-"Hello! I can help you with information about government services and regulations. What specific topic are you interested in?"
-"To apply for that permit, you'll need to follow several steps. First, you'll need to gather these documents..."
-"The licensing process involves multiple stages. Let me walk you through each one in detail..."
-
-Never use formal section headers. Just write naturally and conversationally.`
-        },
-        {
-          role: 'user',
-          content: message
+      let requestBody
+      if (isLocal) {
+        // Local Ollama format
+        requestBody = {
+          model: this.model,
+          prompt: message,
+          system: `You are a helpful conversational assistant. Available context: ${relevantContent}`,
+          stream: true
         }
-      ]
-
-      const requestBody = {
-        model: this.model,
-        messages: messages,
-        temperature: options.temperature || 0.7,
-        top_p: options.top_p || 0.9,
-        max_tokens: options.max_tokens || 120000,
-        stream: true
+      } else {
+        // Remote OpenAI format
+        requestBody = {
+          model: this.model,
+          messages: [
+            {
+              role: 'system',
+              content: `You are a helpful conversational assistant. Available context: ${relevantContent}`
+            },
+            {
+              role: 'user',
+              content: message
+            }
+          ],
+          temperature: options.temperature || 0.7,
+          top_p: options.top_p || 0.9,
+          max_tokens: options.max_tokens || 120000,
+          stream: true
+        }
       }
 
       const response = await fetch(this.baseUrl, {

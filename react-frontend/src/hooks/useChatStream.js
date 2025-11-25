@@ -29,16 +29,11 @@ export function useChatStream() {
     abortRef.current = new AbortController();
 
     try {
-      // Use proxy route for better network compatibility
-      // This routes through the frontend server, so only frontend port needs to be forwarded
-      // Get the current endpoint and use appropriate proxy path
-      const currentEndpoint = ollamaService.getCurrentEndpoint();
-      const proxyPath = currentEndpoint === 'localhost:11434'
-        ? '/ollama/chat/completions'
-        : '/remote/chat/completions';
-
-      console.log(`Sending chat request to: ${proxyPath}`);
-      const response = await fetch(proxyPath, {
+      // Use Vite proxy if through ngrok, direct if localhost
+      const url = ollamaService.baseUrl
+      console.log(`Sending chat request to: ${url}`);
+      
+      const response = await fetch(url, {
         method: "POST",
         signal: abortRef.current.signal,
         headers: { 
@@ -47,10 +42,7 @@ export function useChatStream() {
         },
         body: JSON.stringify({
           model: ollamaService.model,
-          messages,
-          temperature: options.temperature || 0.7,
-          top_p: options.top_p || 0.9,
-          max_tokens: options.max_tokens || 8000,
+          messages: messages,
           stream: true
         }),
       });
@@ -102,12 +94,6 @@ export function useChatStream() {
               const choice = json?.choices?.[0];
               const delta = choice?.delta ?? (choice?.text ? { content: choice.text } : {});
 
-              // Handle reasoning content (if your LLM supports it)
-              if (delta.reasoning_content) {
-                setThinking(prev => prev + delta.reasoning_content);
-              }
-
-              // Handle main content - this is where token-by-token rendering happens
               if (delta.content) {
                 setAnswer(prev => prev + delta.content);
               }

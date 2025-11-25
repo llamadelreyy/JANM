@@ -23,7 +23,7 @@ const AIChat = () => {
   const [inputMessage, setInputMessage] = useState('')
   const [isConnected, setIsConnected] = useState(false)
   const [connectionError, setConnectionError] = useState('')
-  const [selectedModel, setSelectedModel] = useState('localhost:11434')
+  const [selectedModel, setSelectedModel] = useState('9501')
   const [ragStatus, setRagStatus] = useState({ isLoaded: false, loading: true })
   const [showUrlConfig, setShowUrlConfig] = useState(false)
   const [customOllamaUrl, setCustomOllamaUrl] = useState('')
@@ -64,24 +64,14 @@ const AIChat = () => {
       setIsConnected(status.isConnected)
       
       if (status.isConnected) {
-        // Only check model availability for remote endpoint
-        if (selectedModel === '9501') {
-          if (status.isModelAvailable) {
-            setConnectionError('')
-          } else {
-            setConnectionError(`Model ${status.model} tidak tersedia. Sila pastikan model telah dimuat turun.`)
-          }
-        } else {
-          // For local endpoint, just clear any error if connected
-          setConnectionError('')
-        }
+        setConnectionError('')
       } else {
-        setConnectionError("Database tidak boleh diakses.")
+        setConnectionError("Tidak dapat menyambung ke pelayan.")
       }
     } catch (error) {
-      console.error('Failed to connect to Ollama:', error)
+      console.error('Failed to connect to service:', error)
       setIsConnected(false)
-      setConnectionError(`Gagal menyemak status Ollama service: ${error.message}`)
+      setConnectionError(`Gagal menyemak status: ${error.message}`)
     }
   }
 
@@ -98,12 +88,10 @@ const AIChat = () => {
   }
 
   const updateModel = (modelKey) => {
-    const endpoints = ollamaService.getModelEndpoints()
-    if (endpoints[modelKey]) {
-      ollamaService.setBaseUrl(endpoints[modelKey])
-      setSelectedModel(modelKey)
-      checkOllamaConnection()
-    }
+    // Always use remote model
+    ollamaService.setBaseUrl('9501')
+    setSelectedModel('9501')
+    checkOllamaConnection()
   }
 
   const updateOllamaUrl = () => {
@@ -507,14 +495,6 @@ Never use formal section headers. Just write naturally and conversationally.`
             )}
           </div>
           <div className="flex items-center space-x-2">
-            <select
-              value={selectedModel}
-              onChange={(e) => updateModel(e.target.value)}
-              className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="localhost:11434">Local Model (11434)</option>
-              <option value="9501">Remote Model (9501)</option>
-            </select>
             <button
               onClick={checkOllamaConnection}
               className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
