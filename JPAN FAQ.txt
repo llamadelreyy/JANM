@@ -1,0 +1,5 @@
+# JPAN FAQ Database
+
+This file contains the JPAN FAQ information that was previously in the react-frontend/public directory.
+
+Note: The actual JPAN FAQ content should be placed here for the RAG service to function properly.

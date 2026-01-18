@@ -1,7 +1,10 @@
 /**
- * Simple RAG Service for Database Search
+ * Simple RAG Service for Database Search - Node.js Version
  * Handles searching through organizational database files
  */
+
+import fs from 'fs/promises';
+import path from 'path';
 
 class RAGService {
   constructor() {
@@ -18,15 +21,19 @@ class RAGService {
   async loadDocuments() {
     try {
       // Load road transport regulations file
-      const roadTransportResponse = await fetch('/KAEDAH-KAEDAH PENGANGKUTAN JALAN.txt')
-      if (roadTransportResponse.ok) {
-        this.documents.roadTransportRegulations = await roadTransportResponse.text()
+      try {
+        const roadTransportPath = path.join(process.cwd(), 'KAEDAH-KAEDAH PENGANGKUTAN JALAN.txt')
+        this.documents.roadTransportRegulations = await fs.readFile(roadTransportPath, 'utf8')
+      } catch (error) {
+        console.warn('Road transport regulations file not found:', error.message)
       }
 
       // Load JPAN FAQ file
-      const jpanFAQResponse = await fetch('/JPAN FAQ.txt')
-      if (jpanFAQResponse.ok) {
-        this.documents.jpanFAQ = await jpanFAQResponse.text()
+      try {
+        const jpanFAQPath = path.join(process.cwd(), 'JPAN FAQ.txt')
+        this.documents.jpanFAQ = await fs.readFile(jpanFAQPath, 'utf8')
+      } catch (error) {
+        console.warn('JPAN FAQ file not found:', error.message)
       }
 
       this.isLoaded = true
