@@ -25,7 +25,7 @@ class OpenAIService {
     }
 
     // Use the new model endpoint
-    return 'http://60.51.17.97:9501/v1'
+    return 'http://60.51.17.97:11122/v1'
   }
 
   /**
@@ -43,7 +43,7 @@ class OpenAIService {
   async checkConnection() {
     // Try the new model endpoint first, then fallbacks
     const urlsToTry = [
-      'http://60.51.17.97:9501/v1', // New model endpoint
+      'http://60.51.17.97:11122/v1', // New model endpoint
       this.baseUrl,
       `${window.location.origin}/v1`, // Proxy route
     ]

@@ -6,7 +6,8 @@
 class RAGService {
   constructor() {
     this.documents = {
-      roadTransportRegulations: null
+      roadTransportRegulations: null,
+      jpanFAQ: null
     }
     this.isLoaded = false
   }
@@ -20,6 +21,12 @@ class RAGService {
       const roadTransportResponse = await fetch('/KAEDAH-KAEDAH PENGANGKUTAN JALAN.txt')
       if (roadTransportResponse.ok) {
         this.documents.roadTransportRegulations = await roadTransportResponse.text()
+      }
+
+      // Load JPAN FAQ file
+      const jpanFAQResponse = await fetch('/JPAN FAQ.txt')
+      if (jpanFAQResponse.ok) {
+        this.documents.jpanFAQ = await jpanFAQResponse.text()
       }
 
       this.isLoaded = true
@@ -119,9 +126,79 @@ class RAGService {
       })
     }
 
+    // Search in JPAN FAQ document
+    if (this.documents.jpanFAQ) {
+      const jpanFAQLines = this.documents.jpanFAQ.split('\n')
+      jpanFAQLines.forEach((line, index) => {
+        const lowerLine = line.toLowerCase()
+        const originalLine = line
+        
+        // Check for exact query match, search terms, or number matches
+        const hasExactMatch = lowerLine.includes(originalQuery)
+        const hasTermMatch = searchTerms.some(term => lowerLine.includes(term))
+        const hasNumberMatch = numberMatches.some(num => originalLine.includes(num))
+        
+        if (hasExactMatch || hasTermMatch || hasNumberMatch) {
+          // Include much more context to capture complete sections and lists
+          let start = Math.max(0, index - 10)
+          let end = Math.min(jpanFAQLines.length, index + 15)
+          
+          // Look for section boundaries to include complete information
+          // Find the start of the current section (look for headers, numbered items, etc.)
+          for (let i = index; i >= start; i--) {
+            const currentLine = jpanFAQLines[i]
+            if (currentLine.match(/^#{1,6}\s+/) || // Markdown headers
+                currentLine.match(/^\d+\.\s+/) || // Numbered lists
+                currentLine.match(/^[A-Z][^a-z]*:/) || // All caps headers with colon
+                currentLine.match(/^\*\*[^*]+\*\*/) || // Bold headers
+                currentLine.match(/^#{1,6}/) || // Hash headers
+                currentLine.match(/^[A-Za-z\s]+:$/) || // Simple headers ending with colon
+                currentLine.trim() === '') { // Empty line indicating section break
+              if (i < index - 2) { // Don't go too far back
+                start = i
+                break
+              }
+            }
+          }
+          
+          // Find the end of the current section (look for next section or natural break)
+          for (let i = index; i <= end; i++) {
+            const currentLine = jpanFAQLines[i] || ''
+            const nextLine = jpanFAQLines[i + 1] || ''
+            
+            // Look for natural section endings
+            if (i > index + 5 && (
+                nextLine.match(/^#{1,6}\s+/) || // Next header
+                nextLine.match(/^\d+\.\s+/) || // Next numbered item
+                nextLine.match(/^[A-Z][^a-z]*:/) || // Next all caps header
+                nextLine.match(/^\*\*[^*]+\*\*/) || // Next bold header
+                (currentLine.trim() === '' && nextLine.trim() === '') || // Double empty line
+                nextLine.match(/^[A-Za-z\s]+:$/) // Next simple header
+              )) {
+              end = i + 1
+              break
+            }
+          }
+          
+          const context = jpanFAQLines.slice(start, end).join('\n')
+          
+          let relevance = 0
+          if (hasExactMatch) relevance += 10
+          if (hasNumberMatch) relevance += 5
+          relevance += searchTerms.filter(term => lowerLine.includes(term)).length
+          
+          relevantContent.push({
+            source: 'JPAN FAQ Database',
+            content: context,
+            relevance: relevance
+          })
+        }
+      })
+    }
+
     // Sort by relevance and limit results
     relevantContent.sort((a, b) => b.relevance - a.relevance)
-    relevantContent = relevantContent.slice(0, 50) // Top 10 most relevant for better coverage
+    relevantContent = relevantContent.slice(0, 50) // Top 50 most relevant for better coverage
 
     if (relevantContent.length === 0) {
       return 'No relevant information found in the database.'
@@ -146,7 +223,9 @@ class RAGService {
     return {
       isLoaded: this.isLoaded,
       hasRoadTransportRegulations: !!this.documents.roadTransportRegulations,
-      roadTransportRegulationsSize: this.documents.roadTransportRegulations ? this.documents.roadTransportRegulations.length : 0
+      roadTransportRegulationsSize: this.documents.roadTransportRegulations ? this.documents.roadTransportRegulations.length : 0,
+      hasJpanFAQ: !!this.documents.jpanFAQ,
+      jpanFAQSize: this.documents.jpanFAQ ? this.documents.jpanFAQ.length : 0
     }
   }
 }
