@@ -8,8 +8,10 @@ import cors from 'cors'
 import bodyParser from 'body-parser'
 import dotenv from 'dotenv'
 import twilio from 'twilio'
+import multer from 'multer'
 import ollamaService from './services/ollamaService.js'
 import ragService from './services/ragService.js'
+import authService from './services/authService.js'
 
 // Load environment variables
 dotenv.config()
@@ -49,8 +51,32 @@ app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
+// Multer configuration for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+})
+
 // Store user sessions (in production, use Redis or database)
 const userSessions = new Map()
+
+// Authentication middleware
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' })
+  }
+  
+  const user = authService.validateToken(token)
+  if (!user) {
+    return res.status(403).json({ error: 'Invalid or expired token' })
+  }
+  
+  req.user = user
+  next()
+}
 
 // Initialize services
 async function initializeServices() {
@@ -258,10 +284,10 @@ Hantar /status untuk semak status sistem`
       const statusMessage = `📊 *Status Sistem*
 
 🤖 AI Service: ${ollamaStatus.isConnected ? '✅ Connected' : '❌ Disconnected'}
-📚 Database: ${ragStatus.isLoaded ? '✅ Loaded' : '❌ Not Loaded'}
+📚 Knowledge Base: ${ragStatus.isLoaded ? '✅ Loaded' : '❌ Not Loaded'}
 
 Model: ${ollamaStatus.model}
-Database Files: ${ragStatus.hasJpanFAQ ? 'JPAN FAQ ✅' : 'JPAN FAQ ❌'} ${ragStatus.hasRoadTransportRegulations ? 'Road Transport ✅' : 'Road Transport ❌'}`
+Uploaded Documents: ${ragStatus.uploadedDocumentsCount || 0}`
       
       try {
         await sendWhatsAppMessage(phoneNumber, statusMessage)
@@ -392,6 +418,125 @@ app.post('/test/send', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
+})
+
+// ==================== Authentication Endpoints ====================
+
+// Register new user
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { username, email, password } = req.body
+    
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Username, email, and password are required' })
+    }
+    
+    const user = await authService.register(username, email, password)
+    res.status(201).json({
+      success: true,
+      message: 'Registration successful',
+      user
+    })
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+// Login
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' })
+    }
+    
+    const user = await authService.login(email, password)
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user
+    })
+  } catch (error) {
+    res.status(401).json({ error: error.message })
+  }
+})
+
+// Logout
+app.post('/api/auth/logout', authenticateToken, async (req, res) => {
+  try {
+    const token = req.headers['authorization'].split(' ')[1]
+    await authService.logout(token)
+    res.json({ success: true, message: 'Logged out successfully' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Verify token
+app.get('/api/auth/verify', authenticateToken, (req, res) => {
+  res.json({
+    success: true,
+    user: req.user
+  })
+})
+
+// ==================== Document Management Endpoints ====================
+
+// Get all uploaded documents
+app.get('/api/documents', authenticateToken, async (req, res) => {
+  try {
+    const documents = await ragService.getUploadedDocuments()
+    const status = ragService.getStatus()
+    res.json({
+      success: true,
+      documents,
+      status
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Upload new document
+app.post('/api/documents/upload', authenticateToken, upload.single('document'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' })
+    }
+    
+    const result = await ragService.uploadDocument(req.file.originalname, req.file.buffer)
+    res.status(201).json({
+      success: true,
+      message: 'Document uploaded successfully',
+      document: result
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Delete document
+app.delete('/api/documents/:filename', authenticateToken, async (req, res) => {
+  try {
+    const result = await ragService.deleteDocument(req.params.filename)
+    res.json({
+      success: true,
+      message: 'Document deleted successfully',
+      document: result
+    })
+  } catch (error) {
+    res.status(404).json({ error: error.message })
+  }
+})
+
+// Get RAG status
+app.get('/api/documents/status', authenticateToken, (req, res) => {
+  const status = ragService.getStatus()
+  res.json({
+    success: true,
+    status
+  })
 })
 
 // Clean up old sessions (run every hour)
