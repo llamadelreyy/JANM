@@ -4,7 +4,15 @@
     "username": "admin",
     "email": "admin@sabah.gov.my",
     "password": "60fe74406e7f353ed979f350f2fbb6a2e8690a5fa7d1b0c32983d1d8b3f95f67",
-    "token": "3b8b79f66dc88463ed16aff25e49ed5066cd6a4f24076d7b45d84fadb871fe7c",
+    "token": "e21076ba0cdbbca00a1a3e44b2f71085f4b515e7e4aac8dfa2f9ac80c7c068b7",
     "createdAt": "2026-02-08T20:04:13.941Z"
+  },
+  {
+    "id": "1770583715628",
+    "username": "Admin",
+    "email": "admin@local.com",
+    "password": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "token": "8e12592c32cb2acdee2dbf75cc08ad3f610f55b5314a6a9a7c52246c165b5ca8",
+    "createdAt": "2026-02-08T20:48:35.628Z"
   }
 ]

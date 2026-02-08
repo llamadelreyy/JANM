@@ -25,11 +25,11 @@ class ApiService {
   }
 
   // Auth endpoints
-  async register(username, email, password) {
+  async register(name, email, password) {
     const response = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password })
+      body: JSON.stringify({ username: name, email, password })
     })
     const data = await response.json()
     if (!response.ok) {
@@ -80,7 +80,8 @@ class ApiService {
     if (!response.ok) {
       throw new Error(data.error || 'Failed to get documents')
     }
-    return data
+    // Return the documents array from the response
+    return data.documents || []
   }
 
   async uploadDocument(file) {
