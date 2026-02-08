@@ -21,13 +21,28 @@ const port = process.env.PORT || 8092
 const accountSid = process.env.TWILIO_ACCOUNT_SID
 const authToken = process.env.TWILIO_AUTH_TOKEN
 const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER
+const mockMode = process.env.MOCK_WHATSAPP_RESPONSES === 'true'
 
-if (!accountSid || !authToken || !whatsappNumber) {
-  console.error('Missing required Twilio environment variables')
-  process.exit(1)
+// Only initialize Twilio client if not in mock mode and credentials are provided
+let client = null
+if (!mockMode) {
+  if (!accountSid || !authToken || !whatsappNumber) {
+    console.error('Missing required Twilio environment variables')
+    console.log('Set MOCK_WHATSAPP_RESPONSES=true in .env to run in mock mode')
+    process.exit(1)
+  }
+  
+  try {
+    client = twilio(accountSid, authToken)
+    console.log('Twilio client initialized successfully')
+  } catch (error) {
+    console.error('Failed to initialize Twilio client:', error.message)
+    console.log('Set MOCK_WHATSAPP_RESPONSES=true in .env to run in mock mode')
+    process.exit(1)
+  }
+} else {
+  console.log('Running in MOCK mode - Twilio client not initialized')
 }
-
-const client = twilio(accountSid, authToken)
 
 // Middleware
 app.use(cors())
@@ -76,12 +91,18 @@ function getUserSession(phoneNumber) {
 // Helper function to send WhatsApp message
 async function sendWhatsAppMessage(to, message) {
   // If mock responses are enabled, just log the message
-  if (process.env.MOCK_WHATSAPP_RESPONSES === 'true') {
+  if (mockMode || process.env.MOCK_WHATSAPP_RESPONSES === 'true') {
     console.log('\n🤖 === MOCK WHATSAPP RESPONSE ===')
     console.log(`📱 To: ${to}`)
     console.log(`💬 Message: ${message}`)
     console.log('================================\n')
     return { sid: 'mock-response-sid' }
+  }
+
+  // Check if client is available
+  if (!client) {
+    console.error('Twilio client not initialized')
+    throw new Error('Twilio client not available')
   }
 
   try {
@@ -109,8 +130,8 @@ async function sendWhatsAppMessage(to, message) {
 
 // Helper function to format AI response for WhatsApp
 function formatForWhatsApp(text) {
-  // WhatsApp has a 4096 character limit per message
-  const maxLength = 4000
+  // WhatsApp has a 1600 character limit per message
+  const maxLength = 1500
   
   if (text.length <= maxLength) {
     return [text]
@@ -192,12 +213,9 @@ app.post('/webhook/whatsapp', async (req, res) => {
     
     // Handle special commands
     if (userMessage.toLowerCase() === '/start' || userMessage.toLowerCase() === 'hi' || userMessage.toLowerCase() === 'hello') {
-      const welcomeMessage = `Selamat datang ${session.userName}! 👋
+      const welcomeMessage = `Selamat datang! 👋
 
-Saya adalah Akak Trafik PDRM, pembantu AI yang boleh membantu anda dengan soalan berkaitan:
-• Peraturan pengangkutan jalan
-• FAQ JPAN
-• Maklumat trafik PDRM
+Saya adalah AROS Chatbot, pembantu AI yang boleh membantu anda dengan soalan berkaitan dengan Jabatan Perkhidmatan Awam Negeri Sabah!
 
 Hantar soalan anda dan saya akan cuba membantu! 🚗`
       
