@@ -22,7 +22,7 @@ class RAGService {
     try {
       // Load road transport regulations file
       try {
-        const roadTransportPath = path.join(process.cwd(), '../react-frontend/public/KAEDAH-KAEDAH PENGANGKUTAN JALAN.txt')
+        const roadTransportPath = path.join(process.cwd(), './public/KAEDAH-KAEDAH PENGANGKUTAN JALAN.txt')
         this.documents.roadTransportRegulations = await fs.readFile(roadTransportPath, 'utf8')
       } catch (error) {
         console.warn('Road transport regulations file not found:', error.message)
@@ -30,7 +30,7 @@ class RAGService {
 
       // Load JPAN FAQ file
       try {
-        const jpanFAQPath = path.join(process.cwd(), '../react-frontend/public/JPAN FAQ.txt')
+        const jpanFAQPath = path.join(process.cwd(), './public/JPAN FAQ.txt')
         this.documents.jpanFAQ = await fs.readFile(jpanFAQPath, 'utf8')
       } catch (error) {
         console.warn('JPAN FAQ file not found:', error.message)

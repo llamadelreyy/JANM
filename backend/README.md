@@ -36,9 +36,9 @@ OPENAI_MODEL=llm_model
 OPENAI_API_KEY=dummy-key
 ```
 
-3. Ensure document files are available:
-   - `../react-frontend/public/JPAN FAQ.txt`
-   - `../react-frontend/public/KAEDAH-KAEDAH PENGANGKUTAN JALAN.txt`
+3. Ensure document files are available in `./public/` directory:
+   - `./public/JPAN FAQ.txt`
+   - `./public/KAEDAH-KAEDAH PENGANGKUTAN JALAN.txt`
 
 ## Running the Server
 
