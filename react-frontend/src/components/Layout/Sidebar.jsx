@@ -1,24 +1,5 @@
-import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import {
-  ChevronDown,
-  ChevronRight,
-  Settings,
-  BarChart3,
-  FileText,
-  Users,
-  MapPin,
-  Building,
-  Shield,
-  FileBarChart,
-  X,
-  Home,
-  TrendingUp,
-  Database,
-  ClipboardList,
-  FileSpreadsheet,
-  MessageCircle
-} from 'lucide-react'
+import { X, MessageCircle } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import mdkLogo from '../../assets/jata-logo.png'
 
@@ -32,73 +13,15 @@ const menuItems = [
 ]
 
 const Sidebar = ({ isOpen, onClose }) => {
-  const [expandedItems, setExpandedItems] = useState([]) // No default expansion needed
   const location = useLocation()
-
-  const toggleExpanded = (itemId) => {
-    setExpandedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    )
-  }
 
   const isActive = (path) => {
     return location.pathname === path
   }
 
-  const isParentActive = (children) => {
-    if (!children) return false
-    return children.some(child => {
-      if (child.children) {
-        return isParentActive(child.children)
-      }
-      return isActive(child.path)
-    })
-  }
-
   const renderMenuItem = (item, level = 0) => {
-    const hasChildren = item.children && item.children.length > 0
-    const isExpanded = expandedItems.includes(item.id)
     const Icon = item.icon
     const paddingLeft = level === 0 ? 'pl-4' : level === 1 ? 'pl-8' : 'pl-12'
-
-    if (hasChildren) {
-      return (
-        <div key={item.id} className="mb-1">
-          <button
-            onClick={() => toggleExpanded(item.id)}
-            className={cn(
-              "w-full flex items-center justify-between py-3 text-left text-sm font-medium rounded-lg transition-all duration-200",
-              paddingLeft,
-              "pr-4",
-              isParentActive(item.children)
-                ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600"
-                : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-            )}
-          >
-            <div className="flex items-center space-x-3">
-              <Icon className={cn(
-                "h-5 w-5 flex-shrink-0",
-                isParentActive(item.children) ? "text-blue-600" : "text-slate-500"
-              )} />
-              <span className="font-medium">{item.name}</span>
-            </div>
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4 flex-shrink-0 text-slate-400" />
-            ) : (
-              <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-400" />
-            )}
-          </button>
-          
-          {isExpanded && (
-            <div className="mt-1 space-y-1 border-l-2 border-slate-100 ml-4">
-              {item.children.map(child => renderMenuItem(child, level + 1))}
-            </div>
-          )}
-        </div>
-      )
-    }
 
     return (
       <Link

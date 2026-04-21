@@ -7,7 +7,7 @@ import ragService from './ragService'
 
 class OpenAIService {
   constructor() {
-    this.model = import.meta.env.VITE_OPENAI_MODEL || 'llm_model'
+    this.model = import.meta.env.VITE_OPENAI_MODEL || 'qwen3.5-397b-a17b-fp8-instruct'
     this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || 'dummy-key' // Some OpenAI-compatible APIs don't require a real key
     
     // Auto-detect the appropriate base URL
@@ -25,7 +25,7 @@ class OpenAIService {
     }
 
     // Use the new model endpoint
-    return 'http://60.51.17.97:9501/v1'
+    return 'http://60.51.17.97:9999/v1'
   }
 
   /**
@@ -43,7 +43,7 @@ class OpenAIService {
   async checkConnection() {
     // Try the new model endpoint first, then fallbacks
     const urlsToTry = [
-      'http://60.51.17.97:9501/v1', // New model endpoint
+      'http://60.51.17.97:9999/v1', // New model endpoint
       this.baseUrl,
       `${window.location.origin}/v1`, // Proxy route
     ]
