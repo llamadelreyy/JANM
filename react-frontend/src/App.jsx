@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './stores/authStore'
 import Layout from './components/Layout/Layout'
 import ProtectedRoute from './components/Auth/ProtectedRoute'
+import PublicChatbot from './components/UI/PublicChatbot'
 
 // Import all pages
 import {
@@ -46,6 +47,9 @@ function App() {
           } 
         />
       </Routes>
+      
+      {/* Sticky Public Chatbot - Available on all pages */}
+      <PublicChatbot />
     </div>
   )
 }
