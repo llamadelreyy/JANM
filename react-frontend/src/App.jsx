@@ -7,6 +7,7 @@ import PublicChatbot from './components/UI/PublicChatbot'
 // Import all pages
 import {
   Login,
+  Landing,
   AIChat
 } from './pages/index.jsx'
 
@@ -20,7 +21,7 @@ function App() {
         <Route
           path="/"
           element={
-            isAuthenticated ? <Navigate to="/ai-chat" replace /> : <Login />
+            isAuthenticated ? <Navigate to="/ai-chat" replace /> : <Landing />
           }
         />
         <Route

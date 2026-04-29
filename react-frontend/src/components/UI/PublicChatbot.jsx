@@ -12,7 +12,7 @@ const PublicChatbot = () => {
     {
       id: 1,
       type: 'bot',
-      content: 'Selamat datang! Saya adalah Tango Kilo. Anda boleh bertanya tentang:\n\n• Cara bayaran saman online\n• Jenis saman yang boleh dibayar\n• Prosedur pembayaran saman individu\n• Prosedur pembayaran saman syarikat\n• Dan banyak lagi!',
+      content: 'Selamat datang! Saya adalah EduVoice. Anda boleh bertanya tentang:\n\n• Cara bayaran saman online\n• Jenis saman yang boleh dibayar\n• Prosedur pembayaran saman individu\n• Prosedur pembayaran saman syarikat\n• Dan banyak lagi!',
       timestamp: new Date()
     }
   ])
@@ -189,7 +189,7 @@ Selamat tinggal! Semoga sentiasa dalam perlindungan PDRM.`
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-6 right-6 z-50 w-32 h-32 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 overflow-hidden",
+          "fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 overflow-hidden",
           isOpen
             ? "bg-red-500 hover:bg-red-600"
             : "bg-white hover:scale-110",
@@ -199,11 +199,7 @@ Selamat tinggal! Semoga sentiasa dalam perlindungan PDRM.`
         {isOpen ? (
           <X className="w-7 h-7 text-white" />
         ) : (
-          <img
-            src={pengarahIcon}
-            alt="Chat"
-            className="w-36 h-36 object-contain"
-          />
+          <Bot className="w-10 h-10 text-blue-800" />
         )}
       </button>
 
@@ -213,11 +209,11 @@ Selamat tinggal! Semoga sentiasa dalam perlindungan PDRM.`
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-800 to-blue-900 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
-                <img src={pengarahIcon} alt="PDRM" className="w-12 h-12 object-contain" />
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <Bot className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h3 className="text-white font-semibold text-sm">Tango Kilo</h3>
+                <h3 className="text-white font-semibold text-sm">EduVoice</h3>
                 <div className="flex items-center space-x-1">
                   <div className={cn(
                     "w-2 h-2 rounded-full",
@@ -258,7 +254,7 @@ Selamat tinggal! Semoga sentiasa dalam perlindungan PDRM.`
                     {message.type === 'user' ? (
                       <User className="w-4 h-4 text-white" />
                     ) : (
-                      <img src={pengarahIcon} alt="Bot" className="w-6 h-6 object-contain" />
+                      <Bot className="w-5 h-5 text-blue-800" />
                     )}
                   </div>
                   <div className={cn(
@@ -284,8 +280,8 @@ Selamat tinggal! Semoga sentiasa dalam perlindungan PDRM.`
             {isLoading && (
               <div className="flex justify-start">
                 <div className="flex items-end space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                    <img src={pengarahIcon} alt="Bot" className="w-6 h-6 object-contain" />
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <Bot className="w-5 h-5 text-blue-800" />
                   </div>
                   <div className="px-4 py-2.5 rounded-2xl rounded-tl-sm bg-white shadow-sm border border-gray-100">
                     <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
