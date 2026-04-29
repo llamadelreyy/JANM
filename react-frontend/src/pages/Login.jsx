@@ -200,9 +200,6 @@ const Login = () => {
 
         {/* Footer */}
         <div className={`mt-8 text-center transform transition-all duration-700 delay-500 ${animatedElements.includes('footer') ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-          <p className="text-slate-500 text-xs">
-            © 2026 Polis Diraja Malaysia. Hak Cipta Terpelihara.
-          </p>
         </div>
       </div>
 

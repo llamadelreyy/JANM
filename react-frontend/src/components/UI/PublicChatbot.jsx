@@ -50,6 +50,74 @@ const PublicChatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  // Hardcoded responses for common questions
+  const hardcodedResponses = {
+    'roadtax': `Untuk renew roadtax, sila ke Jabatan Pengangkutan Jalan (JPJ) kerana urusan roadtax adalah under JPJ, bukan PDRM.
+
+Langkah-langkah renew roadtax:
+1. Pergi ke kaunter JPJ terdekat atau renew online di portal JPJ
+2. Bawa kad pengenalan (IC) dan dokumen kenderaan
+3. Sahkan cukai jalan yang perlu dibayar
+4. Bayar yuran renewal
+
+Untuk maklumat lanjut, layari www.jpj.gov.my atau hubungi talian JPJ.`,
+    
+    'insurans': `Prosedur tuntutan insurans selepas kemalangan:
+
+1. **Buat Laporan Polis** - Pergi ke balai polis terdekat untuk membuat laporan kemalangan. Dapatkan nombor laporan dan salinan laporan polis.
+
+2. **Dokumen yang diperlukan:**
+   - Salinan laporan polis
+   - Gambar lokasi kemalangan
+   - Maklumat pihak terlibat (nama, IC, no. kenderaan)
+   - Laporan medical (jika ada kecederaan)
+
+3. **Hubungi syarikat insurans** anda dalam 24 jam atau secepat mungkin untuk memaklumkan tentang kemalangan.
+
+4. **Serahkan dokumen** yang diperlukan kepada syarikat insurans untuk proses tuntutan.
+
+5. **Tunggu keputusan** tuntutan dari syarikat insurans.
+
+Untuk sebarang pertanyaan lanjut, sila hubungi balai polis terdekat.`,
+    
+    'balai': `Untuk mencari balai polis paling dekat dengan anda:
+
+1. **Hubungi 999** - Untuk kecemasan, hubungi talian kecemasan PDRM.
+
+2. **Laman Web PDRM** - Layari www.rmp.gov.my untuk mencari lokasi balai polis terdekat.
+
+3. **Aplikasi MyPDRM** - Muat turun aplikasi MyPDRM di telefon anda untuk mencari balai polis berdekatan.
+
+4. **Google Maps** - Cari "balai polis" di Google Maps untuk melihat balai polis terdekat dari lokasi anda.
+
+Selamat tinggal! Semoga sentiasa dalam perlindungan PDRM.`
+  }
+
+  const getHardcodedResponse = (message) => {
+    const lowerMessage = message.toLowerCase()
+    
+    // Check for roadtax renewal question
+    if (lowerMessage.includes('roadtax') ||
+        (lowerMessage.includes('renew') && lowerMessage.includes('cukai jalan')) ||
+        lowerMessage.includes('macam mana nak renew roadtax')) {
+      return hardcodedResponses.roadtax
+    }
+    
+    // Check for insurance claim question
+    if (lowerMessage.includes('insurans') &&
+        (lowerMessage.includes('accident') || lowerMessage.includes('kemalangan') || lowerMessage.includes('tuntutan'))) {
+      return hardcodedResponses.insurans
+    }
+    
+    // Check for nearest police station question
+    if (lowerMessage.includes('balai polis') &&
+        (lowerMessage.includes('dekat') || lowerMessage.includes('terdekat') || lowerMessage.includes('paling dekat'))) {
+      return hardcodedResponses.balai
+    }
+    
+    return null
+  }
+
   const sendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return
 
@@ -65,14 +133,28 @@ const PublicChatbot = () => {
     setIsLoading(true)
 
     try {
-      const response = await ollamaService.sendMessage(userMessage.content)
-      const botMessage = {
-        id: Date.now() + 1,
-        type: 'bot',
-        content: response,
-        timestamp: new Date()
+      // Check for hardcoded responses first
+      const hardcodedResponse = getHardcodedResponse(userMessage.content)
+      
+      if (hardcodedResponse) {
+        const botMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          content: hardcodedResponse,
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, botMessage])
+      } else {
+        // Use AI response if no hardcoded response matches
+        const response = await ollamaService.sendMessage(userMessage.content)
+        const botMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          content: response,
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, botMessage])
       }
-      setMessages(prev => [...prev, botMessage])
     } catch (error) {
       const errorMessage = {
         id: Date.now() + 1,
@@ -107,7 +189,7 @@ const PublicChatbot = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 overflow-hidden",
+          "fixed bottom-6 right-6 z-50 w-32 h-32 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 overflow-hidden",
           isOpen
             ? "bg-red-500 hover:bg-red-600"
             : "bg-white hover:scale-110",
@@ -120,7 +202,7 @@ const PublicChatbot = () => {
           <img
             src={pengarahIcon}
             alt="Chat"
-            className="w-14 h-14 object-contain"
+            className="w-36 h-36 object-contain"
           />
         )}
       </button>
